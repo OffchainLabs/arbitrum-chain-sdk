@@ -12,8 +12,8 @@ import {
   createRollupFetchCoreContracts,
   createTokenBridgeFetchTokenBridgeContracts,
   arbOwnerPublicActions,
-} from '@arbitrum/orbit-sdk';
-import { getParentChainFromId, sanitizePrivateKey } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { getParentChainFromId, sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 

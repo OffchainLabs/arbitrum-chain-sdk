@@ -1,4 +1,4 @@
-# Arbitrum Orbit SDK
+# Arbitrum Chain SDK
 
 ## Deploying a rollup using ETH as gas token
 

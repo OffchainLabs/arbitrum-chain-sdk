@@ -6,8 +6,8 @@ import {
   prepareChainConfig,
   createRollupPrepareTransactionRequest,
   createRollupPrepareTransactionReceipt,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey, generateChainId } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey, generateChainId } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 

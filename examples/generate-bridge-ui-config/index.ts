@@ -1,7 +1,7 @@
 import { createPublicClient, http } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 import { config } from 'dotenv';
-import { getBridgeUiConfig } from '@arbitrum/orbit-sdk';
+import { getBridgeUiConfig } from '@arbitrum/chain-sdk';
 import { writeFile } from 'fs/promises';
 config();
 

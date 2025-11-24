@@ -105,6 +105,9 @@
     // https://github.com/advisories/GHSA-jqfw-vq24-v9c3
     // any HTML files on the machine were served regardless of the server.fs settings
     //
+    // https://github.com/advisories/GHSA-93m4-6634-74q7
+    // the vite dev server (when exposed to the network with --host) can return denied files (on Windows)
+    //
     // vite is only used with vitest for running tests, and without exposing the dev server to the network
     //
     // from: vitest>vite
@@ -115,6 +118,7 @@
     "GHSA-859w-5945-r5v3",
     "GHSA-g4jq-h2w9-997c",
     "GHSA-jqfw-vq24-v9c3",
+    "GHSA-93m4-6634-74q7",
     // https://github.com/advisories/GHSA-v6h2-p8h4-qcjw
     // brace-expansion exposes a regular expression denial of service vulnerability
     // Only used in development (patch-package and ts-morph)

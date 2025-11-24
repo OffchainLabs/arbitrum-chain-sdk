@@ -1,4 +1,4 @@
-# Arbitrum Orbit SDK
+# Arbitrum Chain SDK
 
 ## Setup fee distributor contract
 

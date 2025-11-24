@@ -16,8 +16,8 @@ import {
   arbGasInfoPublicActions,
   parentChainIsArbitrum,
   ParentChainId,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 

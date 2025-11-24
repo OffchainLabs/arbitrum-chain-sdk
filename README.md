@@ -1,13 +1,13 @@
-# Arbitrum Orbit SDK
+# Arbitrum Chain SDK
 
-TypeScript SDK for building [Arbitrum Orbit](https://arbitrum.io/orbit) chains.
+TypeScript SDK for [building Arbitrum chains](https://docs.arbitrum.io/launch-arbitrum-chain/a-gentle-introduction).
 
 ## Installation
 
 Make sure you are using Node.js v18 or greater.
 
 ```bash
-yarn add @arbitrum/orbit-sdk viem@^1.20.0
+yarn add @arbitrum/chain-sdk viem@^1.20.0
 ```
 
 ## Run integration tests

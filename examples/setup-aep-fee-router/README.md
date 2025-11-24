@@ -1,4 +1,4 @@
-# Arbitrum Orbit SDK
+# Arbitrum Chain SDK
 
 ## Setup fee routing for Orbit chains settling to non-Arbitrum chains (including Ethereum)
 
