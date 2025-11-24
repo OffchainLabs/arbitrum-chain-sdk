@@ -76,7 +76,7 @@ async function main() {
     // Build genesis file generator container from Github
     console.log(`Build genesis file generator container...`);
     execSync(
-      `docker build -t genesis-file-generator https://github.com/OffchainLabs/genesis-file-generator.git#minify-chain-config`,
+      `docker build -t genesis-file-generator https://github.com/OffchainLabs/genesis-file-generator.git`,
     );
 
     // Generate genesis file
