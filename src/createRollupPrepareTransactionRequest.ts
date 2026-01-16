@@ -30,16 +30,16 @@ export type CreateRollupPrepareTransactionRequestParams<TChain extends Chain | u
       rollupCreatorVersion: 'v2.1';
     }
   | {
-      params: CreateRollupParams<'v3.1'>;
+      params: CreateRollupParams<'v3.2'>;
       account: Address;
       value?: bigint;
       publicClient: PublicClient<Transport, TChain>;
       gasOverrides?: TransactionRequestGasOverrides;
       rollupCreatorAddressOverride?: Address;
-      rollupCreatorVersion: 'v3.1';
+      rollupCreatorVersion: 'v3.2';
     }
   | {
-      params: CreateRollupParams<'v3.1'>;
+      params: CreateRollupParams<'v3.2'>;
       account: Address;
       value?: bigint;
       publicClient: PublicClient<Transport, TChain>;
@@ -55,7 +55,7 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
   publicClient,
   gasOverrides,
   rollupCreatorAddressOverride,
-  rollupCreatorVersion = 'v3.1',
+  rollupCreatorVersion = 'v3.2',
 }: CreateRollupPrepareTransactionRequestParams<TChain>) {
   const { chainId: parentChainId, isCustom: parentChainIsCustom } =
     validateParentChain(publicClient);
@@ -84,9 +84,9 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
         break;
       }
 
-      case 'v3.1': {
+      case 'v3.2': {
         const isFeeTokenPricerMissing = !isNonZeroAddress(
-          (params as CreateRollupParams<'v3.1'>).feeTokenPricer,
+          (params as CreateRollupParams<'v3.2'>).feeTokenPricer,
         );
 
         // fee token pricer is mandatory for custom gas token rollup chains

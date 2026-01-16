@@ -62,7 +62,7 @@ async function getTemplates<TChain extends Chain | undefined>(
     return [ethBasedTemplates[2], erc20BasedTemplates[2]] as const;
   }
 
-  // v3.1 - bridge, sequencerInbox, delayBufferableSequencerInbox, inbox, rollupEventInbox, outbox
+  // v3.1/v3.2 - bridge, sequencerInbox, delayBufferableSequencerInbox, inbox, rollupEventInbox, outbox
   // inbox at index 3
   const [ethBasedTemplates, erc20BasedTemplates] = await Promise.all([
     publicClient.readContract({
@@ -93,14 +93,14 @@ export type CreateRollupGetRetryablesFeesParams = {
  * @param params.account Account used for deploying the rollup.
  * @param params.nativeToken (Optional) The native token used for the rollup. Defaults to ETH.
  * @param params.maxFeePerGasForRetryables (Optional) `maxFeePerGas` to use for retryables. Defaults to 0.1 Gwei.
- * @param rollupCreatorVersion (Optional) Version of RollupCreator to use. Defaults to latest (currently v3.1).
+ * @param rollupCreatorVersion (Optional) Version of RollupCreator to use. Defaults to latest (currently v3.2).
  *
  * @returns Estimated fees.
  */
 export async function createRollupGetRetryablesFees<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
-  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.1',
+  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
   const deployHelperAddress = await publicClient.readContract({
     abi: rollupCreatorABI,
@@ -174,14 +174,14 @@ export async function createRollupGetRetryablesFees<TChain extends Chain | undef
  * @param params.account Account used for deploying the rollup.
  * @param params.nativeToken (Optional) The native token used for the rollup. Defaults to ETH.
  * @param params.maxFeePerGasForRetryables (Optional) `maxFeePerGas` to use for retryables. Defaults to 0.1 Gwei.
- * @param rollupCreatorVersion (Optional) Version of RollupCreator to use. Defaults to latest (currently v3.1).
+ * @param rollupCreatorVersion (Optional) Version of RollupCreator to use. Defaults to latest (currently v3.2).
  *
  * @returns Estimated fees.
  */
 export async function createRollupGetRetryablesFeesWithDefaults<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
-  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.1',
+  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
   try {
     return await createRollupGetRetryablesFees(
