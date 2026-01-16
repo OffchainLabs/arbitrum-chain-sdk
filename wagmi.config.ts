@@ -122,26 +122,6 @@ const contracts: ContractConfig[] = [
   },
   {
     name: 'RollupCreator',
-    version: '3.2',
-    address: {
-      // mainnet L1
-      [mainnet.id]: '0x0000000000000000000000000000000000000000',
-      // mainnet L2
-      [arbitrumOne.id]: '0x0000000000000000000000000000000000000000',
-      [arbitrumNova.id]: '0x0000000000000000000000000000000000000000',
-      [base.id]: '0x0000000000000000000000000000000000000000',
-      // testnet L1
-      [sepolia.id]: '0x0000000000000000000000000000000000000000',
-      // testnet L2
-      [arbitrumSepolia.id]: '0x04aFd6BaAd7805c3e6F8f86B9D3EE087F9FCa131',
-      [baseSepolia.id]: '0x0000000000000000000000000000000000000000',
-      // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
-      [nitroTestnodeL1.id]: '0x0000000000000000000000000000000000000000',
-      [nitroTestnodeL2.id]: '0x0000000000000000000000000000000000000000',
-    },
-  },
-  {
-    name: 'RollupCreator',
     version: '3.1',
     address: {
       // mainnet L1
@@ -158,6 +138,26 @@ const contracts: ContractConfig[] = [
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
       [nitroTestnodeL1.id]: '0xb562622f2D76F355D673560CB88c1dF6088702f1',
       [nitroTestnodeL2.id]: '0x1E08B9c3f94E9aBcc531f67F949d796eC76963b9',
+    },
+  },
+  {
+    name: 'RollupCreator',
+    version: '3.2',
+    address: {
+      // mainnet L1
+      [mainnet.id]: '0x0000000000000000000000000000000000000000',
+      // mainnet L2
+      [arbitrumOne.id]: '0x0000000000000000000000000000000000000000',
+      [arbitrumNova.id]: '0x0000000000000000000000000000000000000000',
+      [base.id]: '0x0000000000000000000000000000000000000000',
+      // testnet L1
+      [sepolia.id]: '0x0000000000000000000000000000000000000000',
+      // testnet L2
+      [arbitrumSepolia.id]: '0x04aFd6BaAd7805c3e6F8f86B9D3EE087F9FCa131',
+      [baseSepolia.id]: '0x0000000000000000000000000000000000000000',
+      // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
+      [nitroTestnodeL1.id]: '0x0000000000000000000000000000000000000000',
+      [nitroTestnodeL2.id]: '0x0000000000000000000000000000000000000000',
     },
   },
   {
