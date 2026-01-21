@@ -31,7 +31,7 @@ function loadApiKey(key: string): string {
   return apiKey;
 }
 
-function sleep(ms: number = 1_000) {
+function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -225,7 +225,7 @@ export async function assertContractAbisMatch(contract: ContractConfig) {
       // fetch abis for all chains and hash them
       .map(async ([chainId, address], index) => {
         // sleep to avoid rate limiting
-        await sleep(index * 500);
+        await sleep(index * 1_000);
 
         const abi = await fetchAbi(Number(chainId) as ParentChainId, address);
         const abiHash = hashMessage(JSON.stringify(abi));
@@ -275,7 +275,7 @@ export default async function () {
   for (const contract of contracts) {
     // await assertContractAbisMatch(contract);
     await updateContractWithImplementationIfProxy(contract);
-    await sleep(); // sleep to avoid rate limiting
+    await sleep(1_000); // sleep to avoid rate limiting
 
     const filePath =
       typeof contract.version !== 'undefined'
