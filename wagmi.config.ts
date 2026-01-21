@@ -145,16 +145,16 @@ const contracts: ContractConfig[] = [
     version: '3.2',
     address: {
       // mainnet L1
-      [mainnet.id]: '0x0000000000000000000000000000000000000000',
+      [mainnet.id]: '0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7',
       // mainnet L2
-      [arbitrumOne.id]: '0x0000000000000000000000000000000000000000',
-      [arbitrumNova.id]: '0x0000000000000000000000000000000000000000',
-      [base.id]: '0x0000000000000000000000000000000000000000',
+      [arbitrumOne.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
+      [arbitrumNova.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
+      [base.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
       // testnet L1
-      [sepolia.id]: '0x0000000000000000000000000000000000000000',
+      [sepolia.id]: '0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7',
       // testnet L2
-      [arbitrumSepolia.id]: '0x04aFd6BaAd7805c3e6F8f86B9D3EE087F9FCa131',
-      [baseSepolia.id]: '0x0000000000000000000000000000000000000000',
+      [arbitrumSepolia.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
+      [baseSepolia.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
       [nitroTestnodeL1.id]: '0xe97d64a4f13B3a61bbE9358788BCB4C398987F02',
       [nitroTestnodeL2.id]: '0xFd0A9f1FF82d4E635327700cE8Fe45cFdE6cB78C',
@@ -273,7 +273,7 @@ export default async function () {
   ];
 
   for (const contract of contracts) {
-    // await assertContractAbisMatch(contract);
+    await assertContractAbisMatch(contract);
     await updateContractWithImplementationIfProxy(contract);
     await sleep(1_000); // sleep to avoid rate limiting
 
