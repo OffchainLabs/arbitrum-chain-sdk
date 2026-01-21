@@ -1,6 +1,6 @@
 import { Client, Transport, Chain, ChainContract, Address } from 'viem';
 
-import { rollupCreatorAddress as rollupCreatorV3Dot2Address } from '../contracts/RollupCreator';
+import { rollupCreatorAddress as rollupCreatorV3Dot2Address } from '../contracts/RollupCreator/v3.2';
 import { rollupCreatorAddress as rollupCreatorV2Dot1Address } from '../contracts/RollupCreator/v2.1';
 
 import { validateParentChain } from '../types/ParentChain';

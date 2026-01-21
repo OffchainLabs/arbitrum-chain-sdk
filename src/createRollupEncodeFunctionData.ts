@@ -1,6 +1,6 @@
 import { encodeFunctionData, Hex } from 'viem';
 
-import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator';
+import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator/v3.2';
 import { rollupCreatorABI as rollupCreatorV2Dot1ABI } from './contracts/RollupCreator/v2.1';
 
 import {

@@ -1,7 +1,7 @@
 import { Address, Chain, PublicClient, Transport, decodeFunctionData, getAbiItem } from 'viem';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
-import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator';
+import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator/v3.2';
 import { rollupCreatorABI as rollupCreatorV3Dot1ABI } from './contracts/RollupCreator/v3.1';
 import { rollupCreatorABI as rollupCreatorV2Dot1ABI } from './contracts/RollupCreator/v2.1';
 import { rollupCreatorABI as rollupCreatorV1Dot1ABI } from './contracts/RollupCreator/v1.1';

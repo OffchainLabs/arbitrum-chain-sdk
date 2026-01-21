@@ -10,7 +10,7 @@ import {
   parseEther,
 } from 'viem';
 
-import { rollupCreatorABI } from './contracts/RollupCreator';
+import { rollupCreatorABI } from './contracts/RollupCreator/v3.2';
 import { bridgeCreatorABI as bridgeCreatorV3Dot1ABI } from './contracts/BridgeCreator';
 import { bridgeCreatorABI as bridgeCreatorV2Dot1ABI } from './contracts/BridgeCreator/v2.1';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
