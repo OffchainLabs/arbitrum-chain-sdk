@@ -50,6 +50,7 @@ export type CreateRollupPrepareDeploymentParamsConfigParams = Prettify<
  * @param {string} [params.wasmModuleRoot]
  * @param {string} [params.loserStakeEscrow]
  * @param {BigInt} [params.genesisBlockNum]
+ * @param {BigInt} [params.dataCostEstimate]
  * @param {Object} [params.sequencerInboxMaxTimeVariation]
  * @param {BigInt} [params.sequencerInboxMaxTimeVariation.delayBlocks]
  * @param {BigInt} [params.sequencerInboxMaxTimeVariation.futureBlocks]

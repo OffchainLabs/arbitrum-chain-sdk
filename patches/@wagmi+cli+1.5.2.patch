@@ -13,17 +13,30 @@ index 04a78d1..0eb6430 100644
      97: string;
      128: string;
 diff --git a/node_modules/@wagmi/cli/dist/plugins/index.js b/node_modules/@wagmi/cli/dist/plugins/index.js
-index 8e23da2..02b7c49 100644
+index 8e23da2..615b384 100644
 --- a/node_modules/@wagmi/cli/dist/plugins/index.js
 +++ b/node_modules/@wagmi/cli/dist/plugins/index.js
-@@ -386,12 +386,12 @@ function blockExplorer({
+@@ -12,6 +12,10 @@ import {
+ } from "../chunk-3XEDX7DR.js";
+ import "../chunk-UICA3PK6.js";
+ 
++function sleep(ms) {
++  return new Promise((resolve) => setTimeout(resolve, ms));
++}
++
+ // src/plugins/actions.ts
+ import { pascalCase } from "change-case";
+ import dedent from "dedent";
+@@ -386,12 +390,14 @@ function blockExplorer({
          throw new Error(parsed.data.result);
        return parsed.data.result;
      },
 -    request({ address }) {
-+    request({ address, implementation }) {
++    async request({ address, implementation }) {
        if (!address)
          throw new Error("address is required");
++      // etherscan was rate-limiting us, had to add this
++      await sleep(1000);
        return {
          url: `${baseUrl}?module=contract&action=getabi&address=${getAddress({
 -          address
@@ -31,7 +44,7 @@ index 8e23da2..02b7c49 100644
          })}${apiKey ? `&apikey=${apiKey}` : ""}`
        };
      }
-@@ -1386,7 +1386,9 @@ var apiUrls = {
+@@ -1386,7 +1392,9 @@ var apiUrls = {
    [137]: "https://api.polygonscan.com/api",
    [80001]: "https://api-testnet.polygonscan.com/api",
    [42161]: "https://api.arbiscan.io/api",
@@ -41,7 +54,7 @@ index 8e23da2..02b7c49 100644
    [56]: "https://api.bscscan.com/api",
    [97]: "https://api-testnet.bscscan.com/api",
    [128]: "https://api.hecoinfo.com/api",
-@@ -1409,16 +1411,16 @@ function etherscan({
+@@ -1409,16 +1417,16 @@ function etherscan({
      address: typeof x.address === "string" ? { [chainId]: x.address } : x.address
    }));
    return blockExplorer({

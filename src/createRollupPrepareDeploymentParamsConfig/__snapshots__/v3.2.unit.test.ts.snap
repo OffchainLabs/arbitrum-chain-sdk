@@ -13,6 +13,7 @@ exports[`creates a config for a chain on top of a custom parent chain 1`] = `
   "chainId": 123n,
   "challengeGracePeriodBlocks": 2n,
   "confirmPeriodBlocks": 1n,
+  "dataCostEstimate": 0n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {
@@ -65,6 +66,7 @@ exports[`creates config for a chain on top of arbitrum one with defaults 1`] = `
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 14400n,
   "confirmPeriodBlocks": 50400n,
+  "dataCostEstimate": 0n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {
@@ -117,6 +119,7 @@ exports[`creates config for a chain on top of arbitrum one with overrides 1`] = 
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 4201n,
   "confirmPeriodBlocks": 4200n,
+  "dataCostEstimate": 1n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {
@@ -169,6 +172,7 @@ exports[`creates config for a chain on top of arbitrum sepolia with defaults 1`]
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 14400n,
   "confirmPeriodBlocks": 150n,
+  "dataCostEstimate": 0n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {
@@ -221,6 +225,7 @@ exports[`creates config for a chain on top of arbitrum sepolia with overrides 1`
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 4201n,
   "confirmPeriodBlocks": 4200n,
+  "dataCostEstimate": 1n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {
@@ -273,6 +278,7 @@ exports[`creates config for a chain on top of base sepolia with defaults 1`] = `
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 86400n,
   "confirmPeriodBlocks": 900n,
+  "dataCostEstimate": 0n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {
@@ -325,6 +331,7 @@ exports[`creates config for a chain on top of base with defaults 1`] = `
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 86400n,
   "confirmPeriodBlocks": 302400n,
+  "dataCostEstimate": 0n,
   "genesisAssertionState": {
     "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "globalState": {

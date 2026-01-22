@@ -17,19 +17,19 @@ const baseParams = {
   chainId: 69_420n,
 };
 
-it('no version parameter defaults to v3.1 result', () => {
+it('no version parameter defaults to v3.2 result', () => {
   const result = createRollupPrepareDeploymentParamsConfig(client, baseParams);
 
   expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult>();
-  expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v3.1'>>();
+  expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v3.2'>>();
   expectTypeOf(result).not.toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v2.1'>>();
 });
 
-it('explicit v3.1 parameter uses v3.1 result', () => {
-  const result = createRollupPrepareDeploymentParamsConfig(client, baseParams, 'v3.1');
+it('explicit v3.2 parameter uses v3.2 result', () => {
+  const result = createRollupPrepareDeploymentParamsConfig(client, baseParams, 'v3.2');
 
   expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult>();
-  expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v3.1'>>();
+  expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v3.2'>>();
   expectTypeOf(result).not.toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v2.1'>>();
 });
 
@@ -37,11 +37,11 @@ it('explicit v2.1 parameter uses v2.1 result', () => {
   const result = createRollupPrepareDeploymentParamsConfig(client, baseParams, 'v2.1');
 
   expectTypeOf(result).not.toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult>();
-  expectTypeOf(result).not.toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v3.1'>>();
+  expectTypeOf(result).not.toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v3.2'>>();
   expectTypeOf(result).toEqualTypeOf<CreateRollupPrepareDeploymentParamsConfigResult<'v2.1'>>();
 });
 
-it('no version parameter defaults to v3.1 result', () => {
+it('no version parameter defaults to v3.2 result', () => {
   // this should work
   createRollupPrepareDeploymentParamsConfig(client, {
     ...baseParams,
@@ -51,25 +51,25 @@ it('no version parameter defaults to v3.1 result', () => {
   // this should not work
   createRollupPrepareDeploymentParamsConfig(client, {
     ...baseParams,
-    // @ts-expect-error - extraChallengeTimeBlocks not available in v3.1
+    // @ts-expect-error - extraChallengeTimeBlocks not available in v3.2
     extraChallengeTimeBlocks: 1n,
   });
 });
 
-it('explicit v3.1 parameter uses v3.1 params', () => {
+it('explicit v3.2 parameter uses v3.2 params', () => {
   // this should work
   createRollupPrepareDeploymentParamsConfig(
     client,
     { ...baseParams, challengeGracePeriodBlocks: 1n },
-    'v3.1',
+    'v3.2',
   );
 
   // this should not work
   createRollupPrepareDeploymentParamsConfig(
     client,
-    // @ts-expect-error - extraChallengeTimeBlocks not available in v3.1
+    // @ts-expect-error - extraChallengeTimeBlocks not available in v3.2
     { ...baseParams, extraChallengeTimeBlocks: 1n },
-    'v3.1',
+    'v3.2',
   );
 });
 
