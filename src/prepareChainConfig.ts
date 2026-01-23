@@ -25,7 +25,7 @@ export const defaults = {
     EnableArbOS: true,
     AllowDebugPrecompiles: false,
     DataAvailabilityCommittee: false,
-    InitialArbOSVersion: 40,
+    InitialArbOSVersion: 51,
     GenesisBlockNum: 0,
     MaxCodeSize: 24_576,
     MaxInitCodeSize: 49_152,

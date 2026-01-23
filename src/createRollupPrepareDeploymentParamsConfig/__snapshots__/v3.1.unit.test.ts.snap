@@ -9,7 +9,7 @@ exports[`creates a config for a chain on top of a custom parent chain 1`] = `
     "replenishRateInBasis": 500n,
     "threshold": 4294967296n,
   },
-  "chainConfig": "{\\"chainId\\":123,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":40,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
+  "chainConfig": "{\\"chainId\\":123,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":51,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
   "chainId": 123n,
   "challengeGracePeriodBlocks": 2n,
   "confirmPeriodBlocks": 1n,
@@ -48,7 +48,7 @@ exports[`creates a config for a chain on top of a custom parent chain 1`] = `
   },
   "stakeToken": "0xabaF3D9f5cbDcE54cDc43b429d8f7154A3E19Afa",
   "validatorAfkBlocks": 4n,
-  "wasmModuleRoot": "0xdb698a2576298f25448bc092e52cf13b1e24141c997135d70f217d674bbeb69a",
+  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
 }
 `;
 
@@ -61,7 +61,7 @@ exports[`creates config for a chain on top of arbitrum one with defaults 1`] = `
     "replenishRateInBasis": 500n,
     "threshold": 4294967296n,
   },
-  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":40,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
+  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":51,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 14400n,
   "confirmPeriodBlocks": 50400n,
@@ -100,7 +100,7 @@ exports[`creates config for a chain on top of arbitrum one with defaults 1`] = `
   },
   "stakeToken": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
   "validatorAfkBlocks": 201600n,
-  "wasmModuleRoot": "0xdb698a2576298f25448bc092e52cf13b1e24141c997135d70f217d674bbeb69a",
+  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
 }
 `;
 
@@ -165,7 +165,7 @@ exports[`creates config for a chain on top of arbitrum sepolia with defaults 1`]
     "replenishRateInBasis": 500n,
     "threshold": 4294967296n,
   },
-  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":40,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
+  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":51,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 14400n,
   "confirmPeriodBlocks": 150n,
@@ -204,7 +204,7 @@ exports[`creates config for a chain on top of arbitrum sepolia with defaults 1`]
   },
   "stakeToken": "0x980B62Da83eFf3D4576C647993b0c1D7faf17c73",
   "validatorAfkBlocks": 201600n,
-  "wasmModuleRoot": "0xdb698a2576298f25448bc092e52cf13b1e24141c997135d70f217d674bbeb69a",
+  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
 }
 `;
 
@@ -269,7 +269,7 @@ exports[`creates config for a chain on top of base sepolia with defaults 1`] = `
     "replenishRateInBasis": 500n,
     "threshold": 4294967296n,
   },
-  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":40,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
+  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":51,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 86400n,
   "confirmPeriodBlocks": 900n,
@@ -308,7 +308,7 @@ exports[`creates config for a chain on top of base sepolia with defaults 1`] = `
   },
   "stakeToken": "0x4200000000000000000000000000000000000006",
   "validatorAfkBlocks": 1209600n,
-  "wasmModuleRoot": "0xdb698a2576298f25448bc092e52cf13b1e24141c997135d70f217d674bbeb69a",
+  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
 }
 `;
 
@@ -321,7 +321,7 @@ exports[`creates config for a chain on top of base with defaults 1`] = `
     "replenishRateInBasis": 500n,
     "threshold": 4294967296n,
   },
-  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":40,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
+  "chainConfig": "{\\"chainId\\":69420,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":51,\\"InitialChainOwner\\":\\"0xd8da6bf26964af9d7eed9e03e53415d37aa96045\\",\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152}}",
   "chainId": 69420n,
   "challengeGracePeriodBlocks": 86400n,
   "confirmPeriodBlocks": 302400n,
@@ -360,6 +360,6 @@ exports[`creates config for a chain on top of base with defaults 1`] = `
   },
   "stakeToken": "0x4200000000000000000000000000000000000006",
   "validatorAfkBlocks": 1209600n,
-  "wasmModuleRoot": "0xdb698a2576298f25448bc092e52cf13b1e24141c997135d70f217d674bbeb69a",
+  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
 }
 `;
