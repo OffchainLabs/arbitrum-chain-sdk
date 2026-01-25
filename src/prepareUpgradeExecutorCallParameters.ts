@@ -10,8 +10,9 @@ import {
   upgradeExecutorEncodeFunctionData,
   UpgradeExecutorFunctionName,
 } from './upgradeExecutorEncodeFunctionData';
+import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
 
-type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI;
+type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI | typeof upgradeExecutorABI;
 type FunctionName<TAbi extends ABIs> = GetFunctionName<TAbi>;
 
 type EncodeFunctionDataParameters<
