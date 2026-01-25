@@ -5,13 +5,14 @@ import {
 } from 'viem';
 import { GetFunctionName } from './types/utils';
 import { sequencerInboxABI } from './contracts/SequencerInbox';
+import { rollupABI } from './contracts/Rollup';
 import { arbOwnerABI } from './contracts/ArbOwner';
 import {
   upgradeExecutorEncodeFunctionData,
   UpgradeExecutorFunctionName,
 } from './upgradeExecutorEncodeFunctionData';
 
-type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI;
+type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI | typeof rollupABI;
 type FunctionName<TAbi extends ABIs> = GetFunctionName<TAbi>;
 
 type EncodeFunctionDataParameters<
