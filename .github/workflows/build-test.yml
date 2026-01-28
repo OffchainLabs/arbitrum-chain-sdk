@@ -110,7 +110,7 @@ jobs:
       - name: Set up the local node
         uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
         with:
-          nitro-testnode-ref: release
+          nitro-testnode-ref: cb81aef3d596a22c6b1a9196f921f279fa81044f
           nitro-contracts-branch: ${{ matrix.config.nitro-contracts-branch }}
           args: ${{ matrix.config.args }}
 
