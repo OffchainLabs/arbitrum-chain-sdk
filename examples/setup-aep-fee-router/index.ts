@@ -234,7 +234,7 @@ async function main() {
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setInfraFeeAccount',
       args: [feeCollectorToRewardDistributor['infraFeeAccount']],
-      upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
+      upgradeExecutor: false,
       account: chainOwner.address,
     });
   await orbitChainPublicClient.sendRawTransaction({
@@ -248,7 +248,7 @@ async function main() {
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setNetworkFeeAccount',
       args: [feeCollectorToRewardDistributor['networkFeeAccount']],
-      upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
+      upgradeExecutor: false,
       account: chainOwner.address,
     });
   await orbitChainPublicClient.sendRawTransaction({
@@ -262,7 +262,7 @@ async function main() {
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setL1PricingRewardRecipient',
       args: [feeCollectorToRewardDistributor['parentChainRewardRecipient']],
-      upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
+      upgradeExecutor: false,
       account: chainOwner.address,
     });
   await orbitChainPublicClient.sendRawTransaction({
