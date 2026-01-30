@@ -153,7 +153,7 @@ async function main() {
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setInfraFeeAccount',
       args: [rewardDistributorAddress],
-      upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
+      upgradeExecutor: false,
       account: chainOwner.address,
     });
 
