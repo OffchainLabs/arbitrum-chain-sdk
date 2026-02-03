@@ -53,6 +53,38 @@ Routing contracts owned by the Arbitrum Foundation can be seen in the [AEP docum
    yarn dev
    ```
 
+## Verification of contract code
+
+Since these contracts were compiled with Foundry, to verify the contract code on a block explorer, the Foundry tool must also be used. Follow these instructions to verify them:
+
+1. Clone the [fund-distribution-contracts](https://github.com/OffchainLabs/fund-distribution-contracts#installation) repository and install the dependencies
+
+2. Gather the required information from the contract (mainly the constructor arguments) and run the verification command. Following is an example script to verify the `ArbChildToParentRewardRouter`:
+
+```shell
+VERIFIER=
+VERIFIER_URL=
+RPC_URL=
+CHAIN_ID=
+ROUTER=
+
+# 0x93a80 refers here to the `minDistributionIntervalSeconds` value
+CONSTRUCTOR_DATA=$(\
+    cast abi-encode "constructor(address,uint256,address,address,address)" \
+    $(cast call $ROUTER "parentChainTarget()(address)" -r $RPC_URL) \
+    $(cast to-dec 0x93a80) \
+    $(cast call $ROUTER "parentChainTokenAddress()(address)" -r $RPC_URL) \
+    $(cast call $ROUTER "childChainTokenAddress()(address)" -r $RPC_URL) \
+    $(cast call $ROUTER "childChainGatewayRouter()(address)" -r $RPC_URL) \
+)
+
+forge verify-contract $ROUTER \
+    --chain-id $CHAIN_ID -r $RPC_URL --watch \
+    --constructor-args $CONSTRUCTOR_DATA \
+    --verifier $VERIFIER --verifier-url $VERIFIER_URL -vvvvv \
+    ./src/FeeRouter/ArbChildToParentRewardRouter.sol:ArbChildToParentRewardRouter
+```
+
 ## References
 
 - [Arbitrum Expansion Program governance forum post](https://forum.arbitrum.foundation/t/the-arbitrum-expansion-program-and-developer-guild/20722)
