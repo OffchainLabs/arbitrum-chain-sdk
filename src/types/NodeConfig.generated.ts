@@ -495,8 +495,6 @@ export type NodeConfig = {
         'min-tip-cap-gwei'?: number;
         /** the maximum probable reorg depth, used to determine when a transaction will no longer likely need replaced-by-fee (default 1) */
         'nonce-rbf-soft-confs'?: number;
-        /** if the parent chain supports 4844 blobs and they're well priced, post EIP-4844 blobs */
-        'post-4844-blobs'?: boolean;
         'redis-signer'?: {
           'dangerous'?: {
             /** disable message signature verification */
@@ -738,8 +736,6 @@ export type NodeConfig = {
         /** name identifier for cosmetic purposes (default "default-validator") */
         'validator-name'?: string;
       };
-      /** define the bold validator staker strategy, either watchtower, defensive, stakeLatest, or makeNodes (default "Watchtower") */
-      'strategy'?: string;
       /** only track challenges/edges with these parent assertion hashes */
       'track-challenge-parent-assertion-hashes'?: string[];
     };
@@ -815,10 +811,6 @@ export type NodeConfig = {
         'backends'?: string;
         /** enable storage of sequencer batch data from a list of RPC endpoints; this should only be used by the batch poster and not in combination with other DAS storage types */
         'enable'?: boolean;
-        /** enable data to be sent to DAS in chunks instead of all at once (default true) */
-        'enable-chunked-store'?: boolean;
-        /** maximum HTTP POST body size to use for individual batch chunks, including JSON RPC overhead and an estimated overhead of 512B of headers (default 524288) */
-        'max-store-chunk-body-size'?: number;
       };
       /** parent chain address of SequencerInbox contract */
       'sequencer-inbox-address'?: string;
@@ -1067,8 +1059,6 @@ export type NodeConfig = {
       'data-poster'?: {
         /** if true, don't put transactions in the mempool that spend a total greater than the batch poster's balance (default true) */
         'allocate-mempool-balance'?: boolean;
-        /** comma-separated list of durations since first posting a blob transaction to attempt a replace-by-fee (default [5m0s,10m0s,30m0s,1h0m0s,4h0m0s,8h0m0s,16h0m0s,22h0m0s]) */
-        'blob-tx-replacement-times'?: string[];
         'dangerous'?: {
           /** clear database storage */
           'clear-dbstorage'?: boolean;
@@ -1097,8 +1087,6 @@ export type NodeConfig = {
         };
         /** encodes items in a legacy way (as it was before dropping generics) */
         'legacy-storage-encoding'?: boolean;
-        /** the maximum tip cap to post EIP-4844 blob carrying transactions at (default 1) */
-        'max-blob-tx-tip-cap-gwei'?: number;
         /** the maximum multiple of the current price to bid for a transaction's fees (may be exceeded due to min rbf increase, 0 = unlimited) (default 100000) */
         'max-fee-bid-multiple-bips'?: number;
         /** mathematical formula to calculate maximum fee cap gwei the result of which would be float64. This expression is expected to be evaluated please refer https://github.com/Knetic/govaluate/blob/master/MANUAL.md to find all available mathematical operators. Currently available variables to construct the formula are BacklogOfBatches, UrgencyGWei, ElapsedTime, ElapsedTimeBase, ElapsedTimeImportance, and TargetPriceGWei (default "((BacklogOfBatches * UrgencyGWei) ** 2) + ((ElapsedTime/ElapsedTimeBase) ** 2) * ElapsedTimeImportance + TargetPriceGWei") */
@@ -1111,14 +1099,10 @@ export type NodeConfig = {
         'max-queued-transactions'?: number;
         /** the maximum tip cap to post transactions at (default 1.2) */
         'max-tip-cap-gwei'?: number;
-        /** the minimum tip cap to post EIP-4844 blob carrying transactions at (default 1) */
-        'min-blob-tx-tip-cap-gwei'?: number;
         /** the minimum tip cap to post transactions at (default 0.05) */
         'min-tip-cap-gwei'?: number;
         /** the maximum probable reorg depth, used to determine when a transaction will no longer likely need replaced-by-fee (default 1) */
         'nonce-rbf-soft-confs'?: number;
-        /** if the parent chain supports 4844 blobs and they're well priced, post EIP-4844 blobs */
-        'post-4844-blobs'?: boolean;
         'redis-signer'?: {
           'dangerous'?: {
             /** disable message signature verification */
