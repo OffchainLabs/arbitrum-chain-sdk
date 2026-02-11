@@ -6,4 +6,5 @@ export const defaults = {
   maxFeePerGasForRetryables: parseGwei(String('0.1')),
   batchPosterManager: zeroAddress,
   feeTokenPricer: zeroAddress,
+  customOsp: zeroAddress,
 };

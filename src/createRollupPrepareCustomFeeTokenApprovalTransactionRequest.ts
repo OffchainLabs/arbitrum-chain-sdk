@@ -31,7 +31,7 @@ export async function createRollupPrepareCustomFeeTokenApprovalTransactionReques
   account,
   publicClient,
   rollupCreatorAddressOverride,
-  rollupCreatorVersion = 'v3.1',
+  rollupCreatorVersion = 'v3.2',
 }: CreateRollupPrepareCustomFeeTokenApprovalTransactionRequestParams<TChain>) {
   const { chainId } = validateParentChain(publicClient);
 

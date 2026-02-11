@@ -137,7 +137,7 @@ export function getInformationFromTestnode(): TestnodeInformation {
 }
 
 export async function createRollupHelper<
-  TRollupCreatorVersion extends RollupCreatorSupportedVersion = 'v3.1',
+  TRollupCreatorVersion extends RollupCreatorSupportedVersion = 'v3.2',
 >({
   deployer,
   batchPosters,
@@ -190,10 +190,10 @@ export async function createRollupHelper<
             batchPosters,
             validators,
             nativeToken,
-          } as CreateRollupParams<'v3.1'>,
+          } as CreateRollupParams<'v3.2'>,
           account: deployer,
           parentChainPublicClient: client,
-          rollupCreatorVersion: 'v3.1',
+          rollupCreatorVersion: 'v3.2',
         });
 
   // create test rollup with ETH as gas token
@@ -246,5 +246,5 @@ export function testHelper_getRollupCreatorVersionFromEnv(): RollupCreatorSuppor
       .join('.') as RollupCreatorSupportedVersion;
   }
 
-  return 'v3.1';
+  return 'v3.2';
 }

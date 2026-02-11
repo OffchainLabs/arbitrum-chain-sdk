@@ -37,3 +37,11 @@ it('successfully parses core contracts from a tx receipt on RollupCreator v3.1',
   });
   expect(createRollupPrepareTransactionReceipt(txReceipt).getCoreContracts()).toMatchSnapshot();
 });
+
+// https://sepolia.etherscan.io/tx/0x6f6e67cc36fdee7248d76811739b2b6718641b5b1a13ca39c7605aa0636e7d67
+it('successfully parses core contracts from a tx receipt on RollupCreator v3.2', async () => {
+  const txReceipt = await sepoliaClient.getTransactionReceipt({
+    hash: '0x6f6e67cc36fdee7248d76811739b2b6718641b5b1a13ca39c7605aa0636e7d67',
+  });
+  expect(createRollupPrepareTransactionReceipt(txReceipt).getCoreContracts()).toMatchSnapshot();
+});

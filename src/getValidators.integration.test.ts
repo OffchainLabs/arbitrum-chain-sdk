@@ -16,9 +16,9 @@ const { l3Rollup, l3UpgradeExecutor } = getInformationFromTestnode();
 
 const rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv();
 // https://github.com/OffchainLabs/nitro-testnode/blob/release/test-node.bash#L634
-// https://github.com/OffchainLabs/nitro-contracts/blob/v3.1.1/scripts/rollupCreation.ts#L250-L257
+// https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/scripts/rollupCreation.ts#L254-L261
 // https://github.com/OffchainLabs/nitro-contracts/blob/v2.1.3/scripts/rollupCreation.ts#L237-L243
-const expectedInitialValidators = rollupCreatorVersion === 'v3.1' ? 11 : 10;
+const expectedInitialValidators = rollupCreatorVersion === 'v3.2' ? 11 : 10;
 
 const client = createPublicClient({
   chain: nitroTestnodeL2,

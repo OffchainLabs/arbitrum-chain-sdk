@@ -201,6 +201,20 @@ it('getBatchPosters returns batch posters for a chain created with RollupCreator
   expect(isAccurate).toBeTruthy();
 });
 
+// https://sepolia.arbiscan.io/tx/0x67bb216d4dd1b1807d9f0e226e4da754bdf643e2788f9e515b37c6dd890be331
+it('getBatchPosters returns batch posters for a chain created with RollupCreator v3.2', async () => {
+  const { isAccurate, batchPosters } = await getBatchPosters(arbitrumSepoliaClient, {
+    rollup: '0x80630e3776E445c256E82D5ACcA2Bbb4b0c95a98',
+    sequencerInbox: '0x15aD14f109Eb97E32EA8F8b5A6E6DC1a6d2F1ca1',
+  });
+  expect(batchPosters).toEqual([
+    '0xdFd9C2cB3F8D4E6A8c758C22e24F3d88645d979d',
+    '0x48AD525578B79a3DF3B93bfd4C987BE577063389',
+    '0x9b64F3f6B4a895dB45eC7FEeBF1bEB6b62B2524E',
+  ]);
+  expect(isAccurate).toBeTruthy();
+});
+
 describe('createRollupFunctionSelector', () => {
   it('getBatchPosters returns all batch posters with isAccurate flag set to true', async () => {
     const mockTransport = () =>
