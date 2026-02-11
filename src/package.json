@@ -1,7 +1,7 @@
 {
   "name": "@arbitrum/chain-sdk",
   "description": "TypeScript SDK for building Arbitrum chains",
-  "version": "0.24.2",
+  "version": "0.25.0",
   "main": "./dist/index.js",
   "files": [
     "./dist"
