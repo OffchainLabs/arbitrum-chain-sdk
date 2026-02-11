@@ -1,8 +1,8 @@
 import { Address, createPublicClient, http, toHex } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { arbitrumSepolia } from 'viem/chains';
-import { createRollupPrepareDeploymentParamsConfig, createRollup } from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey } from '@arbitrum/orbit-sdk/utils';
+import { createRollupPrepareDeploymentParamsConfig, createRollup } from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 import { execSync } from 'child_process';
 import * as fs from 'fs';
@@ -17,7 +17,7 @@ if (typeof process.env.L1_BASE_FEE === 'undefined') {
   throw new Error(`Please provide the "L1_BASE_FEE" environment variable`);
 }
 const nitroNodeImage = process.env.NITRO_NODE_IMAGE;
-const l1BaseFee = Number(process.env.L1_BASE_FEE);
+const l1BaseFee = BigInt(process.env.L1_BASE_FEE);
 
 // Optional checks when creating a rollup
 if (process.env.CREATE_ROLLUP === 'true') {
@@ -76,7 +76,7 @@ async function main() {
     // Build genesis file generator container from Github
     console.log(`Build genesis file generator container...`);
     execSync(
-      `docker build -t genesis-file-generator https://github.com/OffchainLabs/genesis-file-generator.git`,
+      `docker build -t genesis-file-generator https://github.com/OffchainLabs/genesis-file-generator.git#support-new-nitro-feat`,
     );
 
     // Generate genesis file
@@ -87,8 +87,9 @@ async function main() {
   // Step 2 - Obtain genesis block hash and sendRoot hash
   console.log(`Obtain genesis block hash and sendRoot hash...`);
   console.log(`Using image "${nitroNodeImage}" and L1 base fee "${l1BaseFee}".`);
+  console.log(`${execSync(`cat genesis.json`)}`);
   const genesisHashes = execSync(
-    `docker run -v $(pwd):/data/genesisDir --entrypoint genesis-generator ${nitroNodeImage} --genesis-json-file /data/genesisDir/genesis.json --initial-l1-base-fee ${l1BaseFee}`,
+    `docker run -v $(pwd):/data/genesisDir --entrypoint genesis-generator ${nitroNodeImage} --genesis-json-file /data/genesisDir/genesis.json`,
   );
 
   // Step 3 - Extract hashes and output results
@@ -171,7 +172,7 @@ async function main() {
         // Set inbox position to 1
         u64Vals: [1n, 0n] as [bigint, bigint],
       },
-      machineStatus: 0, // Running
+      machineStatus: 1, // FINISHED
       endHistoryRoot: toHex(0, { size: 32 }),
     };
 
@@ -185,11 +186,15 @@ async function main() {
       chainConfig: genesisConfiguration.config,
       genesisAssertionState,
     });
+    const createRollupConfigWithDataCostEstimate = {
+      ...createRollupConfig,
+      dataCostEstimate: l1BaseFee,
+    } as typeof createRollupConfig;
 
     try {
       await createRollup({
         params: {
-          config: createRollupConfig,
+          config: createRollupConfigWithDataCostEstimate,
           batchPosters: [batchPoster],
           validators: [validator],
           deployFactoriesToL2: !hasAllFactories,
