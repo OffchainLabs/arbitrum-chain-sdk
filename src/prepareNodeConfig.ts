@@ -135,9 +135,6 @@ export function prepareNodeConfig({
         'no-sequencer-coordinator': true,
         'disable-blob-reader': getDisableBlobReader(parentChainId),
       },
-      'bold': {
-        strategy: 'MakeNodes',
-      },
     },
     'execution': {
       'forwarding-target': '',
