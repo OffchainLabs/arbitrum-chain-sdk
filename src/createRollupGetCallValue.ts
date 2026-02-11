@@ -12,7 +12,7 @@ export async function createRollupGetCallValue<TChain extends Chain | undefined>
     nativeToken: Address;
     deployFactoriesToL2: boolean;
   },
-  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.1',
+  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
   // when not deploying deterministic factories to L2, no callvalue is necessary, as no retryable tickets will be created
   if (!params.deployFactoriesToL2) {

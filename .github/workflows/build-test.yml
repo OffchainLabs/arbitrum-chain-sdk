@@ -80,13 +80,13 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: Nitro contracts v3.1 - Custom gas token with 18 decimals
-            nitro-contracts-branch: v3.1.1
+          - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
+            nitro-contracts-branch: v3.2.0
             args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
             decimals: 18
 
-          - name: Nitro contracts v3.1 - Custom gas token with 6 decimals
-            nitro-contracts-branch: v3.1.1
+          - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
+            nitro-contracts-branch: v3.2.0
             args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
             decimals: 6
 

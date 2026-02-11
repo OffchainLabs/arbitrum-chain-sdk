@@ -25,7 +25,7 @@ export async function createRollupEnoughCustomFeeTokenAllowance<TChain extends C
   account,
   publicClient,
   rollupCreatorAddressOverride,
-  rollupCreatorVersion = 'v3.1',
+  rollupCreatorVersion = 'v3.2',
 }: CreateRollupEnoughCustomFeeTokenAllowanceParams<TChain>) {
   const allowance = await fetchAllowance({
     address: nativeToken,

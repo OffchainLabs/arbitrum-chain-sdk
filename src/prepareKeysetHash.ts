@@ -6,7 +6,7 @@ export function prepareKeysetHash(keysetBytes: string): Hex {
     ? (keysetBytes as Hex)
     : (`0x${keysetBytes}` as Hex);
 
-  // https://github.com/OffchainLabs/nitro-contracts/blob/v3.1.0/src/bridge/SequencerInbox.sol#L827-L828
+  // https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/src/bridge/SequencerInbox.sol#L835-L836
   const keysetWord = hexToBigInt(keccak256(concatHex(['0xfe', keccak256(keysetBytesSanitized)])));
   const keysetHash = toHex(keysetWord ^ (1n << 255n), { size: 32 });
 

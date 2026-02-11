@@ -35,6 +35,7 @@ function getOverrides({ owner, chainId }: { owner: Address; chainId: bigint }) {
       max: 2n,
       replenishRateInBasis: 25n,
     },
+    dataCostEstimate: 1n,
     loserStakeEscrow: '0x0000000000000000000000000000000000000001',
     sequencerInboxMaxTimeVariation: {
       delayBlocks: 200n,

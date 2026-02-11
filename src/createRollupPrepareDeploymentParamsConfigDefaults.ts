@@ -28,9 +28,10 @@ const genesisAssertionState: Config['genesisAssertionState'] = {
   endHistoryRoot: zeroHash,
 } as const;
 
-const defaultsV3Dot1 = {
+const defaultsV3Dot2 = {
   anyTrustFastConfirmer: zeroAddress,
   bufferConfig,
+  dataCostEstimate: BigInt(0),
   genesisAssertionState,
   genesisInboxCount: BigInt(0),
   layerZeroBlockEdgeHeight: BigInt(2 ** 26),
@@ -43,17 +44,17 @@ const defaultsV3Dot1 = {
 /**
  * Returns default values for the `config` parameter in `createRollup` for a given RollupCreator version.
  *
- * @param {RollupCreatorSupportedVersion} [rollupCreatorVersion='v3.1'] - The version of the RollupCreator contract
+ * @param {RollupCreatorSupportedVersion} [rollupCreatorVersion='v3.2'] - The version of the RollupCreator contract
  * @returns {Object} Default configuration parameters specific to the RollupCreator version
  *
  * @example
- * // Get defaults for latest version (v3.1)
+ * // Get defaults for latest version (v3.2)
  * const defaults = createRollupPrepareDeploymentParamsConfigDefaults();
  *
  * @example
  * // Get defaults for specific version
  * const v2Defaults = createRollupPrepareDeploymentParamsConfigDefaults('v2.1');
- * const v3Defaults = createRollupPrepareDeploymentParamsConfigDefaults('v3.1');
+ * const v3Defaults = createRollupPrepareDeploymentParamsConfigDefaults('v3.2');
  *
  * @see {@link https://docs.arbitrum.io/launch-orbit-chain/reference/additional-configuration-parameters}
  */
@@ -61,17 +62,17 @@ export function createRollupPrepareDeploymentParamsConfigDefaults(
   rollupCreatorVersion: 'v2.1',
 ): typeof defaultsV2Dot1;
 export function createRollupPrepareDeploymentParamsConfigDefaults(
-  rollupCreatorVersion: 'v3.1',
-): typeof defaultsV3Dot1;
+  rollupCreatorVersion: 'v3.2',
+): typeof defaultsV3Dot2;
 export function createRollupPrepareDeploymentParamsConfigDefaults(
   rollupCreatorVersion?: never,
-): typeof defaultsV3Dot1;
+): typeof defaultsV3Dot2;
 export function createRollupPrepareDeploymentParamsConfigDefaults(
-  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.1',
+  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ) {
   if (rollupCreatorVersion === 'v2.1') {
     return defaultsV2Dot1;
   }
 
-  return defaultsV3Dot1;
+  return defaultsV3Dot2;
 }

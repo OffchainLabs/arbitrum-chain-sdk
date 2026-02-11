@@ -13,17 +13,17 @@ it(`successfully returns address for Sepolia (latest)`, () => {
     transport: http(),
   });
 
-  expect(getRollupCreatorAddress(client)).toEqual('0x687Bc1D23390875a868Db158DA1cDC8998E31640');
+  expect(getRollupCreatorAddress(client)).toEqual('0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7');
 });
 
-it(`successfully returns address for Sepolia (v3.1)`, () => {
+it(`successfully returns address for Sepolia (v3.2)`, () => {
   const client = createPublicClient({
     chain: sepolia,
     transport: http(),
   });
 
-  expect(getRollupCreatorAddress(client, 'v3.1')).toEqual(
-    '0x687Bc1D23390875a868Db158DA1cDC8998E31640',
+  expect(getRollupCreatorAddress(client, 'v3.2')).toEqual(
+    '0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7',
   );
 });
 

@@ -191,6 +191,19 @@ it('getValidators returns validators for a chain created with RollupCreator v3.1
   expect(isAccurate).toBeTruthy();
 });
 
+// https://sepolia.arbiscan.io/tx/0x67bb216d4dd1b1807d9f0e226e4da754bdf643e2788f9e515b37c6dd890be331
+it('getValidators returns validators for a chain created with RollupCreator v3.2', async () => {
+  const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
+    rollup: '0x80630e3776E445c256E82D5ACcA2Bbb4b0c95a98',
+  });
+  expect(validators).toEqual([
+    '0xd0E7B8f304461d57E8b49b660DbD46e34E877A81',
+    '0x7C6F07e8c7Cb8d4e4574f1E346B53f330B60c00f',
+    '0x300E8715236B5e0aEefb0Af16315a1e729E6A002',
+  ]);
+  expect(isAccurate).toBeTruthy();
+});
+
 describe('createRollupFunctionSelector', () => {
   it('getValidators return all validators with isAccurate flag set to true', async () => {
     const mockTransport = () =>
