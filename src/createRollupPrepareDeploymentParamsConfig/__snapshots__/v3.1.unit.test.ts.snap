@@ -48,7 +48,7 @@ exports[`creates a config for a chain on top of a custom parent chain 1`] = `
   },
   "stakeToken": "0xabaF3D9f5cbDcE54cDc43b429d8f7154A3E19Afa",
   "validatorAfkBlocks": 4n,
-  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
+  "wasmModuleRoot": "0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6",
 }
 `;
 
@@ -100,7 +100,7 @@ exports[`creates config for a chain on top of arbitrum one with defaults 1`] = `
   },
   "stakeToken": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
   "validatorAfkBlocks": 201600n,
-  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
+  "wasmModuleRoot": "0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6",
 }
 `;
 
@@ -204,7 +204,7 @@ exports[`creates config for a chain on top of arbitrum sepolia with defaults 1`]
   },
   "stakeToken": "0x980B62Da83eFf3D4576C647993b0c1D7faf17c73",
   "validatorAfkBlocks": 201600n,
-  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
+  "wasmModuleRoot": "0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6",
 }
 `;
 
@@ -308,7 +308,7 @@ exports[`creates config for a chain on top of base sepolia with defaults 1`] = `
   },
   "stakeToken": "0x4200000000000000000000000000000000000006",
   "validatorAfkBlocks": 1209600n,
-  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
+  "wasmModuleRoot": "0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6",
 }
 `;
 
@@ -360,6 +360,6 @@ exports[`creates config for a chain on top of base with defaults 1`] = `
   },
   "stakeToken": "0x4200000000000000000000000000000000000006",
   "validatorAfkBlocks": 1209600n,
-  "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
+  "wasmModuleRoot": "0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6",
 }
 `;
