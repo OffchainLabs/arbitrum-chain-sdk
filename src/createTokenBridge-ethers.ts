@@ -173,7 +173,7 @@ const getEstimateForDeployingFactory = async (
 
   return {
     // there's already a 300% increase buffer in the SDK
-    // https://github.com/OffchainLabs/arbitrum-sdk/blob/main/src/lib/message/ParentToChildMessageGasEstimator.ts#L27
+    // https://github.com/OffchainLabs/arbitrum-sdk/blob/main/packages/sdk/src/lib/message/ParentToChildMessageGasEstimator.ts#L27
     maxSubmissionCost,
     maxGas,
   };
@@ -247,7 +247,7 @@ async function getEstimateForDeployingContracts(
 
   return {
     // there's already a 300% increase buffer in the SDK
-    // https://github.com/OffchainLabs/arbitrum-sdk/blob/main/src/lib/message/ParentToChildMessageGasEstimator.ts#L27
+    // https://github.com/OffchainLabs/arbitrum-sdk/blob/main/packages/sdk/src/lib/message/ParentToChildMessageGasEstimator.ts#L27
     maxSubmissionCost,
     maxGas: maxGas.mul(2),
   };
