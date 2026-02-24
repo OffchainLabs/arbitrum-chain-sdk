@@ -4,6 +4,7 @@ type ConsensusRelease = {
   version: number;
   wasmModuleRoot: Hex;
   maxArbOSVersion: number;
+  isDisabled?: boolean;
 };
 
 const consensusReleases = [
@@ -78,24 +79,18 @@ const consensusReleases = [
     version: 51,
     wasmModuleRoot: '0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499',
     maxArbOSVersion: 51,
+    isDisabled: true,
+  },
+  {
+    version: 51.1,
+    wasmModuleRoot: '0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6',
+    maxArbOSVersion: 51.1,
+    isDisabled: true,
   },
   {
     // https://github.com/OffchainLabs/nitro/releases/tag/consensus-v51.1
     version: 51.1,
     wasmModuleRoot: '0xc2c02df561d4afaf9a1d6785f70098ec3874765c638e3cb6dbe8d3c83333e14c',
-    maxArbOSVersion: 51.1,
-  },
-] as const satisfies readonly ConsensusRelease[];
-
-const blacklistedConsensusReleases = [
-  {
-    version: 51,
-    wasmModuleRoot: '0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499',
-    maxArbOSVersion: 51,
-  },
-  {
-    version: 51.1,
-    wasmModuleRoot: '0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6',
     maxArbOSVersion: 51.1,
   },
 ] as const satisfies readonly ConsensusRelease[];
@@ -115,7 +110,10 @@ export function getConsensusReleaseByVersion<TConsensusVersion extends Consensus
 ): GetConsensusReleaseByVersion<TConsensusVersion> {
   const consensusRelease = consensusReleases
     //
-    .find((release) => release.version === consensusVersion);
+    .find(
+      (release) =>
+        release.version === consensusVersion && !('isDisabled' in release && release.isDisabled),
+    );
 
   return consensusRelease as GetConsensusReleaseByVersion<TConsensusVersion>;
 }
@@ -143,8 +141,12 @@ export function isKnownWasmModuleRoot(wasmModuleRoot: Hex): wasmModuleRoot is Wa
   );
 }
 
-export function isBlacklistedWasmModuleRoot(wasmModuleRoot: Hex): boolean {
-  return blacklistedConsensusReleases
-    .map((release) => release.wasmModuleRoot.toLowerCase())
-    .includes(wasmModuleRoot.toLowerCase());
+export function isDisabledWasmModuleRoot(wasmModuleRoot: Hex): boolean {
+  const lowerCaseWasmModuleRoot = wasmModuleRoot.toLowerCase();
+  return consensusReleases.some(
+    (release) =>
+      'isDisabled' in release &&
+      release.isDisabled &&
+      release.wasmModuleRoot.toLowerCase() === lowerCaseWasmModuleRoot,
+  );
 }

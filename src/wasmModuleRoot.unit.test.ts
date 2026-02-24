@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { isKnownWasmModuleRoot } from './wasmModuleRoot';
-import { isBlacklistedWasmModuleRoot } from './wasmModuleRoot';
+import { isDisabledWasmModuleRoot, isKnownWasmModuleRoot } from './wasmModuleRoot';
 
 describe('isKnownWasmModuleRoot', () => {
   it('returns true for a known wasm module root', () => {
@@ -30,10 +29,10 @@ describe('isKnownWasmModuleRoot', () => {
   });
 });
 
-describe('isBlacklistedWasmModuleRoot', () => {
+describe('isDisabledWasmModuleRoot', () => {
   it('returns true for a blacklisted wasm module root', () => {
     expect(
-      isBlacklistedWasmModuleRoot(
+      isDisabledWasmModuleRoot(
         '0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499',
       ),
     ).toEqual(true);
@@ -41,7 +40,7 @@ describe('isBlacklistedWasmModuleRoot', () => {
 
   it('returns false for a non-blacklisted wasm module root', () => {
     expect(
-      isBlacklistedWasmModuleRoot(
+      isDisabledWasmModuleRoot(
         '0xdb698a2576298f25448bc092e52cf13b1e24141c997135d70f217d674bbeb69a',
       ),
     ).toEqual(false);

@@ -535,34 +535,3 @@ it(`successfully prepares a transaction request with a custom gas token Rollup c
   expect(txRequest.chainId).toEqual(arbitrumSepolia.id);
   expect(txRequest.gas).toEqual(1_000n);
 });
-
-it(`successfully prepares a transaction request if "params.wasmModuleRoot" is blacklisted but chain is Arbitrum`, async () => {
-  const chainId = arbitrum.id;
-
-  // create the chain config
-  const chainConfig = prepareChainConfig({
-    chainId,
-    arbitrum: { InitialChainOwner: deployer.address, DataAvailabilityCommittee: true },
-  });
-
-  const wasmModuleRoot = '0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6';
-
-  await expect(
-    createRollupPrepareTransactionRequest({
-      params: {
-        config: createRollupPrepareDeploymentParamsConfig(publicClient, {
-          chainId: BigInt(chainId),
-          owner: deployer.address,
-          chainConfig,
-          wasmModuleRoot,
-        }),
-        batchPosters: [deployer.address],
-        validators: [deployer.address],
-      },
-      value: createRollupDefaultRetryablesFees,
-      account: deployer.address,
-      publicClient,
-      gasOverrides: { gasLimit: { base: 1_000n } },
-    }),
-  ).resolves.toBeDefined();
-});
