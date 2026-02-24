@@ -82,6 +82,19 @@ const consensusReleases = [
   {
     // https://github.com/OffchainLabs/nitro/releases/tag/consensus-v51.1
     version: 51.1,
+    wasmModuleRoot: '0xc2c02df561d4afaf9a1d6785f70098ec3874765c638e3cb6dbe8d3c83333e14c',
+    maxArbOSVersion: 51.1,
+  },
+] as const satisfies readonly ConsensusRelease[];
+
+const blacklistedConsensusReleases = [
+  {
+    version: 51,
+    wasmModuleRoot: '0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499',
+    maxArbOSVersion: 51,
+  },
+  {
+    version: 51.1,
     wasmModuleRoot: '0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6',
     maxArbOSVersion: 51.1,
   },
@@ -128,4 +141,10 @@ export function isKnownWasmModuleRoot(wasmModuleRoot: Hex): wasmModuleRoot is Wa
       //
       .includes(wasmModuleRoot)
   );
+}
+
+export function isBlacklistedWasmModuleRoot(wasmModuleRoot: Hex): boolean {
+  return blacklistedConsensusReleases
+    .map((release) => release.wasmModuleRoot.toLowerCase())
+    .includes(wasmModuleRoot.toLowerCase());
 }

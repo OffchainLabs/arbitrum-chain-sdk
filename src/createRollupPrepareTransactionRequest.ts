@@ -10,6 +10,8 @@ import { ChainConfig } from './types/ChainConfig';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 import { fetchDecimals } from './utils/erc20';
 import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
+import { isBlacklistedWasmModuleRoot } from './wasmModuleRoot';
+import { chainIsArbitrum } from './chainIsArbitrum';
 
 import {
   CreateRollupParams,
@@ -126,6 +128,8 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
     );
   }
 
+  const chainId = params.config.chainId;
+
   if (isKnownWasmModuleRoot(wasmModuleRoot)) {
     const consensusRelease = getConsensusReleaseByWasmModuleRoot(wasmModuleRoot);
 
@@ -134,6 +138,12 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
         `Consensus v${consensusRelease.version} does not support ArbOS ${arbOSVersion}. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
       );
     }
+  }
+
+  if (!chainIsArbitrum(chainId) && isBlacklistedWasmModuleRoot(wasmModuleRoot)) {
+    throw new Error(
+      `Wasm module root ${wasmModuleRoot} is not supported. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
+    );
   }
 
   const paramsWithDefaults = { ...defaults, ...params, maxDataSize };
