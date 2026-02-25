@@ -72,6 +72,11 @@
     // https://github.com/cryptocoinjs/secp256k1-node/commit/dc37f41f2abfe87853b54bcd7d1b556db41b0c64#diff-7ae45ad102eab3b6d7e7896acd08c427a9b25b346470d7bc6507b6481575d519R35
     // from: @arbitrum/token-bridge-contracts > @openzeppelin/upgrades-core > ethereumjs-util > ethereum-cryptography
     "GHSA-584q-6j8j-r5pm",
+    // https://github.com/advisories/GHSA-848j-6mx2-7j84
+    // elliptic has no patched release yet (affected: <=6.6.1)
+    // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
+    // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
+    "GHSA-848j-6mx2-7j84",
     // https://github.com/advisories/GHSA-3xgq-45jj-v275
     // cross-spawn command injection vulnerability
     // Only used during development via audit-ci, nyc, and patch-package
