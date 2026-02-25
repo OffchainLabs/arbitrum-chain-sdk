@@ -127,8 +127,6 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
     );
   }
 
-  const chainId = params.config.chainId;
-
   if (isKnownWasmModuleRoot(wasmModuleRoot)) {
     const consensusRelease = getConsensusReleaseByWasmModuleRoot(wasmModuleRoot);
 
