@@ -1,0 +1,30 @@
+name: Token Bridge Docker Build
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-token-bridge-image:
+    name: Build token-bridge-contracts image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build token-bridge-contracts with verbose logs
+        run: |
+          set -euxo pipefail
+          DOCKER_BUILDKIT=1 docker build --no-cache --progress=plain token-bridge-contracts 2>&1 | tee /tmp/token-bridge-build.log
+
+      - name: Upload token-bridge build log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: token-bridge-build-log
+          path: /tmp/token-bridge-build.log
+          if-no-files-found: ignore
