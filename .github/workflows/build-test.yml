@@ -74,8 +74,46 @@ jobs:
       - name: Test
         run: yarn test:unit
 
+  build-token-bridge-image:
+    name: Build token-bridge image
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.meta.outputs.image_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        run: echo "image_tag=local/token-bridge-contracts:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build token-bridge-contracts with verbose logs
+        run: |
+          set -euxo pipefail
+          docker build --progress=plain -t "${{ steps.meta.outputs.image_tag }}" token-bridge-contracts 2>&1 | tee /tmp/token-bridge-build.log
+
+      - name: Export token-bridge image
+        run: |
+          set -euxo pipefail
+          docker save "${{ steps.meta.outputs.image_tag }}" | gzip -1 > /tmp/token-bridge-image.tar.gz
+
+      - name: Upload token-bridge image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: token-bridge-image-${{ github.sha }}
+          path: /tmp/token-bridge-image.tar.gz
+
+      - name: Upload token-bridge build log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: token-bridge-build-log
+          path: /tmp/token-bridge-build.log
+          if-no-files-found: ignore
+
   test-integration:
     name: Test (Integration) - ${{ matrix.config.name }}
+    needs: build-token-bridge-image
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -107,6 +145,17 @@ jobs:
       - name: Install node_modules
         uses: OffchainLabs/actions/node-modules/install@main
 
+      - name: Download token-bridge image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: token-bridge-image-${{ github.sha }}
+          path: /tmp
+
+      - name: Load token-bridge image
+        run: |
+          set -euxo pipefail
+          gunzip -c /tmp/token-bridge-image.tar.gz | docker load
+
       - name: Set up the local node
         uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
         with:
@@ -122,6 +171,7 @@ jobs:
 
       - name: Test
         run: |
+          TOKEN_BRIDGE_DOCKER_IMAGE=${{ needs.build-token-bridge-image.outputs.image_tag }} \
           INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
           yarn test:integration
