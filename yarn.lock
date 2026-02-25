@@ -1236,12 +1236,12 @@ blakejs@^1.1.0:
   resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.2.1.tgz#5057e4206eadb4a97f7c0b6e197a505042fc3814"
   integrity sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ==
 
-bn.js@4.12.3, bn.js@^4.11.9:
+bn.js@^4.11.9:
   version "4.12.3"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-4.12.3.tgz#2cc2c679188eb35b006f2d0d4710bed8437a769e"
   integrity sha512-fGTi3gxV/23FTYdAoUtLYp6qySe2KE3teyZitipKNRuVYcBkoP/bB3guXN/XVKUe9mxCHXnc9C4ocyz8OmgN0g==
 
-bn.js@5.2.3, bn.js@^5.1.2, bn.js@^5.2.0, bn.js@^5.2.1:
+bn.js@^5.1.2, bn.js@^5.2.0, bn.js@^5.2.1:
   version "5.2.3"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.3.tgz#16a9e409616b23fef3ccbedb8d42f13bff80295e"
   integrity sha512-EAcmnPkxpntVL+DS7bO1zhcZNvCkxqtkd0ZY53h06GNQ3DEkkGZ/gKgmDv6DdZQGj9BgfSPKtJJ7Dp1GPP8f7w==
@@ -2756,14 +2756,14 @@ minimalistic-crypto-utils@^1.0.1:
   resolved "https://registry.yarnpkg.com/minimalistic-crypto-utils/-/minimalistic-crypto-utils-1.0.1.tgz#f6c00c1c0b082246e5c4d99dfb8c7c083b2b582a"
   integrity sha512-JIYlbt6g8i5jKfJ3xz7rF0LXmv2TkDxBLUkiBeZ7bAx4GnnNMr8xFpGnOxn6GhTEHx3SjRrZEoU+j04prX1ktg==
 
-minimatch@3.1.3, minimatch@^3.1.1:
+minimatch@^3.1.1:
   version "3.1.3"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.3.tgz#6a5cba9b31f503887018f579c89f81f61162e624"
   integrity sha512-M2GCs7Vk83NxkUyQV1bkABc4yxgz9kILhHImZiBPAZ9ybuvCb0/H7lEl5XvIg3g+9d4eNotkZA5IWwYl0tibaA==
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@9.0.6, minimatch@^9.0.3:
+minimatch@^9.0.3:
   version "9.0.6"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-9.0.6.tgz#a7e3bccfcb3d78ec1bf8d51c9ba749080237a5c8"
   integrity sha512-kQAVowdR33euIqeA0+VZTDqU+qo1IeVY+hrKYtZMio3Pg0P0vuh/kwRylLUddJhB6pf3q/botcOvRtx4IN1wqQ==
