@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { createPublicClient, http, zeroAddress } from 'viem';
-import { arbitrumSepolia } from 'viem/chains';
+import { arbitrum, arbitrumSepolia } from 'viem/chains';
 
 import { generateChainId } from './utils';
 import { prepareChainConfig } from './prepareChainConfig';
@@ -351,6 +351,45 @@ it(`fails to prepare transaction request if "params.maxDataSize" is not provided
       rollupCreatorVersion: 'v2.1',
     }),
   ).rejects.toThrowError(`"params.maxDataSize" must be provided when using a custom parent chain.`);
+});
+
+it(`fails to prepare transaction request if "params.wasmModuleRoot" is blacklisted`, async () => {
+  const chainId = 123456;
+
+  // create the chain config
+  const chainConfig = prepareChainConfig({
+    chainId,
+    arbitrum: { InitialChainOwner: deployer.address, DataAvailabilityCommittee: true },
+  });
+
+  const wasmModuleRoot = '0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6';
+  const arbOSVersion = chainConfig.arbitrum.InitialArbOSVersion;
+
+  await expect(
+    createRollupPrepareTransactionRequest({
+      params: {
+        config: createRollupPrepareDeploymentParamsConfig(
+          publicClient,
+          {
+            chainId: BigInt(chainId),
+            owner: deployer.address,
+            chainConfig,
+            wasmModuleRoot,
+          },
+          'v2.1',
+        ),
+        batchPosters: [deployer.address],
+        validators: [deployer.address],
+      },
+      value: createRollupDefaultRetryablesFees,
+      account: deployer.address,
+      publicClient,
+      gasOverrides: { gasLimit: { base: 1_000n } },
+      rollupCreatorVersion: 'v2.1',
+    }),
+  ).rejects.toThrowError(
+    `Wasm module root ${wasmModuleRoot} is not supported. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
+  );
 });
 
 it(`successfully prepares a transaction request with the default rollup creator and a gas limit override`, async () => {
