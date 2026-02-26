@@ -62,7 +62,7 @@ function decodeRollupCreatedEventLog(
       if (result.eventName === 'RollupCreated') {
         decodedEventLog = result;
       }
-    } catch (error) {
+    } catch {
       // do nothing
     }
   });

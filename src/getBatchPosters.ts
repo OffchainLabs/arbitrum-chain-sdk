@@ -126,7 +126,7 @@ export async function getBatchPosters<TChain extends Chain>(
       hash: createRollupTransactionHash,
     });
     blockNumber = receipt.blockNumber;
-  } catch (e) {
+  } catch {
     blockNumber = 0n;
   }
 

@@ -5,7 +5,6 @@ import {
   PublicClient,
   Transport,
   encodeFunctionData,
-  TransactionRequest,
   PrepareTransactionRequestParameters,
 } from 'viem';
 import {

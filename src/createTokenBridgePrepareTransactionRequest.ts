@@ -79,7 +79,7 @@ export async function createTokenBridgePrepareTransactionRequest<
     parentChainPublicClient,
   });
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await parentChainPublicClient.prepareTransactionRequest({
     chain: parentChainPublicClient.chain,
     to: tokenBridgeCreatorAddress,

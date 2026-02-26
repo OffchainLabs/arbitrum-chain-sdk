@@ -6,7 +6,7 @@ import { testHelper_createCustomParentChain } from './testHelpers';
 describe('registerCustomParentChain', () => {
   it(`throws if "contracts.rollupCreator.address" is invalid`, () => {
     // omit contracts from the chain
-    const { contracts, ...chain } = testHelper_createCustomParentChain();
+    const { ...chain } = testHelper_createCustomParentChain();
 
     expect(() =>
       registerCustomParentChain({
