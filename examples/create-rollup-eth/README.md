@@ -33,7 +33,7 @@ await createRollup({
 1. Install dependencies
 
    ```bash
-   yarn install
+   pnpm install
    ```
 
 2. Create .env file and add the env vars
@@ -44,9 +44,9 @@ await createRollup({
 
 3. Run the example
    ```bash
-   yarn dev
+   pnpm dev
    ```
 
-There is an option to deploy the rollup contracts using more low-level methods as demonstrated in `low_level.ts` or `yarn dev:low-level`.
+There is an option to deploy the rollup contracts using more low-level methods as demonstrated in `low_level.ts` or `pnpm dev:low-level`.
 
 [Read full documentation](https://docs.arbitrum.io/launch-orbit-chain/how-tos/orbit-sdk-deploying-rollup-chain)
