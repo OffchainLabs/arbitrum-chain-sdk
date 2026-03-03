@@ -33,12 +33,13 @@
     async-mutex "^0.4.0"
     ethers "^5.1.0"
 
-"@arbitrum/token-bridge-contracts@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@arbitrum/token-bridge-contracts/-/token-bridge-contracts-1.2.2.tgz#abc1cea9e03694b9c5395c95a23bdd4b607c4b75"
-  integrity sha512-PAAJpnAtql7/xPc2o437m+f47tuGVcwEsbvEuoLinOE1nENVx26luXRON2ONMouwg1D/F05DYpmcuxODJ+rHJg==
+"@arbitrum/token-bridge-contracts@^1.2.5":
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/@arbitrum/token-bridge-contracts/-/token-bridge-contracts-1.2.5.tgz#ca954e75383c8d4b1baacdc004043fc2dd5adce5"
+  integrity sha512-wIekHs2hNGt0uxlKN8NiEcAoiN1Y4rN9jhbx/BX8T6E1B6XsabrLNVRs0lbsn7uLhV5Z61OaRTy9HirGmTs5+A==
   dependencies:
     "@arbitrum/nitro-contracts" "1.1.1"
+    "@offchainlabs/stablecoin-evm" "1.0.0-orbit-alpha.2"
     "@offchainlabs/upgrade-executor" "1.1.0-beta.0"
     "@openzeppelin/contracts" "4.8.3"
     "@openzeppelin/contracts-upgradeable" "4.8.3"
@@ -678,6 +679,11 @@
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@offchainlabs/prettier-config/-/prettier-config-0.2.1.tgz#e3b57e013935269d84bf6379cdc529b3bbca9ae5"
   integrity sha512-VjE4Hahx9ipTheXJVlt7tFtHeMVvlYUkKNT4uxnAK4i4qrLcqhlm/4GE9mueOS/Syi2/gzDKvNH0nk6+ts2IrA==
+
+"@offchainlabs/stablecoin-evm@1.0.0-orbit-alpha.2":
+  version "1.0.0-orbit-alpha.2"
+  resolved "https://registry.yarnpkg.com/@offchainlabs/stablecoin-evm/-/stablecoin-evm-1.0.0-orbit-alpha.2.tgz#1156ab9436d0791739b56b355d7cff2e3aadaede"
+  integrity sha512-g9SO/KD4QoIA5Mvo+wE7GDe3PwNtQ0IK3b+RNRClHKH2if4emneQtEj/eD0Tc32BuYzPRK5cbd4/lBjARo9izQ==
 
 "@offchainlabs/upgrade-executor@1.1.0-beta.0":
   version "1.1.0-beta.0"
