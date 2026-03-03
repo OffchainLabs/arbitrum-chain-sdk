@@ -1,6 +1,6 @@
 import { it, expect } from 'vitest';
 import { createPublicClient, http, zeroAddress } from 'viem';
-import { arbitrum, arbitrumSepolia } from 'viem/chains';
+import { arbitrumSepolia } from 'viem/chains';
 
 import { generateChainId } from './utils';
 import { prepareChainConfig } from './prepareChainConfig';
