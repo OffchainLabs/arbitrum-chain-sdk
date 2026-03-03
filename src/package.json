@@ -58,7 +58,7 @@
     "@arbitrum/token-bridge-contracts": "^1.2.2",
     "@offchainlabs/fund-distribution-contracts": "^1.0.1",
     "@safe-global/protocol-kit": "^4.1.7",
-    "ethers": "^5.7.2"
+    "ethers": "^5.8.0"
   },
   "resolutions": {
     "**/base-x": "3.0.11"
