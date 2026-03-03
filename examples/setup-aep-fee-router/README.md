@@ -39,7 +39,7 @@ Routing contracts owned by the Arbitrum Foundation can be seen in the [AEP docum
 1. Install dependencies
 
    ```bash
-   yarn install
+   pnpm install
    ```
 
 2. Create .env file and add the env vars
@@ -50,7 +50,7 @@ Routing contracts owned by the Arbitrum Foundation can be seen in the [AEP docum
 
 3. Run the example
    ```bash
-   yarn dev
+   pnpm dev
    ```
 
 ## References

@@ -35,13 +35,13 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// @ts-ignore
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
 mainnet.rpcUrls.default.http[0] = 'https://mainnet.gateway.tenderly.co';
-// @ts-ignore
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
 mainnet.rpcUrls.public.http[0] = 'https://mainnet.gateway.tenderly.co';
-// @ts-ignore
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
 sepolia.rpcUrls.default.http[0] = 'https://sepolia.gateway.tenderly.co';
-// @ts-ignore
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
 sepolia.rpcUrls.public.http[0] = 'https://sepolia.gateway.tenderly.co';
 
 const apiKey = loadApiKey('ETHERSCAN_API_KEY');

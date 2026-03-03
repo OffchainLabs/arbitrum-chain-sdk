@@ -110,7 +110,7 @@ async function createAnytrustRollup() {
 describe('successfully get valid keysets', () => {
   it('when disabling the same keyset multiple time', async () => {
     const { createRollupInformation } = await createAnytrustRollup();
-    const { sequencerInbox, upgradeExecutor, rollup } = createRollupInformation.coreContracts;
+    const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;
     const { keysets: initialKeysets } = await getKeysets(client, {
       sequencerInbox,
     });

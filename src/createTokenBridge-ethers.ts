@@ -1,5 +1,5 @@
 import { Address, PublicClient, Transport, Chain } from 'viem';
-import { BigNumber, ContractFactory, ethers } from 'ethers';
+import { BigNumber, ContractFactory, ethers, ContractInterface } from 'ethers';
 import { ParentToChildMessageGasEstimator } from '@arbitrum/sdk';
 import { getBaseFee } from '@arbitrum/sdk/dist/lib/utils/lib';
 import { RollupAdminLogic__factory } from '@arbitrum/sdk/dist/lib/abi/factories/RollupAdminLogic__factory';
@@ -12,7 +12,7 @@ import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
 type NamedFactory = ContractFactory & { contractName: string };
 const NamedFactoryInstance = (contractJson: {
-  abi: any;
+  abi: ContractInterface;
   bytecode: string;
   contractName: string;
 }): NamedFactory => {
@@ -122,7 +122,7 @@ export async function createTokenBridgeGetInputs<
       ? BigNumber.from(retryableGasOverrides.maxGasPrice)
       : await l2Provider.getGasPrice();
 
-  let retryableFee = maxSubmissionCostForFactory
+  const retryableFee = maxSubmissionCostForFactory
     .add(maxSubmissionCostForContracts)
     .add(maxGasForFactory.mul(maxGasPrice))
     .add(maxGasForContracts.mul(maxGasPrice));

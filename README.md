@@ -7,7 +7,7 @@ TypeScript SDK for [building Arbitrum chains](https://docs.arbitrum.io/launch-ar
 Make sure you are using Node.js v18 or greater.
 
 ```bash
-yarn add @arbitrum/chain-sdk viem@^1.20.0
+pnpm add @arbitrum/chain-sdk viem@^1.20.0
 ```
 
 ## Run integration tests
@@ -21,7 +21,7 @@ Clone the branch `release` of [nitro-testnode](https://github.com/OffchainLabs/n
 Then, run the integration tests:
 
 ```bash
-yarn test:integration
+pnpm test:integration
 ```
 
 ## Examples

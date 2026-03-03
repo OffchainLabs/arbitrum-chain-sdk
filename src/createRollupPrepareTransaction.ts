@@ -31,7 +31,7 @@ function createRollupDecodeFunctionData<TAbi extends RollupCreatorABI<RollupCrea
   ].forEach((abi) => {
     try {
       result = decodeFunctionData({ abi, data }) as DecodeFunctionDataReturnType<TAbi>;
-    } catch (error) {
+    } catch {
       // do nothing
     }
   });

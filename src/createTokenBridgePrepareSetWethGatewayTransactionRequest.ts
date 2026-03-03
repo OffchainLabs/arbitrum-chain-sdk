@@ -229,7 +229,7 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   });
 
   // prepare the transaction request with a call to the upgrade executor
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await parentChainPublicClient.prepareTransactionRequest({
     chain: parentChainPublicClient.chain,
     to: rollupCoreContracts.upgradeExecutor,

@@ -10,6 +10,7 @@ import { ChainConfig } from './types/ChainConfig';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 import { fetchDecimals } from './utils/erc20';
 import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
+import { isDisabledWasmModuleRoot } from './wasmModuleRoot';
 
 import {
   CreateRollupParams,
@@ -136,10 +137,16 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
     }
   }
 
+  if (isDisabledWasmModuleRoot(wasmModuleRoot)) {
+    throw new Error(
+      `Wasm module root ${wasmModuleRoot} is not supported. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
+    );
+  }
+
   const paramsWithDefaults = { ...defaults, ...params, maxDataSize };
   const createRollupGetCallValueParams = { ...paramsWithDefaults, account };
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
     chain: publicClient.chain,
     to: rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient, rollupCreatorVersion),

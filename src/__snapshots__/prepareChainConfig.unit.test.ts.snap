@@ -41,7 +41,7 @@ exports[`creates chain config with defaults 1`] = `
     "DataAvailabilityCommittee": false,
     "EnableArbOS": true,
     "GenesisBlockNum": 0,
-    "InitialArbOSVersion": 40,
+    "InitialArbOSVersion": 51,
     "InitialChainOwner": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
     "MaxCodeSize": 24576,
     "MaxInitCodeSize": 49152,

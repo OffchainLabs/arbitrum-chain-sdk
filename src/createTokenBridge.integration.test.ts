@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  createPublicClient,
-  encodeFunctionData,
-  http,
-  parseEther,
-  zeroAddress,
-  parseAbi,
-} from 'viem';
+import { createPublicClient, encodeFunctionData, http, zeroAddress, parseAbi } from 'viem';
 
 import { nitroTestnodeL1, nitroTestnodeL2, nitroTestnodeL3 } from './chains';
 import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';

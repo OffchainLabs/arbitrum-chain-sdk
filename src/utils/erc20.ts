@@ -25,7 +25,7 @@ export async function approvePrepareTransactionRequest<TChain extends Chain | un
   amount,
   publicClient,
 }: ApprovePrepareTransactionRequestProps<TChain>) {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return await publicClient.prepareTransactionRequest({
     chain: publicClient.chain,
     to: address,
@@ -56,7 +56,7 @@ export async function approve<TChain extends Chain | undefined>({
     throw new Error('[utils/erc20::approve] account is undefined');
   }
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const { request } = await publicClient.simulateContract({
     address: address,
     abi: erc20ABI,

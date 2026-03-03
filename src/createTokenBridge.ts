@@ -266,7 +266,7 @@ export async function createTokenBridge<
   // wait for retryables to execute
   console.log(`Waiting for retryable tickets to execute on the Orbit chain...`);
   const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
-    // @ts-ignore (todo: fix viem type issue)
+    // @ts-expect-error -- todo: fix viem type issue
     orbitPublicClient: orbitChainPublicClient,
   });
   console.log(`Retryables executed`);
@@ -279,7 +279,7 @@ export async function createTokenBridge<
 
   // fetching the TokenBridge contracts
   const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
-    // @ts-ignore (todo: fix viem type issue)
+    // @ts-expect-error -- todo: fix viem type issue
     parentChainPublicClient,
   });
 
@@ -319,7 +319,7 @@ export async function createTokenBridge<
     // Wait for retryables to execute
     const orbitChainSetWethGatewayRetryableReceipt =
       await setWethGatewayTxReceipt.waitForRetryables({
-        // @ts-ignore (todo: fix viem type issue)
+        // @ts-expect-error -- todo: fix viem type issue
         orbitPublicClient: orbitChainPublicClient,
       });
     console.log(`Retryables executed`);
@@ -335,13 +335,13 @@ export async function createTokenBridge<
 
     return {
       transaction,
-      // @ts-ignore (todo: fix viem type issue)
+      // @ts-expect-error -- todo: fix viem type issue
       transactionReceipt: txReceipt,
       retryables: orbitChainRetryableReceipts,
       tokenBridgeContracts,
       setWethGateway: {
         transaction: setWethGatewayTransaction,
-        // @ts-ignore (todo: fix viem type issue)
+        // @ts-expect-error -- todo: fix viem type issue
         transactionReceipt: setWethGatewayTxReceipt,
         retryables: [orbitChainSetWethGatewayRetryableReceipt[0]],
       },
@@ -350,7 +350,7 @@ export async function createTokenBridge<
 
   return {
     transaction,
-    // @ts-ignore (todo: fix viem type issue)
+    // @ts-expect-error -- todo: fix viem type issue
     transactionReceipt: txReceipt,
     retryables: orbitChainRetryableReceipts,
     tokenBridgeContracts,

@@ -56,7 +56,7 @@ export async function setAnyTrustFastConfirmerPrepareTransactionRequest<
   });
 
   // prepare the transaction request
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
     chain: publicClient.chain,
     to: upgradeExecutor,

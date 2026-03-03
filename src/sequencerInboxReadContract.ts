@@ -30,7 +30,7 @@ export function sequencerInboxReadContract<
   client: PublicClient<Transport, TChain>,
   params: SequencerInboxReadContractParameters<TFunctionName>,
 ): Promise<SequencerInboxReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
     address: params.sequencerInbox,
     abi: sequencerInboxABI,

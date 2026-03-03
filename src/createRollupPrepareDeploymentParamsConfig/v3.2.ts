@@ -6,7 +6,6 @@ import { Prettify } from '../types/utils';
 import { getWethAddress } from '../utils';
 import { prepareChainConfigSortKeys } from '../prepareChainConfigSortKeys';
 
-import { createRollup } from '../createRollup';
 import { CreateRollupFunctionInputs } from '../types/createRollupTypes';
 import { prepareChainConfig } from '../prepareChainConfig';
 

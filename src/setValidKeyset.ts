@@ -25,7 +25,7 @@ export async function setValidKeyset<TChain extends Chain | undefined>({
     throw new Error('account is undefined');
   }
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const { request } = await publicClient.simulateContract({
     address: coreContracts.upgradeExecutor,
     abi: upgradeExecutorABI,
