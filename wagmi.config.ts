@@ -59,6 +59,19 @@ export async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
     address = implementation;
   }
 
+  if (chainId === arbitrumNova.id) {
+    const response = await fetch(
+      `https://arbitrum-nova.blockscout.com/api/v2/smart-contracts/${address}`,
+    );
+    const responseJson = await response.json();
+
+    if (!response.ok || !responseJson.abi) {
+      throw new Error(`Failed to fetch ABI for ${chainId}: ${responseJson.message}`);
+    }
+
+    return responseJson.abi;
+  }
+
   const responseJson = await (
     await fetch(
       `https://api.etherscan.io/v2/api?chainid=${chainId}&module=contract&action=getabi&format=raw&address=${address}&apikey=${apiKey}`,
