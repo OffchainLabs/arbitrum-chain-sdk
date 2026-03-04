@@ -31,6 +31,7 @@
     "ts-morph": "^21.0.1",
     "typescript-eslint": "^8.56.1",
     "typescript": "^5.2.2",
+    "viem": "^1.20.0",
     "vitest": "^3.2.4"
   },
   "pnpm": {
@@ -38,6 +39,7 @@
       "viem": "1.20.0",
       "viem>ws": "8.17.1",
       "@wagmi/cli>esbuild": "0.25.1",
+      "@wagmi/cli>bundle-require": "5.1.0",
       "@ethersproject/providers>ws": "7.5.10",
       "elliptic": "6.6.1",
       "nanoid": "3.3.8",
