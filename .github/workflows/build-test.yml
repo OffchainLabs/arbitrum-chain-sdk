@@ -157,6 +157,36 @@ jobs:
       - name: Test
         run: pnpm test:unit
 
+  wagmi-generate:
+    name: Wagmi Generate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Copy .env
+        run: cp ./.env.example ./.env
+
+      - name: Generate
+        run: pnpm generate
+
   test-integration:
     name: Test (Integration) - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
