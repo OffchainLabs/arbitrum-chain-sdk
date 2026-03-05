@@ -20,9 +20,7 @@ export const edgeChallengeManagerABI = [
   { inputs: [], name: 'AssertionNoSibling', type: 'error' },
   { inputs: [], name: 'AssertionNotPending', type: 'error' },
   {
-    inputs: [
-      { internalType: 'uint8', name: 'levels', type: 'uint8' },
-    ],
+    inputs: [{ internalType: 'uint8', name: 'levels', type: 'uint8' }],
     name: 'BigStepLevelsTooMany',
     type: 'error',
   },
@@ -52,24 +50,18 @@ export const edgeChallengeManagerABI = [
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'claimId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'claimId', type: 'bytes32' }],
     name: 'ClaimEdgeNotLengthOneRival',
     type: 'error',
   },
   { inputs: [], name: 'ClaimEdgeNotPending', type: 'error' },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'EdgeAlreadyExists',
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'EdgeAlreadyRefunded',
     type: 'error',
   },
@@ -100,9 +92,7 @@ export const edgeChallengeManagerABI = [
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'EdgeNotExists',
     type: 'error',
   },
@@ -116,9 +106,7 @@ export const edgeChallengeManagerABI = [
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'uint256', name: 'length', type: 'uint256' },
-    ],
+    inputs: [{ internalType: 'uint256', name: 'length', type: 'uint256' }],
     name: 'EdgeNotLengthOne',
     type: 'error',
   },
@@ -131,16 +119,12 @@ export const edgeChallengeManagerABI = [
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'uint8', name: 'level', type: 'uint8' },
-    ],
+    inputs: [{ internalType: 'uint8', name: 'level', type: 'uint8' }],
     name: 'EdgeTypeNotSmallStep',
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'EdgeUnrivaled',
     type: 'error',
   },
@@ -184,9 +168,7 @@ export const edgeChallengeManagerABI = [
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'enum EdgeType', name: 'edgeType', type: 'uint8' },
-    ],
+    inputs: [{ internalType: 'enum EdgeType', name: 'edgeType', type: 'uint8' }],
     name: 'InvalidEdgeType',
     type: 'error',
   },
@@ -223,16 +205,12 @@ export const edgeChallengeManagerABI = [
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'uint256', name: 'val', type: 'uint256' },
-    ],
+    inputs: [{ internalType: 'uint256', name: 'val', type: 'uint256' }],
     name: 'NotPowerOfTwo',
     type: 'error',
   },
   {
-    inputs: [
-      { internalType: 'address', name: 'account', type: 'address' },
-    ],
+    inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
     name: 'NotValidator',
     type: 'error',
   },
@@ -319,9 +297,7 @@ export const edgeChallengeManagerABI = [
   },
   {
     anonymous: false,
-    inputs: [
-      { indexed: false, internalType: 'uint8', name: 'version', type: 'uint8' },
-    ],
+    inputs: [{ indexed: false, internalType: 'uint8', name: 'version', type: 'uint8' }],
     name: 'Initialized',
     type: 'event',
   },
@@ -337,45 +313,35 @@ export const edgeChallengeManagerABI = [
   {
     inputs: [],
     name: 'LAYERZERO_BIGSTEPEDGE_HEIGHT',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'LAYERZERO_BLOCKEDGE_HEIGHT',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'LAYERZERO_SMALLSTEPEDGE_HEIGHT',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'NUM_BIGSTEP_LEVEL',
-    outputs: [
-      { internalType: 'uint8', name: '', type: 'uint8' },
-    ],
+    outputs: [{ internalType: 'uint8', name: '', type: 'uint8' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'assertionChain',
-    outputs: [
-      { internalType: 'contract IAssertionChain', name: '', type: 'address' },
-    ],
+    outputs: [{ internalType: 'contract IAssertionChain', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -403,9 +369,7 @@ export const edgeChallengeManagerABI = [
       { internalType: 'bytes32', name: 'endHistoryRoot', type: 'bytes32' },
     ],
     name: 'calculateEdgeId',
-    outputs: [
-      { internalType: 'bytes32', name: '', type: 'bytes32' },
-    ],
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'pure',
     type: 'function',
   },
@@ -418,18 +382,14 @@ export const edgeChallengeManagerABI = [
       { internalType: 'uint256', name: 'endHeight', type: 'uint256' },
     ],
     name: 'calculateMutualId',
-    outputs: [
-      { internalType: 'bytes32', name: '', type: 'bytes32' },
-    ],
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'pure',
     type: 'function',
   },
   {
     inputs: [],
     name: 'challengePeriodBlocks',
-    outputs: [
-      { internalType: 'uint64', name: '', type: 'uint64' },
-    ],
+    outputs: [{ internalType: 'uint64', name: '', type: 'uint64' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -502,13 +462,9 @@ export const edgeChallengeManagerABI = [
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'mutualId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'mutualId', type: 'bytes32' }],
     name: 'confirmedRival',
-    outputs: [
-      { internalType: 'bytes32', name: '', type: 'bytes32' },
-    ],
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -529,58 +485,40 @@ export const edgeChallengeManagerABI = [
       },
     ],
     name: 'createLayerZeroEdge',
-    outputs: [
-      { internalType: 'bytes32', name: '', type: 'bytes32' },
-    ],
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'edgeExists',
-    outputs: [
-      { internalType: 'bool', name: '', type: 'bool' },
-    ],
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'edgeLength',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'excessStakeReceiver',
-    outputs: [
-      { internalType: 'address', name: '', type: 'address' },
-    ],
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'mutualId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'mutualId', type: 'bytes32' }],
     name: 'firstRival',
-    outputs: [
-      { internalType: 'bytes32', name: '', type: 'bytes32' },
-    ],
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'getEdge',
     outputs: [
       {
@@ -610,35 +548,23 @@ export const edgeChallengeManagerABI = [
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'enum EdgeType', name: 'eType', type: 'uint8' },
-    ],
+    inputs: [{ internalType: 'enum EdgeType', name: 'eType', type: 'uint8' }],
     name: 'getLayerZeroEndHeight',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'getPrevAssertionHash',
-    outputs: [
-      { internalType: 'bytes32', name: '', type: 'bytes32' },
-    ],
+    outputs: [{ internalType: 'bytes32', name: '', type: 'bytes32' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'hasLengthOneRival',
-    outputs: [
-      { internalType: 'bool', name: '', type: 'bool' },
-    ],
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -648,20 +574,14 @@ export const edgeChallengeManagerABI = [
       { internalType: 'bytes32', name: 'mutualId', type: 'bytes32' },
     ],
     name: 'hasMadeLayerZeroRival',
-    outputs: [
-      { internalType: 'bool', name: '', type: 'bool' },
-    ],
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'hasRival',
-    outputs: [
-      { internalType: 'bool', name: '', type: 'bool' },
-    ],
+    outputs: [{ internalType: 'bool', name: '', type: 'bool' }],
     stateMutability: 'view',
     type: 'function',
   },
@@ -696,49 +616,35 @@ export const edgeChallengeManagerABI = [
   {
     inputs: [],
     name: 'oneStepProofEntry',
-    outputs: [
-      { internalType: 'contract IOneStepProofEntry', name: '', type: 'address' },
-    ],
+    outputs: [{ internalType: 'contract IOneStepProofEntry', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'refundStake',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    inputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     name: 'stakeAmounts',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
     inputs: [],
     name: 'stakeToken',
-    outputs: [
-      { internalType: 'contract IERC20', name: '', type: 'address' },
-    ],
+    outputs: [{ internalType: 'contract IERC20', name: '', type: 'address' }],
     stateMutability: 'view',
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'bytes32', name: 'edgeId', type: 'bytes32' },
-    ],
+    inputs: [{ internalType: 'bytes32', name: 'edgeId', type: 'bytes32' }],
     name: 'timeUnrivaled',
-    outputs: [
-      { internalType: 'uint256', name: '', type: 'uint256' },
-    ],
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
     type: 'function',
   },
