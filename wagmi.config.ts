@@ -195,6 +195,26 @@ const contracts: ContractConfig[] = [
     },
   },
   {
+    name: 'EdgeChallengeManager',
+    version: '3.1',
+    address: {
+      // mainnet L1
+      [mainnet.id]: '0x93069fFd7730733eCfd57A0D2D528CF686248524',
+      // mainnet L2
+      [arbitrumOne.id]: '0x1Ef281CD6BD48affD9C44Cb590858FCfF92DE821',
+      [arbitrumNova.id]: '0xD3dE403eADdf791104918E9C9336B434AE7DDA01',
+      [base.id]: '0xaf58472D08D7dBCCC73D5f58D26b2bD9Ef43A5c2',
+      // testnet L1
+      [sepolia.id]: '0x6B21677CeAd8bF6526d4A27D144579c9eB46f0eB',
+      // testnet L2
+      [arbitrumSepolia.id]: '0x22DD61cF5e1f19A4D98C08478E2f83DFb3FCe44C',
+      [baseSepolia.id]: '0x409CcfCeDF546DE7B855191cC5B7f6EF318d406C',
+      // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
+      [nitroTestnodeL1.id]: '0x0000000000000000000000000000000000000000',
+      [nitroTestnodeL2.id]: '0x0000000000000000000000000000000000000000',
+    },
+  },
+  {
     name: 'ArbOwner',
     address: '0x0000000000000000000000000000000000000070',
   },
