@@ -30,3 +30,35 @@ export type WithUpgradeExecutor<Args> = Args & {
 export type PrepareTransactionRequestReturnTypeWithChainId = PrepareTransactionRequestReturnType & {
   chainId: number;
 };
+
+/**
+ * Some actions require a different contract than sequencerInbox.
+ * We either accept sequencerInbox to fetch the contract address
+ * or an override
+ */
+export type WithContractAddress<
+  Args,
+  ContractName extends string,
+  Curried extends boolean,
+> = Curried extends true
+  ? /**
+     * If sequencerInbox was passed to the decorator. We accept the contract address,
+     * an sequencerInbox override, or no parameters
+     */
+    | (Args & {
+          sequencerInbox?: Address;
+        })
+      | (Args & {
+          [key in ContractName]?: Address;
+        })
+      | void
+  : /**
+     * If sequencerInbox wasn't passed to the decorator. We need one of the address to be passed
+     * We either accept the contract address or an sequencerInbox override
+     */
+    | (Args & {
+          sequencerInbox: Address;
+        })
+      | (Args & {
+          [key in ContractName]: Address;
+        });
