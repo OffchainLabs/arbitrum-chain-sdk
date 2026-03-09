@@ -361,11 +361,7 @@ function rollupAbi({
       const common = new Set(adminLogicAbi.map((entry) => JSON.stringify(entry)));
       const userLogicAbiOnly = userLogicAbi.filter((entry) => !common.has(JSON.stringify(entry)));
 
-      const abi = [...adminLogicAbi, ...userLogicAbiOnly]
-        // filter out entries that are not useful
-        .filter((entry) => !('name' in entry && entry.name === 'initialize'));
-
-      return [{ name, abi }];
+      return [{ name, abi: [...adminLogicAbi, ...userLogicAbiOnly] }];
     },
   };
 }
