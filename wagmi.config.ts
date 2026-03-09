@@ -196,6 +196,27 @@ const contracts: ContractConfig[] = [
     },
   },
   {
+    name: 'Rollup',
+    version: '1.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xb2df7e9658eceb2c94567ad537a34892e093ce06f3d4234a9899b4315167cb71
+    address: '0xDCb63cfb74EE8F66c6188EdCB886B10FF0B7a75a',
+  },
+  {
+    name: 'Rollup',
+    version: '2.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x72d481d03556fb831b505cf7d9695bd7da96fce2c4a282868be0384d580e6902
+    address: '0xF847994AC56799D7dE2F5e51B9E5d1d001cAc3c3',
+  },
+  {
+    name: 'Rollup',
+    version: '3.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x20c5ef96d3d30c252ce9e6b76b25ffcbb44dfc2564d9e17179ecceef09272ee2
+    address: '0x07F6Fa22Bf5F3AFbcE2594396F2B943c5720F40d',
+  },
+  {
     name: 'SequencerInbox',
     version: '1.1',
     // example deployment via factory
@@ -340,7 +361,11 @@ function rollupAbi({
       const common = new Set(adminLogicAbi.map((entry) => JSON.stringify(entry)));
       const userLogicAbiOnly = userLogicAbi.filter((entry) => !common.has(JSON.stringify(entry)));
 
-      return [{ name, abi: [...adminLogicAbi, ...userLogicAbiOnly] }];
+      const abi = [...adminLogicAbi, ...userLogicAbiOnly]
+        // filter out entries that are not useful
+        .filter((entry) => !('name' in entry && entry.name === 'initialize'));
+
+      return [{ name, abi }];
     },
   };
 }
