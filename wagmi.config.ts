@@ -304,6 +304,46 @@ async function updateContractWithImplementationIfProxy(contract: ContractConfig)
   contract.implementation = { [arbitrumSepolia.id]: implementation };
 }
 
+/**
+ * Custom wagmi plugin that generates a combined ABI for Rollup contracts.
+ *
+ * Rollup contracts use an extension of OZ's ERC1967Upgrade that supports two
+ * logic contracts (RollupAdminLogic and RollupUserLogic). This plugin fetches
+ * ABIs for both implementations and merges them into a single ABI, deduplicating
+ * entries using JSON.stringify (relies on consistent key ordering from the same API source).
+ */
+function rollupAbi({
+  name,
+  chainId,
+  address,
+}: {
+  name: string;
+  chainId: ParentChainId;
+  address: `0x${string}`;
+}) {
+  return {
+    name: 'Rollup ABI',
+    async contracts() {
+      const client = createPublicClient({
+        chain: chains.find((chain) => chain.id === chainId),
+        transport: http(),
+      });
+
+      const adminLogicAddress = await getImplementation({ client, address });
+      const adminLogicAbi = await fetchAbi(chainId, adminLogicAddress);
+
+      const userLogicAddress = await getImplementation({ client, address, secondary: true });
+      const userLogicAbi = await fetchAbi(chainId, userLogicAddress);
+
+      // merge and deduplicate
+      const seen = new Set(adminLogicAbi.map((entry: any) => JSON.stringify(entry)));
+      const uniqueSecondary = userLogicAbi.filter((entry: any) => !seen.has(JSON.stringify(entry)));
+
+      return [{ name, abi: [...adminLogicAbi, ...uniqueSecondary] }];
+    },
+  } as any;
+}
+
 export default async function () {
   const configs: Config[] = [
     {
@@ -322,7 +362,6 @@ export default async function () {
 
   for (const contract of contracts) {
     await assertContractAbisMatch(contract);
-    await updateContractWithImplementationIfProxy(contract);
     await sleep(1_000); // sleep to avoid rate limiting
 
     const filePath =
@@ -330,18 +369,35 @@ export default async function () {
         ? `${contract.name}/v${contract.version}`
         : contract.name;
 
-    configs.push({
-      out: `src/contracts/${filePath}.ts`,
-      plugins: [
-        etherscan({
-          chainId: referenceChain.id,
-          apiKey,
-          // todo: fix viem type issue
-          contracts: [contract],
-          cacheDuration: 0,
-        }),
-      ],
-    });
+    if (contract.name === 'Rollup') {
+      configs.push({
+        out: `src/contracts/${filePath}.ts`,
+        plugins: [
+          rollupAbi({
+            name: contract.name,
+            chainId: referenceChain.id,
+            address: (typeof contract.address === 'string'
+              ? contract.address
+              : contract.address[referenceChain.id]) as `0x${string}`,
+          }),
+        ],
+      });
+    } else {
+      await updateContractWithImplementationIfProxy(contract);
+
+      configs.push({
+        out: `src/contracts/${filePath}.ts`,
+        plugins: [
+          etherscan({
+            chainId: referenceChain.id,
+            apiKey,
+            // todo: fix viem type issue
+            contracts: [contract],
+            cacheDuration: 0,
+          }),
+        ],
+      });
+    }
   }
 
   return configs;
