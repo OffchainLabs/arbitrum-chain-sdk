@@ -1,5 +1,6 @@
-import { Config } from '@wagmi/cli';
+import { Config, Plugin } from '@wagmi/cli';
 import { erc, etherscan } from '@wagmi/cli/plugins';
+import { Abi } from 'abitype';
 import { hashMessage, createPublicClient, http, zeroAddress } from 'viem';
 import dotenv from 'dotenv';
 
@@ -320,7 +321,7 @@ function rollupAbi({
   name: string;
   chainId: ParentChainId;
   address: `0x${string}`;
-}) {
+}): Plugin {
   return {
     name: 'Rollup ABI',
     async contracts() {
@@ -330,18 +331,18 @@ function rollupAbi({
       });
 
       const adminLogicAddress = await getImplementation({ client, address });
-      const adminLogicAbi = await fetchAbi(chainId, adminLogicAddress);
+      const adminLogicAbi: Abi = await fetchAbi(chainId, adminLogicAddress);
 
       const userLogicAddress = await getImplementation({ client, address, secondary: true });
-      const userLogicAbi = await fetchAbi(chainId, userLogicAddress);
+      const userLogicAbi: Abi = await fetchAbi(chainId, userLogicAddress);
 
       // merge and deduplicate
-      const seen = new Set(adminLogicAbi.map((entry: any) => JSON.stringify(entry)));
-      const uniqueSecondary = userLogicAbi.filter((entry: any) => !seen.has(JSON.stringify(entry)));
+      const common = new Set(adminLogicAbi.map((entry) => JSON.stringify(entry)));
+      const userLogicAbiOnly = userLogicAbi.filter((entry) => !common.has(JSON.stringify(entry)));
 
-      return [{ name, abi: [...adminLogicAbi, ...uniqueSecondary] }];
+      return [{ name, abi: [...adminLogicAbi, ...userLogicAbiOnly] }];
     },
-  } as any;
+  };
 }
 
 export default async function () {
