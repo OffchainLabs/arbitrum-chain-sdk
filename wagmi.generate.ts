@@ -17,25 +17,21 @@ import { getArbOSVersion } from './src/utils/getArbOSVersion';
 
 dotenv.config();
 
-function loadApiKey(key: string): string {
-  const apiKey = process.env[key];
-
-  if (typeof apiKey === 'undefined' || apiKey.length === 0) {
-    throw new Error(`Missing the ${key} environment variable!`);
-  }
-
-  return apiKey;
-}
-
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const apiKey = loadApiKey('ETHERSCAN_API_KEY');
+const apiKey = process.env.ETHERSCAN_API_KEY;
+if (!apiKey) {
+  throw new Error('Missing the ETHERSCAN_API_KEY environment variable!');
+}
 
 const referenceChain = arbitrumSepolia;
 
-export async function logReferenceChain() {
+let loggedReferenceChain = false;
+async function maybeLogReferenceChain() {
+  if (loggedReferenceChain) return;
+  loggedReferenceChain = true;
   const client = createPublicClient({ chain: referenceChain, transport: http() });
   const arbOSVersion = await getArbOSVersion(client);
   console.log(
@@ -47,10 +43,9 @@ export type ContractConfig = {
   name: string;
   version?: string;
   address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
-  implementation?: Record<ParentChainId, `0x${string}`>;
 };
 
-export async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
+async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
   const client = createPublicClient({
     chain: chains.find((chain) => chain.id === chainId),
     transport: http(),
@@ -93,7 +88,7 @@ function allEqual<T>(array: T[]) {
   return array.every((value) => value === array[0]);
 }
 
-export async function assertContractAbisMatch(contract: ContractConfig) {
+async function assertContractAbisMatch(contract: ContractConfig) {
   const contractVersion = contract.version ? ` v${contract.version}` : '';
 
   // skip check when single address is provided
@@ -154,8 +149,9 @@ export function generate({
 }): Plugin {
   const chainId = referenceChain.id;
   return {
-    name: 'Rollup ABI',
+    name: 'generate',
     async contracts() {
+      await maybeLogReferenceChain();
       const client = createPublicClient({
         chain: chains.find((chain) => chain.id === chainId),
         transport: http(),
@@ -168,8 +164,7 @@ export function generate({
       const address = typeof _address === 'string' ? _address : _address[chainId];
       const addressReturn =
         typeof _address === 'string'
-          ? //
-            name.startsWith('Arb')
+          ? name.startsWith('Arb')
             ? _address
             : undefined
           : _address;

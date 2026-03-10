@@ -12,7 +12,7 @@ import {
   nitroTestnodeL1,
   nitroTestnodeL2,
 } from './src/chains';
-import { generate, ContractConfig, logReferenceChain } from './wagmi.generate';
+import { generate, ContractConfig } from './wagmi.generate';
 
 // @ts-expect-error -- viem chain rpcUrls are typed as readonly
 mainnet.rpcUrls.default.http[0] = 'https://mainnet.gateway.tenderly.co';
@@ -191,8 +191,6 @@ export default async function () {
       plugins: [erc({ 20: true, 721: false, 4626: false })],
     },
   ];
-
-  await logReferenceChain();
 
   for (const contract of contracts) {
     const filePath =
