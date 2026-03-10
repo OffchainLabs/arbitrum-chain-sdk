@@ -1,5 +1,5 @@
 import { Config, Plugin } from '@wagmi/cli';
-import { erc, etherscan } from '@wagmi/cli/plugins';
+import { erc } from '@wagmi/cli/plugins';
 import { Abi } from 'abitype';
 import { hashMessage, createPublicClient, http, zeroAddress } from 'viem';
 import dotenv from 'dotenv';
@@ -74,11 +74,11 @@ export async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
     return responseJson.abi;
   }
 
-  const responseJson = await (
-    await fetch(
-      `https://api.etherscan.io/v2/api?chainid=${chainId}&module=contract&action=getabi&format=raw&address=${address}&apikey=${apiKey}`,
-    )
-  ).json();
+  const url = `https://api.etherscan.io/v2/api?chainid=${chainId}&module=contract&action=getabi&format=raw&address=${address}&apikey=${apiKey}`;
+  console.log(`fetching url`);
+  console.log(url);
+
+  const responseJson = await (await fetch(url)).json();
 
   if (responseJson.message === 'NOTOK') {
     throw new Error(`Failed to fetch ABI for ${chainId}: ${responseJson.result}`);
@@ -337,11 +337,11 @@ async function updateContractWithImplementationIfProxy(contract: ContractConfig)
 function rollupAbi({
   name,
   chainId,
-  address,
+  address: _address,
 }: {
   name: string;
   chainId: ParentChainId;
-  address: `0x${string}`;
+  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
 }): Plugin {
   return {
     name: 'Rollup ABI',
@@ -351,23 +351,41 @@ function rollupAbi({
         transport: http(),
       });
 
+      if (typeof _address === 'object') {
+        await assertContractAbisMatch({ name, address: _address });
+      }
+
+      const address = typeof _address === 'string' ? _address : _address[chainId];
+      const addressReturn =
+        typeof _address === 'string'
+          ? //
+            name.startsWith('Arb')
+            ? _address
+            : undefined
+          : _address;
+
       await sleep(1_000);
       const abi = await fetchAbi(chainId, address);
       await sleep(1_000);
 
       const primaryImplementationAddress = await getImplementation({ client, address });
       await sleep(1_000);
-      const primaryImplementationAbi: Abi = await fetchAbi(chainId, primaryImplementationAddress);
 
       if (primaryImplementationAddress === zeroAddress) {
-        return [{ name, abi }];
+        return [{ name, abi, address: addressReturn }];
       }
+      const primaryImplementationAbi: Abi = await fetchAbi(chainId, primaryImplementationAddress);
 
       const secondaryImplementationAddress = await getImplementation({
         client,
         address,
         secondary: true,
       });
+
+      if (secondaryImplementationAddress === zeroAddress) {
+        return [{ name, abi: primaryImplementationAbi, address: addressReturn }];
+      }
+
       await sleep(1_000);
       const secondaryImplementationAbi: Abi = await fetchAbi(
         chainId,
@@ -380,7 +398,13 @@ function rollupAbi({
         (entry) => !common.has(JSON.stringify(entry)),
       );
 
-      return [{ name, abi: [...primaryImplementationAbi, ...secondaryImplementationAbiOnly] }];
+      return [
+        {
+          name,
+          abi: [...primaryImplementationAbi, ...secondaryImplementationAbiOnly],
+          address: addressReturn,
+        },
+      ];
     },
   };
 }
@@ -402,41 +426,21 @@ export default async function () {
   );
 
   for (const contract of contracts) {
-    await assertContractAbisMatch(contract);
-    await sleep(1_000); // sleep to avoid rate limiting
-
     const filePath =
       typeof contract.version !== 'undefined'
         ? `${contract.name}/v${contract.version}`
         : contract.name;
 
-    if (contract.name.endsWith('Creator')) {
-      configs.push({
-        out: `src/contracts/${filePath}.ts`,
-        plugins: [
-          etherscan({
-            chainId: referenceChain.id,
-            apiKey,
-            // todo: fix viem type issue
-            contracts: [contract],
-            cacheDuration: 0,
-          }),
-        ],
-      });
-    } else {
-      configs.push({
-        out: `src/contracts/${filePath}.ts`,
-        plugins: [
-          rollupAbi({
-            name: contract.name,
-            chainId: referenceChain.id,
-            address: (typeof contract.address === 'string'
-              ? contract.address
-              : contract.address[referenceChain.id]) as `0x${string}`,
-          }),
-        ],
-      });
-    }
+    configs.push({
+      out: `src/contracts/${filePath}.ts`,
+      plugins: [
+        rollupAbi({
+          name: contract.name,
+          chainId: referenceChain.id,
+          address: contract.address,
+        }),
+      ],
+    });
   }
 
   return configs;
