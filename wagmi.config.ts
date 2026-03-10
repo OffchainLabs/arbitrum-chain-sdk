@@ -1,6 +1,5 @@
 import { Config } from '@wagmi/cli';
 import { erc } from '@wagmi/cli/plugins';
-import { createPublicClient, http, zeroAddress } from 'viem';
 
 import {
   mainnet,
@@ -13,9 +12,7 @@ import {
   nitroTestnodeL1,
   nitroTestnodeL2,
 } from './src/chains';
-import { getImplementation } from './src/utils/getImplementation';
-import { getArbOSVersion } from './src/utils/getArbOSVersion';
-import { rollupAbi, ContractConfig } from './wagmiPluginRollupAbi';
+import { rollupAbi, ContractConfig, logReferenceChain } from './wagmiPluginRollupAbi';
 
 // @ts-expect-error -- viem chain rpcUrls are typed as readonly
 mainnet.rpcUrls.default.http[0] = 'https://mainnet.gateway.tenderly.co';
@@ -187,29 +184,6 @@ const contracts: ContractConfig[] = [
   },
 ];
 
-async function updateContractWithImplementationIfProxy(contract: ContractConfig) {
-  // precompiles, do nothing
-  if (contract.name.startsWith('Arb')) {
-    return;
-  }
-
-  const implementation = await getImplementation({
-    client: createPublicClient({ chain: arbitrumSepolia, transport: http() }),
-    address:
-      typeof contract.address === 'string'
-        ? contract.address
-        : contract.address[arbitrumSepolia.id],
-  });
-
-  // not a proxy, do nothing
-  if (implementation === zeroAddress) {
-    return;
-  }
-
-  // only add arbitrum sepolia implementation as that's the one we're generating from
-  contract.implementation = { [arbitrumSepolia.id]: implementation };
-}
-
 export default async function () {
   const configs: Config[] = [
     {
@@ -218,13 +192,7 @@ export default async function () {
     },
   ];
 
-  const referenceChain = arbitrumSepolia;
-  const referenceChainClient = createPublicClient({ chain: referenceChain, transport: http() });
-  const referenceChainArbOSVersion = await getArbOSVersion(referenceChainClient);
-
-  console.log(
-    `- Using ${referenceChain.name} (${referenceChain.id}) running ArbOS ${referenceChainArbOSVersion} as reference\n`,
-  );
+  await logReferenceChain();
 
   for (const contract of contracts) {
     const filePath =
@@ -237,7 +205,6 @@ export default async function () {
       plugins: [
         rollupAbi({
           name: contract.name,
-          chainId: referenceChain.id,
           address: contract.address,
         }),
       ],

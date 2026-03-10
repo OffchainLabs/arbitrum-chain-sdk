@@ -6,12 +6,14 @@ import dotenv from 'dotenv';
 import { ParentChainId } from './src';
 import {
   arbitrumNova,
+  arbitrumSepolia,
   nitroTestnodeL1,
   nitroTestnodeL2,
   nitroTestnodeL3,
   chains,
 } from './src/chains';
 import { getImplementation } from './src/utils/getImplementation';
+import { getArbOSVersion } from './src/utils/getArbOSVersion';
 
 dotenv.config();
 
@@ -30,6 +32,16 @@ function sleep(ms: number) {
 }
 
 const apiKey = loadApiKey('ETHERSCAN_API_KEY');
+
+const referenceChain = arbitrumSepolia;
+
+export async function logReferenceChain() {
+  const client = createPublicClient({ chain: referenceChain, transport: http() });
+  const arbOSVersion = await getArbOSVersion(client);
+  console.log(
+    `- Using ${referenceChain.name} (${referenceChain.id}) running ArbOS ${arbOSVersion} as reference\n`,
+  );
+}
 
 export type ContractConfig = {
   name: string;
@@ -135,13 +147,12 @@ export async function assertContractAbisMatch(contract: ContractConfig) {
  */
 export function rollupAbi({
   name,
-  chainId,
   address: _address,
 }: {
   name: string;
-  chainId: ParentChainId;
   address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
 }): Plugin {
+  const chainId = referenceChain.id;
   return {
     name: 'Rollup ABI',
     async contracts() {
