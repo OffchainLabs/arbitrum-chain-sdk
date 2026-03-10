@@ -146,6 +146,13 @@ const contracts: ContractConfig[] = [
     address: '0x07F6Fa22Bf5F3AFbcE2594396F2B943c5720F40d',
   },
   {
+    name: 'Rollup',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x285EC466b4b7ac52246436ab1224618fA500b489',
+  },
+  {
     name: 'SequencerInbox',
     version: '1.1',
     // example deployment via factory
@@ -165,6 +172,13 @@ const contracts: ContractConfig[] = [
     // example deployment via factory
     // https://sepolia.arbiscan.io/tx/0x20c5ef96d3d30c252ce9e6b76b25ffcbb44dfc2564d9e17179ecceef09272ee2
     address: '0x6862a3667cb1aDfF76fEa9FbD9bBB02488Ce0981',
+  },
+  {
+    name: 'SequencerInbox',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x68FF3d308F3a9Bc321c499eeE85c897D4B351f64',
   },
   {
     name: 'ArbOwner',
