@@ -145,7 +145,7 @@ export async function assertContractAbisMatch(contract: ContractConfig) {
  * ABIs for both implementations and merges them into a single ABI, deduplicating
  * entries using JSON.stringify (relies on consistent key ordering from the same API source).
  */
-export function rollupAbi({
+export function generate({
   name,
   address: _address,
 }: {

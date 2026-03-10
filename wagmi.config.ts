@@ -12,7 +12,7 @@ import {
   nitroTestnodeL1,
   nitroTestnodeL2,
 } from './src/chains';
-import { rollupAbi, ContractConfig, logReferenceChain } from './wagmiPluginRollupAbi';
+import { generate, ContractConfig, logReferenceChain } from './wagmi.generate';
 
 // @ts-expect-error -- viem chain rpcUrls are typed as readonly
 mainnet.rpcUrls.default.http[0] = 'https://mainnet.gateway.tenderly.co';
@@ -203,7 +203,7 @@ export default async function () {
     configs.push({
       out: `src/contracts/${filePath}.ts`,
       plugins: [
-        rollupAbi({
+        generate({
           name: contract.name,
           address: contract.address,
         }),
