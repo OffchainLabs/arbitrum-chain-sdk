@@ -351,17 +351,36 @@ function rollupAbi({
         transport: http(),
       });
 
-      const adminLogicAddress = await getImplementation({ client, address });
-      const adminLogicAbi: Abi = await fetchAbi(chainId, adminLogicAddress);
+      await sleep(1_000);
+      const abi = await fetchAbi(chainId, address);
+      await sleep(1_000);
 
-      const userLogicAddress = await getImplementation({ client, address, secondary: true });
-      const userLogicAbi: Abi = await fetchAbi(chainId, userLogicAddress);
+      const primaryImplementationAddress = await getImplementation({ client, address });
+      await sleep(1_000);
+      const primaryImplementationAbi: Abi = await fetchAbi(chainId, primaryImplementationAddress);
+
+      if (primaryImplementationAddress === zeroAddress) {
+        return [{ name, abi }];
+      }
+
+      const secondaryImplementationAddress = await getImplementation({
+        client,
+        address,
+        secondary: true,
+      });
+      await sleep(1_000);
+      const secondaryImplementationAbi: Abi = await fetchAbi(
+        chainId,
+        secondaryImplementationAddress,
+      );
 
       // merge and deduplicate
-      const common = new Set(adminLogicAbi.map((entry) => JSON.stringify(entry)));
-      const userLogicAbiOnly = userLogicAbi.filter((entry) => !common.has(JSON.stringify(entry)));
+      const common = new Set(primaryImplementationAbi.map((entry) => JSON.stringify(entry)));
+      const secondaryImplementationAbiOnly = secondaryImplementationAbi.filter(
+        (entry) => !common.has(JSON.stringify(entry)),
+      );
 
-      return [{ name, abi: [...adminLogicAbi, ...userLogicAbiOnly] }];
+      return [{ name, abi: [...primaryImplementationAbi, ...secondaryImplementationAbiOnly] }];
     },
   };
 }
@@ -391,22 +410,7 @@ export default async function () {
         ? `${contract.name}/v${contract.version}`
         : contract.name;
 
-    if (contract.name === 'Rollup') {
-      configs.push({
-        out: `src/contracts/${filePath}.ts`,
-        plugins: [
-          rollupAbi({
-            name: contract.name,
-            chainId: referenceChain.id,
-            address: (typeof contract.address === 'string'
-              ? contract.address
-              : contract.address[referenceChain.id]) as `0x${string}`,
-          }),
-        ],
-      });
-    } else {
-      await updateContractWithImplementationIfProxy(contract);
-
+    if (contract.name.endsWith('Creator')) {
       configs.push({
         out: `src/contracts/${filePath}.ts`,
         plugins: [
@@ -416,6 +420,19 @@ export default async function () {
             // todo: fix viem type issue
             contracts: [contract],
             cacheDuration: 0,
+          }),
+        ],
+      });
+    } else {
+      configs.push({
+        out: `src/contracts/${filePath}.ts`,
+        plugins: [
+          rollupAbi({
+            name: contract.name,
+            chainId: referenceChain.id,
+            address: (typeof contract.address === 'string'
+              ? contract.address
+              : contract.address[referenceChain.id]) as `0x${string}`,
           }),
         ],
       });
