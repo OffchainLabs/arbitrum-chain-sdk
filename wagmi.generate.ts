@@ -1,6 +1,5 @@
 import { Plugin } from '@wagmi/cli';
-import { Abi } from 'abitype';
-import { hashMessage, createPublicClient, http, zeroAddress } from 'viem';
+import { Abi, hashMessage, createPublicClient, http, zeroAddress, Address } from 'viem';
 import dotenv from 'dotenv';
 
 import { ParentChainId } from './src';
@@ -21,22 +20,11 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+const referenceChain = arbitrumSepolia;
 const apiKey = process.env.ETHERSCAN_API_KEY;
+
 if (!apiKey) {
   throw new Error('Missing the ETHERSCAN_API_KEY environment variable!');
-}
-
-const referenceChain = arbitrumSepolia;
-
-let loggedReferenceChain = false;
-async function maybeLogReferenceChain() {
-  if (loggedReferenceChain) return;
-  loggedReferenceChain = true;
-  const client = createPublicClient({ chain: referenceChain, transport: http() });
-  const arbOSVersion = await getArbOSVersion(client);
-  console.log(
-    `- Using ${referenceChain.name} (${referenceChain.id}) running ArbOS ${arbOSVersion} as reference\n`,
-  );
 }
 
 export type ContractConfig = {
@@ -46,18 +34,6 @@ export type ContractConfig = {
 };
 
 async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
-  const client = createPublicClient({
-    chain: chains.find((chain) => chain.id === chainId),
-    transport: http(),
-  });
-
-  const implementation = await getImplementation({ client, address });
-
-  if (implementation !== zeroAddress) {
-    // replace proxy address with implementation address, so proper abis are compared
-    address = implementation;
-  }
-
   if (chainId === arbitrumNova.id) {
     const response = await fetch(
       `https://arbitrum-nova.blockscout.com/api/v2/smart-contracts/${address}`,
@@ -77,6 +53,9 @@ async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
     )
   ).json();
 
+  // sleep to avoid rate limiting
+  await sleep(1_000);
+
   if (responseJson.message === 'NOTOK') {
     throw new Error(`Failed to fetch ABI for ${chainId}: ${responseJson.result}`);
   }
@@ -89,36 +68,38 @@ function allEqual<T>(array: T[]) {
 }
 
 async function assertContractAbisMatch(contract: ContractConfig) {
-  const contractVersion = contract.version ? ` v${contract.version}` : '';
-
-  // skip check when single address is provided
-  if (typeof contract.address === 'string') {
-    console.log(`- ${contract.name}${contractVersion} ✔\n`);
-    return;
-  }
-
-  console.log(`- ${contract.name}${contractVersion}`);
+  console.log(` (checking if ABIs match across all chains) `);
 
   const abiHashes = await Promise.all(
     Object.entries(contract.address)
       // don't fetch abis for testnode
-      .filter(([chainIdString]) => {
-        const chainId = Number(chainIdString);
+      .filter(([_chainId]) => {
+        const chainId = Number(_chainId);
+
         return (
           chainId !== nitroTestnodeL1.id &&
           chainId !== nitroTestnodeL2.id &&
           chainId !== nitroTestnodeL3.id
         );
       })
-      // fetch abis for all chains and hash them
-      .map(async ([chainId, address], index) => {
+      // resolve implementations and fetch abis for all chains, then hash them
+      .map(async ([_chainId, _address], index) => {
+        const chainId = Number(_chainId) as ParentChainId;
+        const address = _address as Address;
+
         // sleep to avoid rate limiting
         await sleep(index * 1_000);
 
-        const abi = await fetchAbi(Number(chainId) as ParentChainId, address);
-        const abiHash = hashMessage(JSON.stringify(abi));
+        const client = createPublicClient({
+          chain: chains.find((chain) => chain.id === chainId),
+          transport: http(),
+        });
 
-        console.log(`- ${abiHash} (${chainId})`);
+        const implementation = await getImplementation({ client, address });
+        const resolvedAddress = implementation !== zeroAddress ? implementation : address;
+
+        const abi = await fetchAbi(chainId, resolvedAddress);
+        const abiHash = hashMessage(JSON.stringify(abi));
 
         return abiHash;
       }),
@@ -126,90 +107,106 @@ async function assertContractAbisMatch(contract: ContractConfig) {
 
   // make sure all abis hashes are the same
   if (!allEqual(abiHashes)) {
-    throw new Error(`- ${contract.name}`);
+    throw new Error(`ABI hashes for ${contract.name} do not match`);
   }
-
-  console.log(`- ${contract.name}${contractVersion} ✔\n`);
 }
 
 /**
- * Custom wagmi plugin that generates a combined ABI for Rollup contracts.
+ * Factory contracts (e.g., RollupCreator, TokenBridgeCreator).
  *
- * Rollup contracts use an extension of OZ's ERC1967Upgrade that supports two
- * logic contracts (RollupAdminLogic and RollupUserLogic). This plugin fetches
- * ABIs for both implementations and merges them into a single ABI, deduplicating
- * entries using JSON.stringify (relies on consistent key ordering from the same API source).
+ * These are proxy contracts deployed on every parent chain. We fetch the implementation
+ * ABI for each chain and assert they all match, then return the ABI from the reference chain.
  */
+async function generateAbiForFactoryContract(
+  name: string,
+  address: Record<ParentChainId, `0x${string}`>,
+) {
+  const chainId = referenceChain.id;
+
+  await assertContractAbisMatch({ name, address });
+
+  const client = createPublicClient({
+    chain: chains.find((chain) => chain.id === chainId),
+    transport: http(),
+  });
+
+  const implementation = await getImplementation({ client, address: address[chainId] });
+  const resolvedAddress = implementation !== zeroAddress ? implementation : address[chainId];
+
+  const abi = await fetchAbi(chainId, resolvedAddress);
+  return [{ name, abi, address }];
+}
+
+/**
+ * Precompile contracts (e.g., ArbOwner, ArbGasInfo).
+ *
+ * These have a fixed address that is the same on every Arbitrum chain and are not proxies.
+ */
+async function generateAbiForPrecompileContract(name: string, address: `0x${string}`) {
+  const abi = await fetchAbi(referenceChain.id, address);
+  return [{ name, abi, address }];
+}
+
+/**
+ * Core contracts (e.g., Rollup, SequencerInbox).
+ *
+ * These are proxy contracts from example deployments via factories.
+ * The SequencerInbox contract has a single implementation.
+ * The Rollup contract uses a dual-proxy pattern with primary (RollupAdminLogic)
+ * and secondary (RollupUserLogic) implementations whose ABIs get merged and deduplicated.
+ */
+async function generateAbiForCoreContract(name: string, address: `0x${string}`) {
+  const chainId = referenceChain.id;
+
+  const client = createPublicClient({
+    chain: chains.find((chain) => chain.id === chainId),
+    transport: http(),
+  });
+
+  const primaryImplementation = await getImplementation({ client, address });
+  const primaryAbi: Abi = await fetchAbi(chainId, primaryImplementation);
+
+  const secondaryImplementation = await getImplementation({
+    client,
+    address,
+    secondary: true,
+  });
+
+  if (secondaryImplementation === zeroAddress) {
+    return [{ name, abi: primaryAbi }];
+  }
+
+  const secondaryAbi: Abi = await fetchAbi(chainId, secondaryImplementation);
+
+  // merge and deduplicate
+  const common = new Set(primaryAbi.map((entry) => JSON.stringify(entry)));
+  const secondaryOnly = secondaryAbi.filter((entry) => !common.has(JSON.stringify(entry)));
+
+  return [{ name, abi: [...primaryAbi, ...secondaryOnly] }];
+}
+
 export function generate({
   name,
-  address: _address,
+  address,
 }: {
   name: string;
   address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
 }): Plugin {
-  const chainId = referenceChain.id;
   return {
     name: 'generate',
     async contracts() {
-      await maybeLogReferenceChain();
-      const client = createPublicClient({
-        chain: chains.find((chain) => chain.id === chainId),
-        transport: http(),
-      });
-
-      if (typeof _address === 'object') {
-        await assertContractAbisMatch({ name, address: _address });
+      if (typeof address === 'object') {
+        return generateAbiForFactoryContract(name, address);
       }
 
-      const address = typeof _address === 'string' ? _address : _address[chainId];
-      const addressReturn =
-        typeof _address === 'string'
-          ? name.startsWith('Arb')
-            ? _address
-            : undefined
-          : _address;
-
-      await sleep(1_000);
-      const abi = await fetchAbi(chainId, address);
-      await sleep(1_000);
-
-      const primaryImplementationAddress = await getImplementation({ client, address });
-      await sleep(1_000);
-
-      if (primaryImplementationAddress === zeroAddress) {
-        return [{ name, abi, address: addressReturn }];
-      }
-      const primaryImplementationAbi: Abi = await fetchAbi(chainId, primaryImplementationAddress);
-
-      const secondaryImplementationAddress = await getImplementation({
-        client,
-        address,
-        secondary: true,
-      });
-
-      if (secondaryImplementationAddress === zeroAddress) {
-        return [{ name, abi: primaryImplementationAbi, address: addressReturn }];
+      if (name.startsWith('Arb')) {
+        const publicClient = createPublicClient({ chain: referenceChain, transport: http() });
+        const arbOSVersion = await getArbOSVersion(publicClient);
+        console.log(` (using ArbOS ${arbOSVersion})`);
+        return generateAbiForPrecompileContract(name, address);
       }
 
-      await sleep(1_000);
-      const secondaryImplementationAbi: Abi = await fetchAbi(
-        chainId,
-        secondaryImplementationAddress,
-      );
-
-      // merge and deduplicate
-      const common = new Set(primaryImplementationAbi.map((entry) => JSON.stringify(entry)));
-      const secondaryImplementationAbiOnly = secondaryImplementationAbi.filter(
-        (entry) => !common.has(JSON.stringify(entry)),
-      );
-
-      return [
-        {
-          name,
-          abi: [...primaryImplementationAbi, ...secondaryImplementationAbiOnly],
-          address: addressReturn,
-        },
-      ];
+      return generateAbiForCoreContract(name, address);
     },
   };
 }
