@@ -166,6 +166,10 @@ async function generateAbiForCoreContract(name: string, address: `0x${string}`) 
   const primaryImplementation = await getImplementation({ client, address });
   const primaryAbi: Abi = await fetchAbi(chainId, primaryImplementation);
 
+  if (name !== 'Rollup') {
+    return [{ name, abi: primaryAbi }];
+  }
+
   const secondaryImplementation = await getImplementation({
     client,
     address,
