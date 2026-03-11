@@ -169,7 +169,7 @@ async function main() {
     ['parentChainRewardRecipient', parentChainRewardRecipient],
   ] as const);
 
-  type FeeCollectorKey = typeof feeCollectors extends Map<infer K, any> ? K : never;
+  type FeeCollectorKey = typeof feeCollectors extends Map<infer K, unknown> ? K : never;
 
   const feeCollectorToRewardDistributor: Record<FeeCollectorKey, `0x${string}`> = {} as Record<
     FeeCollectorKey,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Address, createPublicClient, http, zeroAddress } from 'viem';
+import { createPublicClient, http, zeroAddress } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from '../chains';

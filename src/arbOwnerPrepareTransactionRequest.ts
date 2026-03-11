@@ -87,7 +87,7 @@ export async function arbOwnerPrepareTransactionRequest<
     abi: arbOwnerABI,
   } as unknown as ArbOwnerPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,

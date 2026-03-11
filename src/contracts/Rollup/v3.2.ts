@@ -378,6 +378,16 @@ export const rollupABI = [
     stateMutability: 'nonpayable',
     type: 'function',
     inputs: [
+      { name: 'newBaseStake', internalType: 'uint256', type: 'uint256' },
+      { name: 'latestNextInboxPosition', internalType: 'uint64', type: 'uint64' },
+    ],
+    name: 'decreaseBaseStake',
+    outputs: [],
+  },
+  {
+    stateMutability: 'nonpayable',
+    type: 'function',
+    inputs: [
       { name: 'assertionHash', internalType: 'bytes32', type: 'bytes32' },
       { name: 'parentAssertionHash', internalType: 'bytes32', type: 'bytes32' },
       {
@@ -577,6 +587,13 @@ export const rollupABI = [
   {
     stateMutability: 'nonpayable',
     type: 'function',
+    inputs: [{ name: 'newBaseStake', internalType: 'uint256', type: 'uint256' }],
+    name: 'increaseBaseStake',
+    outputs: [],
+  },
+  {
+    stateMutability: 'nonpayable',
+    type: 'function',
     inputs: [
       {
         name: 'config',
@@ -640,6 +657,7 @@ export const rollupABI = [
               { name: 'replenishRateInBasis', internalType: 'uint64', type: 'uint64' },
             ],
           },
+          { name: 'dataCostEstimate', internalType: 'uint256', type: 'uint256' },
         ],
       },
       {
@@ -778,13 +796,6 @@ export const rollupABI = [
     type: 'function',
     inputs: [{ name: '_anyTrustFastConfirmer', internalType: 'address', type: 'address' }],
     name: 'setAnyTrustFastConfirmer',
-    outputs: [],
-  },
-  {
-    stateMutability: 'nonpayable',
-    type: 'function',
-    inputs: [{ name: 'newBaseStake', internalType: 'uint256', type: 'uint256' }],
-    name: 'setBaseStake',
     outputs: [],
   },
   {

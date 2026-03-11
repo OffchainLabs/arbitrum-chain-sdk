@@ -52,7 +52,7 @@ export async function isAnyTrust<TChain extends Chain>({
       });
 
       result = parseConfig(config);
-    } catch (error) {
+    } catch {
       // do nothing
     }
   });

@@ -90,7 +90,7 @@ export async function sequencerInboxPrepareTransactionRequest<
     abi: sequencerInboxABI,
   } as unknown as SequencerInboxPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,

@@ -66,71 +66,11 @@
     // from: @arbitrum/nitro-contracts>@openzeppelin/contracts
     // from: @arbitrum/token-bridge-contracts>@openzeppelin/contracts
     "GHSA-9vx6-7xxf-x967",
-    // https://github.com/advisories/GHSA-584q-6j8j-r5pm
-    // secp256k1-node allows private key extraction over ECDH
-    // We're using eliptic 5.0.7 which doesn't contain the issue
-    // https://github.com/cryptocoinjs/secp256k1-node/commit/dc37f41f2abfe87853b54bcd7d1b556db41b0c64#diff-7ae45ad102eab3b6d7e7896acd08c427a9b25b346470d7bc6507b6481575d519R35
-    // from: @arbitrum/token-bridge-contracts > @openzeppelin/upgrades-core > ethereumjs-util > ethereum-cryptography
-    "GHSA-584q-6j8j-r5pm",
-    // https://github.com/advisories/GHSA-3xgq-45jj-v275
-    // cross-spawn command injection vulnerability
-    // Only used during development via audit-ci, nyc, and patch-package
-    // from: audit-ci>cross-spawn
-    // from: nyc>foreground-child>cross-spawn
-    // from: nyc>spawn-wrap>foreground-child>cross-spawn
-    // from: @arbitrum/nitro-contracts>patch-package>cross-spawn
-    // from: @arbitrum/token-bridge-contracts>@arbitrum/nitro-contracts>patch-package>cross-spawn
-    // from: @offchainlabs/l1-l3-teleport-contracts>@arbitrum/token-bridge-contracts>@arbitrum/nitro-contracts>patch-package>cross-spawn
-    "GHSA-3xgq-45jj-v275",
-    // https://github.com/advisories/GHSA-67mh-4wv8-2f99
-    // esbuild enables any website to send any requests to the development server and read the response
-    // esbuild is only used with @wagmi/cli during development
-    // from: @wagmi/cli>esbuild
-    "GHSA-67mh-4wv8-2f99",
-    // https://github.com/advisories/GHSA-4r4m-qw57-chr8
-    // the vite dev server (when exposed to the network with --host) can return contents of arbitrary files
-    //
-    // https://github.com/advisories/GHSA-356w-63v5-8wf4
-    // the vite dev server (when exposed to the network with --host) can return contents of arbitrary files
-    //
-    // https://github.com/advisories/GHSA-xcj6-pq6g-qj4x
-    // the vite dev server (when exposed to the network with --host) can return contents of arbitrary files
-    //
-    // https://github.com/advisories/GHSA-859w-5945-r5v3
-    // the vite dev server (when exposed to the network with --host) can return contents of arbitrary files
-    //
-    // https://github.com/advisories/GHSA-g4jq-h2w9-997c
-    // files starting with the same name with the public directory were served bypassing the server.fs settings
-    //
-    // https://github.com/advisories/GHSA-jqfw-vq24-v9c3
-    // any HTML files on the machine were served regardless of the server.fs settings
-    //
-    // https://github.com/advisories/GHSA-93m4-6634-74q7
-    // the vite dev server (when exposed to the network with --host) can return denied files (on Windows)
-    //
-    // vite is only used with vitest for running tests, and without exposing the dev server to the network
-    //
-    // from: vitest>vite
-    // from: vitest>vite-node>vite
-    "GHSA-4r4m-qw57-chr8",
-    "GHSA-356w-63v5-8wf4",
-    "GHSA-xcj6-pq6g-qj4x",
-    "GHSA-859w-5945-r5v3",
-    "GHSA-g4jq-h2w9-997c",
-    "GHSA-jqfw-vq24-v9c3",
-    "GHSA-93m4-6634-74q7",
-    // https://github.com/advisories/GHSA-v6h2-p8h4-qcjw
-    // brace-expansion exposes a regular expression denial of service vulnerability
-    // Only used in development (patch-package and ts-morph)
-    // from: @arbitrum/token-bridge-contracts>@arbitrum/nitro-contracts>patch-package>rimraf>glob>minimatch>brace-expansion
-    // from: patch-package>rimraf>glob>minimatch>brace-expansion
-    // from: ts-morph>@ts-morph/common>minimatch>brace-expansion
-    "GHSA-v6h2-p8h4-qcjw",
-    // https://github.com/advisories/GHSA-52f5-9888-hmc6
-    // tmp allows arbitrary temporary file / directory write via symbolic link `dir` parameter
-    // Only used in development
-    // from: patch-package>tmp
-    // from: @arbitrum/token-bridge-contracts>@arbitrum/nitro-contracts>patch-package>tmp
-    "GHSA-52f5-9888-hmc6"
+    // https://github.com/advisories/GHSA-848j-6mx2-7j84
+    // elliptic has no patched release yet (affected: <=6.6.1)
+    // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
+    // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
+    "GHSA-848j-6mx2-7j84"
+
   ]
 }

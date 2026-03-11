@@ -83,7 +83,7 @@ function parseCliOptions(fileContents: string): CliOption[] {
   );
   // sanitize the boolean types
   lines = lines.map((line) => {
-    let split = line.split(' ');
+    const split = line.split(' ');
     // if the flag is just a boolean, then the type is omitted from the --help output, e.g. "--init.force"
     // to make things simpler and consistent, we replace the empty string with boolean
     if (split[1] === '') {
@@ -126,7 +126,7 @@ function createCliOptionsNestedObject(options: CliOption[]): CliOptionNestedObje
   const result: CliOptionNestedObject = {};
 
   options.forEach((option) => {
-    let paths = option.name.split('.');
+    const paths = option.name.split('.');
     let current: CliOptionNestedObject = result;
 
     for (let i = 0; i < paths.length; i++) {

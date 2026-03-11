@@ -13,10 +13,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL1, nitroTestnodeL2 } from './chains';
 import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
-import {
-  feeRouterDeployChildToParentRewardRouter,
-  feeRouterDeployOpChildToParentRewardRouter,
-} from './feeRouterDeployChildToParentRewardRouter';
+import { feeRouterDeployChildToParentRewardRouter } from './feeRouterDeployChildToParentRewardRouter';
 import { feeRouterDeployRewardDistributor } from './feeRouterDeployRewardDistributor';
 
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();

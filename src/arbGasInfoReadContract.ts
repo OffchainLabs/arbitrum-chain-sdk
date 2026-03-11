@@ -20,7 +20,7 @@ export function arbGasInfoReadContract<
   client: PublicClient<Transport, TChain>,
   params: ArbGasInfoReadContractParameters<TFunctionName>,
 ): Promise<ArbGasInfoReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
     address: arbGasInfoAddress,
     abi: arbGasInfoABI,

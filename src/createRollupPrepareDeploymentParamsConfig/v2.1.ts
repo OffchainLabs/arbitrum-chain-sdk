@@ -5,7 +5,6 @@ import { validateParentChain } from '../types/ParentChain';
 import { Prettify } from '../types/utils';
 import { prepareChainConfigSortKeys } from '../prepareChainConfigSortKeys';
 
-import { createRollup } from '../createRollup';
 import { CreateRollupFunctionInputs } from '../types/createRollupTypes';
 import { prepareChainConfig } from '../prepareChainConfig';
 

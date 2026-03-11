@@ -1,11 +1,4 @@
-import {
-  Address,
-  PublicClient,
-  Transport,
-  Chain,
-  encodeFunctionData,
-  PrepareTransactionRequestReturnType,
-} from 'viem';
+import { Address, PublicClient, Transport, Chain, encodeFunctionData } from 'viem';
 
 import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
 import {
@@ -79,7 +72,7 @@ export async function upgradeExecutorPrepareRemoveExecutorTransactionRequest<
   });
 
   // 2. Prepare the transaction (must be called through the UpgradeExecutor)
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
     chain: publicClient.chain,
     to: upgradeExecutorAddress,

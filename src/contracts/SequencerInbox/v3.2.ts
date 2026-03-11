@@ -244,6 +244,13 @@ export const sequencerInboxABI = [
     stateMutability: 'view',
     type: 'function',
     inputs: [],
+    name: 'CUSTOM_DA_MESSAGE_HEADER_FLAG',
+    outputs: [{ name: '', internalType: 'bytes1', type: 'bytes1' }],
+  },
+  {
+    stateMutability: 'view',
+    type: 'function',
+    inputs: [],
     name: 'DAS_MESSAGE_HEADER_FLAG',
     outputs: [{ name: '', internalType: 'bytes1', type: 'bytes1' }],
   },

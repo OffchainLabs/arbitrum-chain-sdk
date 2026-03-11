@@ -1,21 +1,20 @@
 {
-  "workspaces": [
-    "src",
-    "examples/*"
-  ],
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.30.3",
   "scripts": {
     "prebuild": "rm -rf ./src/dist",
     "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./src/dist --declaration",
-    "dev": "yarn build --watch",
+    "dev": "pnpm build --watch",
     "generate": "wagmi generate",
-    "generate:node-config-type": "yarn build && node ./src/dist/scripts/generateNodeConfigType.js",
+    "generate:node-config-type": "pnpm build && node ./src/dist/scripts/generateNodeConfigType.js",
     "postgenerate:node-config-type": "prettier --write ./src/types/NodeConfig.generated.ts",
     "test:type": "vitest --config vitest.type.config.ts",
     "test:unit": "vitest --config vitest.unit.config.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
     "postinstall": "patch-package",
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix --cache",
     "prettier:check": "prettier --check '**/*.{ts,md,json,yml}'",
     "prettier:format": "prettier --write '**/*.{ts,md,json,yml}'",
     "audit:ci": "audit-ci --config ./audit-ci.jsonc"
@@ -25,21 +24,30 @@
     "@wagmi/cli": "^1.5.2",
     "audit-ci": "^7.0.1",
     "dotenv": "^16.3.1",
+    "eslint": "^9.39.1",
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.8.3",
     "ts-morph": "^21.0.1",
+    "typescript-eslint": "^8.56.1",
     "typescript": "^5.2.2",
+    "viem": "^1.20.0",
     "vitest": "^3.2.4"
   },
-  "resolutions": {
-    "**/@wagmi/cli/viem/ws": "8.17.1",
-    "**/@ethersproject/providers/ws": "7.5.10",
-    "**/elliptic": "6.6.1",
-    "**/nanoid": "3.3.8",
-    "**/base-x": "3.0.11",
-    "**/pbkdf2": "3.1.3",
-    "**/sha.js": "2.4.12",
-    "**/cipher-base": "1.0.5"
+  "pnpm": {
+    "overrides": {
+      "viem": "1.20.0",
+      "viem>ws": "8.17.1",
+      "@wagmi/cli>esbuild": "0.25.1",
+      "@wagmi/cli>bundle-require": "5.1.0",
+      "@ethersproject/providers>ws": "7.5.10",
+      "elliptic": "6.6.1",
+      "nanoid": "3.3.8",
+      "base-x": "3.0.11",
+      "pbkdf2": "3.1.3",
+      "sha.js": "2.4.12",
+      "cipher-base": "1.0.5",
+      "tmp": "0.2.5"
+    }
   }
 }
