@@ -1,10 +1,6 @@
-import { Config, Plugin } from '@wagmi/cli';
-import { erc, etherscan } from '@wagmi/cli/plugins';
-import { Abi } from 'abitype';
-import { hashMessage, createPublicClient, http, zeroAddress } from 'viem';
-import dotenv from 'dotenv';
+import { Config } from '@wagmi/cli';
+import { erc } from '@wagmi/cli/plugins';
 
-import { ParentChainId } from './src';
 import {
   mainnet,
   arbitrumOne,
@@ -15,27 +11,8 @@ import {
   baseSepolia,
   nitroTestnodeL1,
   nitroTestnodeL2,
-  nitroTestnodeL3,
-  chains,
 } from './src/chains';
-import { getImplementation } from './src/utils/getImplementation';
-import { getArbOSVersion } from './src/utils/getArbOSVersion';
-
-dotenv.config();
-
-function loadApiKey(key: string): string {
-  const apiKey = process.env[key];
-
-  if (typeof apiKey === 'undefined' || apiKey.length === 0) {
-    throw new Error(`Missing the ${key} environment variable!`);
-  }
-
-  return apiKey;
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import { generate, ContractConfig } from './wagmi.generate';
 
 // @ts-expect-error -- viem chain rpcUrls are typed as readonly
 mainnet.rpcUrls.default.http[0] = 'https://mainnet.gateway.tenderly.co';
@@ -45,54 +22,6 @@ mainnet.rpcUrls.public.http[0] = 'https://mainnet.gateway.tenderly.co';
 sepolia.rpcUrls.default.http[0] = 'https://sepolia.gateway.tenderly.co';
 // @ts-expect-error -- viem chain rpcUrls are typed as readonly
 sepolia.rpcUrls.public.http[0] = 'https://sepolia.gateway.tenderly.co';
-
-const apiKey = loadApiKey('ETHERSCAN_API_KEY');
-
-export async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
-  const client = createPublicClient({
-    chain: chains.find((chain) => chain.id === chainId),
-    transport: http(),
-  });
-
-  const implementation = await getImplementation({ client, address });
-
-  if (implementation !== zeroAddress) {
-    // replace proxy address with implementation address, so proper abis are compared
-    address = implementation;
-  }
-
-  if (chainId === arbitrumNova.id) {
-    const response = await fetch(
-      `https://arbitrum-nova.blockscout.com/api/v2/smart-contracts/${address}`,
-    );
-    const responseJson = await response.json();
-
-    if (!response.ok || !responseJson.abi) {
-      throw new Error(`Failed to fetch ABI for ${chainId}: ${responseJson.message}`);
-    }
-
-    return responseJson.abi;
-  }
-
-  const responseJson = await (
-    await fetch(
-      `https://api.etherscan.io/v2/api?chainid=${chainId}&module=contract&action=getabi&format=raw&address=${address}&apikey=${apiKey}`,
-    )
-  ).json();
-
-  if (responseJson.message === 'NOTOK') {
-    throw new Error(`Failed to fetch ABI for ${chainId}: ${responseJson.result}`);
-  }
-
-  return responseJson;
-}
-
-type ContractConfig = {
-  name: string;
-  version?: string;
-  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
-  implementation?: Record<ParentChainId, `0x${string}`>;
-};
 
 const contracts: ContractConfig[] = [
   {
@@ -255,117 +184,6 @@ const contracts: ContractConfig[] = [
   },
 ];
 
-function allEqual<T>(array: T[]) {
-  return array.every((value) => value === array[0]);
-}
-
-export async function assertContractAbisMatch(contract: ContractConfig) {
-  const contractVersion = contract.version ? ` v${contract.version}` : '';
-
-  // skip check when single address is provided
-  if (typeof contract.address === 'string') {
-    console.log(`- ${contract.name}${contractVersion} ✔\n`);
-    return;
-  }
-
-  console.log(`- ${contract.name}${contractVersion}`);
-
-  const abiHashes = await Promise.all(
-    Object.entries(contract.address)
-      // don't fetch abis for testnode
-      .filter(([chainIdString]) => {
-        const chainId = Number(chainIdString);
-        return (
-          chainId !== nitroTestnodeL1.id &&
-          chainId !== nitroTestnodeL2.id &&
-          chainId !== nitroTestnodeL3.id
-        );
-      })
-      // fetch abis for all chains and hash them
-      .map(async ([chainId, address], index) => {
-        // sleep to avoid rate limiting
-        await sleep(index * 1_000);
-
-        const abi = await fetchAbi(Number(chainId) as ParentChainId, address);
-        const abiHash = hashMessage(JSON.stringify(abi));
-
-        console.log(`- ${abiHash} (${chainId})`);
-
-        return abiHash;
-      }),
-  );
-
-  // make sure all abis hashes are the same
-  if (!allEqual(abiHashes)) {
-    throw new Error(`- ${contract.name}`);
-  }
-
-  console.log(`- ${contract.name}${contractVersion} ✔\n`);
-}
-
-async function updateContractWithImplementationIfProxy(contract: ContractConfig) {
-  // precompiles, do nothing
-  if (contract.name.startsWith('Arb')) {
-    return;
-  }
-
-  const implementation = await getImplementation({
-    client: createPublicClient({ chain: arbitrumSepolia, transport: http() }),
-    address:
-      typeof contract.address === 'string'
-        ? contract.address
-        : contract.address[arbitrumSepolia.id],
-  });
-
-  // not a proxy, do nothing
-  if (implementation === zeroAddress) {
-    return;
-  }
-
-  // only add arbitrum sepolia implementation as that's the one we're generating from
-  contract.implementation = { [arbitrumSepolia.id]: implementation };
-}
-
-/**
- * Custom wagmi plugin that generates a combined ABI for Rollup contracts.
- *
- * Rollup contracts use an extension of OZ's ERC1967Upgrade that supports two
- * logic contracts (RollupAdminLogic and RollupUserLogic). This plugin fetches
- * ABIs for both implementations and merges them into a single ABI, deduplicating
- * entries using JSON.stringify (relies on consistent key ordering from the same API source).
- */
-function rollupAbi({
-  name,
-  chainId,
-  address,
-}: {
-  name: string;
-  chainId: ParentChainId;
-  address: `0x${string}`;
-}): Plugin {
-  return {
-    name: 'Rollup ABI',
-    async contracts() {
-      const client = createPublicClient({
-        chain: chains.find((chain) => chain.id === chainId),
-        transport: http(),
-      });
-
-      const adminLogicAddress = await getImplementation({ client, address });
-      const adminLogicAbi: Abi = await fetchAbi(chainId, adminLogicAddress);
-
-      const userLogicAddress = await getImplementation({ client, address, secondary: true });
-      const userLogicAbi: Abi = await fetchAbi(chainId, userLogicAddress);
-
-      // merge and deduplicate
-      const common = new Set(adminLogicAbi.map((entry) => JSON.stringify(entry)));
-      const userLogicAbiOnly = userLogicAbi.filter((entry) => !common.has(JSON.stringify(entry)));
-
-      return [{ name, abi: [...adminLogicAbi, ...userLogicAbiOnly] }];
-    },
-  };
-}
-
 export default async function () {
   const configs: Config[] = [
     {
@@ -374,52 +192,21 @@ export default async function () {
     },
   ];
 
-  const referenceChain = arbitrumSepolia;
-  const referenceChainClient = createPublicClient({ chain: referenceChain, transport: http() });
-  const referenceChainArbOSVersion = await getArbOSVersion(referenceChainClient);
-
-  console.log(
-    `- Using ${referenceChain.name} (${referenceChain.id}) running ArbOS ${referenceChainArbOSVersion} as reference\n`,
-  );
-
   for (const contract of contracts) {
-    await assertContractAbisMatch(contract);
-    await sleep(1_000); // sleep to avoid rate limiting
-
     const filePath =
       typeof contract.version !== 'undefined'
         ? `${contract.name}/v${contract.version}`
         : contract.name;
 
-    if (contract.name === 'Rollup') {
-      configs.push({
-        out: `src/contracts/${filePath}.ts`,
-        plugins: [
-          rollupAbi({
-            name: contract.name,
-            chainId: referenceChain.id,
-            address: (typeof contract.address === 'string'
-              ? contract.address
-              : contract.address[referenceChain.id]) as `0x${string}`,
-          }),
-        ],
-      });
-    } else {
-      await updateContractWithImplementationIfProxy(contract);
-
-      configs.push({
-        out: `src/contracts/${filePath}.ts`,
-        plugins: [
-          etherscan({
-            chainId: referenceChain.id,
-            apiKey,
-            // todo: fix viem type issue
-            contracts: [contract],
-            cacheDuration: 0,
-          }),
-        ],
-      });
-    }
+    configs.push({
+      out: `src/contracts/${filePath}.ts`,
+      plugins: [
+        generate({
+          name: contract.name,
+          address: contract.address,
+        }),
+      ],
+    });
   }
 
   return configs;
