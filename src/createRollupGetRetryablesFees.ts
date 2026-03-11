@@ -11,14 +11,80 @@ import {
 } from 'viem';
 
 import { rollupCreatorABI } from './contracts/RollupCreator/v3.2';
-import { bridgeCreatorABI as bridgeCreatorV3Dot1ABI } from './contracts/BridgeCreator';
-import { bridgeCreatorABI as bridgeCreatorV2Dot1ABI } from './contracts/BridgeCreator/v2.1';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { defaults as createRollupDefaults } from './createRollupDefaults';
 import { applyPercentIncrease } from './utils/gasOverrides';
 import { createRollupDefaultRetryablesFees } from './constants';
 import { RollupCreatorSupportedVersion } from './types/createRollupTypes';
+
+export const bridgeCreatorV2Dot1ABI = [
+  {
+    inputs: [],
+    name: 'erc20BasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ethBasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+export const bridgeCreatorV3Dot2ABI = [
+  {
+    inputs: [],
+    name: 'erc20BasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      {
+        internalType: 'contract ISequencerInbox',
+        name: 'delayBufferableSequencerInbox',
+        type: 'address',
+      },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ethBasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      {
+        internalType: 'contract ISequencerInbox',
+        name: 'delayBufferableSequencerInbox',
+        type: 'address',
+      },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
 
 const deployHelperABI = [
   {
@@ -66,12 +132,12 @@ async function getTemplates<TChain extends Chain | undefined>(
   // inbox at index 3
   const [ethBasedTemplates, erc20BasedTemplates] = await Promise.all([
     publicClient.readContract({
-      abi: bridgeCreatorV3Dot1ABI,
+      abi: bridgeCreatorV3Dot2ABI,
       address: bridgeCreatorAddress,
       functionName: 'ethBasedTemplates',
     }),
     publicClient.readContract({
-      abi: bridgeCreatorV3Dot1ABI,
+      abi: bridgeCreatorV3Dot2ABI,
       address: bridgeCreatorAddress,
       functionName: 'erc20BasedTemplates',
     }),
