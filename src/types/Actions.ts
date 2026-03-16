@@ -12,11 +12,11 @@ type isEmptyObject<Args> = Args extends Record<string, never> ? true : false;
 export type ActionParameters<Args, ContractName extends string, Curried extends boolean> = Prettify<
   Curried extends false
     ? isEmptyObject<Args> extends true
-      ? { [key in ContractName]: Address } // Contract wasn't curried. Args is an empty object. Only requires the contract name
-      : { params: Args } & { [key in ContractName]: Address } // Contract wasn't curried. Args is not empty. Requires both params and contract name
+      ? { [key in ContractName]: Address } | { sequencerInbox: Address } // Contract wasn't curried. Args is an empty object. Only requires the contract name
+      : { params: Args } & ({ [key in ContractName]: Address } | { sequencerInbox: Address }) // Contract wasn't curried. Args is not empty. Requires both params and contract name
     : isEmptyObject<Args> extends true
-    ? { [key in ContractName]: Address } | void // Contract was curried. Args is empty. Only requires the contract name. Allows no parameters
-    : { params: Args } & { [key in ContractName]?: Address } // Contract was curried. Args is not empty. Requires params, contract name is optional
+    ? { [key in ContractName]: Address } | { sequencerInbox: Address } | void // Contract was curried. Args is empty. Only requires the contract name. Allows no parameters
+    : { params: Args } & ({ [key in ContractName]?: Address } | { sequencerInbox?: Address }) // Contract was curried. Args is not empty. Requires params, contract name is optional
 >;
 
 export type WithAccount<Args> = Args & {
