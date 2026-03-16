@@ -205,7 +205,7 @@ jobs:
           cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Set up the local node
-        uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
+        uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify-2
         with:
           nitro-testnode-ref: release
           nitro-contracts-branch: ${{ matrix.config.nitro-contracts-branch }}
