@@ -13,7 +13,7 @@ import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridge
 import { getTokenBridgeCreatorAddress } from './utils/getTokenBridgeCreatorAddress';
 import { enqueueDefaultMaxGasPrice } from './constants';
 
-export type EnqueueTokenBridgeDeploymentParams<TParentChain extends Chain | undefined> = Prettify<
+export type EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain extends Chain | undefined> = Prettify<
   WithTokenBridgeCreatorAddressOverride<{
     params: { rollup: Address; rollupOwner: Address };
     account: Address;
@@ -25,7 +25,7 @@ export type EnqueueTokenBridgeDeploymentParams<TParentChain extends Chain | unde
   }>
 >;
 
-export async function enqueueTokenBridgeDeployment<TParentChain extends Chain | undefined>({
+export async function enqueueTokenBridgePrepareTransactionRequest<TParentChain extends Chain | undefined>({
   params,
   account,
   parentChainPublicClient,
@@ -34,7 +34,7 @@ export async function enqueueTokenBridgeDeployment<TParentChain extends Chain | 
   retryableFee,
   gasOverrides,
   tokenBridgeCreatorAddressOverride,
-}: EnqueueTokenBridgeDeploymentParams<TParentChain>) {
+}: EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain>) {
   const { chainId } = validateParentChain(parentChainPublicClient);
 
   const tokenBridgeCreatorAddress =

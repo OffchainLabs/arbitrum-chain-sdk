@@ -8,7 +8,7 @@ import {
 import { arbitrumSepolia } from 'viem/chains';
 
 import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';
-import { enqueueTokenBridgeDeployment } from './enqueueTokenBridgeDeployment';
+import { enqueueTokenBridgePrepareTransactionRequest } from './enqueueTokenBridgePrepareTransactionRequest';
 import { enqueueDefaultMaxGasPrice } from './constants';
 
 const rollupAddress = '0x1111111111111111111111111111111111111111' as Address;
@@ -58,12 +58,12 @@ function createMockClient({
   } as unknown as PublicClient;
 }
 
-describe('enqueueTokenBridgeDeployment', () => {
+describe('enqueueTokenBridgePrepareTransactionRequest', () => {
   it('returns correctly encoded tx with expected value and calldata', async () => {
     const client = createMockClient();
     const retryableFee = 1_000_000n;
 
-    const result = await enqueueTokenBridgeDeployment({
+    const result = await enqueueTokenBridgePrepareTransactionRequest({
       params: { rollup: rollupAddress, rollupOwner },
       account,
       parentChainPublicClient: client,
@@ -97,7 +97,7 @@ describe('enqueueTokenBridgeDeployment', () => {
     const client = createMockClient({ inboxToL2DeploymentRouter: nonZeroRouter });
 
     await expect(
-      enqueueTokenBridgeDeployment({
+      enqueueTokenBridgePrepareTransactionRequest({
         params: { rollup: rollupAddress, rollupOwner },
         account,
         parentChainPublicClient: client,
@@ -113,7 +113,7 @@ describe('enqueueTokenBridgeDeployment', () => {
   it('sets value to 0n for custom fee token chains', async () => {
     const client = createMockClient({ isCustomFeeToken: true });
 
-    await enqueueTokenBridgeDeployment({
+    await enqueueTokenBridgePrepareTransactionRequest({
       params: { rollup: rollupAddress, rollupOwner },
       account,
       parentChainPublicClient: client,

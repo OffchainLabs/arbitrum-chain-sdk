@@ -5,72 +5,12 @@ import { isCustomFeeTokenChain } from './utils/isCustomFeeTokenChain';
 import { createTokenBridgeFetchTokenBridgeContracts } from './createTokenBridgeFetchTokenBridgeContracts';
 import { createRollupFetchCoreContracts } from './createRollupFetchCoreContracts';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
+import { gatewayRouterABI } from './contracts/GatewayRouter';
 import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { enqueueDefaultMaxGasPrice } from './constants';
 
-const parentChainGatewayRouterAbi = [
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    name: 'l1TokenToGateway',
-    outputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address[]',
-        name: '_token',
-        type: 'address[]',
-      },
-      {
-        internalType: 'address[]',
-        name: '_gateway',
-        type: 'address[]',
-      },
-      {
-        internalType: 'uint256',
-        name: '_maxGas',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_gasPriceBid',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_maxSubmissionCost',
-        type: 'uint256',
-      },
-    ],
-    name: 'setGateways',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-] as const;
-
-export type EnqueueSetWethGatewayParams<TParentChain extends Chain | undefined> = Prettify<
+export type EnqueueSetWethGatewayPrepareTransactionRequestParams<TParentChain extends Chain | undefined> = Prettify<
   WithTokenBridgeCreatorAddressOverride<{
     rollup: Address;
     account: Address;
@@ -82,7 +22,7 @@ export type EnqueueSetWethGatewayParams<TParentChain extends Chain | undefined> 
   }>
 >;
 
-export async function enqueueSetWethGateway<TParentChain extends Chain | undefined>({
+export async function enqueueSetWethGatewayPrepareTransactionRequest<TParentChain extends Chain | undefined>({
   rollup,
   account,
   rollupDeploymentBlockNumber,
@@ -91,7 +31,7 @@ export async function enqueueSetWethGateway<TParentChain extends Chain | undefin
   maxGasPrice = enqueueDefaultMaxGasPrice,
   maxSubmissionCost,
   tokenBridgeCreatorAddressOverride,
-}: EnqueueSetWethGatewayParams<TParentChain>) {
+}: EnqueueSetWethGatewayPrepareTransactionRequestParams<TParentChain>) {
   const { chainId } = validateParentChain(parentChainPublicClient);
 
   if (
@@ -117,7 +57,7 @@ export async function enqueueSetWethGateway<TParentChain extends Chain | undefin
 
   const registeredWethGateway = await parentChainPublicClient.readContract({
     address: tokenBridgeContracts.parentChainContracts.router,
-    abi: parentChainGatewayRouterAbi,
+    abi: gatewayRouterABI,
     functionName: 'l1TokenToGateway',
     args: [tokenBridgeContracts.parentChainContracts.weth],
   });
@@ -134,7 +74,7 @@ export async function enqueueSetWethGateway<TParentChain extends Chain | undefin
   const deposit = gasLimit * maxGasPrice + maxSubmissionCost;
 
   const setGatewaysCalldata = encodeFunctionData({
-    abi: parentChainGatewayRouterAbi,
+    abi: gatewayRouterABI,
     functionName: 'setGateways',
     args: [
       [tokenBridgeContracts.parentChainContracts.weth],

@@ -2,7 +2,7 @@ import { it, expect, vi, describe } from 'vitest';
 import { Address, PublicClient, zeroAddress, encodeFunctionData } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 
-import { enqueueSetWethGateway } from './enqueueSetWethGateway';
+import { enqueueSetWethGatewayPrepareTransactionRequest } from './enqueueSetWethGatewayPrepareTransactionRequest';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 
 // vi.mock factories are hoisted, so addresses must be defined via vi.hoisted
@@ -101,14 +101,14 @@ function createMockClient({
   } as unknown as PublicClient;
 }
 
-describe('enqueueSetWethGateway', () => {
+describe('enqueueSetWethGatewayPrepareTransactionRequest', () => {
   it('returns tx routed through UpgradeExecutor with correct deposit', async () => {
     const client = createMockClient();
     const gasLimit = 100_000n;
     const maxGasPrice = 200_000_000n;
     const maxSubmissionCost = 50_000n;
 
-    const result = await enqueueSetWethGateway({
+    const result = await enqueueSetWethGatewayPrepareTransactionRequest({
       rollup: rollupAddress,
       account,
       parentChainPublicClient: client,
@@ -134,7 +134,7 @@ describe('enqueueSetWethGateway', () => {
     const maxGasPrice = 200_000_000n;
     const maxSubmissionCost = 50_000n;
 
-    await enqueueSetWethGateway({
+    await enqueueSetWethGatewayPrepareTransactionRequest({
       rollup: rollupAddress,
       account,
       parentChainPublicClient: client,
@@ -181,7 +181,7 @@ describe('enqueueSetWethGateway', () => {
     const client = createMockClient();
 
     await expect(
-      enqueueSetWethGateway({
+      enqueueSetWethGatewayPrepareTransactionRequest({
         rollup: rollupAddress,
         account,
         parentChainPublicClient: client,
@@ -196,7 +196,7 @@ describe('enqueueSetWethGateway', () => {
     const client = createMockClient({ registeredWethGateway: mockWethGatewayAddress });
 
     await expect(
-      enqueueSetWethGateway({
+      enqueueSetWethGatewayPrepareTransactionRequest({
         rollup: rollupAddress,
         account,
         parentChainPublicClient: client,
