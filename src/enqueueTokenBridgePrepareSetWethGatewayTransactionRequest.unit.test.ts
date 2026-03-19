@@ -4,6 +4,7 @@ import { arbitrumSepolia } from 'viem/chains';
 
 import { enqueueTokenBridgePrepareSetWethGatewayTransactionRequest } from './enqueueTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
+import { isCustomFeeTokenChain } from './utils/isCustomFeeTokenChain';
 
 // vi.mock factories are hoisted, so addresses must be defined via vi.hoisted
 const {
@@ -175,7 +176,6 @@ describe('enqueueTokenBridgePrepareSetWethGatewayTransactionRequest', () => {
   });
 
   it('throws if custom fee token chain', async () => {
-    const { isCustomFeeTokenChain } = await import('./utils/isCustomFeeTokenChain');
     vi.mocked(isCustomFeeTokenChain).mockResolvedValueOnce(true);
 
     const client = createMockClient();
