@@ -19,8 +19,10 @@ export type EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain exten
     account: Address;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
     maxGasForContracts: bigint;
+    maxGasForFactory: bigint;
     maxGasPrice?: bigint;
-    retryableFee: bigint;
+    maxSubmissionCostForFactory: bigint;
+    maxSubmissionCostForContracts: bigint;
     gasOverrides?: TransactionRequestGasOverrides;
   }>
 >;
@@ -30,8 +32,10 @@ export async function enqueueTokenBridgePrepareTransactionRequest<TParentChain e
   account,
   parentChainPublicClient,
   maxGasForContracts,
+  maxGasForFactory,
   maxGasPrice = enqueueDefaultMaxGasPrice,
-  retryableFee,
+  maxSubmissionCostForFactory,
+  maxSubmissionCostForContracts,
   gasOverrides,
   tokenBridgeCreatorAddressOverride,
 }: EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain>) {
@@ -63,6 +67,11 @@ export async function enqueueTokenBridgePrepareTransactionRequest<TParentChain e
     rollup: params.rollup,
     parentChainPublicClient,
   });
+
+  const retryableFee =
+    maxSubmissionCostForFactory +
+    maxSubmissionCostForContracts +
+    maxGasPrice * (maxGasForContracts + maxGasForFactory);
 
   // @ts-expect-error -- todo: fix viem type issue
   const request = await parentChainPublicClient.prepareTransactionRequest({

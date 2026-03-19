@@ -61,26 +61,36 @@ function createMockClient({
 describe('enqueueTokenBridgePrepareTransactionRequest', () => {
   it('returns correctly encoded tx with expected value and calldata', async () => {
     const client = createMockClient();
-    const retryableFee = 1_000_000n;
+
+    const maxGasForContracts = 6_000_000n;
+    const maxGasForFactory = 3_000_000n;
+    const maxSubmissionCostForFactory = 100_000n;
+    const maxSubmissionCostForContracts = 200_000n;
 
     const result = await enqueueTokenBridgePrepareTransactionRequest({
       params: { rollup: rollupAddress, rollupOwner },
       account,
       parentChainPublicClient: client,
-      maxGasForContracts: 6_000_000n,
-      retryableFee,
+      maxGasForContracts,
+      maxGasForFactory,
+      maxSubmissionCostForFactory,
+      maxSubmissionCostForContracts,
       gasOverrides: { gasLimit: { base: 1_000n } },
       tokenBridgeCreatorAddressOverride: tokenBridgeCreatorAddr,
     });
 
+    const expectedRetryableFee =
+      maxSubmissionCostForFactory +
+      maxSubmissionCostForContracts +
+      enqueueDefaultMaxGasPrice * (maxGasForContracts + maxGasForFactory);
+
     expect(result.chainId).toEqual(arbitrumSepolia.id);
     expect(result.gas).toEqual(1_000n);
 
-    // Verify prepareTransactionRequest was called with correct args
     const mockClient = client as unknown as { prepareTransactionRequest: ReturnType<typeof vi.fn> };
     const prepareCall = mockClient.prepareTransactionRequest.mock.calls[0][0];
     expect(prepareCall.to).toEqual(tokenBridgeCreatorAddr);
-    expect(prepareCall.value).toEqual(retryableFee);
+    expect(prepareCall.value).toEqual(expectedRetryableFee);
     expect(prepareCall.account).toEqual(account);
 
     // Verify calldata encodes createTokenBridge correctly
@@ -102,7 +112,9 @@ describe('enqueueTokenBridgePrepareTransactionRequest', () => {
         account,
         parentChainPublicClient: client,
         maxGasForContracts: 6_000_000n,
-        retryableFee: 1_000_000n,
+        maxGasForFactory: 3_000_000n,
+        maxSubmissionCostForFactory: 100_000n,
+        maxSubmissionCostForContracts: 200_000n,
         tokenBridgeCreatorAddressOverride: tokenBridgeCreatorAddr,
       }),
     ).rejects.toThrowError(
@@ -118,7 +130,9 @@ describe('enqueueTokenBridgePrepareTransactionRequest', () => {
       account,
       parentChainPublicClient: client,
       maxGasForContracts: 6_000_000n,
-      retryableFee: 1_000_000n,
+      maxGasForFactory: 3_000_000n,
+      maxSubmissionCostForFactory: 100_000n,
+      maxSubmissionCostForContracts: 200_000n,
       gasOverrides: { gasLimit: { base: 1_000n } },
       tokenBridgeCreatorAddressOverride: tokenBridgeCreatorAddr,
     });

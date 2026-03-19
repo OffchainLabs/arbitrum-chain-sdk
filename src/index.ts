@@ -185,9 +185,9 @@ import {
   EnqueueTokenBridgePrepareTransactionRequestParams,
 } from './enqueueTokenBridgePrepareTransactionRequest';
 import {
-  enqueueSetWethGatewayPrepareTransactionRequest,
-  EnqueueSetWethGatewayPrepareTransactionRequestParams,
-} from './enqueueSetWethGatewayPrepareTransactionRequest';
+  enqueueTokenBridgePrepareSetWethGatewayTransactionRequest,
+  EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams,
+} from './enqueueTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
   CreateRollupGetRetryablesFeesParams,
   createRollupGetRetryablesFees,
@@ -360,8 +360,8 @@ export {
   enqueueDefaultMaxGasPrice,
   enqueueTokenBridgePrepareTransactionRequest,
   EnqueueTokenBridgePrepareTransactionRequestParams,
-  enqueueSetWethGatewayPrepareTransactionRequest,
-  EnqueueSetWethGatewayPrepareTransactionRequestParams,
+  enqueueTokenBridgePrepareSetWethGatewayTransactionRequest,
+  EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams,
   //
   fetchAllowance,
   FetchAllowanceProps,

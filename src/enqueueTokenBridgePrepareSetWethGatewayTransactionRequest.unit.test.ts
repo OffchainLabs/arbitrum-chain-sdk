@@ -2,7 +2,7 @@ import { it, expect, vi, describe } from 'vitest';
 import { Address, PublicClient, zeroAddress, encodeFunctionData } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 
-import { enqueueSetWethGatewayPrepareTransactionRequest } from './enqueueSetWethGatewayPrepareTransactionRequest';
+import { enqueueTokenBridgePrepareSetWethGatewayTransactionRequest } from './enqueueTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 
 // vi.mock factories are hoisted, so addresses must be defined via vi.hoisted
@@ -101,14 +101,14 @@ function createMockClient({
   } as unknown as PublicClient;
 }
 
-describe('enqueueSetWethGatewayPrepareTransactionRequest', () => {
+describe('enqueueTokenBridgePrepareSetWethGatewayTransactionRequest', () => {
   it('returns tx routed through UpgradeExecutor with correct deposit', async () => {
     const client = createMockClient();
     const gasLimit = 100_000n;
     const maxGasPrice = 200_000_000n;
     const maxSubmissionCost = 50_000n;
 
-    const result = await enqueueSetWethGatewayPrepareTransactionRequest({
+    const result = await enqueueTokenBridgePrepareSetWethGatewayTransactionRequest({
       rollup: rollupAddress,
       account,
       parentChainPublicClient: client,
@@ -134,7 +134,7 @@ describe('enqueueSetWethGatewayPrepareTransactionRequest', () => {
     const maxGasPrice = 200_000_000n;
     const maxSubmissionCost = 50_000n;
 
-    await enqueueSetWethGatewayPrepareTransactionRequest({
+    await enqueueTokenBridgePrepareSetWethGatewayTransactionRequest({
       rollup: rollupAddress,
       account,
       parentChainPublicClient: client,
@@ -181,7 +181,7 @@ describe('enqueueSetWethGatewayPrepareTransactionRequest', () => {
     const client = createMockClient();
 
     await expect(
-      enqueueSetWethGatewayPrepareTransactionRequest({
+      enqueueTokenBridgePrepareSetWethGatewayTransactionRequest({
         rollup: rollupAddress,
         account,
         parentChainPublicClient: client,
@@ -196,7 +196,7 @@ describe('enqueueSetWethGatewayPrepareTransactionRequest', () => {
     const client = createMockClient({ registeredWethGateway: mockWethGatewayAddress });
 
     await expect(
-      enqueueSetWethGatewayPrepareTransactionRequest({
+      enqueueTokenBridgePrepareSetWethGatewayTransactionRequest({
         rollup: rollupAddress,
         account,
         parentChainPublicClient: client,
