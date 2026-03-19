@@ -178,7 +178,16 @@ import {
 import {
   createRollupDefaultRetryablesFees,
   createTokenBridgeDefaultRetryablesFees,
+  enqueueDefaultMaxGasPrice,
 } from './constants';
+import {
+  enqueueTokenBridgeDeployment,
+  EnqueueTokenBridgeDeploymentParams,
+} from './enqueueTokenBridgeDeployment';
+import {
+  enqueueSetWethGateway,
+  EnqueueSetWethGatewayParams,
+} from './enqueueSetWethGateway';
 import {
   CreateRollupGetRetryablesFeesParams,
   createRollupGetRetryablesFees,
@@ -347,6 +356,12 @@ export {
   CreateRollupGetRetryablesFeesParams,
   //
   createTokenBridgeDefaultRetryablesFees,
+  //
+  enqueueDefaultMaxGasPrice,
+  enqueueTokenBridgeDeployment,
+  EnqueueTokenBridgeDeploymentParams,
+  enqueueSetWethGateway,
+  EnqueueSetWethGatewayParams,
   //
   fetchAllowance,
   FetchAllowanceProps,
