@@ -1,8 +1,9 @@
 import { it, expect, vi, describe } from 'vitest';
-import { Address, PublicClient, zeroAddress } from 'viem';
+import { Address, PublicClient, zeroAddress, encodeFunctionData } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 
 import { enqueueSetWethGateway } from './enqueueSetWethGateway';
+import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 
 // vi.mock factories are hoisted, so addresses must be defined via vi.hoisted
 const {
@@ -89,7 +90,7 @@ function createMockClient({
     account,
     from: account,
     nonce: 0,
-    maxFeePerGas: 1_000_000_000n,
+    maxGasPrice: 1_000_000_000n,
     maxPriorityFeePerGas: 0n,
   });
 
@@ -104,7 +105,7 @@ describe('enqueueSetWethGateway', () => {
   it('returns tx routed through UpgradeExecutor with correct deposit', async () => {
     const client = createMockClient();
     const gasLimit = 100_000n;
-    const maxFeePerGas = 200_000_000n;
+    const maxGasPrice = 200_000_000n;
     const maxSubmissionCost = 50_000n;
 
     const result = await enqueueSetWethGateway({
@@ -112,7 +113,7 @@ describe('enqueueSetWethGateway', () => {
       account,
       parentChainPublicClient: client,
       gasLimit,
-      maxFeePerGas,
+      maxGasPrice,
       maxSubmissionCost,
       tokenBridgeCreatorAddressOverride: tokenBridgeCreatorAddr,
     });
@@ -123,29 +124,54 @@ describe('enqueueSetWethGateway', () => {
     const prepareCall = mockClient.prepareTransactionRequest.mock.calls[0][0];
     expect(prepareCall.to).toEqual(mockUpgradeExecutorAddress);
 
-    const expectedDeposit = gasLimit * maxFeePerGas + maxSubmissionCost;
+    const expectedDeposit = gasLimit * maxGasPrice + maxSubmissionCost;
     expect(prepareCall.value).toEqual(expectedDeposit);
   });
 
-  it('deposit equals gasLimit * maxFeePerGas + maxSubmissionCost', async () => {
+  it('encodes setGateways calldata wrapped in UpgradeExecutor executeCall', async () => {
     const client = createMockClient();
-    const gasLimit = 500_000n;
-    const maxFeePerGas = 300_000_000n;
-    const maxSubmissionCost = 100_000n;
+    const gasLimit = 100_000n;
+    const maxGasPrice = 200_000_000n;
+    const maxSubmissionCost = 50_000n;
 
     await enqueueSetWethGateway({
       rollup: rollupAddress,
       account,
       parentChainPublicClient: client,
       gasLimit,
-      maxFeePerGas,
+      maxGasPrice,
       maxSubmissionCost,
       tokenBridgeCreatorAddressOverride: tokenBridgeCreatorAddr,
     });
 
+    const setGatewaysCalldata = encodeFunctionData({
+      abi: [
+        {
+          inputs: [
+            { internalType: 'address[]', name: '_token', type: 'address[]' },
+            { internalType: 'address[]', name: '_gateway', type: 'address[]' },
+            { internalType: 'uint256', name: '_maxGas', type: 'uint256' },
+            { internalType: 'uint256', name: '_gasPriceBid', type: 'uint256' },
+            { internalType: 'uint256', name: '_maxSubmissionCost', type: 'uint256' },
+          ],
+          name: 'setGateways',
+          outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+          stateMutability: 'payable',
+          type: 'function',
+        },
+      ] as const,
+      functionName: 'setGateways',
+      args: [[mockWethAddress], [mockWethGatewayAddress], gasLimit, maxGasPrice, maxSubmissionCost],
+    });
+
+    const expectedData = upgradeExecutorEncodeFunctionData({
+      functionName: 'executeCall',
+      args: [mockRouterAddress, setGatewaysCalldata],
+    });
+
     const mockClient = client as unknown as { prepareTransactionRequest: ReturnType<typeof vi.fn> };
     const prepareCall = mockClient.prepareTransactionRequest.mock.calls[0][0];
-    expect(prepareCall.value).toEqual(gasLimit * maxFeePerGas + maxSubmissionCost);
+    expect(prepareCall.data).toEqual(expectedData);
   });
 
   it('throws if custom fee token chain', async () => {

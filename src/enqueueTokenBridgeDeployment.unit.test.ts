@@ -64,8 +64,7 @@ describe('enqueueTokenBridgeDeployment', () => {
     const retryableFee = 1_000_000n;
 
     const result = await enqueueTokenBridgeDeployment({
-      rollup: rollupAddress,
-      rollupOwner,
+      params: { rollup: rollupAddress, rollupOwner },
       account,
       parentChainPublicClient: client,
       maxGasForContracts: 6_000_000n,
@@ -99,8 +98,7 @@ describe('enqueueTokenBridgeDeployment', () => {
 
     await expect(
       enqueueTokenBridgeDeployment({
-        rollup: rollupAddress,
-        rollupOwner,
+        params: { rollup: rollupAddress, rollupOwner },
         account,
         parentChainPublicClient: client,
         maxGasForContracts: 6_000_000n,
@@ -116,8 +114,7 @@ describe('enqueueTokenBridgeDeployment', () => {
     const client = createMockClient({ isCustomFeeToken: true });
 
     await enqueueTokenBridgeDeployment({
-      rollup: rollupAddress,
-      rollupOwner,
+      params: { rollup: rollupAddress, rollupOwner },
       account,
       parentChainPublicClient: client,
       maxGasForContracts: 6_000_000n,

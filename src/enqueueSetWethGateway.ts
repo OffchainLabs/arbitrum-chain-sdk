@@ -77,7 +77,7 @@ export type EnqueueSetWethGatewayParams<TParentChain extends Chain | undefined> 
     rollupDeploymentBlockNumber?: bigint;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
     gasLimit: bigint;
-    maxFeePerGas?: bigint;
+    maxGasPrice?: bigint;
     maxSubmissionCost: bigint;
   }>
 >;
@@ -88,7 +88,7 @@ export async function enqueueSetWethGateway<TParentChain extends Chain | undefin
   rollupDeploymentBlockNumber,
   parentChainPublicClient,
   gasLimit,
-  maxFeePerGas = enqueueDefaultMaxGasPrice,
+  maxGasPrice = enqueueDefaultMaxGasPrice,
   maxSubmissionCost,
   tokenBridgeCreatorAddressOverride,
 }: EnqueueSetWethGatewayParams<TParentChain>) {
@@ -131,7 +131,7 @@ export async function enqueueSetWethGateway<TParentChain extends Chain | undefin
     publicClient: parentChainPublicClient,
   });
 
-  const deposit = gasLimit * maxFeePerGas + maxSubmissionCost;
+  const deposit = gasLimit * maxGasPrice + maxSubmissionCost;
 
   const setGatewaysCalldata = encodeFunctionData({
     abi: parentChainGatewayRouterAbi,
@@ -140,7 +140,7 @@ export async function enqueueSetWethGateway<TParentChain extends Chain | undefin
       [tokenBridgeContracts.parentChainContracts.weth],
       [tokenBridgeContracts.parentChainContracts.wethGateway],
       gasLimit,
-      maxFeePerGas,
+      maxGasPrice,
       maxSubmissionCost,
     ],
   });

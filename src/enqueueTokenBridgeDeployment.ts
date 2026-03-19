@@ -15,8 +15,7 @@ import { enqueueDefaultMaxGasPrice } from './constants';
 
 export type EnqueueTokenBridgeDeploymentParams<TParentChain extends Chain | undefined> = Prettify<
   WithTokenBridgeCreatorAddressOverride<{
-    rollup: Address;
-    rollupOwner: Address;
+    params: { rollup: Address; rollupOwner: Address };
     account: Address;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
     maxGasForContracts: bigint;
@@ -27,8 +26,7 @@ export type EnqueueTokenBridgeDeploymentParams<TParentChain extends Chain | unde
 >;
 
 export async function enqueueTokenBridgeDeployment<TParentChain extends Chain | undefined>({
-  rollup,
-  rollupOwner,
+  params,
   account,
   parentChainPublicClient,
   maxGasForContracts,
@@ -43,12 +41,14 @@ export async function enqueueTokenBridgeDeployment<TParentChain extends Chain | 
     tokenBridgeCreatorAddressOverride ?? getTokenBridgeCreatorAddress(parentChainPublicClient);
 
   const inbox = await parentChainPublicClient.readContract({
-    address: rollup,
+    address: params.rollup,
     abi: rollupABI,
     functionName: 'inbox',
   });
 
-  // Parent-chain-only idempotency check: if router is non-zero, bridge is already deployed
+  // Parent-chain-only idempotency check (no orbit chain client available in this flow).
+  // If router is non-zero, a prior createTokenBridge tx has executed on the parent chain.
+  // If the L2 retryables failed, they should be manually redeemed rather than redeployed.
   const [router] = await parentChainPublicClient.readContract({
     address: tokenBridgeCreatorAddress,
     abi: tokenBridgeCreatorABI,
@@ -56,11 +56,11 @@ export async function enqueueTokenBridgeDeployment<TParentChain extends Chain | 
     args: [inbox],
   });
   if (router !== zeroAddress) {
-    throw new Error(`Token bridge contracts for Rollup ${rollup} are already deployed`);
+    throw new Error(`Token bridge contracts for Rollup ${params.rollup} are already deployed`);
   }
 
   const chainUsesCustomFee = await isCustomFeeTokenChain({
-    rollup,
+    rollup: params.rollup,
     parentChainPublicClient,
   });
 
@@ -71,16 +71,19 @@ export async function enqueueTokenBridgeDeployment<TParentChain extends Chain | 
     data: encodeFunctionData({
       abi: tokenBridgeCreatorABI,
       functionName: 'createTokenBridge',
-      args: [inbox, rollupOwner, maxGasForContracts, maxGasPrice],
+      args: [inbox, params.rollupOwner, maxGasForContracts, maxGasPrice],
     }),
     value: chainUsesCustomFee ? 0n : retryableFee,
     account,
     // if the base gas limit override was provided, hardcode gas to 0 to skip estimation
+    // we'll set the actual value in the code below
     gas: typeof gasOverrides?.gasLimit?.base !== 'undefined' ? 0n : undefined,
   });
 
+  // potential gas overrides (gas limit)
   if (gasOverrides && gasOverrides.gasLimit) {
     request.gas = applyPercentIncrease({
+      // the ! is here because we should let it error in case we don't have the estimated gas
       base: gasOverrides.gasLimit.base ?? request.gas!,
       percentIncrease: gasOverrides.gasLimit.percentIncrease,
     });
