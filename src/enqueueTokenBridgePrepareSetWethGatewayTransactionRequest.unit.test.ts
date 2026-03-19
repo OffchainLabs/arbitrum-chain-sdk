@@ -189,7 +189,9 @@ describe('enqueueTokenBridgePrepareSetWethGatewayTransactionRequest', () => {
         maxSubmissionCost: 50_000n,
         tokenBridgeCreatorAddressOverride: tokenBridgeCreatorAddr,
       }),
-    ).rejects.toThrowError('chain is custom fee token chain, no need to register the weth gateway.');
+    ).rejects.toThrowError(
+      'chain is custom fee token chain, no need to register the weth gateway.',
+    );
   });
 
   it('throws if WETH gateway already registered', async () => {

@@ -1,10 +1,5 @@
 import { it, expect, vi, describe } from 'vitest';
-import {
-  Address,
-  PublicClient,
-  zeroAddress,
-  encodeFunctionData,
-} from 'viem';
+import { Address, PublicClient, zeroAddress, encodeFunctionData } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 
 import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';

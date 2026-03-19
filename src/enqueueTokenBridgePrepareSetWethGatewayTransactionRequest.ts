@@ -10,7 +10,9 @@ import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { enqueueDefaultMaxGasPrice } from './constants';
 
-export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<TParentChain extends Chain | undefined> = Prettify<
+export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
+  TParentChain extends Chain | undefined,
+> = Prettify<
   WithTokenBridgeCreatorAddressOverride<{
     /**
      * Address of the Rollup contract.
@@ -31,7 +33,9 @@ export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<TPar
   }>
 >;
 
-export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<TParentChain extends Chain | undefined>({
+export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
+  TParentChain extends Chain | undefined,
+>({
   rollup,
   account,
   rollupDeploymentBlockNumber,
@@ -100,10 +104,7 @@ export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
     to: rollupCoreContracts.upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
-      args: [
-        tokenBridgeContracts.parentChainContracts.router,
-        setGatewaysCalldata,
-      ],
+      args: [tokenBridgeContracts.parentChainContracts.router, setGatewaysCalldata],
     }),
     value: deposit,
     account,

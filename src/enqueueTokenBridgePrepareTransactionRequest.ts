@@ -4,16 +4,15 @@ import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';
 import { rollupABI } from './contracts/Rollup';
 import { validateParentChain } from './types/ParentChain';
 import { isCustomFeeTokenChain } from './utils/isCustomFeeTokenChain';
-import {
-  TransactionRequestGasOverrides,
-  applyPercentIncrease,
-} from './utils/gasOverrides';
+import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
 import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { getTokenBridgeCreatorAddress } from './utils/getTokenBridgeCreatorAddress';
 import { enqueueDefaultMaxGasPrice } from './constants';
 
-export type EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain extends Chain | undefined> = Prettify<
+export type EnqueueTokenBridgePrepareTransactionRequestParams<
+  TParentChain extends Chain | undefined,
+> = Prettify<
   WithTokenBridgeCreatorAddressOverride<{
     params: { rollup: Address; rollupOwner: Address };
     account: Address;
@@ -27,7 +26,9 @@ export type EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain exten
   }>
 >;
 
-export async function enqueueTokenBridgePrepareTransactionRequest<TParentChain extends Chain | undefined>({
+export async function enqueueTokenBridgePrepareTransactionRequest<
+  TParentChain extends Chain | undefined,
+>({
   params,
   account,
   parentChainPublicClient,
