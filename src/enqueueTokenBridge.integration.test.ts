@@ -9,6 +9,8 @@ import { deployTokenBridgeCreator } from './createTokenBridge-testHelpers';
 import { enqueueTokenBridgePrepareSetWethGatewayTransactionRequest } from './enqueueTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from './createTokenBridgePrepareSetWethGatewayTransactionReceipt';
 import { TokenBridgeContracts } from './types/TokenBridgeContracts';
+import { registerNewNetwork } from './utils/registerNewNetwork';
+import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
 const l2RollupOwner = testnodeAccounts.l2RollupOwner;
@@ -112,6 +114,13 @@ describe('enqueueTokenBridge', () => {
       await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: txHash }),
     );
     expect(txReceipt.status).toEqual('success');
+
+    // register the orbit chain network with @arbitrum/sdk (needed for waitForRetryables)
+    await registerNewNetwork(
+      publicClientToProvider(nitroTestnodeL1Client),
+      publicClientToProvider(nitroTestnodeL2Client),
+      testnodeInformation.rollup,
+    );
 
     // checking retryables execution
     const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
