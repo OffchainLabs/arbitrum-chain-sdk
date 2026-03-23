@@ -208,6 +208,8 @@ export function startSourceL1AnvilContainer(params: {
     params.containerName,
     '--network',
     params.networkName,
+    '--add-host',
+    'host.docker.internal:host-gateway',
     '--entrypoint',
     'anvil',
     '-p',

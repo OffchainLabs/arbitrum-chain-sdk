@@ -180,7 +180,6 @@ export async function fundL2Deployer(params: {
     return;
   }
 
-  const previousBalance = currentBalance;
   const { maxSubmissionCost, l2MaxFeePerGas } = await getRequiredRetryableFunding(
     l1Client,
     l2Client,
@@ -211,9 +210,10 @@ export async function fundL2Deployer(params: {
   await l1Client.waitForTransactionReceipt({ hash: txHash });
 
   const startedAt = Date.now();
+
   while (Date.now() - startedAt < 60_000) {
     currentBalance = await l2Client.getBalance({ address: deployer.address });
-    if (currentBalance > previousBalance) {
+    if (currentBalance >= fundAmount) {
       return currentBalance;
     }
 
@@ -266,7 +266,7 @@ export async function setBalanceOnL1(params: {
   const publicClient = createPublicClient({ transport: http(params.rpcUrl) });
   await publicClient.request({
     method: 'anvil_setBalance' as never,
-    params: [params.address, `0x${params.balance.toString(16)}`],
+    params: [params.address, `0x${params.balance.toString(16)}`] as never,
   });
 }
 

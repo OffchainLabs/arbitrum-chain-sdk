@@ -46,7 +46,7 @@ import {
   refreshForkTime,
   setBalanceOnL1,
 } from './anvilHarnessHelpers';
-
+import { type RpcCachingProxy, startRpcCachingProxy } from './rpcCachingProxy';
 import type { CustomTimingParams, PrivateKeyAccountWithPrivateKey } from '../testHelpers';
 
 export type AnvilTestStack = {
@@ -75,6 +75,7 @@ let l1ContainerName: string | undefined;
 let l2ContainerName: string | undefined;
 let cleanupHookRegistered = false;
 let teardownStarted = false;
+let l1RpcCachingProxy: RpcCachingProxy | undefined;
 
 export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
   if (envPromise) {
@@ -84,7 +85,9 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
   teardownStarted = false;
 
   if (!cleanupHookRegistered) {
-    process.once('exit', () => teardownAnvilTestStack());
+    process.once('exit', () => {
+      void teardownAnvilTestStack();
+    });
     cleanupHookRegistered = true;
   }
 
@@ -118,6 +121,14 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       },
     };
 
+    const cacheFilePath = join(process.cwd(), '.cache', 'anvil-rpc-cache.json');
+
+    l1RpcCachingProxy = await startRpcCachingProxy(anvilForkUrl, cacheFilePath, {
+      forkBlockNumber: testConstants.DEFAULT_SEPOLIA_FORK_BLOCK_NUMBER,
+    });
+
+    const l1RpcUrlWithCaching = l1RpcCachingProxy.proxyUrl;
+
     const harnessDeployer = createAccount();
     const blockAdvancerAccount = createAccount();
 
@@ -130,7 +141,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       networkName: dockerNetworkName,
       l1RpcPort,
       anvilImage,
-      anvilForkUrl,
+      anvilForkUrl: l1RpcUrlWithCaching,
       anvilForkBlockNumber: testConstants.DEFAULT_SEPOLIA_FORK_BLOCK_NUMBER,
       chainId: sepolia.id,
     });
@@ -367,7 +378,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
 
     return initializedEnv;
   })().catch((error) => {
-    teardownAnvilTestStack();
+    void teardownAnvilTestStack();
     throw error;
   });
 
@@ -388,6 +399,14 @@ export function teardownAnvilTestStack() {
   }
   teardownStarted = true;
 
+  if (l1RpcCachingProxy) {
+    for (const line of l1RpcCachingProxy.getSummaryLines()) {
+      console.log(line);
+    }
+
+    l1RpcCachingProxy.close();
+  }
+
   cleanupCurrentHarnessResources({
     l2ContainerName: l2ContainerName,
     l1ContainerName: l1ContainerName,
@@ -399,6 +418,7 @@ export function teardownAnvilTestStack() {
   l1ContainerName = undefined;
   dockerNetworkName = undefined;
   runtimeDir = undefined;
+  l1RpcCachingProxy = undefined;
   envPromise = undefined;
   initializedEnv = undefined;
 }
