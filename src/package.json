@@ -47,6 +47,9 @@
   "repository": "git+https://github.com/OffchainLabs/arbitrum-chain-sdk.git",
   "author": "Offchain Labs, Inc.",
   "license": "Apache-2.0",
+  "scripts": {
+    "prepare": "cd .. && npm run build"
+  },
   "engines": {
     "node": ">=18"
   },
