@@ -265,7 +265,7 @@ export async function setBalanceOnL1(params: {
 }) {
   const publicClient = createPublicClient({ transport: http(params.rpcUrl) });
   await publicClient.request({
-    method: 'anvil_setBalance',
+    method: 'anvil_setBalance' as never,
     params: [params.address, `0x${params.balance.toString(16)}`],
   });
 }
@@ -275,12 +275,12 @@ export async function refreshForkTime(params: { rpcUrl: string }) {
   const now = Math.floor(Date.now() / 1000);
 
   await publicClient.request({
-    method: 'evm_setNextBlockTimestamp',
-    params: [now],
+    method: 'evm_setNextBlockTimestamp' as never,
+    params: [now] as never,
   });
   await publicClient.request({
-    method: 'evm_mine',
-    params: [],
+    method: 'evm_mine' as never,
+    params: [] as never,
   });
 }
 
