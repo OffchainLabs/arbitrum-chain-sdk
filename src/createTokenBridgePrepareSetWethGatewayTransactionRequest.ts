@@ -5,6 +5,7 @@ import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFuncti
 import { createTokenBridgeFetchTokenBridgeContracts } from './createTokenBridgeFetchTokenBridgeContracts';
 import { createRollupFetchCoreContracts } from './createRollupFetchCoreContracts';
 import { getEstimateForSettingGateway } from './createTokenBridge-ethers';
+import { gatewayRouterABI } from './contracts/GatewayRouter';
 import { GasOverrideOptions, applyPercentIncrease } from './utils/gasOverrides';
 import { Prettify } from './types/utils';
 import { validateParentChain } from './types/ParentChain';
@@ -40,67 +41,6 @@ export type CreateTokenBridgePrepareRegisterWethGatewayTransactionRequestParams<
     retryableGasOverrides?: TransactionRequestRetryableGasOverrides;
   }>
 >;
-
-const parentChainGatewayRouterAbi = [
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    name: 'l1TokenToGateway',
-    outputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address[]',
-        name: '_token',
-        type: 'address[]',
-      },
-      {
-        internalType: 'address[]',
-        name: '_gateway',
-        type: 'address[]',
-      },
-      {
-        internalType: 'uint256',
-        name: '_maxGas',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_gasPriceBid',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_maxSubmissionCost',
-        type: 'uint256',
-      },
-    ],
-    name: 'setGateways',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'payable',
-    type: 'function',
-  },
-];
 
 export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
@@ -150,7 +90,7 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   // check whether the weth gateway is already registered in the router
   const registeredWethGateway = await parentChainPublicClient.readContract({
     address: tokenBridgeContracts.parentChainContracts.router,
-    abi: parentChainGatewayRouterAbi,
+    abi: gatewayRouterABI,
     functionName: 'l1TokenToGateway',
     args: [tokenBridgeContracts.parentChainContracts.weth],
   });
@@ -167,7 +107,7 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   // encode data for the setGateways call
   // (we first encode dummy data, to get the retryable message estimates)
   const setGatewaysDummyCalldata = encodeFunctionData({
-    abi: parentChainGatewayRouterAbi,
+    abi: gatewayRouterABI,
     functionName: 'setGateways',
     args: [
       [tokenBridgeContracts.parentChainContracts.weth],
@@ -217,7 +157,7 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
 
   // (and then we encode the real data, to send the transaction)
   const setGatewaysCalldata = encodeFunctionData({
-    abi: parentChainGatewayRouterAbi,
+    abi: gatewayRouterABI,
     functionName: 'setGateways',
     args: [
       [tokenBridgeContracts.parentChainContracts.weth],
