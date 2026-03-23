@@ -87,18 +87,61 @@ export function createSourceDockerNetwork(networkName: string) {
   docker(['network', 'create', networkName]);
 }
 
-export async function waitForRpc(params: { rpcUrl: string; timeoutMs: number }) {
-  const { rpcUrl, timeoutMs } = params;
+function getContainerStatus(containerName: string): string | undefined {
+  try {
+    const status = docker(['inspect', '-f', '{{.State.Status}}', containerName]);
+    return status || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function getContainerLogs(containerName: string, tail = 80): string {
+  try {
+    return docker(['logs', '--tail', String(tail), containerName]);
+  } catch {
+    return '';
+  }
+}
+
+export async function waitForRpc(params: {
+  rpcUrl: string;
+  timeoutMs: number;
+  failIfContainerExited?: string;
+}) {
+  const { rpcUrl, timeoutMs, failIfContainerExited } = params;
   const publicClient = createPublicClient({ transport: http(rpcUrl) });
   const deadline = Date.now() + timeoutMs;
 
   const poll = async (): Promise<void> => {
+    if (failIfContainerExited) {
+      const status = getContainerStatus(failIfContainerExited);
+      if (status && status !== 'running') {
+        const logs = getContainerLogs(failIfContainerExited);
+        throw new Error(
+          `Container ${failIfContainerExited} exited with status "${status}" while waiting for RPC ${rpcUrl}.${
+            logs ? `\n${logs}` : ''
+          }`,
+        );
+      }
+    }
+
     try {
       await publicClient.getChainId();
       return;
     } catch {
       if (Date.now() >= deadline) {
-        throw new Error(`Timed out waiting for RPC ${rpcUrl}`);
+        const containerContext =
+          failIfContainerExited && getContainerStatus(failIfContainerExited)
+            ? ` (container ${failIfContainerExited} status: ${getContainerStatus(failIfContainerExited)})`
+            : '';
+        const logs =
+          failIfContainerExited && getContainerStatus(failIfContainerExited) !== 'running'
+            ? getContainerLogs(failIfContainerExited)
+            : '';
+        throw new Error(
+          `Timed out waiting for RPC ${rpcUrl}${containerContext}.${logs ? `\n${logs}` : ''}`,
+        );
       }
     }
 

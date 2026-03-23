@@ -150,6 +150,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     await waitForRpc({
       rpcUrl: l1RpcUrl,
       timeoutMs: 60_000,
+      failIfContainerExited: l1ContainerName,
     });
     console.log('L1 Anvil node is ready\n');
 
@@ -250,6 +251,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     await waitForRpc({
       rpcUrl: l2RpcUrl,
       timeoutMs: 60_000,
+      failIfContainerExited: l2ContainerName,
     });
     console.log('L2 Nitro node is ready\n');
 
