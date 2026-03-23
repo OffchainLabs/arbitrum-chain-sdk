@@ -338,15 +338,13 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
 
     console.log('L2 rollup creator deployed\n');
 
-    const customGasTokenMintAmount = parseEther('10');
-
     await (
       await customGasToken.deposit({
-        value: customGasTokenMintAmount,
+        value: parseEther('10'),
         ...testConstants.LOW_L2_FEE_OVERRIDES,
       })
     ).wait();
-    console.log('[chain-sdk-int-test] source L2 shared deployer funded');
+    console.log('L2 funding done\n');
 
     const l2Chain = defineChain({
       id: l2ChainId,

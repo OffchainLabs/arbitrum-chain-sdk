@@ -247,6 +247,17 @@ jobs:
           install-command: pnpm install --frozen-lockfile
           cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
+      - name: Restore anvil RPC cache
+        id: anvil-rpc-cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/anvil-rpc-cache.json
+          key: ${{ runner.os }}-anvil-rpc-cache-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-anvil-rpc-cache-${{ github.ref_name }}-
+            ${{ runner.os }}-anvil-rpc-cache-main-
+            ${{ runner.os }}-anvil-rpc-cache-
+
       - name: Copy .env
         run: cp ./.env.example ./.env
 
@@ -255,3 +266,10 @@ jobs:
 
       - name: Test
         run: pnpm test:integration:anvil
+
+      - name: Save anvil RPC cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/anvil-rpc-cache.json
+          key: ${{ runner.os }}-anvil-rpc-cache-${{ github.ref_name }}-${{ github.run_id }}
