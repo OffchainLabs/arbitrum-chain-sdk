@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -77,6 +77,12 @@ let cleanupHookRegistered = false;
 let teardownStarted = false;
 let l1RpcCachingProxy: RpcCachingProxy | undefined;
 
+function prepareNitroRuntimeDir(runtimeDir: string) {
+  chmodSync(runtimeDir, 0o777);
+  mkdirSync(join(runtimeDir, 'nitro-data'), { recursive: true, mode: 0o777 });
+  chmodSync(join(runtimeDir, 'nitro-data'), 0o777);
+}
+
 export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
   if (envPromise) {
     return envPromise;
@@ -97,6 +103,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     cleanupStaleHarnessNetworks();
 
     runtimeDir = mkdtempSync(join(tmpdir(), 'chain-sdk-int-test'));
+    prepareNitroRuntimeDir(runtimeDir);
     dockerNetworkName = `chain-sdk-int-test-net-${Date.now()}`;
     createSourceDockerNetwork(dockerNetworkName);
 
@@ -221,7 +228,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     l2NodeConfig.node!['batch-poster']!.enable = false;
     l2NodeConfig.node!.staker!.enable = false;
     const nodeConfigPath = join(runtimeDir, 'source-l2-node-config.json');
-    writeFileSync(nodeConfigPath, JSON.stringify(l2NodeConfig, null, 2));
+    writeFileSync(nodeConfigPath, JSON.stringify(l2NodeConfig, null, 2), { mode: 0o644 });
 
     // Starting L2 node (Nitro)
     console.log('Starting L2 Nitro node...');

@@ -1,3 +1,4 @@
+import { once } from 'node:events';
 import { createServer, IncomingHttpHeaders } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
@@ -220,10 +221,17 @@ export async function startRpcCachingProxy(
     }
   });
 
-  server.listen(8449, '0.0.0.0');
+  server.listen(0, '0.0.0.0');
+  await once(server, 'listening');
+
+  const address = server.address();
+  if (!address || typeof address === 'string') {
+    server.close();
+    throw new Error('RPC caching proxy failed to resolve a listening TCP port.');
+  }
 
   return {
-    proxyUrl: `http://host.docker.internal:8449`,
+    proxyUrl: `http://host.docker.internal:${address.port}`,
     getSummaryLines: () => [
       'RPC proxy cache summary',
       `  invalidated on startup: ${stats.cacheInvalidated ? 'yes' : 'no'}`,
