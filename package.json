@@ -41,6 +41,7 @@
       "@wagmi/cli>esbuild": "0.25.1",
       "@wagmi/cli>bundle-require": "5.1.0",
       "@ethersproject/providers>ws": "7.5.10",
+      "flatted": "3.4.2",
       "elliptic": "6.6.1",
       "nanoid": "3.3.8",
       "base-x": "3.0.11",
