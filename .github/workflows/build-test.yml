@@ -222,3 +222,36 @@ jobs:
           INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
           pnpm test:integration
+
+  test-integration-anvil:
+    name: Test (Integration Anvil)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Copy .env
+        run: cp ./.env.example ./.env
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test:integration:anvil

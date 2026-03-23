@@ -12,6 +12,7 @@
     "test:type": "vitest --config vitest.type.config.ts",
     "test:unit": "vitest --config vitest.unit.config.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:integration:anvil": "vitest --run --config vitest.integration.anvil.config.ts",
     "postinstall": "patch-package",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",

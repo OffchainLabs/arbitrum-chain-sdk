@@ -5,6 +5,9 @@ export default mergeConfig(
   commonConfig,
   defineConfig({
     test: {
+      provide: {
+        integrationTestMode: 'testnode',
+      },
       // allow tests to run for 7 minutes as retryables can take a while
       testTimeout: 7 * 60 * 1000,
       exclude: [...configDefaults.exclude, './src/**/*.unit.test.ts'],
