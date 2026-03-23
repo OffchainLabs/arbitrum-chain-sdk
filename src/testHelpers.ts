@@ -7,11 +7,25 @@ import { generateChainId, sanitizePrivateKey } from './utils';
 import { createRollup } from './createRollup';
 import { createRollupPrepareDeploymentParamsConfig } from './createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from './prepareChainConfig';
+import { validateParentChain } from './types/ParentChain';
 import { CreateRollupParams, RollupCreatorSupportedVersion } from './types/createRollupTypes';
 
 config();
 
-type PrivateKeyAccountWithPrivateKey = PrivateKeyAccount & { privateKey: `0x${string}` };
+export type PrivateKeyAccountWithPrivateKey = PrivateKeyAccount & { privateKey: `0x${string}` };
+
+export type CustomTimingParams = {
+  confirmPeriodBlocks: bigint;
+  challengeGracePeriodBlocks: bigint;
+  minimumAssertionPeriod: bigint;
+  validatorAfkBlocks: bigint;
+  sequencerInboxMaxTimeVariation: {
+    delayBlocks: bigint;
+    futureBlocks: bigint;
+    delaySeconds: bigint;
+    futureSeconds: bigint;
+  };
+};
 // Source: https://github.com/OffchainLabs/nitro-testnode/blob/release/scripts/accounts.ts#L28
 type NitroTestNodePrivateKeyAccounts = {
   // funnel
@@ -144,6 +158,8 @@ export async function createRollupHelper<
   validators,
   nativeToken = zeroAddress,
   client,
+  maxDataSize,
+  customParentTimingParams,
   rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv() as TRollupCreatorVersion,
 }: {
   deployer: PrivateKeyAccountWithPrivateKey;
@@ -151,8 +167,17 @@ export async function createRollupHelper<
   validators: Address[];
   nativeToken: Address;
   client: PublicClient;
+  maxDataSize?: bigint;
+  customParentTimingParams?: CustomTimingParams;
   rollupCreatorVersion?: TRollupCreatorVersion;
 }) {
+  const parentChain = validateParentChain(client);
+  if (parentChain.isCustom && typeof customParentTimingParams === 'undefined') {
+    throw new Error(
+      '"customParentTimingParams" must be provided when using createRollupHelper with a custom parent chain.',
+    );
+  }
+
   const chainId = generateChainId();
 
   const createRollupConfig = createRollupPrepareDeploymentParamsConfig(
@@ -160,6 +185,7 @@ export async function createRollupHelper<
     {
       chainId: BigInt(chainId),
       owner: deployer.address,
+      ...(customParentTimingParams ?? {}),
       chainConfig: prepareChainConfig({
         chainId,
         arbitrum: {
@@ -179,6 +205,7 @@ export async function createRollupHelper<
             batchPosters,
             validators,
             nativeToken,
+            maxDataSize,
           } as CreateRollupParams<'v2.1'>,
           account: deployer,
           parentChainPublicClient: client,
@@ -190,6 +217,7 @@ export async function createRollupHelper<
             batchPosters,
             validators,
             nativeToken,
+            maxDataSize,
           } as CreateRollupParams<'v3.2'>,
           account: deployer,
           parentChainPublicClient: client,
