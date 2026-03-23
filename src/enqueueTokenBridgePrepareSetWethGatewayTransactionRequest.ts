@@ -33,6 +33,13 @@ export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
   }>
 >;
 
+/**
+ * Prepares the transaction to register the WETH gateway on the parent chain router via the
+ * UpgradeExecutor. Must be called after the `enqueueTokenBridgePrepareTransactionRequest` transaction
+ * has confirmed on the parent chain. Unlike {@link createTokenBridgePrepareSetWethGatewayTransactionRequest},
+ * this function does not require an orbit chain connection -- retryable gas parameters are provided
+ * by the caller.
+ */
 export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
 >({
