@@ -3,8 +3,9 @@ import {
   createRollupHelper,
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  PrivateKeyAccountWithPrivateKey,
 } from '../testHelpers';
-import { Hex, createPublicClient, http, zeroAddress } from 'viem';
+import { Address, Hex, createPublicClient, http, zeroAddress } from 'viem';
 import { nitroTestnodeL2 } from '../chains';
 import { getMaxTimeVariation } from './getMaxTimeVariation';
 import { isBatchPoster } from './isBatchPoster';
@@ -15,12 +16,46 @@ import { buildSetMaxTimeVariation } from './buildSetMaxTimeVariation';
 import { buildDisableBatchPoster, buildEnableBatchPoster } from './buildSetIsBatchPoster';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { buildInvalidateKeysetHash } from './buildInvalidateKeysetHash';
+import { getAnvilTestStack, isAnvilTestMode } from '../integrationTestHelpers/injectedMode';
 
-const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor } = getInformationFromTestnode();
-const { l3TokenBridgeDeployer, deployer, l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
+// const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor } = getInformationFromTestnode();
+// const { l3TokenBridgeDeployer, deployer, l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 
-const client = createPublicClient({
-  chain: nitroTestnodeL2,
+// const client = createPublicClient({
+//   chain: nitroTestnodeL2,
+//   transport: http(),
+// });
+
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
+
+let l3RollupOwner: PrivateKeyAccountWithPrivateKey;
+let l3TokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
+let deployer: PrivateKeyAccountWithPrivateKey;
+let l3SequencerInbox: Address;
+let l3BatchPoster: Address;
+let l3UpgradeExecutor: Address;
+
+if (env) {
+  l3RollupOwner = env.l3.accounts.rollupOwner;
+  l3TokenBridgeDeployer = env.l3.accounts.tokenBridgeDeployer;
+  deployer = env.l2.accounts.deployer;
+  l3SequencerInbox = env.l3.sequencerInbox;
+  l3BatchPoster = env.l3.batchPoster;
+  l3UpgradeExecutor = env.l3.upgradeExecutor;
+} else {
+  const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
+  l3RollupOwner = testnodeAccounts.l3RollupOwner;
+  l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
+  deployer = testnodeAccounts.deployer;
+
+  const testNodeInformation = getInformationFromTestnode();
+  l3SequencerInbox = testNodeInformation.l3SequencerInbox;
+  l3BatchPoster = testNodeInformation.l3BatchPoster;
+  l3UpgradeExecutor = testNodeInformation.l3UpgradeExecutor;
+}
+
+const l2Client = createPublicClient({
+  chain: env ? env.l2.chain : nitroTestnodeL2,
   transport: http(),
 });
 
@@ -32,7 +67,7 @@ describe('max time variation management', () => {
     futureSeconds: 3_600n,
   };
   it('getMaxTimeVariation successfully fetches max time variation', async () => {
-    const result = await getMaxTimeVariation(client, {
+    const result = await getMaxTimeVariation(l2Client, {
       sequencerInbox: l3SequencerInbox,
     });
     expect(result).toEqual(defaultMaxTimeVariation);
@@ -45,17 +80,17 @@ describe('max time variation management', () => {
       delaySeconds: bigint;
       futureSeconds: bigint;
     }) {
-      const transactionRequest = await buildSetMaxTimeVariation(client, {
+      const transactionRequest = await buildSetMaxTimeVariation(l2Client, {
         sequencerInbox: l3SequencerInbox,
         upgradeExecutor: l3UpgradeExecutor,
         account: l3RollupOwner.address,
         params: changes,
       });
-      const txHash = await client.sendRawTransaction({
+      const txHash = await l2Client.sendRawTransaction({
         serializedTransaction: await l3RollupOwner.signTransaction(transactionRequest),
       });
 
-      await client.waitForTransactionReceipt({ hash: txHash });
+      await l2Client.waitForTransactionReceipt({ hash: txHash });
     }
 
     const changes = {
@@ -65,13 +100,13 @@ describe('max time variation management', () => {
       futureSeconds: 1_800n,
     };
     await setMaxTimeVariation(changes);
-    const newResult = await getMaxTimeVariation(client, {
+    const newResult = await getMaxTimeVariation(l2Client, {
       sequencerInbox: l3SequencerInbox,
     });
     expect(newResult).toEqual(changes);
 
     await setMaxTimeVariation(defaultMaxTimeVariation);
-    const finalResult = await getMaxTimeVariation(client, {
+    const finalResult = await getMaxTimeVariation(l2Client, {
       sequencerInbox: l3SequencerInbox,
     });
     expect(finalResult).toEqual(defaultMaxTimeVariation);
@@ -80,14 +115,14 @@ describe('max time variation management', () => {
 
 describe('batch poster management', () => {
   it('isBatchPoster successfully fetches whether or an address is a batch poster', async () => {
-    const isNotBatchPosterAddress = await isBatchPoster(client, {
+    const isNotBatchPosterAddress = await isBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       params: {
         batchPoster: zeroAddress,
       },
     });
     expect(isNotBatchPosterAddress).toBeFalsy();
-    const isBatchPosterAddress = await isBatchPoster(client, {
+    const isBatchPosterAddress = await isBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       params: {
         batchPoster: l3BatchPoster,
@@ -98,7 +133,7 @@ describe('batch poster management', () => {
 
   it('successfully enable or disable an address as batch poster', async () => {
     const randomAddress = privateKeyToAccount(generatePrivateKey()).address;
-    const isRandomAddressBatchPoster = await isBatchPoster(client, {
+    const isRandomAddressBatchPoster = await isBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       params: {
         batchPoster: randomAddress,
@@ -106,7 +141,7 @@ describe('batch poster management', () => {
     });
     expect(isRandomAddressBatchPoster).toBeFalsy();
 
-    const enableTransactionRequest = await buildEnableBatchPoster(client, {
+    const enableTransactionRequest = await buildEnableBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       upgradeExecutor: l3UpgradeExecutor,
       account: l3RollupOwner.address,
@@ -114,11 +149,11 @@ describe('batch poster management', () => {
         batchPoster: randomAddress,
       },
     });
-    const enableTxHash = await client.sendRawTransaction({
+    const enableTxHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3RollupOwner.signTransaction(enableTransactionRequest),
     });
-    await client.waitForTransactionReceipt({ hash: enableTxHash });
-    const isRandomAddressBatchPosterAfterEnabling = await isBatchPoster(client, {
+    await l2Client.waitForTransactionReceipt({ hash: enableTxHash });
+    const isRandomAddressBatchPosterAfterEnabling = await isBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       params: {
         batchPoster: randomAddress,
@@ -126,7 +161,7 @@ describe('batch poster management', () => {
     });
     expect(isRandomAddressBatchPosterAfterEnabling).toBeTruthy();
 
-    const disableTransactionRequest = await buildDisableBatchPoster(client, {
+    const disableTransactionRequest = await buildDisableBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       upgradeExecutor: l3UpgradeExecutor,
       account: l3RollupOwner.address,
@@ -134,11 +169,11 @@ describe('batch poster management', () => {
         batchPoster: randomAddress,
       },
     });
-    const disableTxHash = await client.sendRawTransaction({
+    const disableTxHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3RollupOwner.signTransaction(disableTransactionRequest),
     });
-    await client.waitForTransactionReceipt({ hash: disableTxHash });
-    const isRandomAddressBatchPosterAfterDisabling = await isBatchPoster(client, {
+    await l2Client.waitForTransactionReceipt({ hash: disableTxHash });
+    const isRandomAddressBatchPosterAfterDisabling = await isBatchPoster(l2Client, {
       sequencerInbox: l3SequencerInbox,
       params: {
         batchPoster: randomAddress,
@@ -160,11 +195,13 @@ describe('keyset management', () => {
       batchPosters,
       validators,
       nativeToken: zeroAddress,
-      client,
+      client: l2Client,
+      customParentTimingParams: env ? env.l2.timingParams : undefined,
+      maxDataSize: env ? 104_857n : undefined,
     });
 
     const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;
-    const transactionRequest = await buildSetValidKeyset(client, {
+    const transactionRequest = await buildSetValidKeyset(l2Client, {
       sequencerInbox: sequencerInbox,
       account: l3TokenBridgeDeployer.address,
       upgradeExecutor,
@@ -172,11 +209,11 @@ describe('keyset management', () => {
         keyset,
       },
     });
-    const transactionHash = await client.sendRawTransaction({
+    const transactionHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3TokenBridgeDeployer.signTransaction(transactionRequest),
     });
-    await client.waitForTransactionReceipt({ hash: transactionHash });
-    const logs = await client.getContractEvents({
+    await l2Client.waitForTransactionReceipt({ hash: transactionHash });
+    const logs = await l2Client.getContractEvents({
       address: sequencerInbox,
       abi: sequencerInboxABI,
       eventName: 'SetValidKeyset',
@@ -192,7 +229,7 @@ describe('keyset management', () => {
   }
 
   it('isValidKeysetHash successfully fetches whether a hash is a valid keyset hash', async () => {
-    const invalidKeysetHash = await isValidKeysetHash(client, {
+    const invalidKeysetHash = await isValidKeysetHash(l2Client, {
       sequencerInbox: l3SequencerInbox,
       params: {
         keysetHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
@@ -202,7 +239,7 @@ describe('keyset management', () => {
 
     const { sequencerInbox, keysetHash } = await deployAnyTrustChainWithKeyset(keysetBytes);
 
-    const result = await isValidKeysetHash(client, {
+    const result = await isValidKeysetHash(l2Client, {
       sequencerInbox,
       params: {
         keysetHash: keysetHash!,
@@ -216,7 +253,7 @@ describe('keyset management', () => {
       keysetBytes,
     );
 
-    const result = await isValidKeysetHash(client, {
+    const result = await isValidKeysetHash(l2Client, {
       sequencerInbox,
       params: {
         keysetHash: keysetHash!,
@@ -224,7 +261,7 @@ describe('keyset management', () => {
     });
     expect(result).toBeTruthy();
 
-    const transactionRequest = await buildInvalidateKeysetHash(client, {
+    const transactionRequest = await buildInvalidateKeysetHash(l2Client, {
       sequencerInbox,
       account: l3TokenBridgeDeployer.address,
       upgradeExecutor,
@@ -232,12 +269,12 @@ describe('keyset management', () => {
         keysetHash: keysetHash!,
       },
     });
-    const txHash = await client.sendRawTransaction({
+    const txHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3TokenBridgeDeployer.signTransaction(transactionRequest),
     });
-    await client.waitForTransactionReceipt({ hash: txHash });
+    await l2Client.waitForTransactionReceipt({ hash: txHash });
 
-    const resultAfterChange = await isValidKeysetHash(client, {
+    const resultAfterChange = await isValidKeysetHash(l2Client, {
       sequencerInbox,
       params: {
         keysetHash: keysetHash!,

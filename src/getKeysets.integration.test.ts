@@ -15,20 +15,34 @@ import {
   createRollupHelper,
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  PrivateKeyAccountWithPrivateKey,
 } from './testHelpers';
 import { getKeysets } from './getKeysets';
+import { getAnvilTestStack, isAnvilTestMode } from './integrationTestHelpers/injectedMode';
 
-const { l3SequencerInbox } = getInformationFromTestnode();
-const { l3TokenBridgeDeployer, deployer } = getNitroTestnodePrivateKeyAccounts();
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 
-const client = createPublicClient({
-  chain: nitroTestnodeL2,
+let l3TokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
+let deployer: PrivateKeyAccountWithPrivateKey;
+let l3SequencerInbox: Address;
+
+if (env) {
+  l3TokenBridgeDeployer = env.l3.accounts.tokenBridgeDeployer;
+  deployer = env.l2.accounts.deployer;
+  l3SequencerInbox = env.l3.sequencerInbox;
+} else {
+  const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
+  l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
+  deployer = testnodeAccounts.deployer;
+
+  const testNodeInformation = getInformationFromTestnode();
+  l3SequencerInbox = testNodeInformation.l3SequencerInbox;
+}
+
+const l2Client = createPublicClient({
+  chain: env ? env.l2.chain : nitroTestnodeL2,
   transport: http(),
-}).extend(
-  sequencerInboxActions({
-    sequencerInbox: l3SequencerInbox,
-  }),
-);
+}).extend(sequencerInboxActions({ sequencerInbox: l3SequencerInbox }));
 
 async function sendKeysetTransaction({
   account,
@@ -37,10 +51,10 @@ async function sendKeysetTransaction({
   account: PrivateKeyAccount;
   tx: TransactionSerializable;
 }) {
-  const txHash = await client.sendRawTransaction({
+  const txHash = await l2Client.sendRawTransaction({
     serializedTransaction: await account.signTransaction(tx),
   });
-  await client.waitForTransactionReceipt({
+  await l2Client.waitForTransactionReceipt({
     hash: txHash,
   });
 }
@@ -55,7 +69,7 @@ async function setValidKeyset({
   upgradeExecutor: Address;
   account: PrivateKeyAccount;
 }) {
-  const tx = await client.sequencerInboxPrepareTransactionRequest({
+  const tx = await l2Client.sequencerInboxPrepareTransactionRequest({
     functionName: 'setValidKeyset',
     args: [keysetBytes],
     account: account.address,
@@ -75,7 +89,7 @@ async function invalidateKeyset({
   upgradeExecutor: Address;
   account: PrivateKeyAccount;
 }) {
-  const tx = await client.sequencerInboxPrepareTransactionRequest({
+  const tx = await l2Client.sequencerInboxPrepareTransactionRequest({
     functionName: 'invalidateKeysetHash',
     args: [keysetHash],
     account: account.address,
@@ -102,7 +116,9 @@ async function createAnytrustRollup() {
     batchPosters,
     validators,
     nativeToken: zeroAddress,
-    client,
+    client: l2Client,
+    customParentTimingParams: env ? env.l2.timingParams : undefined,
+    maxDataSize: env ? 104_857n : undefined,
   });
 }
 
@@ -111,7 +127,7 @@ describe('successfully get valid keysets', () => {
   it('when disabling the same keyset multiple time', async () => {
     const { createRollupInformation } = await createAnytrustRollup();
     const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;
-    const { keysets: initialKeysets } = await getKeysets(client, {
+    const { keysets: initialKeysets } = await getKeysets(l2Client, {
       sequencerInbox,
     });
 
@@ -139,7 +155,7 @@ describe('successfully get valid keysets', () => {
       account: l3TokenBridgeDeployer,
     });
 
-    const { keysets } = await getKeysets(client, {
+    const { keysets } = await getKeysets(l2Client, {
       sequencerInbox,
     });
 
@@ -154,7 +170,7 @@ describe('successfully get valid keysets', () => {
       account: l3TokenBridgeDeployer,
     });
 
-    const { keysets: emptyKeysets } = await getKeysets(client, {
+    const { keysets: emptyKeysets } = await getKeysets(l2Client, {
       sequencerInbox,
     });
 
@@ -167,7 +183,7 @@ describe('successfully get valid keysets', () => {
       account: l3TokenBridgeDeployer,
     });
 
-    const { keysets: finalKeysets } = await getKeysets(client, {
+    const { keysets: finalKeysets } = await getKeysets(l2Client, {
       sequencerInbox,
     });
 
