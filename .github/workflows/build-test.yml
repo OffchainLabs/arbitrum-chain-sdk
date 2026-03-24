@@ -226,9 +226,24 @@ jobs:
   test-integration-anvil:
     name: Test (Integration Anvil)
     runs-on: ubuntu-latest
+    env:
+      NITRO_CONTRACTS_IMAGE_REF: v3.2.0-2f747c7
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build nitro contracts image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./nitro-contracts
+          file: ./nitro-contracts/Dockerfile
+          tags: chain-sdk-nitro-contracts:${{ env.NITRO_CONTRACTS_IMAGE_REF }}
+          load: true
+          cache-from: type=gha,scope=chain-sdk-nitro-contracts-${{ env.NITRO_CONTRACTS_IMAGE_REF }}
+          cache-to: type=gha,mode=max,scope=chain-sdk-nitro-contracts-${{ env.NITRO_CONTRACTS_IMAGE_REF }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

@@ -1,13 +1,10 @@
 import { execFile, execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { createPublicClient, http } from 'viem';
 
 import { testConstants } from './constants';
-
-const cachedNitroContractsImageByTag: Record<string, string> = {};
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -47,43 +44,19 @@ export function getNitroContractsImage(): string {
   const imageTag = `chain-sdk-nitro-contracts:${sanitizeDockerTagPart(
     testConstants.DEFAULT_NITRO_CONTRACTS_REF,
   )}`;
-  const cachedImage = cachedNitroContractsImageByTag[imageTag];
-  if (cachedImage) {
-    return cachedImage;
-  }
 
   try {
     docker(['image', 'inspect', imageTag]);
   } catch {
-    const tempDir = mkdtempSync(join(tmpdir(), 'chain-sdk-nitro-contracts-'));
-    const repoDir = join(tempDir, 'repo');
+    const nitroContractsDir = join(process.cwd(), 'nitro-contracts');
     const dockerfilePath = join(process.cwd(), 'nitro-contracts', 'Dockerfile');
-
-    try {
-      runCommand('git', [
-        'clone',
-        '--recurse-submodules',
-        '--shallow-submodules',
-        '--depth',
-        '1',
-        '--branch',
-        testConstants.DEFAULT_NITRO_CONTRACTS_BRANCH,
-        '--single-branch',
-        testConstants.DEFAULT_NITRO_CONTRACTS_REPO_URL,
-        repoDir,
-      ]);
-
-      docker(['build', '-f', dockerfilePath, '-t', imageTag, repoDir]);
-    } finally {
-      rmSync(tempDir, { recursive: true, force: true });
-    }
+    docker(['build', '-f', dockerfilePath, '-t', imageTag, nitroContractsDir]);
   }
 
-  cachedNitroContractsImageByTag[imageTag] = imageTag;
   return imageTag;
 }
 
-export function createSourceDockerNetwork(networkName: string) {
+export function createDockerNetwork(networkName: string) {
   docker(['network', 'create', networkName]);
 }
 
@@ -237,7 +210,7 @@ export function cleanupStaleHarnessNetworks() {
   }
 }
 
-export function startSourceL1AnvilContainer(params: {
+export function startL1AnvilContainer(params: {
   containerName: string;
   networkName: string;
   l1RpcPort: number;
@@ -275,7 +248,7 @@ export function startSourceL1AnvilContainer(params: {
   ]);
 }
 
-export function startSourceL2NitroContainer(params: {
+export function startL2NitroContainer(params: {
   containerName: string;
   networkName: string;
   l2RpcPort: number;
@@ -295,7 +268,7 @@ export function startSourceL2NitroContainer(params: {
     `${params.runtimeDir}:/runtime`,
     params.nitroImage,
     '--conf.file',
-    '/runtime/source-l2-node-config.json',
+    '/runtime/l2-node-config.json',
     '--persistent.chain',
     '/runtime/nitro-data',
     '--ensure-rollup-deployment=false',

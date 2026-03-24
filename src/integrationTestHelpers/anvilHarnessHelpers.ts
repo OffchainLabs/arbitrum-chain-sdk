@@ -94,7 +94,10 @@ function getRollupCreatorDockerArgs(
     '-e',
     'IGNORE_MAX_DATA_SIZE_WARNING=true',
     nitroContractsImage,
-    'deploy-factory',
+    'hardhat',
+    'run',
+    '--no-compile',
+    'scripts/deployment.ts',
     '--network',
     'custom',
   ];

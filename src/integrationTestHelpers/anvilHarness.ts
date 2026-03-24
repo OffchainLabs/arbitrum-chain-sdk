@@ -30,9 +30,9 @@ import {
   cleanupCurrentHarnessResources,
   cleanupStaleHarnessContainers,
   cleanupStaleHarnessNetworks,
-  createSourceDockerNetwork,
-  startSourceL1AnvilContainer,
-  startSourceL2NitroContainer,
+  createDockerNetwork,
+  startL1AnvilContainer,
+  startL2NitroContainer,
   waitForRpc,
 } from './dockerHelpers';
 import {
@@ -105,7 +105,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     runtimeDir = mkdtempSync(join(tmpdir(), 'chain-sdk-int-test'));
     prepareNitroRuntimeDir(runtimeDir);
     dockerNetworkName = `chain-sdk-int-test-net-${Date.now()}`;
-    createSourceDockerNetwork(dockerNetworkName);
+    createDockerNetwork(dockerNetworkName);
 
     const l2ChainId = testConstants.DEFAULT_L2_CHAIN_ID;
     const l1RpcPort = testConstants.DEFAULT_L1_RPC_PORT;
@@ -143,7 +143,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     l1ContainerName = `chain-sdk-int-test-l1-${Date.now()}`;
     console.log('Starting L1 Anvil node...');
 
-    startSourceL1AnvilContainer({
+    startL1AnvilContainer({
       containerName: l1ContainerName,
       networkName: dockerNetworkName,
       l1RpcPort,
@@ -225,16 +225,17 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     if (l2ChainConfig.arbitrum.DataAvailabilityCommittee) {
       delete l2NodeConfig.node?.['data-availability']?.['rpc-aggregator'];
     }
+
     l2NodeConfig.node!['batch-poster']!.enable = false;
     l2NodeConfig.node!.staker!.enable = false;
-    const nodeConfigPath = join(runtimeDir, 'source-l2-node-config.json');
+    const nodeConfigPath = join(runtimeDir, 'l2-node-config.json');
     writeFileSync(nodeConfigPath, JSON.stringify(l2NodeConfig, null, 2), { mode: 0o644 });
 
     // Starting L2 node (Nitro)
     console.log('Starting L2 Nitro node...');
     l2ContainerName = `chain-sdk-int-test-l2-${Date.now()}`;
 
-    startSourceL2NitroContainer({
+    startL2NitroContainer({
       containerName: l2ContainerName,
       networkName: dockerNetworkName,
       l2RpcPort,
