@@ -19,6 +19,7 @@ export default mergeConfig(
         './src/decorators/arbAggregatorActions.integration.test.ts',
         './src/getBatchPosters.integration.test.ts',
         './src/getValidators.integration.test.ts',
+        './src/decorators/sequencerInboxActions.integration.test.ts',
       ],
       fileParallelism: false,
     },
