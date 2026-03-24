@@ -8,6 +8,7 @@ import {
   createPublicClient,
   createWalletClient,
   defineChain,
+  Hex,
   http,
   parseEther,
   parseGwei,
@@ -49,23 +50,39 @@ import {
 import { type RpcCachingProxy, startRpcCachingProxy } from './rpcCachingProxy';
 import type { CustomTimingParams, PrivateKeyAccountWithPrivateKey } from '../testHelpers';
 
-export type AnvilTestStack = {
+type RegisteredParentChain = Parameters<typeof registerCustomParentChain>[0];
+
+type BaseStack<L2Accounts, L3Accounts> = {
   l2: {
     rpcUrl: string;
     chain: Chain;
-    accounts: {
-      deployer: PrivateKeyAccountWithPrivateKey;
-    };
+    accounts: L2Accounts;
     timingParams: CustomTimingParams;
     rollupCreatorVersion: RollupCreatorSupportedVersion;
   };
   l3: {
-    accounts: {
-      tokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
-    };
+    accounts: L3Accounts;
     nativeToken: Address;
   };
 };
+
+export type AnvilTestStack = BaseStack<
+  {
+    deployer: PrivateKeyAccountWithPrivateKey;
+  },
+  {
+    tokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
+  }
+>;
+
+export type InjectedAnvilTestStack = BaseStack<
+  {
+    deployerPrivateKey: Hex;
+  },
+  {
+    tokenBridgeDeployerPrivateKey: Hex;
+  }
+>;
 
 let envPromise: Promise<AnvilTestStack> | undefined;
 let initializedEnv: AnvilTestStack | undefined;
@@ -81,6 +98,46 @@ function prepareNitroRuntimeDir(runtimeDir: string) {
   chmodSync(runtimeDir, 0o777);
   mkdirSync(join(runtimeDir, 'nitro-data'), { recursive: true, mode: 0o777 });
   chmodSync(join(runtimeDir, 'nitro-data'), 0o777);
+}
+
+export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestStack {
+  return {
+    ...env,
+    l2: {
+      ...env.l2,
+      accounts: {
+        deployerPrivateKey: env.l2.accounts.deployer.privateKey,
+      },
+    },
+    l3: {
+      ...env.l3,
+      accounts: {
+        tokenBridgeDeployerPrivateKey: env.l3.accounts.tokenBridgeDeployer.privateKey,
+      },
+    },
+  };
+}
+
+export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestStack {
+  const l2Chain = defineChain(env.l2.chain) as RegisteredParentChain;
+  registerCustomParentChain(l2Chain);
+
+  return {
+    ...env,
+    l2: {
+      ...env.l2,
+      chain: l2Chain,
+      accounts: {
+        deployer: createAccount(env.l2.accounts.deployerPrivateKey),
+      },
+    },
+    l3: {
+      ...env.l3,
+      accounts: {
+        tokenBridgeDeployer: createAccount(env.l3.accounts.tokenBridgeDeployerPrivateKey),
+      },
+    },
+  };
 }
 
 export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
@@ -222,11 +279,19 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       parentChainBeaconRpcUrl: sepoliaBeaconRpc,
     });
 
-    if (l2ChainConfig.arbitrum.DataAvailabilityCommittee) {
-      delete l2NodeConfig.node?.['data-availability']?.['rpc-aggregator'];
+    if (l2NodeConfig.node === undefined || l2NodeConfig.node['batch-poster'] === undefined) {
+      throw new Error('L2 node config batch poster is undefined');
     }
 
-    l2NodeConfig.node!['batch-poster']!.enable = false;
+    l2NodeConfig.node['batch-poster'].enable = true;
+    l2NodeConfig.node['batch-poster']['max-delay'] = '1s';
+    l2NodeConfig.node['batch-poster']['poll-interval'] = '1s';
+    l2NodeConfig.node['batch-poster']['error-delay'] = '1s';
+    l2NodeConfig.node['batch-poster']['l1-block-bound'] = 'ignore';
+    l2NodeConfig.node['batch-poster']['data-poster'] = {
+      'wait-for-l1-finality': false,
+    };
+
     l2NodeConfig.node!.staker!.enable = false;
     const nodeConfigPath = join(runtimeDir, 'l2-node-config.json');
     writeFileSync(nodeConfigPath, JSON.stringify(l2NodeConfig, null, 2), { mode: 0o644 });

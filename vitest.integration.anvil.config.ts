@@ -9,10 +9,15 @@ export default mergeConfig(
         integrationTestMode: 'anvil',
       },
       // The Anvil stack boots a forked L1 and dockerized Nitro L2 in-process.
+      // Use worker threads so the provided Anvil env can cross the worker boundary with structured clone.
+      pool: 'threads',
       testTimeout: 45 * 60 * 1000,
-      setupFiles: ['./src/integrationTestHelpers/globalSetup.mjs'],
+      globalSetup: ['./src/integrationTestHelpers/globalSetup.mjs'],
       exclude: [...configDefaults.exclude],
-      include: ['./src/createRollup.integration.test.ts'],
+      include: [
+        './src/createRollup.integration.test.ts',
+        './src/decorators/arbAggregatorActions.integration.test.ts',
+      ],
       fileParallelism: false,
     },
   }),

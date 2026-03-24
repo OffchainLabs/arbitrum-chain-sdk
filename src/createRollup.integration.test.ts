@@ -9,10 +9,9 @@ import {
   type PrivateKeyAccountWithPrivateKey,
 } from './testHelpers';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
-import { getInitializedAnvilTestStackEnv } from './integrationTestHelpers/anvilHarness';
-import { isAnvilIntegrationTestMode } from './integrationTestHelpers/injectedMode';
+import { getAnvilTestStack, isAnvilTestMode } from './integrationTestHelpers/injectedMode';
 
-const env = isAnvilIntegrationTestMode() ? getInitializedAnvilTestStackEnv() : undefined;
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 
 const parentChainPublicClient = createPublicClient({
   chain: env ? env.l2.chain : nitroTestnodeL2,
