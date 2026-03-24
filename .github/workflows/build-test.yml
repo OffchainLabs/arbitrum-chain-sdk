@@ -2,6 +2,9 @@ name: Build, Test
 
 on:
   pull_request:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency
@@ -326,7 +329,9 @@ jobs:
         run: pnpm test:integration:anvil
 
       - name: Save anvil RPC cache
-        if: always()
+        if: >-
+          always() &&
+          github.ref_name == 'main'
         uses: actions/cache/save@v4
         with:
           path: .cache/anvil-rpc-cache.json

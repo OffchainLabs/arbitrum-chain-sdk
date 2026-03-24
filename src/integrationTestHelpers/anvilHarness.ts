@@ -239,7 +239,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
 
     const l1RpcUrlWithCaching = l1RpcCachingProxy.proxyUrl;
 
-    const harnessDeployer = createAccount();
+    const harnessDeployer = createAccount(testConstants.DEPLOYER_PRIVATE_KEY);
     const blockAdvancerAccount = createAccount();
 
     // Starting L1 node (Anvil)
