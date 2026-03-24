@@ -12,6 +12,8 @@ import {
   http,
   parseEther,
   parseGwei,
+  PublicClient,
+  Transport,
   zeroAddress,
 } from 'viem';
 import { sepolia } from 'viem/chains';
@@ -62,7 +64,13 @@ type BaseStack<L2Accounts, L3Accounts> = {
   };
   l3: {
     accounts: L3Accounts;
+    timingParams: CustomTimingParams;
     nativeToken: Address;
+    rollup: Address;
+    bridge: Address;
+    sequencerInbox: Address;
+    upgradeExecutor: Address;
+    batchPoster: Address;
   };
 };
 
@@ -71,6 +79,7 @@ export type AnvilTestStack = BaseStack<
     deployer: PrivateKeyAccountWithPrivateKey;
   },
   {
+    rollupOwner: PrivateKeyAccountWithPrivateKey;
     tokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
   }
 >;
@@ -80,6 +89,7 @@ export type InjectedAnvilTestStack = BaseStack<
     deployerPrivateKey: Hex;
   },
   {
+    rollupOwnerPrivateKey: Hex;
     tokenBridgeDeployerPrivateKey: Hex;
   }
 >;
@@ -112,6 +122,7 @@ export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestS
     l3: {
       ...env.l3,
       accounts: {
+        rollupOwnerPrivateKey: env.l3.accounts.rollupOwner.privateKey,
         tokenBridgeDeployerPrivateKey: env.l3.accounts.tokenBridgeDeployer.privateKey,
       },
     },
@@ -134,6 +145,7 @@ export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestSta
     l3: {
       ...env.l3,
       accounts: {
+        rollupOwner: createAccount(env.l3.accounts.rollupOwnerPrivateKey),
         tokenBridgeDeployer: createAccount(env.l3.accounts.tokenBridgeDeployerPrivateKey),
       },
     },
@@ -165,6 +177,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     createDockerNetwork(dockerNetworkName);
 
     const l2ChainId = testConstants.DEFAULT_L2_CHAIN_ID;
+    const l3ChainId = l2ChainId + 1;
     const l1RpcPort = testConstants.DEFAULT_L1_RPC_PORT;
     const l2RpcPort = testConstants.DEFAULT_L2_RPC_PORT;
     const anvilImage = testConstants.DEFAULT_ANVIL_IMAGE;
@@ -172,7 +185,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const sepoliaBeaconRpc = testConstants.DEFAULT_SEPOLIA_BEACON_RPC;
     const anvilForkUrl = testConstants.DEFAULT_SEPOLIA_RPC;
     const rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2';
-    const L2TimingParams: CustomTimingParams = {
+    const rollupTimingParams: CustomTimingParams = {
       confirmPeriodBlocks: 150n,
       challengeGracePeriodBlocks: 14_400n,
       minimumAssertionPeriod: 75n,
@@ -233,11 +246,11 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       {
         chainId: BigInt(l2ChainId),
         owner: harnessDeployer.address,
-        sequencerInboxMaxTimeVariation: L2TimingParams.sequencerInboxMaxTimeVariation,
-        confirmPeriodBlocks: L2TimingParams.confirmPeriodBlocks,
-        challengeGracePeriodBlocks: L2TimingParams.challengeGracePeriodBlocks,
-        minimumAssertionPeriod: L2TimingParams.minimumAssertionPeriod,
-        validatorAfkBlocks: L2TimingParams.validatorAfkBlocks,
+        sequencerInboxMaxTimeVariation: rollupTimingParams.sequencerInboxMaxTimeVariation,
+        confirmPeriodBlocks: rollupTimingParams.confirmPeriodBlocks,
+        challengeGracePeriodBlocks: rollupTimingParams.challengeGracePeriodBlocks,
+        minimumAssertionPeriod: rollupTimingParams.minimumAssertionPeriod,
+        validatorAfkBlocks: rollupTimingParams.validatorAfkBlocks,
         chainConfig: prepareChainConfig({
           chainId: l2ChainId,
           arbitrum: {
@@ -338,7 +351,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
     console.log('Deployer funded on L2');
 
-    const l2PublicClient = createPublicClient({
+    let l2Client: PublicClient<Transport, Chain> = createPublicClient({
       chain: l2BootstrapChain,
       transport: http(l2RpcUrl),
     });
@@ -356,12 +369,12 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
 
     console.log('Configuring L2 fee settings...');
-    await configureL2Fees(l2PublicClient, l2WalletClient, harnessDeployer);
+    await configureL2Fees(l2Client, l2WalletClient, harnessDeployer);
     console.log('L2 fee settings updated\n');
 
     console.log('Ensuring L2 create2 factory...');
     await ensureCreate2Factory({
-      publicClient: l2PublicClient,
+      publicClient: l2Client,
       walletClient: l2WalletClient,
       fundingAccount: harnessDeployer,
     });
@@ -396,7 +409,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         chainId: l2ChainId,
       },
       {
-        publicClient: l2PublicClient,
+        publicClient: l2Client,
         walletClient: blockAdvancerWalletClient,
         account: blockAdvancerAccount,
       },
@@ -425,11 +438,48 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       contracts: {
         rollupCreator: { address: l2RollupCreator },
         tokenBridgeCreator: { address: harnessDeployer.address },
-        weth: { address: harnessDeployer.address },
+        weth: { address: customGasToken.address as Address },
       },
     });
     registerCustomParentChain(l2Chain);
     console.log('L1 & L2 chains ready\n');
+
+    l2Client = createPublicClient({
+      chain: l2Chain,
+      transport: http(l2RpcUrl),
+    });
+
+    console.log('Deploying L3 rollup contracts on L2...');
+    const l3RollupConfig = createRollupPrepareDeploymentParamsConfig(l2Client, {
+      chainId: BigInt(l3ChainId),
+      owner: harnessDeployer.address,
+      sequencerInboxMaxTimeVariation: rollupTimingParams.sequencerInboxMaxTimeVariation,
+      confirmPeriodBlocks: rollupTimingParams.confirmPeriodBlocks,
+      challengeGracePeriodBlocks: rollupTimingParams.challengeGracePeriodBlocks,
+      minimumAssertionPeriod: rollupTimingParams.minimumAssertionPeriod,
+      validatorAfkBlocks: rollupTimingParams.validatorAfkBlocks,
+      chainConfig: prepareChainConfig({
+        chainId: l3ChainId,
+        arbitrum: {
+          InitialChainOwner: harnessDeployer.address,
+          DataAvailabilityCommittee: true,
+        },
+      }),
+    });
+
+    const l3Rollup = await createRollup({
+      params: {
+        config: l3RollupConfig,
+        batchPosters: [harnessDeployer.address],
+        validators: [harnessDeployer.address],
+        nativeToken: customGasToken.address as Address,
+        maxDataSize: 104_857n,
+      } as CreateRollupParams<'v3.2'>,
+      account: harnessDeployer,
+      parentChainPublicClient: l2Client,
+      rollupCreatorVersion,
+    });
+    console.log('L3 rollup contracts deployed on L2\n');
 
     initializedEnv = {
       l2: {
@@ -438,14 +488,21 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         accounts: {
           deployer: harnessDeployer,
         },
-        timingParams: L2TimingParams,
+        timingParams: rollupTimingParams,
         rollupCreatorVersion,
       },
       l3: {
         accounts: {
+          rollupOwner: harnessDeployer,
           tokenBridgeDeployer: harnessDeployer,
         },
+        timingParams: rollupTimingParams,
         nativeToken: customGasToken.address as Address,
+        rollup: l3Rollup.coreContracts.rollup,
+        bridge: l3Rollup.coreContracts.bridge,
+        sequencerInbox: l3Rollup.coreContracts.sequencerInbox,
+        upgradeExecutor: l3Rollup.coreContracts.upgradeExecutor,
+        batchPoster: harnessDeployer.address,
       },
     };
 
