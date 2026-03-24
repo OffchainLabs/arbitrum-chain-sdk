@@ -118,10 +118,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       },
     };
 
-    const sourceDeployer = createAccount(
-      testConstants.DEFAULT_SOURCE_DEPLOYER_PRIVATE_KEY as Address,
-    );
-    const scenarioDeployer = createAccount();
+    const harnessDeployer = createAccount();
     const blockAdvancerAccount = createAccount();
 
     // Starting L1 node (Anvil)
@@ -149,7 +146,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
 
     await setBalanceOnL1({
       rpcUrl: l1RpcUrl,
-      address: sourceDeployer.address,
+      address: harnessDeployer.address,
       balance: parseEther('10000000'),
     });
 
@@ -159,7 +156,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       createPublicClient({ chain: sepolia, transport: http(l1RpcUrl) }),
       {
         chainId: BigInt(l2ChainId),
-        owner: sourceDeployer.address,
+        owner: harnessDeployer.address,
         sequencerInboxMaxTimeVariation: L2TimingParams.sequencerInboxMaxTimeVariation,
         confirmPeriodBlocks: L2TimingParams.confirmPeriodBlocks,
         challengeGracePeriodBlocks: L2TimingParams.challengeGracePeriodBlocks,
@@ -168,7 +165,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         chainConfig: prepareChainConfig({
           chainId: l2ChainId,
           arbitrum: {
-            InitialChainOwner: sourceDeployer.address,
+            InitialChainOwner: harnessDeployer.address,
             DataAvailabilityCommittee: true,
           },
         }),
@@ -179,12 +176,12 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l2Rollup = await createRollup({
       params: {
         config: l2RollupConfig,
-        batchPosters: [sourceDeployer.address],
-        validators: [sourceDeployer.address],
+        batchPosters: [harnessDeployer.address],
+        validators: [harnessDeployer.address],
         nativeToken: zeroAddress,
         maxFeePerGasForRetryables: parseGwei('0.1'),
       } as CreateRollupParams<'v3.2'>,
-      account: sourceDeployer,
+      account: harnessDeployer,
       parentChainPublicClient: createPublicClient({
         chain: sepolia,
         transport: http(l1RpcUrl),
@@ -198,8 +195,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       chainName: 'Chain SDK Int Test L2',
       chainConfig: l2ChainConfig,
       coreContracts: l2Rollup.coreContracts,
-      batchPosterPrivateKey: sourceDeployer.privateKey,
-      validatorPrivateKey: sourceDeployer.privateKey,
+      batchPosterPrivateKey: harnessDeployer.privateKey,
+      validatorPrivateKey: harnessDeployer.privateKey,
       stakeToken: l2RollupConfig.stakeToken,
       parentChainId: sepolia.id,
       parentChainRpcUrl: `http://${l1ContainerName}:8545`,
@@ -250,7 +247,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       l1RpcUrl,
       l2RpcUrl,
       l2Chain: l2BootstrapChain,
-      deployer: sourceDeployer,
+      deployer: harnessDeployer,
       inbox: l2Rollup.coreContracts.inbox,
     });
     console.log('Deployer funded on L2');
@@ -273,19 +270,19 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
 
     console.log('Configuring L2 fee settings...');
-    await configureL2Fees(l2PublicClient, l2WalletClient, sourceDeployer);
+    await configureL2Fees(l2PublicClient, l2WalletClient, harnessDeployer);
     console.log('L2 fee settings updated\n');
 
     console.log('Ensuring L2 create2 factory...');
     await ensureCreate2Factory({
       publicClient: l2PublicClient,
       walletClient: l2WalletClient,
-      fundingAccount: sourceDeployer,
+      fundingAccount: harnessDeployer,
     });
     console.log('L2 create2 factory is ready\n');
 
     const l2Provider = new ethers.providers.JsonRpcProvider(l2RpcUrl);
-    const l2Signer = new ethers.Wallet(sourceDeployer.privateKey, l2Provider);
+    const l2Signer = new ethers.Wallet(harnessDeployer.privateKey, l2Provider);
 
     console.log('Deploying L2 custom gas token...');
     const customGasToken = await deployContract(l2Signer, TestWETH9 as ContractArtifact, [
@@ -307,8 +304,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       {
         networkName: dockerNetworkName,
         rpcUrl: `http://${l2ContainerName}:8449`,
-        deployerPrivateKey: sourceDeployer.privateKey,
-        factoryOwner: sourceDeployer.address,
+        deployerPrivateKey: harnessDeployer.privateKey,
+        factoryOwner: harnessDeployer.address,
         maxDataSize: 104_857,
         chainId: l2ChainId,
       },
@@ -322,8 +319,6 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     console.log('L2 rollup creator deployed\n');
 
     const customGasTokenMintAmount = parseEther('10');
-    const scenarioDeployerCustomGasTokenFundingAmount = parseEther('5');
-    const scenarioDeployerEthFundingAmount = parseEther('5');
 
     await (
       await customGasToken.deposit({
@@ -331,21 +326,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         ...testConstants.LOW_L2_FEE_OVERRIDES,
       })
     ).wait();
-    await (
-      await customGasToken.transfer(
-        scenarioDeployer.address,
-        scenarioDeployerCustomGasTokenFundingAmount,
-        testConstants.LOW_L2_FEE_OVERRIDES,
-      )
-    ).wait();
-    await (
-      await l2Signer.sendTransaction({
-        to: scenarioDeployer.address,
-        value: scenarioDeployerEthFundingAmount,
-        ...testConstants.LOW_L2_FEE_OVERRIDES,
-      })
-    ).wait();
-    console.log('[chain-sdk-int-test] source L2 shared accounts funded');
+    console.log('[chain-sdk-int-test] source L2 shared deployer funded');
 
     const l2Chain = defineChain({
       id: l2ChainId,
@@ -359,8 +340,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       testnet: true,
       contracts: {
         rollupCreator: { address: l2RollupCreator },
-        tokenBridgeCreator: { address: sourceDeployer.address },
-        weth: { address: sourceDeployer.address },
+        tokenBridgeCreator: { address: harnessDeployer.address },
+        weth: { address: harnessDeployer.address },
       },
     });
     registerCustomParentChain(l2Chain);
@@ -371,14 +352,14 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         rpcUrl: l2RpcUrl,
         chain: l2Chain,
         accounts: {
-          deployer: sourceDeployer,
+          deployer: harnessDeployer,
         },
         timingParams: L2TimingParams,
         rollupCreatorVersion,
       },
       l3: {
         accounts: {
-          tokenBridgeDeployer: scenarioDeployer,
+          tokenBridgeDeployer: harnessDeployer,
         },
         nativeToken: customGasToken.address as Address,
       },
