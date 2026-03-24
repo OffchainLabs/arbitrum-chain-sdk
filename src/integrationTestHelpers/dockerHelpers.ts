@@ -36,24 +36,18 @@ export function dockerAsync(args: string[]): Promise<string> {
   });
 }
 
-function sanitizeDockerTagPart(value: string): string {
-  return value.replace(/[^a-zA-Z0-9_.-]+/g, '-');
-}
-
 export function getNitroContractsImage(): string {
-  const imageTag = `chain-sdk-nitro-contracts:${sanitizeDockerTagPart(
-    testConstants.DEFAULT_NITRO_CONTRACTS_REF,
-  )}`;
-
+  const image = process.env.NITRO_CONTRACTS_GHCR_IMAGE ?? testConstants.DEFAULT_NITRO_CONTRACTS_IMAGE;
   try {
-    docker(['image', 'inspect', imageTag]);
+    docker(['image', 'inspect', image]);
+    return image;
   } catch {
     const nitroContractsDir = join(process.cwd(), 'nitro-contracts');
     const dockerfilePath = join(process.cwd(), 'nitro-contracts', 'Dockerfile');
-    docker(['build', '-f', dockerfilePath, '-t', imageTag, nitroContractsDir]);
-  }
+    docker(['build', '-f', dockerfilePath, '-t', image, nitroContractsDir]);
 
-  return imageTag;
+    return image;
+  }
 }
 
 export function createDockerNetwork(networkName: string) {

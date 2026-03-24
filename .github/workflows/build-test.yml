@@ -223,27 +223,73 @@ jobs:
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
           pnpm test:integration
 
-  test-integration-anvil:
-    name: Test (Integration Anvil)
+  publish-nitro-contracts-image:
+    name: Publish Nitro Contracts Image
     runs-on: ubuntu-latest
-    env:
-      NITRO_CONTRACTS_IMAGE_REF: v3.2.0-2f747c7
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set nitro contracts image
+        run: |
+          echo "NITRO_CONTRACTS_GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-nitro-contracts:v3.2.0-2f747c7" >> "$GITHUB_ENV"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build nitro contracts image
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check nitro contracts image
+        id: check-image
+        run: |
+          if docker manifest inspect "${NITRO_CONTRACTS_GHCR_IMAGE}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push nitro contracts image
+        if: steps.check-image.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
           context: ./nitro-contracts
           file: ./nitro-contracts/Dockerfile
-          tags: chain-sdk-nitro-contracts:${{ env.NITRO_CONTRACTS_IMAGE_REF }}
-          load: true
-          cache-from: type=gha,scope=chain-sdk-nitro-contracts-${{ env.NITRO_CONTRACTS_IMAGE_REF }}
-          cache-to: type=gha,mode=max,scope=chain-sdk-nitro-contracts-${{ env.NITRO_CONTRACTS_IMAGE_REF }}
+          push: true
+          tags: |
+            ${{ env.NITRO_CONTRACTS_GHCR_IMAGE }}
+
+  test-integration-anvil:
+    name: Test (Integration Anvil)
+    needs: publish-nitro-contracts-image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set nitro contracts image
+        run: |
+          echo "NITRO_CONTRACTS_GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-nitro-contracts:v3.2.0-2f747c7" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Load nitro contracts image
+        run: docker pull "${NITRO_CONTRACTS_GHCR_IMAGE}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -285,3 +331,5 @@ jobs:
         with:
           path: .cache/anvil-rpc-cache.json
           key: ${{ runner.os }}-anvil-rpc-cache-${{ github.ref_name }}-${{ github.run_id }}
+
+  

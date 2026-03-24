@@ -4,7 +4,7 @@ import { ethers } from 'ethers';
 export const testConstants = {
   DEFAULT_ANVIL_IMAGE: 'ghcr.io/foundry-rs/foundry:v1.3.1',
   DEFAULT_NITRO_IMAGE: 'offchainlabs/nitro-node:v3.9.5-66e42c4',
-  DEFAULT_NITRO_CONTRACTS_REF: 'v3.2.0-2f747c7',
+  DEFAULT_NITRO_CONTRACTS_IMAGE: 'ghcr.io/offchainlabs/chain-sdk-nitro-contracts:v3.2.0-2f747c7',
   DEFAULT_L2_CHAIN_ID: 421_337,
   DEFAULT_L3_CHAIN_ID: 421_338,
   DEFAULT_L1_RPC_PORT: 9645,
