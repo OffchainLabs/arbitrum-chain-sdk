@@ -22,6 +22,10 @@ import { ethers } from 'ethers';
 import TestWETH9 from '@arbitrum/token-bridge-contracts/build/contracts/contracts/tokenbridge/test/TestWETH9.sol/TestWETH9.json';
 
 import { registerCustomParentChain } from '../chains';
+import {
+  rollupCreatorABI,
+  rollupCreatorAddress as rollupCreatorV3Dot2Address,
+} from '../contracts/RollupCreator/v3.2';
 import { createRollup } from '../createRollup';
 import { createRollupPrepareDeploymentParamsConfig } from '../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../prepareChainConfig';
@@ -104,10 +108,39 @@ let cleanupHookRegistered = false;
 let teardownStarted = false;
 let l1RpcCachingProxy: RpcCachingProxy | undefined;
 
+const NITRO_TESTNODE_AUTHORIZED_VALIDATORS = 10;
+const NITRO_TESTNODE_VALIDATOR_SIGNER = '0x6A568afe0f82d34759347bb36F14A6bB171d2CBe' as Address;
+
 function prepareNitroRuntimeDir(runtimeDir: string) {
   chmodSync(runtimeDir, 0o777);
   mkdirSync(join(runtimeDir, 'nitro-data'), { recursive: true, mode: 0o777 });
   chmodSync(join(runtimeDir, 'nitro-data'), 0o777);
+}
+
+async function getNitroTestnodeStyleValidators(
+  publicClient: PublicClient<Transport, Chain>,
+  rollupCreator: Address,
+): Promise<Address[]> {
+  const validatorWalletCreator = await publicClient.readContract({
+    address: rollupCreator,
+    abi: rollupCreatorABI,
+    functionName: 'validatorWalletCreator',
+  });
+
+  const validators: Address[] = [];
+
+  for (let i = 1; i <= NITRO_TESTNODE_AUTHORIZED_VALIDATORS; i++) {
+    validators.push(
+      ethers.utils.getContractAddress({
+        from: validatorWalletCreator,
+        nonce: ethers.BigNumber.from(i).toHexString(),
+      }) as Address,
+    );
+  }
+
+  validators.push(NITRO_TESTNODE_VALIDATOR_SIGNER);
+
+  return validators;
 }
 
 export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestStack {
@@ -224,6 +257,11 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
 
     const l1RpcUrl = `http://127.0.0.1:${l1RpcPort}`;
+    const l1Client = createPublicClient({
+      chain: sepolia,
+      transport: http(l1RpcUrl),
+    });
+
     await waitForRpc({
       rpcUrl: l1RpcUrl,
       timeoutMs: 60_000,
@@ -242,7 +280,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     // Deploying L2 rollup contracts on L1
     console.log('Deploying L2 rollup contracts on L1...');
     const l2RollupConfig = createRollupPrepareDeploymentParamsConfig(
-      createPublicClient({ chain: sepolia, transport: http(l1RpcUrl) }),
+      l1Client,
       {
         chainId: BigInt(l2ChainId),
         owner: harnessDeployer.address,
@@ -266,15 +304,15 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       params: {
         config: l2RollupConfig,
         batchPosters: [harnessDeployer.address],
-        validators: [harnessDeployer.address],
+        validators: await getNitroTestnodeStyleValidators(
+          l1Client,
+          rollupCreatorV3Dot2Address[sepolia.id],
+        ),
         nativeToken: zeroAddress,
         maxFeePerGasForRetryables: parseGwei('0.1'),
       } as CreateRollupParams<'v3.2'>,
       account: harnessDeployer,
-      parentChainPublicClient: createPublicClient({
-        chain: sepolia,
-        transport: http(l1RpcUrl),
-      }),
+      parentChainPublicClient: l1Client,
       rollupCreatorVersion: 'v3.2',
     });
     console.log('L2 rollup contracts deployed on L1\n');
@@ -471,7 +509,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       params: {
         config: l3RollupConfig,
         batchPosters: [harnessDeployer.address],
-        validators: [harnessDeployer.address],
+        validators: await getNitroTestnodeStyleValidators(l2Client, l2RollupCreator),
         nativeToken: customGasToken.address as Address,
         maxDataSize: 104_857n,
       } as CreateRollupParams<'v3.2'>,

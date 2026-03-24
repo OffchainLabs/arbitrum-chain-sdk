@@ -18,6 +18,7 @@ export default mergeConfig(
         './src/createRollup.integration.test.ts',
         './src/decorators/arbAggregatorActions.integration.test.ts',
         './src/getBatchPosters.integration.test.ts',
+        './src/getValidators.integration.test.ts',
       ],
       fileParallelism: false,
     },
