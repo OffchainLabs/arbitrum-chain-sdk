@@ -8,7 +8,7 @@ import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFuncti
 import { gatewayRouterABI } from './contracts/GatewayRouter';
 import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
-import { enqueueDefaultMaxGasPrice } from './constants';
+import { enqueueDefaultMaxGasPrice, enqueueDefaultGasLimitForWethGateway } from './constants';
 
 export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
   TParentChain extends Chain | undefined,
@@ -27,7 +27,7 @@ export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
      */
     rollupDeploymentBlockNumber?: bigint;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
-    gasLimit: bigint;
+    gasLimit?: bigint;
     maxGasPrice?: bigint;
     maxSubmissionCost: bigint;
   }>
@@ -47,7 +47,7 @@ export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
   account,
   rollupDeploymentBlockNumber,
   parentChainPublicClient,
-  gasLimit,
+  gasLimit = enqueueDefaultGasLimitForWethGateway,
   maxGasPrice = enqueueDefaultMaxGasPrice,
   maxSubmissionCost,
   tokenBridgeCreatorAddressOverride,
