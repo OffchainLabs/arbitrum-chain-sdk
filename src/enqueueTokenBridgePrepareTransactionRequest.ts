@@ -13,6 +13,12 @@ import {
   enqueueDefaultMaxGasForContracts,
   enqueueDefaultMaxGasForFactory,
 } from './constants';
+import {
+  getFactoryDeploymentDataSize,
+  getContractsDeploymentData,
+} from './createTokenBridge-ethers';
+import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
+import { calculateRetryableSubmissionFee } from './calculateRetryableSubmissionFee';
 
 export type EnqueueTokenBridgePrepareTransactionRequestParams<
   TParentChain extends Chain | undefined,
@@ -24,8 +30,6 @@ export type EnqueueTokenBridgePrepareTransactionRequestParams<
     maxGasForContracts?: bigint;
     maxGasForFactory?: bigint;
     maxGasPrice?: bigint;
-    maxSubmissionCostForFactory: bigint;
-    maxSubmissionCostForContracts: bigint;
     gasOverrides?: TransactionRequestGasOverrides;
   }>
 >;
@@ -34,7 +38,8 @@ export type EnqueueTokenBridgePrepareTransactionRequestParams<
  * Prepares the transaction to deploy token bridge contracts via `TokenBridgeCreator.createTokenBridge`.
  * The parent chain transaction creates retryable tickets that execute on the orbit chain when it
  * processes its inbox. Unlike {@link createTokenBridgePrepareTransactionRequest}, this function
- * does not require an orbit chain connection -- retryable gas parameters are provided by the caller.
+ * does not require an orbit chain connection -- retryable gas parameters are estimated from
+ * parent chain state.
  */
 export async function enqueueTokenBridgePrepareTransactionRequest<
   TParentChain extends Chain | undefined,
@@ -45,8 +50,6 @@ export async function enqueueTokenBridgePrepareTransactionRequest<
   maxGasForContracts = enqueueDefaultMaxGasForContracts,
   maxGasForFactory = enqueueDefaultMaxGasForFactory,
   maxGasPrice = enqueueDefaultMaxGasPrice,
-  maxSubmissionCostForFactory,
-  maxSubmissionCostForContracts,
   gasOverrides,
   tokenBridgeCreatorAddressOverride,
 }: EnqueueTokenBridgePrepareTransactionRequestParams<TParentChain>) {
@@ -73,6 +76,17 @@ export async function enqueueTokenBridgePrepareTransactionRequest<
   if (router !== zeroAddress) {
     throw new Error(`Token bridge contracts for Rollup ${params.rollup} are already deployed`);
   }
+
+  const l1Provider = publicClientToProvider(parentChainPublicClient);
+  const { dataSize: contractsDataSize } = await getContractsDeploymentData(
+    tokenBridgeCreatorAddress,
+    l1Provider,
+  );
+
+  const [maxSubmissionCostForFactory, maxSubmissionCostForContracts] = await Promise.all([
+    calculateRetryableSubmissionFee(parentChainPublicClient, inbox, BigInt(getFactoryDeploymentDataSize())),
+    calculateRetryableSubmissionFee(parentChainPublicClient, inbox, BigInt(contractsDataSize)),
+  ]);
 
   const chainUsesCustomFee = await isCustomFeeTokenChain({
     rollup: params.rollup,

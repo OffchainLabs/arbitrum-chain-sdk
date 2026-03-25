@@ -9,6 +9,7 @@ import { gatewayRouterABI } from './contracts/GatewayRouter';
 import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { enqueueDefaultMaxGasPrice, enqueueDefaultGasLimitForWethGateway } from './constants';
+import { calculateRetryableSubmissionFee } from './calculateRetryableSubmissionFee';
 
 export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
   TParentChain extends Chain | undefined,
@@ -29,7 +30,6 @@ export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
     gasLimit?: bigint;
     maxGasPrice?: bigint;
-    maxSubmissionCost: bigint;
   }>
 >;
 
@@ -37,8 +37,8 @@ export type EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<
  * Prepares the transaction to register the WETH gateway on the parent chain router via the
  * UpgradeExecutor. Must be called after the `enqueueTokenBridgePrepareTransactionRequest` transaction
  * has confirmed on the parent chain. Unlike {@link createTokenBridgePrepareSetWethGatewayTransactionRequest},
- * this function does not require an orbit chain connection -- retryable gas parameters are provided
- * by the caller.
+ * this function does not require an orbit chain connection -- retryable gas parameters are estimated
+ * from parent chain state.
  */
 export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
@@ -49,7 +49,6 @@ export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
   parentChainPublicClient,
   gasLimit = enqueueDefaultGasLimitForWethGateway,
   maxGasPrice = enqueueDefaultMaxGasPrice,
-  maxSubmissionCost,
   tokenBridgeCreatorAddressOverride,
 }: EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams<TParentChain>) {
   const { chainId } = validateParentChain(parentChainPublicClient);
@@ -90,6 +89,25 @@ export async function enqueueTokenBridgePrepareSetWethGatewayTransactionRequest<
     rollupDeploymentBlockNumber,
     publicClient: parentChainPublicClient,
   });
+
+  // Encode with placeholder values to measure data size (uint256 values are always 32 bytes in ABI encoding)
+  const dummyCalldata = encodeFunctionData({
+    abi: gatewayRouterABI,
+    functionName: 'setGateways',
+    args: [
+      [tokenBridgeContracts.parentChainContracts.weth],
+      [tokenBridgeContracts.parentChainContracts.wethGateway],
+      0n,
+      0n,
+      0n,
+    ],
+  });
+  const calldataSize = BigInt((dummyCalldata.length - 2) / 2);
+  const maxSubmissionCost = await calculateRetryableSubmissionFee(
+    parentChainPublicClient,
+    inbox,
+    calldataSize,
+  );
 
   const deposit = gasLimit * maxGasPrice + maxSubmissionCost;
 
