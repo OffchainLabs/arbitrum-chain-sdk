@@ -66,7 +66,6 @@ export async function createTokenBridgePrepareTransactionRequest<
     tokenBridgeCreatorAddressOverride ?? getTokenBridgeCreatorAddress(parentChainPublicClient);
 
   const { inbox, maxGasForContracts, maxGasPrice, retryableFee } = await createTokenBridgeGetInputs(
-    account,
     parentChainPublicClient,
     orbitChainPublicClient,
     tokenBridgeCreatorAddress,

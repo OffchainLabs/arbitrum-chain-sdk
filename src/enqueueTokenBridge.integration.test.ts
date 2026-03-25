@@ -92,8 +92,6 @@ describe('enqueueTokenBridge', () => {
       },
       parentChainPublicClient: nitroTestnodeL1Client,
       account: l2RollupOwner.address,
-      maxSubmissionCostForFactory: 4_000_000_000_000n,
-      maxSubmissionCostForContracts: 4_000_000_000_000n,
       gasOverrides: {
         gasLimit: {
           base: 6_000_000n,
@@ -140,7 +138,6 @@ describe('enqueueTokenBridge', () => {
         rollup: testnodeInformation.rollup,
         parentChainPublicClient: nitroTestnodeL1Client,
         account: l2RollupOwner.address,
-        maxSubmissionCost: 4_000_000_000_000n,
         tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
       },
     );
