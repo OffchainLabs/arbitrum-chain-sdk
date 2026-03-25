@@ -23,6 +23,8 @@ export default mergeConfig(
         './src/getKeysets.integration.test.ts',
         './src/decorators/rollupAdminLogicPublicActions.integration.test.ts',
         './src/actions/sequencerInbox.integration.test.ts',
+        './src/decorators/arbOwnerPublicActions.integration.test.ts',
+        './src/upgradeExecutor.integration.test.ts',
       ],
       fileParallelism: false,
     },

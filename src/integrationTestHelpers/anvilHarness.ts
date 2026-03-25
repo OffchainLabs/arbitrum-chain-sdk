@@ -60,12 +60,17 @@ import type { CustomTimingParams, PrivateKeyAccountWithPrivateKey } from '../tes
 type RegisteredParentChain = Parameters<typeof registerCustomParentChain>[0];
 
 type BaseStack<L2Accounts, L3Accounts> = {
+  l1: {
+    rpcUrl: string;
+    chain: Chain;
+  };
   l2: {
     rpcUrl: string;
     chain: Chain;
     accounts: L2Accounts;
     timingParams: CustomTimingParams;
     rollupCreatorVersion: RollupCreatorSupportedVersion;
+    upgradeExecutor: Address;
   };
   l3: {
     accounts: L3Accounts;
@@ -81,6 +86,7 @@ type BaseStack<L2Accounts, L3Accounts> = {
 
 export type AnvilTestStack = BaseStack<
   {
+    rollupOwner: PrivateKeyAccountWithPrivateKey;
     deployer: PrivateKeyAccountWithPrivateKey;
   },
   {
@@ -91,6 +97,7 @@ export type AnvilTestStack = BaseStack<
 
 export type InjectedAnvilTestStack = BaseStack<
   {
+    rollupOwnerPrivateKey: Hex;
     deployerPrivateKey: Hex;
   },
   {
@@ -150,6 +157,7 @@ export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestS
     l2: {
       ...env.l2,
       accounts: {
+        rollupOwnerPrivateKey: env.l2.accounts.rollupOwner.privateKey,
         deployerPrivateKey: env.l2.accounts.deployer.privateKey,
       },
     },
@@ -173,6 +181,7 @@ export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestSta
       ...env.l2,
       chain: l2Chain,
       accounts: {
+        rollupOwner: createAccount(env.l2.accounts.rollupOwnerPrivateKey),
         deployer: createAccount(env.l2.accounts.deployerPrivateKey),
       },
     },
@@ -258,8 +267,15 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
 
     const l1RpcUrl = `http://127.0.0.1:${l1RpcPort}`;
+    const l1Chain = defineChain({
+      ...sepolia,
+      rpcUrls: {
+        default: { http: [l1RpcUrl] },
+        public: { http: [l1RpcUrl] },
+      },
+    });
     const l1Client = createPublicClient({
-      chain: sepolia,
+      chain: l1Chain,
       transport: http(l1RpcUrl),
     });
 
@@ -537,14 +553,20 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     console.log('L3 rollup contracts deployed on L2\n');
 
     initializedEnv = {
+      l1: {
+        rpcUrl: l1RpcUrl,
+        chain: l1Chain,
+      },
       l2: {
         rpcUrl: l2RpcUrl,
         chain: l2Chain,
         accounts: {
+          rollupOwner: harnessDeployer,
           deployer: harnessDeployer,
         },
         timingParams: rollupTimingParams,
         rollupCreatorVersion,
+        upgradeExecutor: l2Rollup.coreContracts.upgradeExecutor,
       },
       l3: {
         accounts: {

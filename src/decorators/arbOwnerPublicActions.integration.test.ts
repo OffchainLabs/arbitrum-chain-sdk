@@ -5,36 +5,45 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { nitroTestnodeL2 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
 import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import { getAnvilTestStack, isAnvilTestMode } from '../integrationTestHelpers/injectedMode';
+import { PrivateKeyAccount } from 'viem/accounts';
 
-// l2 owner private key
-const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l2RollupOwner.privateKey;
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 
-const owner = privateKeyToAccount(devPrivateKey);
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 
-const client = createPublicClient({
-  chain: nitroTestnodeL2,
+let l2RollupOwner: PrivateKeyAccount;
+
+if (env) {
+  l2RollupOwner = env.l2.accounts.rollupOwner;
+} else {
+  const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l2RollupOwner.privateKey;
+  l2RollupOwner = privateKeyToAccount(devPrivateKey);
+}
+
+const l2Client = createPublicClient({
+  chain: env ? env.l2.chain : nitroTestnodeL2,
   transport: http(),
 }).extend(arbOwnerPublicActions);
 
 it('successfully fetches network fee receiver', async () => {
-  const result = await client.arbOwnerReadContract({
+  const result = await l2Client.arbOwnerReadContract({
     functionName: 'getNetworkFeeAccount',
   });
 
-  expect(result).toEqual(owner.address);
+  expect(result).toEqual(l2RollupOwner.address);
 });
 
 it('succesfully fetches chain owners', async () => {
-  const result = await client.arbOwnerReadContract({
+  const result = await l2Client.arbOwnerReadContract({
     functionName: 'getAllChainOwners',
   });
 
-  expect(result).toContain(owner.address);
+  expect(result).toContain(l2RollupOwner.address);
 });
 
 it('succesfully adds chain owner', async () => {
-  const isOwnerInitially = await client.arbOwnerReadContract({
+  const isOwnerInitially = await l2Client.arbOwnerReadContract({
     functionName: 'isChainOwner',
     args: [randomAccount.address],
   });
@@ -42,21 +51,21 @@ it('succesfully adds chain owner', async () => {
   // assert account is not already an owner
   expect(isOwnerInitially).toEqual(false);
 
-  const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
+  const transactionRequest = await l2Client.arbOwnerPrepareTransactionRequest({
     functionName: 'addChainOwner',
     args: [randomAccount.address],
     upgradeExecutor: false,
-    account: owner.address,
+    account: l2RollupOwner.address,
   });
 
   // submit tx to add chain owner
-  const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+  const txHash = await l2Client.sendRawTransaction({
+    serializedTransaction: await l2RollupOwner.signTransaction(transactionRequest),
   });
 
-  await client.waitForTransactionReceipt({ hash: txHash });
+  await l2Client.waitForTransactionReceipt({ hash: txHash });
 
-  const isOwner = await client.arbOwnerReadContract({
+  const isOwner = await l2Client.arbOwnerReadContract({
     functionName: 'isChainOwner',
     args: [randomAccount.address],
   });
@@ -66,7 +75,7 @@ it('succesfully adds chain owner', async () => {
 });
 
 it('succesfully removes chain owner', async () => {
-  const isOwnerInitially = await client.arbOwnerReadContract({
+  const isOwnerInitially = await l2Client.arbOwnerReadContract({
     functionName: 'isChainOwner',
     args: [randomAccount.address],
   });
@@ -74,21 +83,21 @@ it('succesfully removes chain owner', async () => {
   // assert account is an owner
   expect(isOwnerInitially).toEqual(true);
 
-  const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
+  const transactionRequest = await l2Client.arbOwnerPrepareTransactionRequest({
     functionName: 'removeChainOwner',
     args: [randomAccount.address],
     upgradeExecutor: false,
-    account: owner.address,
+    account: l2RollupOwner.address,
   });
 
   // submit tx to remove chain owner
-  const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+  const txHash = await l2Client.sendRawTransaction({
+    serializedTransaction: await l2RollupOwner.signTransaction(transactionRequest),
   });
 
-  await client.waitForTransactionReceipt({ hash: txHash });
+  await l2Client.waitForTransactionReceipt({ hash: txHash });
 
-  const isOwner = await client.arbOwnerReadContract({
+  const isOwner = await l2Client.arbOwnerReadContract({
     functionName: 'isChainOwner',
     args: [randomAccount.address],
   });
@@ -98,28 +107,28 @@ it('succesfully removes chain owner', async () => {
 });
 
 it('succesfully updates infra fee receiver', async () => {
-  const initialInfraFeeReceiver = await client.arbOwnerReadContract({
+  const initialInfraFeeReceiver = await l2Client.arbOwnerReadContract({
     functionName: 'getInfraFeeAccount',
   });
 
   // assert account is not already infra fee receiver
   expect(initialInfraFeeReceiver).not.toEqual(randomAccount.address);
 
-  const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
+  const transactionRequest = await l2Client.arbOwnerPrepareTransactionRequest({
     functionName: 'setInfraFeeAccount',
     args: [randomAccount.address],
     upgradeExecutor: false,
-    account: owner.address,
+    account: l2RollupOwner.address,
   });
 
   // submit tx to update infra fee receiver
-  const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+  const txHash = await l2Client.sendRawTransaction({
+    serializedTransaction: await l2RollupOwner.signTransaction(transactionRequest),
   });
 
-  await client.waitForTransactionReceipt({ hash: txHash });
+  await l2Client.waitForTransactionReceipt({ hash: txHash });
 
-  const infraFeeReceiver = await client.arbOwnerReadContract({
+  const infraFeeReceiver = await l2Client.arbOwnerReadContract({
     functionName: 'getInfraFeeAccount',
   });
 
