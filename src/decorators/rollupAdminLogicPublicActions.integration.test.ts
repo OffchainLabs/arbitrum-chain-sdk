@@ -31,7 +31,7 @@ let l3UpgradeExecutor: Address;
 if (env) {
   l3RollupOwner = env.l3.accounts.rollupOwner;
   l3Rollup = env.l3.rollup;
-  l3UpgradeExecutor = env.l3.upgradeExecutor;
+  l3UpgradeExecutor = env.l3.parentChainUpgradeExecutor;
 } else {
   l3RollupOwner = getNitroTestnodePrivateKeyAccounts().l3RollupOwner;
 

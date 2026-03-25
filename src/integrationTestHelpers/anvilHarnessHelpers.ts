@@ -13,6 +13,8 @@ import { sepolia } from 'viem/chains';
 import { ethers } from 'ethers';
 
 import { arbOwnerABI, arbOwnerAddress } from '../contracts/ArbOwner';
+import { erc20ABI } from '../contracts/ERC20';
+import { erc20InboxABI } from '../contracts/IERC20Inbox';
 import { testConstants } from './constants';
 import {
   dockerAsync,
@@ -215,6 +217,67 @@ export async function fundL2Deployer(params: {
 
   throw new Error(
     `Timed out funding ${deployer.address} on orbit chain through inbox ${inbox}. Current balance: ${currentBalance}`,
+  );
+}
+
+export async function bridgeNativeTokenToOrbitChain(params: {
+  parentPublicClient: PublicClient;
+  parentWalletClient: WalletClient;
+  childPublicClient: PublicClient;
+  depositor: PrivateKeyAccountWithPrivateKey;
+  inbox: Address;
+  nativeToken: Address;
+  amount: bigint;
+}) {
+  const {
+    parentPublicClient,
+    parentWalletClient,
+    childPublicClient,
+    depositor,
+    inbox,
+    nativeToken,
+    amount,
+  } = params;
+
+  const balanceBefore = await childPublicClient.getBalance({ address: depositor.address });
+  const targetBalance = balanceBefore + amount;
+
+  const approveHash = await parentWalletClient.writeContract({
+    account: depositor,
+    chain: parentWalletClient.chain,
+    address: nativeToken,
+    abi: erc20ABI,
+    functionName: 'approve',
+    args: [inbox, amount],
+  });
+
+  await parentPublicClient.waitForTransactionReceipt({ hash: approveHash });
+
+  const depositHash = await parentWalletClient.writeContract({
+    account: depositor,
+    chain: parentWalletClient.chain,
+    address: inbox,
+    abi: erc20InboxABI,
+    functionName: 'depositERC20',
+    args: [amount],
+  });
+
+  await parentPublicClient.waitForTransactionReceipt({ hash: depositHash });
+
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < 60_000) {
+    const updatedBalance = await childPublicClient.getBalance({ address: depositor.address });
+    if (updatedBalance >= targetBalance) {
+      return updatedBalance;
+    }
+
+    await sleep(1000);
+  }
+
+  const finalBalance = await childPublicClient.getBalance({ address: depositor.address });
+  throw new Error(
+    `Timed out bridging native token to ${depositor.address} on orbit chain through inbox ${inbox}. Current balance: ${finalBalance}`,
   );
 }
 

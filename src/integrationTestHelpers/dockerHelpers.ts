@@ -225,11 +225,16 @@ export function forceRemoveNetwork(networkName: string) {
 }
 
 export function cleanupCurrentHarnessResources(params: {
+  l3ContainerName?: string;
   l2ContainerName?: string;
   l1ContainerName?: string;
   dockerNetworkName?: string;
   runtimeDir?: string;
 }) {
+  if (params.l3ContainerName) {
+    forceRemoveContainer(params.l3ContainerName);
+  }
+
   if (params.l2ContainerName) {
     forceRemoveContainer(params.l2ContainerName);
   }
@@ -253,7 +258,7 @@ export function cleanupCurrentHarnessResources(params: {
 
 export function cleanupStaleHarnessContainers() {
   try {
-    const ids = docker(['ps', '-aq', '--filter', 'name=^chain-sdk-int-test-(l1|l2)-']);
+    const ids = docker(['ps', '-aq', '--filter', 'name=^chain-sdk-int-test-(l1|l2|l3)-']);
     if (!ids) {
       return;
     }
@@ -329,12 +334,14 @@ export function startL1AnvilContainer(params: {
   ]);
 }
 
-export function startL2NitroContainer(params: {
+export function startNitroContainer(params: {
   containerName: string;
   networkName: string;
-  l2RpcPort: number;
+  rpcPort: number;
   runtimeDir: string;
   nitroImage: string;
+  configFilePath: string;
+  persistentChainPath: string;
 }) {
   docker([
     'run',
@@ -344,14 +351,14 @@ export function startL2NitroContainer(params: {
     '--network',
     params.networkName,
     '-p',
-    `${params.l2RpcPort}:8449`,
+    `${params.rpcPort}:8449`,
     '-v',
     `${params.runtimeDir}:/runtime`,
     params.nitroImage,
     '--conf.file',
-    '/runtime/l2-node-config.json',
+    params.configFilePath,
     '--persistent.chain',
-    '/runtime/nitro-data',
+    params.persistentChainPath,
     '--ensure-rollup-deployment=false',
     '--init.validate-genesis-assertion=false',
     '--execution.parent-chain-reader.use-finality-data=false',

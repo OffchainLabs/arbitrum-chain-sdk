@@ -34,7 +34,7 @@ if (env) {
   l3Bridge = env.l3.bridge;
   l3Rollup = env.l3.rollup;
   l3BatchPoster = env.l3.batchPoster;
-  l3UpgradeExecutor = env.l3.upgradeExecutor;
+  l3UpgradeExecutor = env.l3.parentChainUpgradeExecutor;
 } else {
   const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
   l3RollupOwner = testnodeAccounts.l3RollupOwner;

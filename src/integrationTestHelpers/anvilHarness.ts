@@ -32,6 +32,7 @@ import { prepareChainConfig } from '../prepareChainConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { ChainConfig } from '../types/ChainConfig';
 import { CreateRollupParams, RollupCreatorSupportedVersion } from '../types/createRollupTypes';
+import type { ParentChainId } from '../types/ParentChain';
 import { testConstants } from './constants';
 import {
   cleanupCurrentHarnessResources,
@@ -39,10 +40,11 @@ import {
   cleanupStaleHarnessNetworks,
   createDockerNetwork,
   startL1AnvilContainer,
-  startL2NitroContainer,
+  startNitroContainer,
   waitForRpc,
 } from './dockerHelpers';
 import {
+  bridgeNativeTokenToOrbitChain,
   ContractArtifact,
   configureL2Fees,
   createAccount,
@@ -73,13 +75,16 @@ type BaseStack<L2Accounts, L3Accounts> = {
     upgradeExecutor: Address;
   };
   l3: {
+    rpcUrl: string;
+    chain: Chain;
     accounts: L3Accounts;
     timingParams: CustomTimingParams;
     nativeToken: Address;
     rollup: Address;
     bridge: Address;
     sequencerInbox: Address;
-    upgradeExecutor: Address;
+    parentChainUpgradeExecutor: Address;
+    childChainUpgradeExecutor: Address;
     batchPoster: Address;
   };
 };
@@ -112,6 +117,7 @@ let runtimeDir: string | undefined;
 let dockerNetworkName: string | undefined;
 let l1ContainerName: string | undefined;
 let l2ContainerName: string | undefined;
+let l3ContainerName: string | undefined;
 let cleanupHookRegistered = false;
 let teardownStarted = false;
 let l1RpcCachingProxy: RpcCachingProxy | undefined;
@@ -121,8 +127,11 @@ const NITRO_TESTNODE_VALIDATOR_SIGNER = '0x6A568afe0f82d34759347bb36F14A6bB171d2
 
 function prepareNitroRuntimeDir(runtimeDir: string) {
   chmodSync(runtimeDir, 0o777);
-  mkdirSync(join(runtimeDir, 'nitro-data'), { recursive: true, mode: 0o777 });
-  chmodSync(join(runtimeDir, 'nitro-data'), 0o777);
+
+  for (const dataDir of ['nitro-data-l2', 'nitro-data-l3']) {
+    mkdirSync(join(runtimeDir, dataDir), { recursive: true, mode: 0o777 });
+    chmodSync(join(runtimeDir, dataDir), 0o777);
+  }
 }
 
 async function getNitroTestnodeStyleValidators(
@@ -174,6 +183,7 @@ export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestS
 export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestStack {
   const l2Chain = defineChain(env.l2.chain) as RegisteredParentChain;
   registerCustomParentChain(l2Chain);
+  const l3Chain = defineChain(env.l3.chain);
 
   return {
     ...env,
@@ -187,6 +197,7 @@ export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestSta
     },
     l3: {
       ...env.l3,
+      chain: l3Chain,
       accounts: {
         rollupOwner: createAccount(env.l3.accounts.rollupOwnerPrivateKey),
         tokenBridgeDeployer: createAccount(env.l3.accounts.tokenBridgeDeployerPrivateKey),
@@ -223,6 +234,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l3ChainId = l2ChainId + 1;
     const l1RpcPort = testConstants.DEFAULT_L1_RPC_PORT;
     const l2RpcPort = testConstants.DEFAULT_L2_RPC_PORT;
+    const l3RpcPort = testConstants.DEFAULT_L3_RPC_PORT;
     const anvilImage = testConstants.DEFAULT_ANVIL_IMAGE;
     const nitroImage = testConstants.DEFAULT_NITRO_IMAGE;
     const sepoliaBeaconRpc = testConstants.DEFAULT_SEPOLIA_BEACON_RPC;
@@ -347,7 +359,11 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       parentChainBeaconRpcUrl: sepoliaBeaconRpc,
     });
 
-    if (l2NodeConfig.node === undefined || l2NodeConfig.node['batch-poster'] === undefined) {
+    if (
+      l2NodeConfig.node === undefined ||
+      l2NodeConfig.node['batch-poster'] === undefined ||
+      l2NodeConfig.node.staker === undefined
+    ) {
       throw new Error('L2 node config batch poster is undefined');
     }
 
@@ -360,20 +376,23 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       'wait-for-l1-finality': false,
     };
 
-    l2NodeConfig.node!.staker!.enable = false;
-    const nodeConfigPath = join(runtimeDir, 'l2-node-config.json');
-    writeFileSync(nodeConfigPath, JSON.stringify(l2NodeConfig, null, 2), { mode: 0o644 });
+    l2NodeConfig.node.staker.enable = false;
+
+    const l2NodeConfigPath = join(runtimeDir, 'l2-node-config.json');
+    writeFileSync(l2NodeConfigPath, JSON.stringify(l2NodeConfig, null, 2), { mode: 0o644 });
 
     // Starting L2 node (Nitro)
     console.log('Starting L2 Nitro node...');
     l2ContainerName = `chain-sdk-int-test-l2-${Date.now()}`;
 
-    startL2NitroContainer({
+    startNitroContainer({
       containerName: l2ContainerName,
       networkName: dockerNetworkName,
-      l2RpcPort,
+      rpcPort: l2RpcPort,
       runtimeDir,
       nitroImage,
+      configFilePath: '/runtime/l2-node-config.json',
+      persistentChainPath: '/runtime/nitro-data-l2',
     });
 
     const l2RpcUrl = `http://127.0.0.1:${l2RpcPort}`;
@@ -552,6 +571,97 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
     console.log('L3 rollup contracts deployed on L2\n');
 
+    const l3ChainConfig = JSON.parse(l3RollupConfig.chainConfig) as ChainConfig;
+    const l3NodeConfig = prepareNodeConfig({
+      chainName: 'Chain SDK Int Test L3',
+      chainConfig: l3ChainConfig,
+      coreContracts: l3Rollup.coreContracts,
+      batchPosterPrivateKey: harnessDeployer.privateKey,
+      validatorPrivateKey: harnessDeployer.privateKey,
+      stakeToken: l3RollupConfig.stakeToken,
+      parentChainId: l2ChainId as ParentChainId,
+      parentChainIsArbitrum: true,
+      parentChainRpcUrl: `http://${l2ContainerName}:8449`,
+    });
+
+    if (
+      l3NodeConfig.node === undefined ||
+      l3NodeConfig.node['batch-poster'] === undefined ||
+      l3NodeConfig.node.staker === undefined
+    ) {
+      throw new Error('L3 node config is undefined');
+    }
+
+    // The test harness only needs a local L3 sequencer/read node.
+    // Disable services that require extra parent-chain plumbing.
+    l3NodeConfig.node['batch-poster'].enable = false;
+    l3NodeConfig.node.staker.enable = false;
+    if (l3ChainConfig.arbitrum.DataAvailabilityCommittee) {
+      delete l3NodeConfig.node['data-availability']?.['rpc-aggregator'];
+    }
+
+    const l3NodeConfigPath = join(runtimeDir, 'l3-node-config.json');
+    writeFileSync(l3NodeConfigPath, JSON.stringify(l3NodeConfig, null, 2), { mode: 0o644 });
+
+    // Starting L3 node (Nitro)
+    console.log('Starting L3 Nitro node...');
+    l3ContainerName = `chain-sdk-int-test-l3-${Date.now()}`;
+
+    startNitroContainer({
+      containerName: l3ContainerName,
+      networkName: dockerNetworkName,
+      rpcPort: l3RpcPort,
+      runtimeDir,
+      nitroImage,
+      configFilePath: '/runtime/l3-node-config.json',
+      persistentChainPath: '/runtime/nitro-data-l3',
+    });
+
+    const l3RpcUrl = `http://127.0.0.1:${l3RpcPort}`;
+    const l3Chain = defineChain({
+      id: l3ChainId,
+      network: 'chain-sdk-int-test-l3',
+      name: 'Chain SDK Int Test L3',
+      nativeCurrency: { name: 'Orbit Test Token', symbol: 'ORBT', decimals: 18 },
+      rpcUrls: {
+        default: { http: [l3RpcUrl] },
+        public: { http: [l3RpcUrl] },
+      },
+      testnet: true,
+    });
+
+    await waitForRpc({
+      rpcUrl: l3RpcUrl,
+      timeoutMs: 60_000,
+      failIfContainerExited: l3ContainerName,
+    });
+    console.log('L3 Nitro node is ready\n');
+    const l3Client = createPublicClient({
+      chain: l3Chain,
+      transport: http(l3RpcUrl),
+    });
+
+    await (
+      await customGasToken.deposit({
+        value: parseEther('100'),
+        ...testConstants.LOW_L2_FEE_OVERRIDES,
+      })
+    ).wait();
+
+    console.log('Funding deployer on L3...');
+    await bridgeNativeTokenToOrbitChain({
+      parentPublicClient: l2Client,
+      parentWalletClient: l2WalletClient,
+      childPublicClient: l3Client,
+      depositor: harnessDeployer,
+      inbox: l3Rollup.coreContracts.inbox,
+      nativeToken: customGasToken.address as Address,
+      amount: parseEther('100'),
+    });
+    console.log('Deployer funded on L3\n');
+
+    const l3ChildChainUpgradeExecutor = l3Rollup.coreContracts.upgradeExecutor;
+
     initializedEnv = {
       l1: {
         rpcUrl: l1RpcUrl,
@@ -569,6 +679,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         upgradeExecutor: l2Rollup.coreContracts.upgradeExecutor,
       },
       l3: {
+        rpcUrl: l3RpcUrl,
+        chain: l3Chain,
         accounts: {
           rollupOwner: harnessDeployer,
           tokenBridgeDeployer: harnessDeployer,
@@ -578,7 +690,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         rollup: l3Rollup.coreContracts.rollup,
         bridge: l3Rollup.coreContracts.bridge,
         sequencerInbox: l3Rollup.coreContracts.sequencerInbox,
-        upgradeExecutor: l3Rollup.coreContracts.upgradeExecutor,
+        parentChainUpgradeExecutor: l3Rollup.coreContracts.upgradeExecutor,
+        childChainUpgradeExecutor: l3ChildChainUpgradeExecutor,
         batchPoster: harnessDeployer.address,
       },
     };
@@ -615,12 +728,14 @@ export function teardownAnvilTestStack() {
   }
 
   cleanupCurrentHarnessResources({
+    l3ContainerName: l3ContainerName,
     l2ContainerName: l2ContainerName,
     l1ContainerName: l1ContainerName,
     dockerNetworkName: dockerNetworkName,
     runtimeDir: runtimeDir,
   });
 
+  l3ContainerName = undefined;
   l2ContainerName = undefined;
   l1ContainerName = undefined;
   dockerNetworkName = undefined;

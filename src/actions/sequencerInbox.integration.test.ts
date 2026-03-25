@@ -41,7 +41,7 @@ if (env) {
   deployer = env.l2.accounts.deployer;
   l3SequencerInbox = env.l3.sequencerInbox;
   l3BatchPoster = env.l3.batchPoster;
-  l3UpgradeExecutor = env.l3.upgradeExecutor;
+  l3UpgradeExecutor = env.l3.parentChainUpgradeExecutor;
 } else {
   const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
   l3RollupOwner = testnodeAccounts.l3RollupOwner;
