@@ -179,6 +179,9 @@ import {
   createRollupDefaultRetryablesFees,
   createTokenBridgeDefaultRetryablesFees,
   enqueueDefaultMaxGasPrice,
+  enqueueDefaultMaxGasForContracts,
+  enqueueDefaultMaxGasForFactory,
+  enqueueDefaultGasLimitForWethGateway,
 } from './constants';
 import {
   enqueueTokenBridgePrepareTransactionRequest,
@@ -358,6 +361,9 @@ export {
   createTokenBridgeDefaultRetryablesFees,
   //
   enqueueDefaultMaxGasPrice,
+  enqueueDefaultMaxGasForContracts,
+  enqueueDefaultMaxGasForFactory,
+  enqueueDefaultGasLimitForWethGateway,
   enqueueTokenBridgePrepareTransactionRequest,
   EnqueueTokenBridgePrepareTransactionRequestParams,
   enqueueTokenBridgePrepareSetWethGatewayTransactionRequest,

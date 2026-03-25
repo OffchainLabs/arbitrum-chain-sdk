@@ -8,7 +8,11 @@ import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/ga
 import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { getTokenBridgeCreatorAddress } from './utils/getTokenBridgeCreatorAddress';
-import { enqueueDefaultMaxGasPrice } from './constants';
+import {
+  enqueueDefaultMaxGasPrice,
+  enqueueDefaultMaxGasForContracts,
+  enqueueDefaultMaxGasForFactory,
+} from './constants';
 
 export type EnqueueTokenBridgePrepareTransactionRequestParams<
   TParentChain extends Chain | undefined,
@@ -17,8 +21,8 @@ export type EnqueueTokenBridgePrepareTransactionRequestParams<
     params: { rollup: Address; rollupOwner: Address };
     account: Address;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
-    maxGasForContracts: bigint;
-    maxGasForFactory: bigint;
+    maxGasForContracts?: bigint;
+    maxGasForFactory?: bigint;
     maxGasPrice?: bigint;
     maxSubmissionCostForFactory: bigint;
     maxSubmissionCostForContracts: bigint;
@@ -38,8 +42,8 @@ export async function enqueueTokenBridgePrepareTransactionRequest<
   params,
   account,
   parentChainPublicClient,
-  maxGasForContracts,
-  maxGasForFactory,
+  maxGasForContracts = enqueueDefaultMaxGasForContracts,
+  maxGasForFactory = enqueueDefaultMaxGasForFactory,
   maxGasPrice = enqueueDefaultMaxGasPrice,
   maxSubmissionCostForFactory,
   maxSubmissionCostForContracts,
