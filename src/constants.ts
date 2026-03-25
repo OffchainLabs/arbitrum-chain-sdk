@@ -17,5 +17,4 @@ export const enqueueDefaultMaxGasPrice = parseGwei('0.2');
 
 // ~30% headroom over observed gas usage for token bridge retryables
 export const enqueueDefaultMaxGasForContracts = 20_000_000n;
-export const enqueueDefaultMaxGasForFactory = 7_000_000n;
 export const enqueueDefaultGasLimitForWethGateway = 100_000n;

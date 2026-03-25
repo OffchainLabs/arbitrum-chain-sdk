@@ -11,7 +11,6 @@ import { getTokenBridgeCreatorAddress } from './utils/getTokenBridgeCreatorAddre
 import {
   enqueueDefaultMaxGasPrice,
   enqueueDefaultMaxGasForContracts,
-  enqueueDefaultMaxGasForFactory,
 } from './constants';
 import {
   getFactoryDeploymentDataSize,
@@ -48,7 +47,7 @@ export async function enqueueTokenBridgePrepareTransactionRequest<
   account,
   parentChainPublicClient,
   maxGasForContracts = enqueueDefaultMaxGasForContracts,
-  maxGasForFactory = enqueueDefaultMaxGasForFactory,
+  maxGasForFactory: maxGasForFactoryOverride,
   maxGasPrice = enqueueDefaultMaxGasPrice,
   gasOverrides,
   tokenBridgeCreatorAddressOverride,
@@ -76,6 +75,14 @@ export async function enqueueTokenBridgePrepareTransactionRequest<
   if (router !== zeroAddress) {
     throw new Error(`Token bridge contracts for Rollup ${params.rollup} are already deployed`);
   }
+
+  const maxGasForFactory =
+    maxGasForFactoryOverride ??
+    (await parentChainPublicClient.readContract({
+      address: tokenBridgeCreatorAddress,
+      abi: tokenBridgeCreatorABI,
+      functionName: 'gasLimitForL2FactoryDeployment',
+    }));
 
   const l1Provider = publicClientToProvider(parentChainPublicClient);
   const { dataSize: contractsDataSize } = await getContractsDeploymentData(

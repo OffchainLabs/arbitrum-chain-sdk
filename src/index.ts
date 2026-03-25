@@ -180,7 +180,7 @@ import {
   createTokenBridgeDefaultRetryablesFees,
   enqueueDefaultMaxGasPrice,
   enqueueDefaultMaxGasForContracts,
-  enqueueDefaultMaxGasForFactory,
+
   enqueueDefaultGasLimitForWethGateway,
 } from './constants';
 import {
@@ -362,7 +362,7 @@ export {
   //
   enqueueDefaultMaxGasPrice,
   enqueueDefaultMaxGasForContracts,
-  enqueueDefaultMaxGasForFactory,
+
   enqueueDefaultGasLimitForWethGateway,
   enqueueTokenBridgePrepareTransactionRequest,
   EnqueueTokenBridgePrepareTransactionRequestParams,
