@@ -1,6 +1,6 @@
-import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import {
   Address,
@@ -135,6 +135,20 @@ function prepareNitroRuntimeDir(runtimeDir: string) {
   }
 }
 
+function seedAnvilRpcCacheFromRepo(params: {
+  cacheFilePath: string;
+  repoCacheFilePath: string;
+}) {
+  const { cacheFilePath, repoCacheFilePath } = params;
+
+  if (existsSync(cacheFilePath) || !existsSync(repoCacheFilePath)) {
+    return;
+  }
+
+  mkdirSync(dirname(cacheFilePath), { recursive: true });
+  copyFileSync(repoCacheFilePath, cacheFilePath);
+}
+
 async function getNitroTestnodeStyleValidators(
   publicClient: PublicClient<Transport, Chain>,
   rollupCreator: Address,
@@ -255,6 +269,17 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     };
 
     const cacheFilePath = join(process.cwd(), '.cache', 'anvil-rpc-cache.json');
+    const repoCacheFilePath = join(
+      process.cwd(),
+      'src',
+      'integrationTestHelpers',
+      'anvil-rpc-cache.json',
+    );
+
+    seedAnvilRpcCacheFromRepo({
+      cacheFilePath,
+      repoCacheFilePath,
+    });
 
     l1RpcCachingProxy = await startRpcCachingProxy(anvilForkUrl, cacheFilePath, {
       forkBlockNumber: testConstants.DEFAULT_SEPOLIA_FORK_BLOCK_NUMBER,

@@ -75,6 +75,14 @@ function getCacheKey(request: RpcRequest): string | undefined {
   return JSON.stringify([request.method, request.params ?? []]);
 }
 
+function shouldPersistCacheEntry(request: RpcRequest, response: RpcResponse): boolean {
+  if (request.method === 'eth_getTransactionReceipt' && response.result === null) {
+    return false;
+  }
+
+  return true;
+}
+
 function getIdKey(id: unknown): string {
   return JSON.stringify(id ?? null);
 }
@@ -189,7 +197,7 @@ export async function startRpcCachingProxy(
       for (const [index, item] of requests.entries()) {
         const cacheKey = cacheKeys[index];
         const upstreamItem = upstreamById.get(getIdKey(item.id));
-        if (!cacheKey || !upstreamItem) {
+        if (!cacheKey || !upstreamItem || !shouldPersistCacheEntry(item, upstreamItem)) {
           continue;
         }
 
