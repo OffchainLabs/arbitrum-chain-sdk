@@ -1,23 +1,34 @@
-import { it, expect } from 'vitest';
-import { Address, createPublicClient, http } from 'viem';
+import { afterAll, beforeAll, it, expect } from 'vitest';
+import { Address, Hex, createPublicClient, encodeAbiParameters, http } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { nitroTestnodeL3 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
 import { arbGasInfoPublicActions } from './arbGasInfoPublicActions';
-import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  PrivateKeyAccountWithPrivateKey,
+} from '../testHelpers';
+import { getAnvilTestStack, isAnvilTestMode } from '../integrationTestHelpers/injectedMode';
 
-// L3 Owner Private Key
-const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l3RollupOwner.privateKey;
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 
-// L3 Upgrade Executor Address
-const upgradeExecutorAddress: Address = '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
-
-const owner = privateKeyToAccount(devPrivateKey);
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 
-// Client for arb owner public actions
+let l3RollupOwner: PrivateKeyAccountWithPrivateKey;
+let l3UpgradeExecutor: Address;
+
+if (env) {
+  l3RollupOwner = env.l3.accounts.rollupOwner;
+  l3UpgradeExecutor = env.l3.childChainUpgradeExecutor;
+} else {
+  const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
+  l3RollupOwner = testnodeAccounts.l3RollupOwner;
+  l3UpgradeExecutor = getInformationFromTestnode().l3UpgradeExecutor;
+}
+
 const client = createPublicClient({
-  chain: nitroTestnodeL3,
+  chain: env ? env.l3.chain : nitroTestnodeL3,
   transport: http(),
 })
   .extend(arbOwnerPublicActions)
@@ -36,13 +47,13 @@ it('succesfully adds chain owner using upgrade executor', async () => {
   const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
     functionName: 'addChainOwner',
     args: [randomAccount.address],
-    upgradeExecutor: upgradeExecutorAddress,
-    account: owner.address,
+    upgradeExecutor: l3UpgradeExecutor,
+    account: l3RollupOwner.address,
   });
 
   // submit tx to add chain owner
   const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+    serializedTransaction: await l3RollupOwner.signTransaction(transactionRequest),
   });
   await client.waitForTransactionReceipt({ hash: txHash });
 
@@ -66,13 +77,13 @@ it('succesfully removes chain owner', async () => {
   const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
     functionName: 'removeChainOwner',
     args: [randomAccount.address],
-    upgradeExecutor: upgradeExecutorAddress,
-    account: owner.address,
+    upgradeExecutor: l3UpgradeExecutor,
+    account: l3RollupOwner.address,
   });
 
   // submit tx to remove chain owner
   const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+    serializedTransaction: await l3RollupOwner.signTransaction(transactionRequest),
   });
   await client.waitForTransactionReceipt({ hash: txHash });
 
@@ -96,13 +107,13 @@ it('successfully updates infra fee receiver', async () => {
   const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
     functionName: 'setInfraFeeAccount',
     args: [randomAccount.address],
-    upgradeExecutor: upgradeExecutorAddress,
-    account: owner.address,
+    upgradeExecutor: l3UpgradeExecutor,
+    account: l3RollupOwner.address,
   });
 
   // submit tx to update infra fee receiver
   const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+    serializedTransaction: await l3RollupOwner.signTransaction(transactionRequest),
   });
   await client.waitForTransactionReceipt({ hash: txHash });
 
@@ -119,13 +130,13 @@ it('successfully updates L2 Base Fee Estimate Inertia on Orbit chain', async () 
   const transactionRequest = await client.arbOwnerPrepareTransactionRequest({
     functionName: 'setL1BaseFeeEstimateInertia',
     args: [l2BaseFeeEstimateInertia],
-    upgradeExecutor: upgradeExecutorAddress,
-    account: owner.address,
+    upgradeExecutor: l3UpgradeExecutor,
+    account: l3RollupOwner.address,
   });
 
   // submit tx to update infra fee receiver
   const txHash = await client.sendRawTransaction({
-    serializedTransaction: await owner.signTransaction(transactionRequest),
+    serializedTransaction: await l3RollupOwner.signTransaction(transactionRequest),
   });
   await client.waitForTransactionReceipt({ hash: txHash });
 

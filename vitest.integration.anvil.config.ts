@@ -25,6 +25,7 @@ export default mergeConfig(
         './src/actions/sequencerInbox.integration.test.ts',
         './src/decorators/arbOwnerPublicActions.integration.test.ts',
         './src/upgradeExecutor.integration.test.ts',
+        './src/decorators/arbOwnerPublicActions.integration.test.ts',
       ],
       fileParallelism: false,
     },
