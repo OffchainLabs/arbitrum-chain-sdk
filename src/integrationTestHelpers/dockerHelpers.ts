@@ -2,7 +2,7 @@ import { execFile, execFileSync } from 'node:child_process';
 import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, http, Address } from 'viem';
 
 import { testConstants } from './constants';
 
@@ -49,6 +49,86 @@ export function getNitroContractsImage(): string {
 
     return image;
   }
+}
+
+export function getTokenBridgeContractsImage(): string {
+  const image =
+    process.env.TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE ??
+    testConstants.DEFAULT_TOKEN_BRIDGE_CONTRACTS_IMAGE;
+  try {
+    docker(['image', 'inspect', image]);
+    return image;
+  } catch {
+    const tokenBridgeContractsDir = join(process.cwd(), 'token-bridge-contracts');
+    const dockerfilePath = join(tokenBridgeContractsDir, 'Dockerfile');
+    docker(['build', '-f', dockerfilePath, '-t', image, tokenBridgeContractsDir]);
+
+    return image;
+  }
+}
+
+export function getRollupCreatorDockerArgs(params: {
+  networkName: string;
+  rpcUrl: string;
+  deployerPrivateKey: `0x${string}`;
+  factoryOwner: Address;
+  maxDataSize: number;
+  chainId: number;
+}, nitroContractsImage: string) {
+  return [
+    'run',
+    '--rm',
+    '--network',
+    params.networkName,
+    '-e',
+    `CUSTOM_RPC_URL=${params.rpcUrl}`,
+    '-e',
+    `CUSTOM_PRIVKEY=${params.deployerPrivateKey}`,
+    '-e',
+    `CUSTOM_CHAINID=${params.chainId}`,
+    '-e',
+    `FACTORY_OWNER=${params.factoryOwner}`,
+    '-e',
+    `MAX_DATA_SIZE=${params.maxDataSize}`,
+    '-e',
+    `POLLING_INTERVAL=${testConstants.NITRO_DEPLOY_POLLING_INTERVAL_MS}`,
+    '-e',
+    'DISABLE_VERIFICATION=true',
+    '-e',
+    'IGNORE_MAX_DATA_SIZE_WARNING=true',
+    nitroContractsImage,
+    'hardhat',
+    'run',
+    '--no-compile',
+    'scripts/deployment.ts',
+    '--network',
+    'custom',
+  ];
+}
+
+export function getTokenBridgeCreatorDockerArgs(params: {
+  networkName: string;
+  rpcUrl: string;
+  deployerPrivateKey: `0x${string}`;
+  wethAddress: Address;
+  gasLimitForL2FactoryDeployment?: bigint;
+}, tokenBridgeContractsImage: string) {
+  return [
+    'run',
+    '--rm',
+    '--network',
+    params.networkName,
+    '-e',
+    `BASECHAIN_RPC=${params.rpcUrl}`,
+    '-e',
+    `BASECHAIN_DEPLOYER_KEY=${params.deployerPrivateKey}`,
+    '-e',
+    `BASECHAIN_WETH=${params.wethAddress}`,
+    '-e',
+    `GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=${params.gasLimitForL2FactoryDeployment ?? 10_000_000n}`,
+    tokenBridgeContractsImage,
+    'deploy:token-bridge-creator',
+  ];
 }
 
 export function createDockerNetwork(networkName: string) {

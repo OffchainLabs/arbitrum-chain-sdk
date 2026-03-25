@@ -14,7 +14,13 @@ import { ethers } from 'ethers';
 
 import { arbOwnerABI, arbOwnerAddress } from '../contracts/ArbOwner';
 import { testConstants } from './constants';
-import { dockerAsync, getNitroContractsImage } from './dockerHelpers';
+import {
+  dockerAsync,
+  getNitroContractsImage,
+  getRollupCreatorDockerArgs,
+  getTokenBridgeContractsImage,
+  getTokenBridgeCreatorDockerArgs,
+} from './dockerHelpers';
 import type { PrivateKeyAccountWithPrivateKey } from '../testHelpers';
 
 export type ContractArtifact = {
@@ -39,6 +45,14 @@ type DeployRollupCreatorParams = {
   factoryOwner: Address;
   maxDataSize: number;
   chainId: number;
+};
+
+type DeployTokenBridgeCreatorParams = {
+  networkName: string;
+  rpcUrl: string;
+  deployerPrivateKey: `0x${string}`;
+  wethAddress: Address;
+  gasLimitForL2FactoryDeployment?: bigint;
 };
 
 function sleep(ms: number) {
@@ -68,45 +82,21 @@ async function getRequiredRetryableFunding(
   };
 }
 
-function getRollupCreatorDockerArgs(
-  params: Omit<DeployRollupCreatorParams, 'blockAdvancer'>,
-  nitroContractsImage: string,
-) {
-  return [
-    'run',
-    '--rm',
-    '--network',
-    params.networkName,
-    '-e',
-    `CUSTOM_RPC_URL=${params.rpcUrl}`,
-    '-e',
-    `CUSTOM_PRIVKEY=${params.deployerPrivateKey}`,
-    '-e',
-    `CUSTOM_CHAINID=${params.chainId}`,
-    '-e',
-    `FACTORY_OWNER=${params.factoryOwner}`,
-    '-e',
-    `MAX_DATA_SIZE=${params.maxDataSize}`,
-    '-e',
-    `POLLING_INTERVAL=${testConstants.NITRO_DEPLOY_POLLING_INTERVAL_MS}`,
-    '-e',
-    'DISABLE_VERIFICATION=true',
-    '-e',
-    'IGNORE_MAX_DATA_SIZE_WARNING=true',
-    nitroContractsImage,
-    'hardhat',
-    'run',
-    '--no-compile',
-    'scripts/deployment.ts',
-    '--network',
-    'custom',
-  ];
-}
-
 function parseRollupCreatorAddress(stdout: string): Address {
   const match = stdout.match(/\* RollupCreator created at address: (0x[0-9a-fA-F]{40})/);
   if (!match) {
     throw new Error(`Failed to parse RollupCreator address from Nitro deploy output:\n${stdout}`);
+  }
+
+  return match[1] as Address;
+}
+
+function parseTokenBridgeCreatorAddress(stdout: string): Address {
+  const match = stdout.match(/L1TokenBridgeCreator:\s*(0x[0-9a-fA-F]{40})/);
+  if (!match) {
+    throw new Error(
+      `Failed to parse TokenBridgeCreator address from token bridge deploy output:\n${stdout}`,
+    );
   }
 
   return match[1] as Address;
@@ -345,7 +335,6 @@ export async function deployRollupCreator(
   blockAdvancer: BlockAdvancer,
 ): Promise<Address> {
   const nitroContractsImage = getNitroContractsImage();
-  const dockerRunStartedAt = Date.now();
   const stdout = await withBackgroundBlockAdvancing(blockAdvancer, () =>
     dockerAsync(
       getRollupCreatorDockerArgs(
@@ -361,11 +350,17 @@ export async function deployRollupCreator(
       ),
     ),
   );
-  console.log(
-    `[${new Date().toISOString()}] rollup creator docker run finished after ${
-      Date.now() - dockerRunStartedAt
-    }ms`,
-  );
 
   return parseRollupCreatorAddress(stdout);
+}
+
+export async function deployTokenBridgeCreator(
+  params: DeployTokenBridgeCreatorParams,
+  blockAdvancer: BlockAdvancer,
+): Promise<Address> {
+  const tokenBridgeContractsImage = getTokenBridgeContractsImage();
+  const stdout = await withBackgroundBlockAdvancing(blockAdvancer, () =>
+    dockerAsync(getTokenBridgeCreatorDockerArgs(params, tokenBridgeContractsImage)),
+  );
+  return parseTokenBridgeCreatorAddress(stdout);
 }

@@ -48,6 +48,7 @@ import {
   createAccount,
   deployContract,
   deployRollupCreator,
+  deployTokenBridgeCreator,
   ensureCreate2Factory,
   fundL2Deployer,
   refreshForkTime,
@@ -455,6 +456,22 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
 
     console.log('L2 rollup creator deployed\n');
 
+    console.log('Deploying L2 token bridge creator...');
+    const l2TokenBridgeCreator = await deployTokenBridgeCreator(
+      {
+        networkName: dockerNetworkName,
+        rpcUrl: `http://${l2ContainerName}:8449`,
+        deployerPrivateKey: harnessDeployer.privateKey,
+        wethAddress: customGasToken.address as Address,
+      },
+      {
+        publicClient: l2Client,
+        walletClient: blockAdvancerWalletClient,
+        account: blockAdvancerAccount,
+      },
+    );
+    console.log('L2 token bridge creator deployed\n');
+
     await (
       await customGasToken.deposit({
         value: parseEther('10'),
@@ -475,7 +492,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       testnet: true,
       contracts: {
         rollupCreator: { address: l2RollupCreator },
-        tokenBridgeCreator: { address: harnessDeployer.address },
+        tokenBridgeCreator: { address: l2TokenBridgeCreator },
         weth: { address: customGasToken.address as Address },
       },
     });

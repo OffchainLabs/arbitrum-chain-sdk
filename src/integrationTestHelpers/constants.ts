@@ -5,6 +5,8 @@ export const testConstants = {
   DEFAULT_ANVIL_IMAGE: 'ghcr.io/foundry-rs/foundry:v1.3.1',
   DEFAULT_NITRO_IMAGE: 'offchainlabs/nitro-node:v3.9.5-66e42c4',
   DEFAULT_NITRO_CONTRACTS_IMAGE: 'ghcr.io/offchainlabs/chain-sdk-nitro-contracts:v3.2.0-2f747c7',
+  DEFAULT_TOKEN_BRIDGE_CONTRACTS_IMAGE:
+    'ghcr.io/offchainlabs/chain-sdk-token-bridge-contracts:v1.2.5',
   DEPLOYER_PRIVATE_KEY:
     '0x490d84b7602e4b470af4f86a3ad095607a8bb5a4fa8ba148f41fcfd236b4fdf5' as Address,
   DEFAULT_L2_CHAIN_ID: 421_337,
