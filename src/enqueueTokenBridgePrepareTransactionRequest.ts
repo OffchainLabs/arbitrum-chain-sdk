@@ -8,10 +8,7 @@ import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/ga
 import { Prettify } from './types/utils';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { getTokenBridgeCreatorAddress } from './utils/getTokenBridgeCreatorAddress';
-import {
-  enqueueDefaultMaxGasPrice,
-  enqueueDefaultMaxGasForContracts,
-} from './constants';
+import { enqueueDefaultMaxGasPrice, enqueueDefaultMaxGasForContracts } from './constants';
 import {
   getFactoryDeploymentDataSize,
   getContractsDeploymentData,
@@ -91,7 +88,11 @@ export async function enqueueTokenBridgePrepareTransactionRequest<
   );
 
   const [maxSubmissionCostForFactory, maxSubmissionCostForContracts] = await Promise.all([
-    calculateRetryableSubmissionFee(parentChainPublicClient, inbox, BigInt(getFactoryDeploymentDataSize())),
+    calculateRetryableSubmissionFee(
+      parentChainPublicClient,
+      inbox,
+      BigInt(getFactoryDeploymentDataSize()),
+    ),
     calculateRetryableSubmissionFee(parentChainPublicClient, inbox, BigInt(contractsDataSize)),
   ]);
 
