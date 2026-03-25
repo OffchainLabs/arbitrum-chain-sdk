@@ -27,6 +27,7 @@ import {
   rollupCreatorAddress as rollupCreatorV3Dot2Address,
 } from '../contracts/RollupCreator/v3.2';
 import { createRollup } from '../createRollup';
+import { createTokenBridge } from '../createTokenBridge';
 import { createRollupPrepareDeploymentParamsConfig } from '../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../prepareChainConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
@@ -660,7 +661,35 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
     console.log('Deployer funded on L3\n');
 
-    const l3ChildChainUpgradeExecutor = l3Rollup.coreContracts.upgradeExecutor;
+    console.log('Deploying L3 token bridge contracts on L2...');
+    const { tokenBridgeContracts } = await createTokenBridge({
+      rollupOwner: harnessDeployer.address,
+      rollupAddress: l3Rollup.coreContracts.rollup,
+      account: harnessDeployer,
+      parentChainPublicClient: l2Client,
+      orbitChainPublicClient: l3Client,
+      nativeTokenAddress: customGasToken.address as Address,
+      gasOverrides: {
+        gasLimit: {
+          base: 6_000_000n,
+        },
+      },
+      retryableGasOverrides: {
+        maxGasForFactory: {
+          base: 20_000_000n,
+        },
+        maxGasForContracts: {
+          base: 20_000_000n,
+        },
+        maxSubmissionCostForFactory: {
+          base: 4_000_000_000_000n,
+        },
+        maxSubmissionCostForContracts: {
+          base: 4_000_000_000_000n,
+        },
+      },
+    });
+    console.log('L3 token bridge contracts deployed on L2\n');
 
     initializedEnv = {
       l1: {
@@ -691,7 +720,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         bridge: l3Rollup.coreContracts.bridge,
         sequencerInbox: l3Rollup.coreContracts.sequencerInbox,
         parentChainUpgradeExecutor: l3Rollup.coreContracts.upgradeExecutor,
-        childChainUpgradeExecutor: l3ChildChainUpgradeExecutor,
+        childChainUpgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
         batchPoster: harnessDeployer.address,
       },
     };
