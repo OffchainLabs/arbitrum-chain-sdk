@@ -133,7 +133,9 @@ export async function waitForRpc(params: {
       if (Date.now() >= deadline) {
         const containerContext =
           failIfContainerExited && getContainerStatus(failIfContainerExited)
-            ? ` (container ${failIfContainerExited} status: ${getContainerStatus(failIfContainerExited)})`
+            ? ` (container ${failIfContainerExited} status: ${getContainerStatus(
+                failIfContainerExited,
+              )})`
             : '';
         const logs =
           failIfContainerExited && getContainerStatus(failIfContainerExited) !== 'running'
