@@ -27,6 +27,7 @@ export default mergeConfig(
         './src/upgradeExecutor.integration.test.ts',
         './src/decorators/arbOwnerPublicActionsUpgradeExecutor.integration.test.ts',
         './src/createTokenBridge.integration.test.ts',
+        './src/feeRouter.integration.test.ts',
       ],
       fileParallelism: false,
     },

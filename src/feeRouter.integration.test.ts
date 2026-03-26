@@ -12,27 +12,35 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL1, nitroTestnodeL2 } from './chains';
-import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import { getNitroTestnodePrivateKeyAccounts, PrivateKeyAccountWithPrivateKey } from './testHelpers';
 import { feeRouterDeployChildToParentRewardRouter } from './feeRouterDeployChildToParentRewardRouter';
 import { feeRouterDeployRewardDistributor } from './feeRouterDeployRewardDistributor';
+import { getAnvilTestStack, isAnvilTestMode } from './integrationTestHelpers/injectedMode';
 
-const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const deployer = testnodeAccounts.deployer;
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 const randomAccount2 = privateKeyToAccount(generatePrivateKey());
 
-const nitroTestnodeL1Client = createPublicClient({
-  chain: nitroTestnodeL1,
-  transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+let deployer: PrivateKeyAccountWithPrivateKey;
+if (env) {
+  deployer = env.l2.accounts.deployer;
+} else {
+  deployer = getNitroTestnodePrivateKeyAccounts().deployer;
+}
+
+const l1Client = createPublicClient({
+  chain: env ? env.l1.chain : nitroTestnodeL1,
+  transport: http(),
 });
 
-const nitroTestnodeL2Client = createPublicClient({
-  chain: nitroTestnodeL2,
-  transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+const l2Client = createPublicClient({
+  chain: env ? env.l2.chain : nitroTestnodeL2,
+  transport: http(),
 });
-const nitroTestnodeL2WalletClient = createWalletClient({
-  chain: nitroTestnodeL2,
-  transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+
+const l2WalletClient = createWalletClient({
+  chain: env ? env.l2.chain : nitroTestnodeL2,
+  transport: http(),
   account: deployer,
 });
 
@@ -40,13 +48,13 @@ describe('Fee routing tests', () => {
   it(`successfully deploys and configures an ArbChildToParentRewardRouter`, async () => {
     const childToParentRewardRouterDeploymentTransactionHash =
       await feeRouterDeployChildToParentRewardRouter({
-        parentChainPublicClient: nitroTestnodeL1Client,
-        orbitChainWalletClient: nitroTestnodeL2WalletClient,
+        parentChainPublicClient: l1Client,
+        orbitChainWalletClient: l2WalletClient,
         parentChainTargetAddress: randomAccount.address,
       });
 
     const childToParentRewardRouterDeploymentTransactionReceipt =
-      await nitroTestnodeL2Client.waitForTransactionReceipt({
+      await l2Client.waitForTransactionReceipt({
         hash: childToParentRewardRouterDeploymentTransactionHash,
       });
 
@@ -59,7 +67,7 @@ describe('Fee routing tests', () => {
     );
 
     // reading the parentChainTarget
-    const parentChainTarget = await nitroTestnodeL2Client.readContract({
+    const parentChainTarget = await l2Client.readContract({
       address: childToParentRewardRouterAddress,
       abi: parseAbi(['function parentChainTarget() view returns (address)']),
       functionName: 'parentChainTarget',
@@ -80,14 +88,13 @@ describe('Fee routing tests', () => {
       },
     ];
     const rewardDistributorDeploymentTransactionHash = await feeRouterDeployRewardDistributor({
-      orbitChainWalletClient: nitroTestnodeL2WalletClient,
+      orbitChainWalletClient: l2WalletClient,
       recipients,
     });
 
-    const rewardDistributorDeploymentTransactionReceipt =
-      await nitroTestnodeL2Client.waitForTransactionReceipt({
-        hash: rewardDistributorDeploymentTransactionHash,
-      });
+    const rewardDistributorDeploymentTransactionReceipt = await l2Client.waitForTransactionReceipt({
+      hash: rewardDistributorDeploymentTransactionHash,
+    });
 
     expect(rewardDistributorDeploymentTransactionReceipt).to.have.property('contractAddress');
 
@@ -117,13 +124,13 @@ describe('Fee routing tests', () => {
     const recipientWeights = keccak256(encodePacked(['uint256', 'uint256'], [9000n, 1000n]));
 
     // reading the currentRecipientGroup and currentRecipientWeights
-    const currentRecipientGroup = await nitroTestnodeL2Client.readContract({
+    const currentRecipientGroup = await l2Client.readContract({
       address: rewardDistributorAddress,
       abi: parseAbi(['function currentRecipientGroup() view returns (bytes32)']),
       functionName: 'currentRecipientGroup',
     });
 
-    const currentRecipientWeights = await nitroTestnodeL2Client.readContract({
+    const currentRecipientWeights = await l2Client.readContract({
       address: rewardDistributorAddress,
       abi: parseAbi(['function currentRecipientWeights() view returns (bytes32)']),
       functionName: 'currentRecipientWeights',
