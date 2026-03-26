@@ -54,7 +54,9 @@ import {
   waitForRpc,
 } from './dockerHelpers';
 import {
+  type BlockAdvancer,
   bridgeNativeTokenToOrbitChain,
+  createBlockAdvancer,
   ContractArtifact,
   configureL2Fees,
   createAccount,
@@ -64,7 +66,9 @@ import {
   ensureCreate2Factory,
   fundL2Deployer,
   refreshForkTime,
+  registerChainForRpcUrl,
   setBalanceOnL1,
+  startBlockAdvancing,
 } from './anvilHarnessHelpers';
 import { type RpcCachingProxy, startRpcCachingProxy } from './rpcCachingProxy';
 import type { CustomTimingParams, PrivateKeyAccountWithPrivateKey } from '../testHelpers';
@@ -79,6 +83,7 @@ type BaseStack<L2Accounts, L3Accounts> = {
   l2: {
     rpcUrl: string;
     chain: Chain;
+    rollup: Address;
     accounts: L2Accounts;
     timingParams: CustomTimingParams;
     rollupCreatorVersion: RollupCreatorSupportedVersion;
@@ -108,7 +113,9 @@ export type AnvilTestStack = BaseStack<
     rollupOwner: PrivateKeyAccountWithPrivateKey;
     tokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
   }
->;
+> & {
+  l2: { blockAdvancer: BlockAdvancer };
+};
 
 export type InjectedAnvilTestStack = BaseStack<
   {
@@ -119,7 +126,9 @@ export type InjectedAnvilTestStack = BaseStack<
     rollupOwnerPrivateKey: Hex;
     tokenBridgeDeployerPrivateKey: Hex;
   }
->;
+> & {
+  l2: { blockAdvancerPrivateKey: Hex };
+};
 
 let envPromise: Promise<AnvilTestStack> | undefined;
 let initializedEnv: AnvilTestStack | undefined;
@@ -131,6 +140,7 @@ let l3ContainerName: string | undefined;
 let cleanupHookRegistered = false;
 let teardownStarted = false;
 let l1RpcCachingProxy: RpcCachingProxy | undefined;
+let persistentBlockAdvancers: BlockAdvancer[] = [];
 
 const NITRO_TESTNODE_AUTHORIZED_VALIDATORS = 10;
 const NITRO_TESTNODE_VALIDATOR_SIGNER = '0x6A568afe0f82d34759347bb36F14A6bB171d2CBe' as Address;
@@ -218,14 +228,16 @@ async function ensureChainOwner(params: {
 }
 
 export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestStack {
+  const { blockAdvancer, ...l2Rest } = env.l2;
   return {
     ...env,
     l2: {
-      ...env.l2,
+      ...l2Rest,
       accounts: {
         rollupOwnerPrivateKey: env.l2.accounts.rollupOwner.privateKey,
         deployerPrivateKey: env.l2.accounts.deployer.privateKey,
       },
+      blockAdvancerPrivateKey: blockAdvancer.account.privateKey,
     },
     l3: {
       ...env.l3,
@@ -238,19 +250,36 @@ export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestS
 }
 
 export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestStack {
+  registerChainForRpcUrl({ rpcUrl: env.l1.rpcUrl, chain: env.l1.chain });
   const l2Chain = defineChain(env.l2.chain) as RegisteredParentChain;
   registerCustomParentChain(l2Chain);
+  registerChainForRpcUrl({ rpcUrl: env.l2.rpcUrl, chain: l2Chain });
   const l3Chain = defineChain(env.l3.chain);
+
+  const { blockAdvancerPrivateKey, ...l2Rest } = env.l2;
+  const blockAdvancerAccount = createAccount(blockAdvancerPrivateKey);
 
   return {
     ...env,
     l2: {
-      ...env.l2,
+      ...l2Rest,
       chain: l2Chain,
       accounts: {
         rollupOwner: createAccount(env.l2.accounts.rollupOwnerPrivateKey),
         deployer: createAccount(env.l2.accounts.deployerPrivateKey),
       },
+      blockAdvancer: createBlockAdvancer({
+        publicClient: createPublicClient({
+          chain: l2Chain,
+          transport: http(env.l2.rpcUrl),
+        }),
+        walletClient: createWalletClient({
+          chain: l2Chain,
+          transport: http(env.l2.rpcUrl),
+          account: blockAdvancerAccount,
+        }),
+        account: blockAdvancerAccount,
+      }),
     },
     l3: {
       ...env.l3,
@@ -330,7 +359,10 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l1RpcUrlWithCaching = l1RpcCachingProxy.proxyUrl;
 
     const harnessDeployer = createAccount(testConstants.DEPLOYER_PRIVATE_KEY);
-    const blockAdvancerAccount = createAccount();
+    const l2BlockAdvancerAccount = createAccount();
+    const l3BlockAdvancerAccount = createAccount();
+    const batchPosterAccount = createAccount();
+    const validatorAccount = createAccount();
 
     // Starting L1 node (Anvil)
     l1ContainerName = `chain-sdk-int-test-l1-${Date.now()}`;
@@ -358,6 +390,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       chain: l1Chain,
       transport: http(l1RpcUrl),
     });
+    registerChainForRpcUrl({ rpcUrl: l1RpcUrl, chain: l1Chain });
 
     await waitForRpc({
       rpcUrl: l1RpcUrl,
@@ -371,6 +404,12 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     await setBalanceOnL1({
       rpcUrl: l1RpcUrl,
       address: harnessDeployer.address,
+      balance: parseEther('10000000'),
+    });
+
+    await setBalanceOnL1({
+      rpcUrl: l1RpcUrl,
+      address: batchPosterAccount.address,
       balance: parseEther('10000000'),
     });
 
@@ -400,7 +439,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l2Rollup = await createRollup({
       params: {
         config: l2RollupConfig,
-        batchPosters: [harnessDeployer.address],
+        batchPosters: [batchPosterAccount.address],
         validators: await getNitroTestnodeStyleValidators(
           l1Client,
           rollupCreatorV3Dot2Address[sepolia.id],
@@ -419,8 +458,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       chainName: 'Chain SDK Int Test L2',
       chainConfig: l2ChainConfig,
       coreContracts: l2Rollup.coreContracts,
-      batchPosterPrivateKey: harnessDeployer.privateKey,
-      validatorPrivateKey: harnessDeployer.privateKey,
+      batchPosterPrivateKey: batchPosterAccount.privateKey,
+      validatorPrivateKey: validatorAccount.privateKey,
       stakeToken: l2RollupConfig.stakeToken,
       parentChainId: sepolia.id,
       parentChainRpcUrl: `http://${l1ContainerName}:8545`,
@@ -504,10 +543,14 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       account: harnessDeployer,
     });
 
-    const blockAdvancerWalletClient = createWalletClient({
-      chain: l2BootstrapChain,
-      transport: http(l2RpcUrl),
-      account: blockAdvancerAccount,
+    const l2BlockAdvancer = createBlockAdvancer({
+      publicClient: l2Client,
+      walletClient: createWalletClient({
+        chain: l2BootstrapChain,
+        transport: http(l2RpcUrl),
+        account: l2BlockAdvancerAccount,
+      }),
+      account: l2BlockAdvancerAccount,
     });
 
     console.log('Configuring L2 fee settings...');
@@ -534,45 +577,31 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     console.log('L2 custom gas token deployed\n');
 
     const tx = await l2Signer.sendTransaction({
-      to: blockAdvancerAccount.address,
+      to: l2BlockAdvancerAccount.address,
       value: parseEther('1'),
       ...testConstants.LOW_L2_FEE_OVERRIDES,
     });
     await tx.wait();
 
     console.log('Deploying L2 rollup creator...');
-    const l2RollupCreator = await deployRollupCreator(
-      {
-        networkName: dockerNetworkName,
-        rpcUrl: `http://${l2ContainerName}:8449`,
-        deployerPrivateKey: harnessDeployer.privateKey,
-        factoryOwner: harnessDeployer.address,
-        maxDataSize: 104_857,
-        chainId: l2ChainId,
-      },
-      {
-        publicClient: l2Client,
-        walletClient: blockAdvancerWalletClient,
-        account: blockAdvancerAccount,
-      },
-    );
+    const l2RollupCreator = await deployRollupCreator({
+      rpcUrl: l2RpcUrl,
+      deployerPrivateKey: harnessDeployer.privateKey,
+      factoryOwner: harnessDeployer.address,
+      maxDataSize: 104_857,
+      chainId: l2ChainId,
+      blockAdvancer: l2BlockAdvancer,
+    });
 
     console.log('L2 rollup creator deployed\n');
 
     console.log('Deploying L2 token bridge creator...');
-    const l2TokenBridgeCreator = await deployTokenBridgeCreator(
-      {
-        networkName: dockerNetworkName,
-        rpcUrl: `http://${l2ContainerName}:8449`,
-        deployerPrivateKey: harnessDeployer.privateKey,
-        wethAddress: customGasToken.address as Address,
-      },
-      {
-        publicClient: l2Client,
-        walletClient: blockAdvancerWalletClient,
-        account: blockAdvancerAccount,
-      },
-    );
+    const l2TokenBridgeCreator = await deployTokenBridgeCreator({
+      rpcUrl: l2RpcUrl,
+      deployerPrivateKey: harnessDeployer.privateKey,
+      wethAddress: customGasToken.address as Address,
+      blockAdvancer: l2BlockAdvancer,
+    });
     console.log('L2 token bridge creator deployed\n');
 
     await (
@@ -600,6 +629,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       },
     });
     registerCustomParentChain(l2Chain);
+    registerChainForRpcUrl({ rpcUrl: l2RpcUrl, chain: l2Chain });
     console.log('L1 & L2 chains ready\n');
 
     l2Client = createPublicClient({
@@ -628,7 +658,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l3Rollup = await createRollup({
       params: {
         config: l3RollupConfig,
-        batchPosters: [harnessDeployer.address],
+        batchPosters: [batchPosterAccount.address],
         validators: await getNitroTestnodeStyleValidators(l2Client, l2RollupCreator),
         nativeToken: customGasToken.address as Address,
         maxDataSize: 104_857n,
@@ -644,8 +674,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       chainName: 'Chain SDK Int Test L3',
       chainConfig: l3ChainConfig,
       coreContracts: l3Rollup.coreContracts,
-      batchPosterPrivateKey: harnessDeployer.privateKey,
-      validatorPrivateKey: harnessDeployer.privateKey,
+      batchPosterPrivateKey: batchPosterAccount.privateKey,
+      validatorPrivateKey: validatorAccount.privateKey,
       stakeToken: l3RollupConfig.stakeToken,
       parentChainId: l2ChainId as ParentChainId,
       parentChainIsArbitrum: true,
@@ -708,6 +738,11 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       chain: l3Chain,
       transport: http(l3RpcUrl),
     });
+    const l3WalletClient = createWalletClient({
+      chain: l3Chain,
+      transport: http(l3RpcUrl),
+      account: harnessDeployer,
+    });
 
     await (
       await customGasToken.deposit({
@@ -727,6 +762,16 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       amount: parseEther('100'),
     });
     console.log('Deployer funded on L3\n');
+
+    console.log('Funding block advancer on L3...');
+    const fundL3BlockAdvancerTxHash = await l3WalletClient.sendTransaction({
+      account: harnessDeployer,
+      chain: l3Chain,
+      to: l3BlockAdvancerAccount.address,
+      value: parseEther('10'),
+    });
+    await l3Client.waitForTransactionReceipt({ hash: fundL3BlockAdvancerTxHash });
+    console.log('Block advancer funded on L3\n');
 
     console.log('Deploying L3 token bridge contracts on L2...');
     const { tokenBridgeContracts } = await createTokenBridge({
@@ -764,6 +809,27 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
     console.log('L3 token bridge contracts deployed on L2\n');
 
+    l2BlockAdvancer.publicClient = l2Client;
+    l2BlockAdvancer.walletClient = createWalletClient({
+      chain: l2Chain,
+      transport: http(l2RpcUrl),
+      account: l2BlockAdvancerAccount,
+    });
+
+    const l3BlockAdvancer = createBlockAdvancer({
+      publicClient: l3Client,
+      walletClient: createWalletClient({
+        chain: l3Chain,
+        transport: http(l3RpcUrl),
+        account: l3BlockAdvancerAccount,
+      }),
+      account: l3BlockAdvancerAccount,
+    });
+
+    startBlockAdvancing(l2BlockAdvancer);
+    startBlockAdvancing(l3BlockAdvancer);
+    persistentBlockAdvancers.push(l2BlockAdvancer, l3BlockAdvancer);
+
     initializedEnv = {
       l1: {
         rpcUrl: l1RpcUrl,
@@ -779,6 +845,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         timingParams: rollupTimingParams,
         rollupCreatorVersion,
         upgradeExecutor: l2Rollup.coreContracts.upgradeExecutor,
+        rollup: l2Rollup.coreContracts.rollup,
+        blockAdvancer: l2BlockAdvancer,
       },
       l3: {
         rpcUrl: l3RpcUrl,
@@ -794,7 +862,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         sequencerInbox: l3Rollup.coreContracts.sequencerInbox,
         parentChainUpgradeExecutor: l3Rollup.coreContracts.upgradeExecutor,
         childChainUpgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
-        batchPoster: harnessDeployer.address,
+        batchPoster: batchPosterAccount.address,
       },
     };
 
@@ -820,6 +888,11 @@ export function teardownAnvilTestStack() {
     return;
   }
   teardownStarted = true;
+
+  for (const blockAdvancer of persistentBlockAdvancers) {
+    void blockAdvancer.stop();
+  }
+  persistentBlockAdvancers = [];
 
   if (l1RpcCachingProxy) {
     for (const line of l1RpcCachingProxy.getSummaryLines()) {

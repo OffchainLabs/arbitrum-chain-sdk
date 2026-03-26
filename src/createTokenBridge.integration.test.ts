@@ -2,10 +2,15 @@ import { describe, it, expect } from 'vitest';
 import { createPublicClient, encodeFunctionData, http, zeroAddress, parseAbi } from 'viem';
 
 import { nitroTestnodeL1, nitroTestnodeL2, nitroTestnodeL3 } from './chains';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  PrivateKeyAccountWithPrivateKey,
+} from './testHelpers';
 import { createTokenBridgePrepareTransactionRequest } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from './createTokenBridgePrepareTransactionReceipt';
 import { deployTokenBridgeCreator } from './createTokenBridge-testHelpers';
+import { deployTokenBridgeCreator as deployAnvilTokenBridgeCreator } from './integrationTestHelpers/anvilHarnessHelpers';
 import { CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams } from './createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from './createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import { erc20ABI } from './contracts/ERC20';
@@ -14,25 +19,51 @@ import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from './crea
 import { createTokenBridge } from './createTokenBridge';
 import { TokenBridgeContracts } from './types/TokenBridgeContracts';
 import { scaleFrom18DecimalsToNativeTokenDecimals } from './utils/decimals';
+import { getWethAddress } from './utils/getWethAddress';
+import { isAnvilTestMode, getAnvilTestStack } from './integrationTestHelpers/injectedMode';
+import { Address } from 'viem';
 
-const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const l2RollupOwner = testnodeAccounts.l2RollupOwner;
-const l3RollupOwner = testnodeAccounts.l3RollupOwner;
-const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
+const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 
-const nitroTestnodeL1Client = createPublicClient({
-  chain: nitroTestnodeL1,
-  transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+let l2Rollup: Address;
+let l2RollupOwner: PrivateKeyAccountWithPrivateKey;
+let l3Rollup: Address;
+let l3RollupOwner: PrivateKeyAccountWithPrivateKey;
+let l3TokenBridgeDeployer: PrivateKeyAccountWithPrivateKey;
+let l3NativeToken: Address;
+
+if (env) {
+  l2Rollup = env.l2.rollup;
+  l2RollupOwner = env.l2.accounts.rollupOwner;
+  l3RollupOwner = env.l3.accounts.rollupOwner;
+  l3TokenBridgeDeployer = env.l3.accounts.tokenBridgeDeployer;
+  l3NativeToken = env.l3.nativeToken;
+  l3Rollup = env.l3.rollup;
+} else {
+  const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
+  l2RollupOwner = testnodeAccounts.l2RollupOwner;
+  l3RollupOwner = testnodeAccounts.l3RollupOwner;
+  l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
+
+  const testnodeInformation = getInformationFromTestnode();
+  l2Rollup = testnodeInformation.rollup;
+  l3Rollup = testnodeInformation.l3Rollup;
+  l3NativeToken = testnodeInformation.l3NativeToken;
+}
+
+const l1Client = createPublicClient({
+  chain: env ? env.l1.chain : nitroTestnodeL1,
+  transport: env ? http(env.l1.rpcUrl) : http(nitroTestnodeL1.rpcUrls.default.http[0]),
 });
 
-const nitroTestnodeL2Client = createPublicClient({
-  chain: nitroTestnodeL2,
-  transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+const l2Client = createPublicClient({
+  chain: env ? env.l2.chain : nitroTestnodeL2,
+  transport: env ? http(env.l2.rpcUrl) : http(nitroTestnodeL2.rpcUrls.default.http[0]),
 });
 
-const nitroTestnodeL3Client = createPublicClient({
-  chain: nitroTestnodeL3,
-  transport: http(nitroTestnodeL3.rpcUrls.default.http[0]),
+const l3Client = createPublicClient({
+  chain: env ? env.l3.chain : nitroTestnodeL3,
+  transport: env ? http(env.l3.rpcUrl) : http(nitroTestnodeL3.rpcUrls.default.http[0]),
 });
 
 function checkTokenBridgeContracts(tokenBridgeContracts: TokenBridgeContracts) {
@@ -70,7 +101,7 @@ async function checkWethGateways(
   }
 
   // verify weth gateway (parent chain)
-  const registeredWethGatewayOnParentChain = await nitroTestnodeL1Client.readContract({
+  const registeredWethGatewayOnParentChain = await l1Client.readContract({
     address: tokenBridgeContracts.parentChainContracts.router,
     abi: parseAbi(['function l1TokenToGateway(address) view returns (address)']),
     functionName: 'l1TokenToGateway',
@@ -82,7 +113,7 @@ async function checkWethGateways(
 
   // verify weth gateway (orbit chain)
   // Note: we pass the address of the token on the parent chain when asking for the registered gateway on the orbit chain
-  const registeredWethGatewayOnOrbitChain = await nitroTestnodeL2Client.readContract({
+  const registeredWethGatewayOnOrbitChain = await l2Client.readContract({
     address: tokenBridgeContracts.orbitChainContracts.router,
     abi: parseAbi(['function l1TokenToGateway(address) view returns (address)']),
     functionName: 'l1TokenToGateway',
@@ -104,20 +135,24 @@ const nativeTokenDecimals = process.env.INTEGRATION_TEST_DECIMALS
 
 describe('createTokenBridge utils function', () => {
   it(`successfully deploys token bridge contracts through token bridge creator`, async () => {
-    const testnodeInformation = getInformationFromTestnode();
-
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
-    });
+    const tokenBridgeCreator = env
+      ? await deployAnvilTokenBridgeCreator({
+          rpcUrl: env.l1.rpcUrl,
+          deployerPrivateKey: env.l2.accounts.deployer.privateKey,
+          wethAddress: getWethAddress(l1Client),
+        })
+      : await deployTokenBridgeCreator({
+          publicClient: l1Client,
+        });
 
     const txRequest = await createTokenBridgePrepareTransactionRequest({
       params: {
-        rollup: testnodeInformation.rollup,
+        rollup: l2Rollup,
         rollupOwner: l2RollupOwner.address,
       },
-      parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
+      parentChainPublicClient: l1Client,
+      orbitChainPublicClient: l2Client,
       account: l2RollupOwner.address,
       gasOverrides: {
         gasLimit: {
@@ -140,21 +175,20 @@ describe('createTokenBridge utils function', () => {
       },
       tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     });
-
     // sign and send the transaction
-    const txHash = await nitroTestnodeL1Client.sendRawTransaction({
+    const txHash = await l1Client.sendRawTransaction({
       serializedTransaction: await l2RollupOwner.signTransaction(txRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
     const txReceipt = createTokenBridgePrepareTransactionReceipt(
-      await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: txHash }),
+      await l1Client.waitForTransactionReceipt({ hash: txHash }),
     );
     expect(txReceipt.status).toEqual('success');
 
     // checking retryables execution
     const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
-      orbitPublicClient: nitroTestnodeL2Client,
+      orbitPublicClient: l2Client,
     });
     expect(orbitChainRetryableReceipts).toHaveLength(2);
     expect(orbitChainRetryableReceipts[0].status).toEqual('success');
@@ -162,15 +196,15 @@ describe('createTokenBridge utils function', () => {
 
     // get contracts
     const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
-      parentChainPublicClient: nitroTestnodeL1Client,
+      parentChainPublicClient: l1Client,
     });
     checkTokenBridgeContracts(tokenBridgeContracts);
 
     // set weth gateway
     const setWethGatewayTxRequest = await createTokenBridgePrepareSetWethGatewayTransactionRequest({
-      rollup: testnodeInformation.rollup,
-      parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
+      rollup: l2Rollup,
+      parentChainPublicClient: l1Client,
+      orbitChainPublicClient: l2Client,
       account: l2RollupOwner.address,
       retryableGasOverrides: {
         gasLimit: {
@@ -179,20 +213,19 @@ describe('createTokenBridge utils function', () => {
       },
       tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     });
-
     // sign and send the transaction
-    const setWethGatewayTxHash = await nitroTestnodeL1Client.sendRawTransaction({
+    const setWethGatewayTxHash = await l1Client.sendRawTransaction({
       serializedTransaction: await l2RollupOwner.signTransaction(setWethGatewayTxRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
     const setWethGatewayTxReceipt = createTokenBridgePrepareSetWethGatewayTransactionReceipt(
-      await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: setWethGatewayTxHash }),
+      await l1Client.waitForTransactionReceipt({ hash: setWethGatewayTxHash }),
     );
 
     // checking retryables execution
     const orbitChainSetGatewayRetryableReceipt = await setWethGatewayTxReceipt.waitForRetryables({
-      orbitPublicClient: nitroTestnodeL2Client,
+      orbitPublicClient: l2Client,
     });
     expect(orbitChainSetGatewayRetryableReceipt).toHaveLength(1);
     expect(orbitChainSetGatewayRetryableReceipt[0].status).toEqual('success');
@@ -201,18 +234,23 @@ describe('createTokenBridge utils function', () => {
   });
 
   it(`successfully deploys token bridge contracts with a custom fee token through token bridge creator`, async () => {
-    const testnodeInformation = getInformationFromTestnode();
-
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL2Client,
-    });
+    const tokenBridgeCreator = env
+      ? await deployAnvilTokenBridgeCreator({
+          rpcUrl: env.l2.rpcUrl,
+          deployerPrivateKey: env.l2.accounts.deployer.privateKey,
+          wethAddress: (env.l2.chain.contracts as { weth: { address: Address } }).weth.address,
+          blockAdvancer: env.l2.blockAdvancer,
+        })
+      : await deployTokenBridgeCreator({
+          publicClient: l2Client,
+        });
 
     // -----------------------------
     // 1. fund l3deployer account
-    const fundTxRequestRaw = await nitroTestnodeL2Client.prepareTransactionRequest({
-      chain: nitroTestnodeL2Client.chain,
-      to: testnodeInformation.l3NativeToken,
+    const fundTxRequestRaw = await l2Client.prepareTransactionRequest({
+      chain: l2Client.chain,
+      to: l3NativeToken,
       data: encodeFunctionData({
         abi: erc20ABI,
         functionName: 'transfer',
@@ -226,13 +264,13 @@ describe('createTokenBridge utils function', () => {
     });
 
     // sign and send the transaction
-    const fundTxRequest = { ...fundTxRequestRaw, chainId: nitroTestnodeL2Client.chain.id };
-    const fundTxHash = await nitroTestnodeL2Client.sendRawTransaction({
+    const fundTxRequest = { ...fundTxRequestRaw, chainId: l2Client.chain.id };
+    const fundTxHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3TokenBridgeDeployer.signTransaction(fundTxRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
-    const fundTxReceipt = await nitroTestnodeL2Client.waitForTransactionReceipt({
+    const fundTxReceipt = await l2Client.waitForTransactionReceipt({
       hash: fundTxHash,
     });
     expect(fundTxReceipt.status).toEqual('success');
@@ -242,35 +280,34 @@ describe('createTokenBridge utils function', () => {
     const allowanceParams: CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams<
       typeof nitroTestnodeL2
     > = {
-      nativeToken: testnodeInformation.l3NativeToken,
+      nativeToken: l3NativeToken,
       owner: l3RollupOwner.address,
-      publicClient: nitroTestnodeL2Client,
+      publicClient: l2Client,
       tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     };
 
     // sign and send the transaction
-    const approvalForTokenBridgeCreatorTxHash = await nitroTestnodeL2Client.sendRawTransaction({
+    const approvalForTokenBridgeCreatorTxHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3RollupOwner.signTransaction(
         await createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest(allowanceParams),
       ),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
-    const approvalForNewTokenBridgeCreatorTxReceipt =
-      await nitroTestnodeL2Client.waitForTransactionReceipt({
-        hash: approvalForTokenBridgeCreatorTxHash,
-      });
+    const approvalForNewTokenBridgeCreatorTxReceipt = await l2Client.waitForTransactionReceipt({
+      hash: approvalForTokenBridgeCreatorTxHash,
+    });
     expect(approvalForNewTokenBridgeCreatorTxReceipt.status).toEqual('success');
 
     // -----------------------------
     // 3. create the token bridge
     const txRequest = await createTokenBridgePrepareTransactionRequest({
       params: {
-        rollup: testnodeInformation.l3Rollup,
+        rollup: l3Rollup,
         rollupOwner: l3RollupOwner.address,
       },
-      parentChainPublicClient: nitroTestnodeL2Client,
-      orbitChainPublicClient: nitroTestnodeL3Client,
+      parentChainPublicClient: l2Client,
+      orbitChainPublicClient: l3Client,
       account: l3RollupOwner.address,
       gasOverrides: {
         gasLimit: {
@@ -295,19 +332,19 @@ describe('createTokenBridge utils function', () => {
     });
 
     // sign and send the transaction
-    const txHash = await nitroTestnodeL2Client.sendRawTransaction({
+    const txHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3RollupOwner.signTransaction(txRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
     const txReceipt = createTokenBridgePrepareTransactionReceipt(
-      await nitroTestnodeL2Client.waitForTransactionReceipt({ hash: txHash }),
+      await l2Client.waitForTransactionReceipt({ hash: txHash }),
     );
     expect(txReceipt.status).toEqual('success');
 
     // checking retryables execution
     const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
-      orbitPublicClient: nitroTestnodeL3Client,
+      orbitPublicClient: l3Client,
     });
     expect(orbitChainRetryableReceipts).toHaveLength(2);
     expect(orbitChainRetryableReceipts[0].status).toEqual('success');
@@ -315,7 +352,7 @@ describe('createTokenBridge utils function', () => {
 
     // get contracts
     const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
-      parentChainPublicClient: nitroTestnodeL2Client,
+      parentChainPublicClient: l2Client,
     });
 
     checkTokenBridgeContracts(tokenBridgeContracts);
@@ -325,19 +362,23 @@ describe('createTokenBridge utils function', () => {
 
 describe('createTokenBridge', () => {
   it('successfully deploys token bridge contracts', async () => {
-    const testnodeInformation = getInformationFromTestnode();
-
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
-    });
+    const tokenBridgeCreator = env
+      ? await deployAnvilTokenBridgeCreator({
+          rpcUrl: env.l1.rpcUrl,
+          deployerPrivateKey: env.l2.accounts.deployer.privateKey,
+          wethAddress: getWethAddress(l1Client),
+        })
+      : await deployTokenBridgeCreator({
+          publicClient: l1Client,
+        });
 
     const { tokenBridgeContracts } = await createTokenBridge({
       rollupOwner: l2RollupOwner.address,
-      rollupAddress: testnodeInformation.rollup,
+      rollupAddress: l2Rollup,
       account: l2RollupOwner,
-      parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
+      parentChainPublicClient: l1Client,
+      orbitChainPublicClient: l2Client,
       tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
       gasOverrides: {
         gasLimit: {
@@ -370,18 +411,23 @@ describe('createTokenBridge', () => {
   });
 
   it('successfully deploys token bridge contracts with a custom fee token', async () => {
-    const testnodeInformation = getInformationFromTestnode();
-
-    // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL2Client,
-    });
+    //   // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
+    const tokenBridgeCreator = env
+      ? await deployAnvilTokenBridgeCreator({
+          rpcUrl: env.l2.rpcUrl,
+          deployerPrivateKey: env.l2.accounts.deployer.privateKey,
+          wethAddress: (env.l2.chain.contracts as { weth: { address: Address } }).weth.address,
+          blockAdvancer: env.l2.blockAdvancer,
+        })
+      : await deployTokenBridgeCreator({
+          publicClient: l2Client,
+        });
 
     // -----------------------------
     // 1. fund l3deployer account
-    const fundTxRequestRaw = await nitroTestnodeL2Client.prepareTransactionRequest({
-      chain: nitroTestnodeL2Client.chain,
-      to: testnodeInformation.l3NativeToken,
+    const fundTxRequestRaw = await l2Client.prepareTransactionRequest({
+      chain: l2Client.chain,
+      to: l3NativeToken,
       data: encodeFunctionData({
         abi: erc20ABI,
         functionName: 'transfer',
@@ -395,13 +441,13 @@ describe('createTokenBridge', () => {
     });
 
     // sign and send the transaction
-    const fundTxRequest = { ...fundTxRequestRaw, chainId: nitroTestnodeL2Client.chain.id };
-    const fundTxHash = await nitroTestnodeL2Client.sendRawTransaction({
+    const fundTxRequest = { ...fundTxRequestRaw, chainId: l2Client.chain.id };
+    const fundTxHash = await l2Client.sendRawTransaction({
       serializedTransaction: await l3TokenBridgeDeployer.signTransaction(fundTxRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
-    const fundTxReceipt = await nitroTestnodeL2Client.waitForTransactionReceipt({
+    const fundTxReceipt = await l2Client.waitForTransactionReceipt({
       hash: fundTxHash,
     });
     expect(fundTxReceipt.status).toEqual('success');
@@ -410,11 +456,11 @@ describe('createTokenBridge', () => {
     // 2. Deploy token bridge contracts
     const { tokenBridgeContracts } = await createTokenBridge({
       rollupOwner: l3RollupOwner.address,
-      rollupAddress: testnodeInformation.l3Rollup,
+      rollupAddress: l3Rollup,
       account: l3RollupOwner,
-      parentChainPublicClient: nitroTestnodeL2Client,
-      orbitChainPublicClient: nitroTestnodeL3Client,
-      nativeTokenAddress: testnodeInformation.l3NativeToken,
+      parentChainPublicClient: l2Client,
+      orbitChainPublicClient: l3Client,
+      nativeTokenAddress: l3NativeToken,
       tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
       gasOverrides: {
         gasLimit: {
@@ -442,18 +488,22 @@ describe('createTokenBridge', () => {
   });
 
   it('should throw when createTokenBridge is called multiple times', async () => {
-    const testnodeInformation = getInformationFromTestnode();
-
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
-    });
+    const tokenBridgeCreator = env
+      ? await deployAnvilTokenBridgeCreator({
+          rpcUrl: env.l1.rpcUrl,
+          deployerPrivateKey: env.l2.accounts.deployer.privateKey,
+          wethAddress: getWethAddress(l1Client),
+        })
+      : await deployTokenBridgeCreator({
+          publicClient: l1Client,
+        });
 
     const cfg = {
       rollupOwner: l2RollupOwner.address,
-      rollupAddress: testnodeInformation.rollup,
+      rollupAddress: l2Rollup,
       account: l2RollupOwner,
-      parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
+      parentChainPublicClient: l1Client,
+      orbitChainPublicClient: l2Client,
       tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
       gasOverrides: {
         gasLimit: {
@@ -482,7 +532,7 @@ describe('createTokenBridge', () => {
     };
     const { tokenBridgeContracts } = await createTokenBridge(cfg);
     await expect(createTokenBridge(cfg)).rejects.toThrowError(
-      `Token bridge contracts for Rollup ${testnodeInformation.rollup} are already deployed`,
+      `Token bridge contracts for Rollup ${l2Rollup} are already deployed`,
     );
 
     checkTokenBridgeContracts(tokenBridgeContracts);

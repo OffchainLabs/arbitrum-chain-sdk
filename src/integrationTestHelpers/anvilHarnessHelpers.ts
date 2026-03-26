@@ -1,6 +1,7 @@
 import {
   Address,
   Chain,
+  ChainContract,
   createPublicClient,
   createWalletClient,
   encodeFunctionData,
@@ -15,6 +16,7 @@ import { ethers } from 'ethers';
 import { arbOwnerABI, arbOwnerAddress } from '../contracts/ArbOwner';
 import { erc20ABI } from '../contracts/ERC20';
 import { erc20InboxABI } from '../contracts/IERC20Inbox';
+import { tokenBridgeCreatorAddress } from '../contracts/TokenBridgeCreator';
 import { testConstants } from './constants';
 import {
   dockerAsync,
@@ -33,29 +35,47 @@ export type ContractArtifact = {
 type PublicClient = ReturnType<typeof createPublicClient>;
 type WalletClient = ReturnType<typeof createWalletClient>;
 
-type BlockAdvancer = {
+export type BlockAdvancer = {
   publicClient: PublicClient;
   walletClient: WalletClient;
   account: PrivateKeyAccountWithPrivateKey;
-  tickMs?: number;
+  stop(): Promise<void>;
 };
 
+type BlockAdvancingState = {
+  stopAdvancing(): void;
+  done: Promise<void>;
+};
+
+type CreateBlockAdvancerParams = {
+  publicClient: PublicClient;
+  walletClient: WalletClient;
+  account: PrivateKeyAccountWithPrivateKey;
+};
+
+const blockAdvancingStates = new WeakMap<BlockAdvancer, BlockAdvancingState>();
+
 type DeployRollupCreatorParams = {
-  networkName: string;
   rpcUrl: string;
   deployerPrivateKey: `0x${string}`;
   factoryOwner: Address;
   maxDataSize: number;
   chainId: number;
+  blockAdvancer: BlockAdvancer;
 };
 
 type DeployTokenBridgeCreatorParams = {
-  networkName: string;
   rpcUrl: string;
   deployerPrivateKey: `0x${string}`;
   wethAddress: Address;
-  gasLimitForL2FactoryDeployment?: bigint;
+  blockAdvancer?: BlockAdvancer;
 };
+
+const rpcUrlToChain = new Map<string, Chain>();
+
+export function registerChainForRpcUrl(params: { rpcUrl: string; chain: Chain }) {
+  rpcUrlToChain.set(params.rpcUrl, params.chain);
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -110,6 +130,25 @@ export function createAccount(privateKey?: Hex): PrivateKeyAccountWithPrivateKey
     ...privateKeyToAccount(normalizedPrivateKey),
     privateKey: normalizedPrivateKey,
   };
+}
+
+export function createBlockAdvancer(params: CreateBlockAdvancerParams): BlockAdvancer {
+  let blockAdvancer!: BlockAdvancer;
+
+  blockAdvancer = {
+    ...params,
+    async stop() {
+      const state = blockAdvancingStates.get(blockAdvancer);
+      if (!state) {
+        return;
+      }
+
+      state.stopAdvancing();
+      await state.done;
+    },
+  };
+
+  return blockAdvancer;
 }
 
 export async function ensureCreate2Factory(params: {
@@ -308,7 +347,7 @@ export async function configureL2Fees(
     await publicClient.waitForTransactionReceipt({ hash });
   };
 
-  await sendFeeUpdate('setMinimumL2BaseFee', 1n);
+  await sendFeeUpdate('setMinimumL2BaseFee', 2n);
   await sendFeeUpdate('setL2BaseFee', 1n);
   await sendFeeUpdate('setL1PricePerUnit', 0n);
   await sendFeeUpdate('setPerBatchGasCharge', 0n);
@@ -366,44 +405,62 @@ export async function advanceBlock(params: {
   await params.publicClient.waitForTransactionReceipt({ hash });
 }
 
-async function withBackgroundBlockAdvancing<T>(
+export function startBlockAdvancing(
+  blockAdvancer: BlockAdvancer,
+): void {
+  if (blockAdvancingStates.has(blockAdvancer)) {
+    return;
+  }
+
+  let keepAdvancingBlocks = true;
+  const state: BlockAdvancingState = {
+    stopAdvancing() {
+      keepAdvancingBlocks = false;
+    },
+    done: Promise.resolve(),
+  };
+
+  state.done = (async () => {
+    try {
+      while (keepAdvancingBlocks) {
+        try {
+          await advanceBlock(blockAdvancer);
+        } catch {
+          // ignore and keep advancing blocks
+        }
+
+        await sleep(1000);
+      }
+    } finally {
+      if (blockAdvancingStates.get(blockAdvancer) === state) {
+        blockAdvancingStates.delete(blockAdvancer);
+      }
+    }
+  })();
+
+  blockAdvancingStates.set(blockAdvancer, state);
+}
+
+async function withBlockAdvancing<T>(
   blockAdvancer: BlockAdvancer,
   fn: () => Promise<T>,
 ): Promise<T> {
-  const tickMs = blockAdvancer.tickMs ?? 1_000;
-  let keepAdvancingBlocks = true;
-
-  const backgroundWork = (async () => {
-    while (keepAdvancingBlocks) {
-      try {
-        await advanceBlock(blockAdvancer);
-      } catch {
-        // ignore and keep advancing blocks
-      }
-
-      await sleep(tickMs);
-    }
-  })();
+  startBlockAdvancing(blockAdvancer);
 
   try {
     return await fn();
   } finally {
-    keepAdvancingBlocks = false;
-    await backgroundWork;
+    await blockAdvancer.stop();
   }
 }
 
-export async function deployRollupCreator(
-  params: DeployRollupCreatorParams,
-  blockAdvancer: BlockAdvancer,
-): Promise<Address> {
+export async function deployRollupCreator(params: DeployRollupCreatorParams): Promise<Address> {
   const nitroContractsImage = getNitroContractsImage();
-  const stdout = await withBackgroundBlockAdvancing(blockAdvancer, () =>
+  const stdout = await withBlockAdvancing(params.blockAdvancer, () =>
     dockerAsync(
       getRollupCreatorDockerArgs(
         {
-          networkName: params.networkName,
-          rpcUrl: params.rpcUrl,
+          rpcUrl: params.rpcUrl.replace(new URL(params.rpcUrl).hostname, 'host.docker.internal'),
           deployerPrivateKey: params.deployerPrivateKey,
           factoryOwner: params.factoryOwner,
           maxDataSize: params.maxDataSize,
@@ -419,11 +476,32 @@ export async function deployRollupCreator(
 
 export async function deployTokenBridgeCreator(
   params: DeployTokenBridgeCreatorParams,
-  blockAdvancer: BlockAdvancer,
 ): Promise<Address> {
   const tokenBridgeContractsImage = getTokenBridgeContractsImage();
-  const stdout = await withBackgroundBlockAdvancing(blockAdvancer, () =>
-    dockerAsync(getTokenBridgeCreatorDockerArgs(params, tokenBridgeContractsImage)),
-  );
-  return parseTokenBridgeCreatorAddress(stdout);
+  const hostname = new URL(params.rpcUrl).hostname;
+  const rpcUrl = params.rpcUrl.replace(hostname, 'host.docker.internal');
+
+  const deploy = () =>
+    dockerAsync(
+      getTokenBridgeCreatorDockerArgs(
+        { ...params, rpcUrl, addHostDockerInternal: true },
+        tokenBridgeContractsImage,
+      ),
+    );
+
+  const stdout = params.blockAdvancer
+    ? await withBlockAdvancing(params.blockAdvancer, deploy)
+    : await deploy();
+  const address = parseTokenBridgeCreatorAddress(stdout);
+  const chain = rpcUrlToChain.get(params.rpcUrl);
+
+  if (chain?.contracts?.tokenBridgeCreator) {
+    (chain.contracts.tokenBridgeCreator as ChainContract).address = address;
+  } else {
+    const chainId =
+      chain?.id ?? (await createPublicClient({ transport: http(params.rpcUrl) }).getChainId());
+    (tokenBridgeCreatorAddress as Record<number, Address>)[chainId] = address;
+  }
+
+  return address;
 }

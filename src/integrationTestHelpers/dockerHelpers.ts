@@ -69,7 +69,6 @@ export function getTokenBridgeContractsImage(): string {
 
 export function getRollupCreatorDockerArgs(
   params: {
-    networkName: string;
     rpcUrl: string;
     deployerPrivateKey: `0x${string}`;
     factoryOwner: Address;
@@ -81,8 +80,8 @@ export function getRollupCreatorDockerArgs(
   return [
     'run',
     '--rm',
-    '--network',
-    params.networkName,
+    '--add-host',
+    'host.docker.internal:host-gateway',
     '-e',
     `CUSTOM_RPC_URL=${params.rpcUrl}`,
     '-e',
@@ -111,19 +110,19 @@ export function getRollupCreatorDockerArgs(
 
 export function getTokenBridgeCreatorDockerArgs(
   params: {
-    networkName: string;
+    networkName?: string;
     rpcUrl: string;
     deployerPrivateKey: `0x${string}`;
     wethAddress: Address;
-    gasLimitForL2FactoryDeployment?: bigint;
+    addHostDockerInternal?: boolean;
   },
   tokenBridgeContractsImage: string,
 ) {
   return [
     'run',
     '--rm',
-    '--network',
-    params.networkName,
+    ...(params.networkName ? ['--network', params.networkName] : []),
+    ...(params.addHostDockerInternal ? ['--add-host', 'host.docker.internal:host-gateway'] : []),
     '-e',
     `BASECHAIN_RPC=${params.rpcUrl}`,
     '-e',
@@ -131,7 +130,7 @@ export function getTokenBridgeCreatorDockerArgs(
     '-e',
     `BASECHAIN_WETH=${params.wethAddress}`,
     '-e',
-    `GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=${params.gasLimitForL2FactoryDeployment ?? 10_000_000n}`,
+    `GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000`,
     tokenBridgeContractsImage,
     'deploy:token-bridge-creator',
   ];
@@ -329,8 +328,8 @@ export function startL1AnvilContainer(params: {
     '8545',
     '--chain-id',
     String(params.chainId),
-    '--block-time',
-    '1',
+    '--block-base-fee-per-gas',
+    '0',
   ]);
 }
 

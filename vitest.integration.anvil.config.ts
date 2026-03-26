@@ -26,6 +26,7 @@ export default mergeConfig(
         './src/decorators/arbOwnerPublicActions.integration.test.ts',
         './src/upgradeExecutor.integration.test.ts',
         './src/decorators/arbOwnerPublicActionsUpgradeExecutor.integration.test.ts',
+        './src/createTokenBridge.integration.test.ts',
       ],
       fileParallelism: false,
     },
