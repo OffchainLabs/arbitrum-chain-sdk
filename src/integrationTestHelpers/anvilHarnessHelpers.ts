@@ -8,6 +8,7 @@ import {
   Hex,
   http,
   parseEther,
+  parseGwei,
 } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { sepolia } from 'viem/chains';
@@ -133,9 +134,7 @@ export function createAccount(privateKey?: Hex): PrivateKeyAccountWithPrivateKey
 }
 
 export function createBlockAdvancer(params: CreateBlockAdvancerParams): BlockAdvancer {
-  let blockAdvancer!: BlockAdvancer;
-
-  blockAdvancer = {
+  const blockAdvancer: BlockAdvancer = {
     ...params,
     async stop() {
       const state = blockAdvancingStates.get(blockAdvancer);
@@ -338,6 +337,8 @@ export async function configureL2Fees(
       chain: walletClient.chain,
       to: arbOwnerAddress,
       gas: 4_000_000n,
+      maxFeePerGas: parseGwei('0.1'),
+      maxPriorityFeePerGas: 0n,
       data: encodeFunctionData({
         abi: arbOwnerABI,
         functionName,
@@ -405,9 +406,7 @@ export async function advanceBlock(params: {
   await params.publicClient.waitForTransactionReceipt({ hash });
 }
 
-export function startBlockAdvancing(
-  blockAdvancer: BlockAdvancer,
-): void {
+export function startBlockAdvancing(blockAdvancer: BlockAdvancer): void {
   if (blockAdvancingStates.has(blockAdvancer)) {
     return;
   }

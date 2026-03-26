@@ -28,7 +28,7 @@ export const testConstants = {
     'function createRetryableTicketNoRefundAliasRewrite(address to,uint256 l2CallValue,uint256 maxSubmissionCost,address excessFeeRefundAddress,address callValueRefundAddress,uint256 gasLimit,uint256 maxFeePerGas,bytes data) payable returns (uint256)',
   ]),
   LOW_L2_FEE_OVERRIDES: {
-    maxFeePerGas: ethers.BigNumber.from(2),
+    maxFeePerGas: ethers.utils.parseUnits('0.1', 'gwei'),
     maxPriorityFeePerGas: ethers.BigNumber.from(0),
   },
   NITRO_DEPLOY_POLLING_INTERVAL_MS: 100,
