@@ -331,5 +331,3 @@ jobs:
         with:
           path: .cache/anvil-rpc-cache.json
           key: ${{ runner.os }}-anvil-rpc-cache-${{ github.ref_name }}-${{ github.run_id }}
-
-  

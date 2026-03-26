@@ -37,7 +37,8 @@ export function dockerAsync(args: string[]): Promise<string> {
 }
 
 export function getNitroContractsImage(): string {
-  const image = process.env.NITRO_CONTRACTS_GHCR_IMAGE ?? testConstants.DEFAULT_NITRO_CONTRACTS_IMAGE;
+  const image =
+    process.env.NITRO_CONTRACTS_GHCR_IMAGE ?? testConstants.DEFAULT_NITRO_CONTRACTS_IMAGE;
   try {
     docker(['image', 'inspect', image]);
     return image;
