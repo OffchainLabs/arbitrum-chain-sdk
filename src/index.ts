@@ -178,18 +178,11 @@ import {
 import {
   createRollupDefaultRetryablesFees,
   createTokenBridgeDefaultRetryablesFees,
-  enqueueDefaultMaxGasPrice,
-  enqueueDefaultMaxGasForContracts,
-  enqueueDefaultGasLimitForWethGateway,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
 } from './constants';
-import {
-  enqueueTokenBridgePrepareTransactionRequest,
-  EnqueueTokenBridgePrepareTransactionRequestParams,
-} from './enqueueTokenBridgePrepareTransactionRequest';
-import {
-  enqueueTokenBridgePrepareSetWethGatewayTransactionRequest,
-  EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams,
-} from './enqueueTokenBridgePrepareSetWethGatewayTransactionRequest';
+import { CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
   CreateRollupGetRetryablesFeesParams,
   createRollupGetRetryablesFees,
@@ -358,14 +351,10 @@ export {
   CreateRollupGetRetryablesFeesParams,
   //
   createTokenBridgeDefaultRetryablesFees,
-  //
-  enqueueDefaultMaxGasPrice,
-  enqueueDefaultMaxGasForContracts,
-  enqueueDefaultGasLimitForWethGateway,
-  enqueueTokenBridgePrepareTransactionRequest,
-  EnqueueTokenBridgePrepareTransactionRequestParams,
-  enqueueTokenBridgePrepareSetWethGatewayTransactionRequest,
-  EnqueueTokenBridgePrepareSetWethGatewayTransactionRequestParams,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams,
   //
   fetchAllowance,
   FetchAllowanceProps,

@@ -35,6 +35,8 @@ import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridge
 import { TransactionRequestGasOverrides } from './utils/gasOverrides';
 import { getBlockExplorerUrl } from './utils/getBlockExplorerUrl';
 import { isTokenBridgeDeployed } from './isTokenBridgeDeployed';
+import { registerNewNetwork } from './utils/registerNewNetwork';
+import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
 export type CreateTokenBridgeParams<
   TParentChain extends Chain | undefined,
@@ -238,11 +240,10 @@ export async function createTokenBridge<
       rollupOwner,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: account.address,
-    tokenBridgeCreatorAddressOverride,
     gasOverrides,
     retryableGasOverrides,
+    tokenBridgeCreatorAddressOverride,
   });
 
   // sign and send the transaction
@@ -261,6 +262,13 @@ export async function createTokenBridge<
     `Deployed in ${getBlockExplorerUrl(parentChainPublicClient.chain)}/tx/${
       txReceipt.transactionHash
     }`,
+  );
+
+  // Register the network with @arbitrum/sdk (required for waitForRetryables)
+  await registerNewNetwork(
+    publicClientToProvider(parentChainPublicClient),
+    publicClientToProvider(orbitChainPublicClient),
+    rollupAddress,
   );
 
   // wait for retryables to execute
@@ -290,10 +298,9 @@ export async function createTokenBridge<
       rollup: rollupAddress,
       rollupDeploymentBlockNumber,
       parentChainPublicClient,
-      orbitChainPublicClient,
       account: account.address,
-      tokenBridgeCreatorAddressOverride,
       retryableGasOverrides: setWethGatewayGasOverrides,
+      tokenBridgeCreatorAddressOverride,
     });
 
     // sign and send the transaction
