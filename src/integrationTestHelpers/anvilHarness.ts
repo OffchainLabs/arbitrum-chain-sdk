@@ -1,4 +1,11 @@
-import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 
@@ -137,10 +144,7 @@ function prepareNitroRuntimeDir(runtimeDir: string) {
   }
 }
 
-function seedAnvilRpcCacheFromRepo(params: {
-  cacheFilePath: string;
-  repoCacheFilePath: string;
-}) {
+function seedAnvilRpcCacheFromRepo(params: { cacheFilePath: string; repoCacheFilePath: string }) {
   const { cacheFilePath, repoCacheFilePath } = params;
 
   if (existsSync(cacheFilePath) || !existsSync(repoCacheFilePath)) {

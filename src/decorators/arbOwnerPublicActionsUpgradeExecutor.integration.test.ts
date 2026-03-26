@@ -1,5 +1,5 @@
-import { afterAll, beforeAll, it, expect } from 'vitest';
-import { Address, Hex, createPublicClient, encodeAbiParameters, http } from 'viem';
+import { it, expect } from 'vitest';
+import { Address, createPublicClient, http } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { nitroTestnodeL3 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
