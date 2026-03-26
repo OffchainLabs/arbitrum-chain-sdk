@@ -260,7 +260,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l2WalletClient = createWalletClient({
       chain: l2BootstrapChain,
       transport: http(l2RpcUrl),
-      account: sourceDeployer,
+      account: harnessDeployer,
     });
 
     const blockAdvancerWalletClient = createWalletClient({
