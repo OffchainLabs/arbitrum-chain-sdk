@@ -67,14 +67,17 @@ export function getTokenBridgeContractsImage(): string {
   }
 }
 
-export function getRollupCreatorDockerArgs(params: {
-  networkName: string;
-  rpcUrl: string;
-  deployerPrivateKey: `0x${string}`;
-  factoryOwner: Address;
-  maxDataSize: number;
-  chainId: number;
-}, nitroContractsImage: string) {
+export function getRollupCreatorDockerArgs(
+  params: {
+    networkName: string;
+    rpcUrl: string;
+    deployerPrivateKey: `0x${string}`;
+    factoryOwner: Address;
+    maxDataSize: number;
+    chainId: number;
+  },
+  nitroContractsImage: string,
+) {
   return [
     'run',
     '--rm',
@@ -106,13 +109,16 @@ export function getRollupCreatorDockerArgs(params: {
   ];
 }
 
-export function getTokenBridgeCreatorDockerArgs(params: {
-  networkName: string;
-  rpcUrl: string;
-  deployerPrivateKey: `0x${string}`;
-  wethAddress: Address;
-  gasLimitForL2FactoryDeployment?: bigint;
-}, tokenBridgeContractsImage: string) {
+export function getTokenBridgeCreatorDockerArgs(
+  params: {
+    networkName: string;
+    rpcUrl: string;
+    deployerPrivateKey: `0x${string}`;
+    wethAddress: Address;
+    gasLimitForL2FactoryDeployment?: bigint;
+  },
+  tokenBridgeContractsImage: string,
+) {
   return [
     'run',
     '--rm',
