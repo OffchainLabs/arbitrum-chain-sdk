@@ -21,6 +21,8 @@ import { ethers } from 'ethers';
 
 import TestWETH9 from '@arbitrum/token-bridge-contracts/build/contracts/contracts/tokenbridge/test/TestWETH9.sol/TestWETH9.json';
 
+import { arbOwnerPrepareTransactionRequest } from '../arbOwnerPrepareTransactionRequest';
+import { arbOwnerReadContract } from '../arbOwnerReadContract';
 import { registerCustomParentChain } from '../chains';
 import {
   rollupCreatorABI,
@@ -173,6 +175,42 @@ async function getNitroTestnodeStyleValidators(
   validators.push(NITRO_TESTNODE_VALIDATOR_SIGNER);
 
   return validators;
+}
+
+async function ensureChainOwner(params: {
+  publicClient: PublicClient<Transport, Chain>;
+  chainOwner: PrivateKeyAccountWithPrivateKey;
+  newChainOwner: Address;
+}) {
+  const { publicClient, chainOwner, newChainOwner } = params;
+
+  const isAlreadyChainOwner = await arbOwnerReadContract(publicClient, {
+    functionName: 'isChainOwner',
+    args: [newChainOwner],
+  });
+
+  if (isAlreadyChainOwner) {
+    return;
+  }
+
+  const transactionRequest = await arbOwnerPrepareTransactionRequest(publicClient, {
+    functionName: 'addChainOwner',
+    args: [newChainOwner],
+    upgradeExecutor: false,
+    account: chainOwner.address,
+  });
+
+  const transactionHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await chainOwner.signTransaction(transactionRequest),
+  });
+
+  const receipt = await publicClient.waitForTransactionReceipt({
+    hash: transactionHash,
+  });
+
+  if (receipt.status !== 'success') {
+    throw new Error(`Failed to add chain owner ${newChainOwner}`);
+  }
 }
 
 export function dehydrateAnvilTestStack(env: AnvilTestStack): InjectedAnvilTestStack {
@@ -713,6 +751,12 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
           base: 4_000_000_000_000n,
         },
       },
+    });
+
+    await ensureChainOwner({
+      publicClient: l3Client,
+      chainOwner: harnessDeployer,
+      newChainOwner: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
     });
     console.log('L3 token bridge contracts deployed on L2\n');
 
