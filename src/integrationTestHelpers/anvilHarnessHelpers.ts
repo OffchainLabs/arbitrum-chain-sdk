@@ -428,6 +428,7 @@ export function startBlockAdvancing(blockAdvancer: BlockAdvancer): void {
     return;
   }
 
+  const blockAdvanceIntervalMs = 100;
   let keepAdvancingBlocks = true;
   const state: BlockAdvancingState = {
     stopAdvancing() {
@@ -439,13 +440,18 @@ export function startBlockAdvancing(blockAdvancer: BlockAdvancer): void {
   state.done = (async () => {
     try {
       while (keepAdvancingBlocks) {
+        const startedAt = Date.now();
+
         try {
           await advanceBlock(blockAdvancer);
         } catch {
           // ignore and keep advancing blocks
         }
 
-        await sleep(100);
+        const remainingDelayMs = blockAdvanceIntervalMs - (Date.now() - startedAt);
+        if (remainingDelayMs > 0) {
+          await sleep(remainingDelayMs);
+        }
       }
     } finally {
       if (blockAdvancingStates.get(blockAdvancer) === state) {
@@ -457,33 +463,18 @@ export function startBlockAdvancing(blockAdvancer: BlockAdvancer): void {
   blockAdvancingStates.set(blockAdvancer, state);
 }
 
-async function withBlockAdvancing<T>(
-  blockAdvancer: BlockAdvancer,
-  fn: () => Promise<T>,
-): Promise<T> {
-  startBlockAdvancing(blockAdvancer);
-
-  try {
-    return await fn();
-  } finally {
-    await blockAdvancer.stop();
-  }
-}
-
 export async function deployRollupCreator(params: DeployRollupCreatorParams): Promise<Address> {
   const intTestContractsImage = getIntTestContractsImage();
-  const stdout = await withBlockAdvancing(params.blockAdvancer, () =>
-    dockerAsync(
-      getRollupCreatorDockerArgs(
-        {
-          rpcUrl: params.rpcUrl.replace(new URL(params.rpcUrl).hostname, 'host.docker.internal'),
-          deployerPrivateKey: params.deployerPrivateKey,
-          factoryOwner: params.factoryOwner,
-          maxDataSize: params.maxDataSize,
-          chainId: params.chainId,
-        },
-        intTestContractsImage,
-      ),
+  const stdout = await dockerAsync(
+    getRollupCreatorDockerArgs(
+      {
+        rpcUrl: params.rpcUrl.replace(new URL(params.rpcUrl).hostname, 'host.docker.internal'),
+        deployerPrivateKey: params.deployerPrivateKey,
+        factoryOwner: params.factoryOwner,
+        maxDataSize: params.maxDataSize,
+        chainId: params.chainId,
+      },
+      intTestContractsImage,
     ),
   );
 
@@ -505,9 +496,8 @@ export async function deployTokenBridgeCreator(
       ),
     );
 
-  const stdout = params.blockAdvancer
-    ? await withBlockAdvancing(params.blockAdvancer, deploy)
-    : await deploy();
+  const stdout = await deploy();
+
   const address = parseTokenBridgeCreatorAddress(stdout);
   const chain = rpcUrlToChain.get(params.rpcUrl);
 

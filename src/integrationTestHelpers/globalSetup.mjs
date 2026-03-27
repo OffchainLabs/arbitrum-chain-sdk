@@ -9,6 +9,6 @@ export async function setup(project) {
   project.provide('anvilTestStack', structuredClone(dehydrateAnvilTestStack(env)));
 
   return async () => {
-    teardownAnvilTestStack();
+    await teardownAnvilTestStack();
   };
 }

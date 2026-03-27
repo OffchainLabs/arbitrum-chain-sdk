@@ -37,7 +37,7 @@ type CacheFile = {
 
 export type RpcCachingProxy = {
   proxyUrl: string;
-  close: () => void;
+  close: () => Promise<void>;
   getSummaryLines: () => string[];
 };
 
@@ -243,6 +243,17 @@ export async function startRpcCachingProxy(
       `  cache misses: ${stats.cacheMisses}`,
       `  upstream HTTP requests: ${stats.upstreamRequests}`,
     ],
-    close: () => server.close(),
+    close: () =>
+      new Promise((resolve, reject) => {
+        server.closeAllConnections?.();
+        server.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+
+          resolve();
+        });
+      }),
   };
 }
