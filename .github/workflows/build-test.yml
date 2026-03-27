@@ -284,6 +284,8 @@ jobs:
       - name: Set integration test contracts image
         run: |
           echo "INT_TEST_CONTRACTS_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-int-test-contracts:v3.2.0-2f747c7-v1.2.5-5975d8f73608" >> "$GITHUB_ENV"
+          echo "ANVIL_IMAGE=ghcr.io/foundry-rs/foundry:v1.3.1" >> "$GITHUB_ENV"
+          echo "NITRO_IMAGE=offchainlabs/nitro-node:v3.9.5-66e42c4" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -292,8 +294,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load integration test contracts image
-        run: docker pull "${INT_TEST_CONTRACTS_IMAGE}"
+      - name: Preload integration test images
+        run: |
+          docker pull "${INT_TEST_CONTRACTS_IMAGE}" &
+          pid_int_test_contracts=$!
+
+          docker pull "${ANVIL_IMAGE}" &
+          pid_anvil=$!
+
+          docker pull "${NITRO_IMAGE}" &
+          pid_nitro=$!
+
+          wait "$pid_int_test_contracts"
+          wait "$pid_anvil"
+          wait "$pid_nitro"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
