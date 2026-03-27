@@ -2,9 +2,6 @@ FROM ghcr.io/foundry-rs/foundry:v1.3.1 AS foundry
 
 FROM node:20-bullseye-slim AS builder
 
-ARG NITRO_CONTRACTS_REPO_URL=https://github.com/OffchainLabs/nitro-contracts.git
-ARG NITRO_CONTRACTS_GIT_COMMIT=2f747c722d98d5fd662bfda08cd86aa534b22be2
-
 COPY --from=foundry /usr/local/bin/forge /usr/local/bin/forge
 
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
@@ -12,8 +9,8 @@ RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
 WORKDIR /workspace
 
 RUN git init . \
-    && git remote add origin "${NITRO_CONTRACTS_REPO_URL}" \
-    && git fetch --depth 1 origin "${NITRO_CONTRACTS_GIT_COMMIT}" \
+    && git remote add origin https://github.com/OffchainLabs/nitro-contracts.git \
+    && git fetch --depth 1 origin 2f747c722d98d5fd662bfda08cd86aa534b22be2 \
     && git checkout --detach FETCH_HEAD \
     && git submodule update --init --recursive --depth 1
 

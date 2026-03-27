@@ -272,11 +272,13 @@ export function hydrateAnvilTestStack(env: InjectedAnvilTestStack): AnvilTestSta
         publicClient: createPublicClient({
           chain: l2Chain,
           transport: http(env.l2.rpcUrl),
+          pollingInterval: testConstants.POLLING_INTERVAL,
         }),
         walletClient: createWalletClient({
           chain: l2Chain,
           transport: http(env.l2.rpcUrl),
           account: blockAdvancerAccount,
+          pollingInterval: testConstants.POLLING_INTERVAL,
         }),
         account: blockAdvancerAccount,
       }),
@@ -316,15 +318,15 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     dockerNetworkName = `chain-sdk-int-test-net-${Date.now()}`;
     createDockerNetwork(dockerNetworkName);
 
-    const l2ChainId = testConstants.DEFAULT_L2_CHAIN_ID;
+    const l2ChainId = testConstants.L2_CHAIN_ID;
     const l3ChainId = l2ChainId + 1;
-    const l1RpcPort = testConstants.DEFAULT_L1_RPC_PORT;
-    const l2RpcPort = testConstants.DEFAULT_L2_RPC_PORT;
-    const l3RpcPort = testConstants.DEFAULT_L3_RPC_PORT;
-    const anvilImage = testConstants.DEFAULT_ANVIL_IMAGE;
-    const nitroImage = testConstants.DEFAULT_NITRO_IMAGE;
-    const sepoliaBeaconRpc = testConstants.DEFAULT_SEPOLIA_BEACON_RPC;
-    const anvilForkUrl = testConstants.DEFAULT_SEPOLIA_RPC;
+    const l1RpcPort = testConstants.L1_RPC_PORT;
+    const l2RpcPort = testConstants.L2_RPC_PORT;
+    const l3RpcPort = testConstants.L3_RPC_PORT;
+    const anvilImage = testConstants.ANVIL_IMAGE;
+    const nitroImage = testConstants.NITRO_IMAGE;
+    const sepoliaBeaconRpc = testConstants.SEPOLIA_BEACON_RPC;
+    const anvilForkUrl = testConstants.SEPOLIA_RPC;
     const rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2';
     const rollupTimingParams: CustomTimingParams = {
       confirmPeriodBlocks: 150n,
@@ -353,7 +355,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     });
 
     l1RpcCachingProxy = await startRpcCachingProxy(anvilForkUrl, cacheFilePath, {
-      forkBlockNumber: testConstants.DEFAULT_SEPOLIA_FORK_BLOCK_NUMBER,
+      forkBlockNumber: testConstants.SEPOLIA_FORK_BLOCK_NUMBER,
     });
 
     const l1RpcUrlWithCaching = l1RpcCachingProxy.proxyUrl;
@@ -374,7 +376,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       l1RpcPort,
       anvilImage,
       anvilForkUrl: l1RpcUrlWithCaching,
-      anvilForkBlockNumber: testConstants.DEFAULT_SEPOLIA_FORK_BLOCK_NUMBER,
+      anvilForkBlockNumber: testConstants.SEPOLIA_FORK_BLOCK_NUMBER,
       chainId: sepolia.id,
     });
 
@@ -389,6 +391,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l1Client = createPublicClient({
       chain: l1Chain,
       transport: http(l1RpcUrl),
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
     registerChainForRpcUrl({ rpcUrl: l1RpcUrl, chain: l1Chain });
 
@@ -462,7 +465,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       validatorPrivateKey: validatorAccount.privateKey,
       stakeToken: l2RollupConfig.stakeToken,
       parentChainId: sepolia.id,
-      parentChainRpcUrl: `http://${l1ContainerName}:8545`,
+      parentChainRpcUrl: `http://${l1ContainerName}:${l1RpcPort}`,
       parentChainBeaconRpcUrl: sepoliaBeaconRpc,
     });
 
@@ -535,12 +538,14 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     let l2Client: PublicClient<Transport, Chain> = createPublicClient({
       chain: l2BootstrapChain,
       transport: http(l2RpcUrl),
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
 
     const l2WalletClient = createWalletClient({
       chain: l2BootstrapChain,
       transport: http(l2RpcUrl),
       account: harnessDeployer,
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
 
     const l2BlockAdvancer = createBlockAdvancer({
@@ -549,6 +554,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         chain: l2BootstrapChain,
         transport: http(l2RpcUrl),
         account: l2BlockAdvancerAccount,
+        pollingInterval: testConstants.POLLING_INTERVAL,
       }),
       account: l2BlockAdvancerAccount,
     });
@@ -566,6 +572,8 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     console.log('L2 create2 factory is ready\n');
 
     const l2Provider = new ethers.providers.JsonRpcProvider(l2RpcUrl);
+    l2Provider.pollingInterval = testConstants.POLLING_INTERVAL;
+
     const l2Signer = new ethers.Wallet(harnessDeployer.privateKey, l2Provider);
 
     console.log('Deploying L2 custom gas token...');
@@ -635,6 +643,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     l2Client = createPublicClient({
       chain: l2Chain,
       transport: http(l2RpcUrl),
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
 
     console.log('Deploying L3 rollup contracts on L2...');
@@ -679,7 +688,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       stakeToken: l3RollupConfig.stakeToken,
       parentChainId: l2ChainId as ParentChainId,
       parentChainIsArbitrum: true,
-      parentChainRpcUrl: `http://${l2ContainerName}:8449`,
+      parentChainRpcUrl: `http://${l2ContainerName}:${l2RpcPort}`,
     });
 
     if (
@@ -737,11 +746,13 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l3Client = createPublicClient({
       chain: l3Chain,
       transport: http(l3RpcUrl),
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
     const l3WalletClient = createWalletClient({
       chain: l3Chain,
       transport: http(l3RpcUrl),
       account: harnessDeployer,
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
 
     await (
@@ -814,6 +825,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
       chain: l2Chain,
       transport: http(l2RpcUrl),
       account: l2BlockAdvancerAccount,
+      pollingInterval: testConstants.POLLING_INTERVAL,
     });
 
     const l3BlockAdvancer = createBlockAdvancer({
@@ -822,6 +834,7 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
         chain: l3Chain,
         transport: http(l3RpcUrl),
         account: l3BlockAdvancerAccount,
+        pollingInterval: testConstants.POLLING_INTERVAL,
       }),
       account: l3BlockAdvancerAccount,
     });

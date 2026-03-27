@@ -22,6 +22,7 @@ import { scaleFrom18DecimalsToNativeTokenDecimals } from './utils/decimals';
 import { getWethAddress } from './utils/getWethAddress';
 import { isAnvilTestMode, getAnvilTestStack } from './integrationTestHelpers/injectedMode';
 import { Address } from 'viem';
+import { testConstants } from './integrationTestHelpers/constants';
 
 const env = isAnvilTestMode() ? getAnvilTestStack() : undefined;
 
@@ -54,16 +55,19 @@ if (env) {
 const l1Client = createPublicClient({
   chain: env ? env.l1.chain : nitroTestnodeL1,
   transport: env ? http(env.l1.rpcUrl) : http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  ...(env ? { pollingInterval: testConstants.POLLING_INTERVAL } : {}),
 });
 
 const l2Client = createPublicClient({
   chain: env ? env.l2.chain : nitroTestnodeL2,
   transport: env ? http(env.l2.rpcUrl) : http(nitroTestnodeL2.rpcUrls.default.http[0]),
+  ...(env ? { pollingInterval: testConstants.POLLING_INTERVAL } : {}),
 });
 
 const l3Client = createPublicClient({
   chain: env ? env.l3.chain : nitroTestnodeL3,
   transport: env ? http(env.l3.rpcUrl) : http(nitroTestnodeL3.rpcUrls.default.http[0]),
+  ...(env ? { pollingInterval: testConstants.POLLING_INTERVAL } : {}),
 });
 
 function checkTokenBridgeContracts(tokenBridgeContracts: TokenBridgeContracts) {

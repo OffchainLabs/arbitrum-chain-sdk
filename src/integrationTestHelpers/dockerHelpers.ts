@@ -60,7 +60,7 @@ export function getTokenBridgeContractsImage(): string {
     return image;
   } catch {
     const tokenBridgeContractsDir = join(process.cwd(), 'token-bridge-contracts');
-    const dockerfilePath = join(tokenBridgeContractsDir, 'Dockerfile');
+    const dockerfilePath = join(tokenBridgeContractsDir, 'Dockerfile.anvil');
     docker(['build', '-f', dockerfilePath, '-t', image, tokenBridgeContractsDir]);
 
     return image;
@@ -131,6 +131,10 @@ export function getTokenBridgeCreatorDockerArgs(
     `BASECHAIN_WETH=${params.wethAddress}`,
     '-e',
     `GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000`,
+    '-e',
+    `POLLING_INTERVAL=${testConstants.POLLING_INTERVAL}`,
+    '-e',
+    'DISABLE_CONTRACT_VERIFICATION=true',
     tokenBridgeContractsImage,
     'deploy:token-bridge-creator',
   ];
@@ -316,18 +320,18 @@ export function startL1AnvilContainer(params: {
     '--entrypoint',
     'anvil',
     '-p',
-    `${params.l1RpcPort}:8545`,
+    `${params.l1RpcPort}:${params.l1RpcPort}`,
     params.anvilImage,
     '--fork-url',
     params.anvilForkUrl,
     '--fork-block-number',
-    String(params.anvilForkBlockNumber),
+    `${params.anvilForkBlockNumber}`,
     '--host',
     '0.0.0.0',
     '--port',
-    '8545',
+    `${params.l1RpcPort}`,
     '--chain-id',
-    String(params.chainId),
+    `${params.chainId}`,
     '--block-base-fee-per-gas',
     '0',
   ]);
@@ -350,7 +354,7 @@ export function startNitroContainer(params: {
     '--network',
     params.networkName,
     '-p',
-    `${params.rpcPort}:8449`,
+    `${params.rpcPort}:${params.rpcPort}`,
     '-v',
     `${params.runtimeDir}:/runtime`,
     params.nitroImage,
@@ -373,11 +377,11 @@ export function startNitroContainer(params: {
     '--http.addr',
     '0.0.0.0',
     '--http.port',
-    '8449',
+    `${params.rpcPort}`,
     '--ws.addr',
     '0.0.0.0',
     '--ws.port',
-    '8548',
+    `${params.rpcPort + 1000}`,
     '--validation.wasm.enable-wasmroots-check=false',
   ]);
 }

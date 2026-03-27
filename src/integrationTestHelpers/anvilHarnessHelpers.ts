@@ -16,7 +16,8 @@ import { ethers } from 'ethers';
 
 import { arbOwnerABI, arbOwnerAddress } from '../contracts/ArbOwner';
 import { erc20ABI } from '../contracts/ERC20';
-import { erc20InboxABI } from '../contracts/IERC20Inbox';
+import { inboxABI } from '../contracts/Inbox';
+import { erc20InboxABI } from '../contracts/ERC20Inbox';
 import { tokenBridgeCreatorAddress } from '../contracts/TokenBridgeCreator';
 import { testConstants } from './constants';
 import {
@@ -92,7 +93,7 @@ async function getRequiredRetryableFunding(
 
   const retryableSubmissionFee = await l1Client.readContract({
     address: inbox,
-    abi: testConstants.inboxFundingAbi,
+    abi: inboxABI,
     functionName: 'calculateRetryableSubmissionFee',
     args: [0n, l1BaseFeePerGas],
   });
@@ -197,13 +198,25 @@ export async function fundL2Deployer(params: {
   inbox: Address;
 }) {
   const { l1RpcUrl, l2RpcUrl, l2Chain, deployer, inbox } = params;
-  const l1Client = createPublicClient({ chain: sepolia, transport: http(l1RpcUrl) });
+
+  const l1Client = createPublicClient({
+    chain: sepolia,
+    transport: http(l1RpcUrl),
+    pollingInterval: testConstants.POLLING_INTERVAL,
+  });
+
   const l1WalletClient = createWalletClient({
     chain: sepolia,
     transport: http(l1RpcUrl),
     account: deployer,
+    pollingInterval: testConstants.POLLING_INTERVAL,
   });
-  const l2Client = createPublicClient({ chain: l2Chain, transport: http(l2RpcUrl) });
+
+  const l2Client = createPublicClient({
+    chain: l2Chain,
+    transport: http(l2RpcUrl),
+    pollingInterval: testConstants.POLLING_INTERVAL,
+  });
 
   const fundAmount = parseEther('1000');
   const retryableGasLimit = BigInt(100_000);
@@ -225,7 +238,7 @@ export async function fundL2Deployer(params: {
     to: inbox,
     value: fundAmount + maxSubmissionCost + retryableGasLimit * l2MaxFeePerGas,
     data: encodeFunctionData({
-      abi: testConstants.inboxFundingAbi,
+      abi: inboxABI,
       functionName: 'createRetryableTicketNoRefundAliasRewrite',
       args: [
         deployer.address,
@@ -250,7 +263,7 @@ export async function fundL2Deployer(params: {
       return currentBalance;
     }
 
-    await sleep(1000);
+    await sleep(100);
   }
 
   throw new Error(
@@ -309,8 +322,7 @@ export async function bridgeNativeTokenToOrbitChain(params: {
     if (updatedBalance >= targetBalance) {
       return updatedBalance;
     }
-
-    await sleep(1000);
+    await sleep(100);
   }
 
   const finalBalance = await childPublicClient.getBalance({ address: depositor.address });
@@ -359,7 +371,10 @@ export async function setBalanceOnL1(params: {
   address: Address;
   balance: bigint;
 }) {
-  const publicClient = createPublicClient({ transport: http(params.rpcUrl) });
+  const publicClient = createPublicClient({
+    transport: http(params.rpcUrl),
+    pollingInterval: testConstants.POLLING_INTERVAL,
+  });
   await publicClient.request({
     method: 'anvil_setBalance' as never,
     params: [params.address, `0x${params.balance.toString(16)}`] as never,
@@ -367,7 +382,10 @@ export async function setBalanceOnL1(params: {
 }
 
 export async function refreshForkTime(params: { rpcUrl: string }) {
-  const publicClient = createPublicClient({ transport: http(params.rpcUrl) });
+  const publicClient = createPublicClient({
+    transport: http(params.rpcUrl),
+    pollingInterval: testConstants.POLLING_INTERVAL,
+  });
   const now = Math.floor(Date.now() / 1000);
 
   await publicClient.request({
@@ -428,7 +446,7 @@ export function startBlockAdvancing(blockAdvancer: BlockAdvancer): void {
           // ignore and keep advancing blocks
         }
 
-        await sleep(1000);
+        await sleep(100);
       }
     } finally {
       if (blockAdvancingStates.get(blockAdvancer) === state) {
@@ -498,7 +516,11 @@ export async function deployTokenBridgeCreator(
     (chain.contracts.tokenBridgeCreator as ChainContract).address = address;
   } else {
     const chainId =
-      chain?.id ?? (await createPublicClient({ transport: http(params.rpcUrl) }).getChainId());
+      chain?.id ??
+      (await createPublicClient({
+        transport: http(params.rpcUrl),
+        pollingInterval: testConstants.POLLING_INTERVAL,
+      }).getChainId());
     (tokenBridgeCreatorAddress as Record<number, Address>)[chainId] = address;
   }
 
