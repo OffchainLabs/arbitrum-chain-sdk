@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 
 export const testConstants = {
   ANVIL_IMAGE: 'ghcr.io/foundry-rs/foundry:v1.3.1',
-  NITRO_IMAGE: 'offchainlabs/nitro-node:v3.9.5-66e42c4',
+  NITRO_IMAGE: 'ghcr.io/offchainlabs/nitro-node:v3.9.5-66e42c4',
   INT_TEST_CONTRACTS_IMAGE:
     'ghcr.io/offchainlabs/chain-sdk-int-test-contracts:v3.2.0-2f747c7-v1.2.5-5975d8f73608',
   DEPLOYER_PRIVATE_KEY: '0x490d84b7602e4b470af4f86a3ad095607a8bb5a4fa8ba148f41fcfd236b4fdf5' as Hex,
