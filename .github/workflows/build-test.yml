@@ -226,8 +226,8 @@ jobs:
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
           pnpm test:integration
 
-  publish-nitro-contracts-image:
-    name: Publish Nitro Contracts Image
+  publish-int-test-contracts-image:
+    name: Publish Integration Test Contracts Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -236,9 +236,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set nitro contracts image
+      - name: Set integration test contracts image
         run: |
-          echo "NITRO_CONTRACTS_GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-nitro-contracts-anvil:v3.2.0-2f747c7" >> "$GITHUB_ENV"
+          echo "INT_TEST_CONTRACTS_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-int-test-contracts:v3.2.0-2f747c7-v1.2.5-5975d8f73608" >> "$GITHUB_ENV"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -250,73 +250,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check nitro contracts image
+      - name: Check integration test contracts image
         id: check-image
         run: |
-          if docker manifest inspect "${NITRO_CONTRACTS_GHCR_IMAGE}" >/dev/null 2>&1; then
+          if docker manifest inspect "${INT_TEST_CONTRACTS_IMAGE}" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build and push nitro contracts image
+      - name: Build and push integration test contracts image
         if: steps.check-image.outputs.exists != 'true'
         uses: docker/build-push-action@v6
         with:
-          context: ./nitro-contracts
-          file: ./nitro-contracts/Dockerfile
+          context: ./src/integrationTestHelpers/docker-test-contracts
+          file: ./src/integrationTestHelpers/docker-test-contracts/Dockerfile
           push: true
           tags: |
-            ${{ env.NITRO_CONTRACTS_GHCR_IMAGE }}
-
-  publish-token-bridge-contracts-image:
-    name: Publish Token Bridge Contracts Image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set token bridge contracts image
-        run: |
-          echo "TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-token-bridge-contracts-anvil:v1.2.5-5975d8f73608" >> "$GITHUB_ENV"
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Check token bridge contracts image
-        id: check-image
-        run: |
-          if docker manifest inspect "${TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE}" >/dev/null 2>&1; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Build and push token bridge contracts image
-        if: steps.check-image.outputs.exists != 'true'
-        uses: docker/build-push-action@v6
-        with:
-          context: ./token-bridge-contracts
-          file: ./token-bridge-contracts/Dockerfile.anvil
-          push: true
-          tags: |
-            ${{ env.TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE }}
+            ${{ env.INT_TEST_CONTRACTS_IMAGE }}
 
   test-integration-anvil:
     name: Test (Integration Anvil)
     needs:
-      - publish-nitro-contracts-image
-      - publish-token-bridge-contracts-image
+      - publish-int-test-contracts-image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -325,10 +281,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set nitro contracts image
+      - name: Set integration test contracts image
         run: |
-          echo "NITRO_CONTRACTS_GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-nitro-contracts-anvil:v3.2.0-2f747c7" >> "$GITHUB_ENV"
-          echo "TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-token-bridge-contracts-anvil:v1.2.5-5975d8f73608" >> "$GITHUB_ENV"
+          echo "INT_TEST_CONTRACTS_IMAGE=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/chain-sdk-int-test-contracts:v3.2.0-2f747c7-v1.2.5-5975d8f73608" >> "$GITHUB_ENV"
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -337,11 +292,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Load nitro contracts image
-        run: docker pull "${NITRO_CONTRACTS_GHCR_IMAGE}"
-
-      - name: Load token bridge contracts image
-        run: docker pull "${TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE}"
+      - name: Load integration test contracts image
+        run: docker pull "${INT_TEST_CONTRACTS_IMAGE}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

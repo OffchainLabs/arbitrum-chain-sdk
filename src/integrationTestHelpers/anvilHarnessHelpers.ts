@@ -22,9 +22,8 @@ import { tokenBridgeCreatorAddress } from '../contracts/TokenBridgeCreator';
 import { testConstants } from './constants';
 import {
   dockerAsync,
-  getNitroContractsImage,
+  getIntTestContractsImage,
   getRollupCreatorDockerArgs,
-  getTokenBridgeContractsImage,
   getTokenBridgeCreatorDockerArgs,
 } from './dockerHelpers';
 import type { PrivateKeyAccountWithPrivateKey } from '../testHelpers';
@@ -472,7 +471,7 @@ async function withBlockAdvancing<T>(
 }
 
 export async function deployRollupCreator(params: DeployRollupCreatorParams): Promise<Address> {
-  const nitroContractsImage = getNitroContractsImage();
+  const intTestContractsImage = getIntTestContractsImage();
   const stdout = await withBlockAdvancing(params.blockAdvancer, () =>
     dockerAsync(
       getRollupCreatorDockerArgs(
@@ -483,7 +482,7 @@ export async function deployRollupCreator(params: DeployRollupCreatorParams): Pr
           maxDataSize: params.maxDataSize,
           chainId: params.chainId,
         },
-        nitroContractsImage,
+        intTestContractsImage,
       ),
     ),
   );
@@ -494,7 +493,7 @@ export async function deployRollupCreator(params: DeployRollupCreatorParams): Pr
 export async function deployTokenBridgeCreator(
   params: DeployTokenBridgeCreatorParams,
 ): Promise<Address> {
-  const tokenBridgeContractsImage = getTokenBridgeContractsImage();
+  const intTestContractsImage = getIntTestContractsImage();
   const hostname = new URL(params.rpcUrl).hostname;
   const rpcUrl = params.rpcUrl.replace(hostname, 'host.docker.internal');
 
@@ -502,7 +501,7 @@ export async function deployTokenBridgeCreator(
     dockerAsync(
       getTokenBridgeCreatorDockerArgs(
         { ...params, rpcUrl, addHostDockerInternal: true },
-        tokenBridgeContractsImage,
+        intTestContractsImage,
       ),
     );
 

@@ -36,32 +36,20 @@ export function dockerAsync(args: string[]): Promise<string> {
   });
 }
 
-export function getNitroContractsImage(): string {
-  const image =
-    process.env.NITRO_CONTRACTS_GHCR_IMAGE ?? testConstants.DEFAULT_NITRO_CONTRACTS_IMAGE;
+export function getIntTestContractsImage(): string {
+  const image = testConstants.INT_TEST_CONTRACTS_IMAGE;
   try {
     docker(['image', 'inspect', image]);
     return image;
   } catch {
-    const nitroContractsDir = join(process.cwd(), 'nitro-contracts');
-    const dockerfilePath = join(process.cwd(), 'nitro-contracts', 'Dockerfile');
-    docker(['build', '-f', dockerfilePath, '-t', image, nitroContractsDir]);
-
-    return image;
-  }
-}
-
-export function getTokenBridgeContractsImage(): string {
-  const image =
-    process.env.TOKEN_BRIDGE_CONTRACTS_GHCR_IMAGE ??
-    testConstants.DEFAULT_TOKEN_BRIDGE_CONTRACTS_IMAGE;
-  try {
-    docker(['image', 'inspect', image]);
-    return image;
-  } catch {
-    const tokenBridgeContractsDir = join(process.cwd(), 'token-bridge-contracts');
-    const dockerfilePath = join(tokenBridgeContractsDir, 'Dockerfile.anvil');
-    docker(['build', '-f', dockerfilePath, '-t', image, tokenBridgeContractsDir]);
+    const intTestContractsDir = join(
+      process.cwd(),
+      'src',
+      'integrationTestHelpers',
+      'docker-test-contracts',
+    );
+    const dockerfilePath = join(intTestContractsDir, 'Dockerfile');
+    docker(['build', '-f', dockerfilePath, '-t', image, intTestContractsDir]);
 
     return image;
   }
@@ -75,7 +63,7 @@ export function getRollupCreatorDockerArgs(
     maxDataSize: number;
     chainId: number;
   },
-  nitroContractsImage: string,
+  intTestContractsImage: string,
 ) {
   return [
     'run',
@@ -98,7 +86,8 @@ export function getRollupCreatorDockerArgs(
     'DISABLE_VERIFICATION=true',
     '-e',
     'IGNORE_MAX_DATA_SIZE_WARNING=true',
-    nitroContractsImage,
+    intTestContractsImage,
+    'nitro-contracts',
     'hardhat',
     'run',
     '--no-compile',
@@ -116,7 +105,7 @@ export function getTokenBridgeCreatorDockerArgs(
     wethAddress: Address;
     addHostDockerInternal?: boolean;
   },
-  tokenBridgeContractsImage: string,
+  intTestContractsImage: string,
 ) {
   return [
     'run',
@@ -135,7 +124,8 @@ export function getTokenBridgeCreatorDockerArgs(
     `POLLING_INTERVAL=${testConstants.POLLING_INTERVAL}`,
     '-e',
     'DISABLE_CONTRACT_VERIFICATION=true',
-    tokenBridgeContractsImage,
+    intTestContractsImage,
+    'token-bridge-contracts',
     'deploy:token-bridge-creator',
   ];
 }
