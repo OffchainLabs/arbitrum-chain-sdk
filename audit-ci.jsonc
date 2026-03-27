@@ -70,7 +70,9 @@
     // elliptic has no patched release yet (affected: <=6.6.1)
     // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
     // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
-    "GHSA-848j-6mx2-7j84"
-
+    "GHSA-848j-6mx2-7j84",
+    // https://github.com/advisories/GHSA-f886-m6hf-6m8v
+    // brace-expansion has fixes in 1.1.13 and 2.0.3 but the advisory db is not updated yet
+    "GHSA-f886-m6hf-6m8v"
   ]
 }
