@@ -106,28 +106,25 @@ function isCacheFile(value: unknown): value is CacheFile {
   );
 }
 
-function loadCacheData(params: { cacheFilePath: string; metadata: CacheMetadata }): {
-  cache: CacheData;
-  cacheInvalidated: boolean;
-} {
+function loadCacheData(params: { cacheFilePath: string; metadata: CacheMetadata }): CacheData {
   const { cacheFilePath, metadata } = params;
 
   if (!existsSync(cacheFilePath)) {
     writeCacheFile(cacheFilePath, { metadata, entries: {} });
-    return { cache: {}, cacheInvalidated: false };
+    return {};
   }
 
   try {
     const parsed = JSON.parse(readFileSync(cacheFilePath, 'utf8')) as unknown;
     if (isCacheFile(parsed) && parsed.metadata.forkBlockNumber === metadata.forkBlockNumber) {
-      return { cache: parsed.entries, cacheInvalidated: false };
+      return parsed.entries;
     }
   } catch {
     // Reset invalid cache files below.
   }
 
   writeCacheFile(cacheFilePath, { metadata, entries: {} });
-  return { cache: {}, cacheInvalidated: true };
+  return {};
 }
 
 export async function startRpcCachingProxy(
@@ -137,10 +134,9 @@ export async function startRpcCachingProxy(
 ): Promise<RpcCachingProxy> {
   mkdirSync(dirname(cacheFilePath), { recursive: true });
 
-  const { cache, cacheInvalidated } = loadCacheData({ cacheFilePath, metadata });
+  const cache = loadCacheData({ cacheFilePath, metadata });
 
   const stats = {
-    cacheInvalidated,
     cacheHits: 0,
     cacheMisses: 0,
     requests: 0,
@@ -242,7 +238,6 @@ export async function startRpcCachingProxy(
     proxyUrl: `http://host.docker.internal:${address.port}`,
     getSummaryLines: () => [
       'RPC proxy cache summary',
-      `  invalidated on startup: ${stats.cacheInvalidated ? 'yes' : 'no'}`,
       `  requests: ${stats.requests}`,
       `  cache hits: ${stats.cacheHits}`,
       `  cache misses: ${stats.cacheMisses}`,

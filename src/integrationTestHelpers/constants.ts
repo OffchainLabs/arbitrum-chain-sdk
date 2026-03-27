@@ -1,4 +1,4 @@
-import { Address } from 'viem';
+import { Hex } from 'viem';
 import { ethers } from 'ethers';
 
 export const testConstants = {
@@ -6,8 +6,15 @@ export const testConstants = {
   NITRO_IMAGE: 'offchainlabs/nitro-node:v3.9.5-66e42c4',
   INT_TEST_CONTRACTS_IMAGE:
     'ghcr.io/offchainlabs/chain-sdk-int-test-contracts:v3.2.0-2f747c7-v1.2.5-5975d8f73608',
-  DEPLOYER_PRIVATE_KEY:
-    '0x490d84b7602e4b470af4f86a3ad095607a8bb5a4fa8ba148f41fcfd236b4fdf5' as Address,
+  DEPLOYER_PRIVATE_KEY: '0x490d84b7602e4b470af4f86a3ad095607a8bb5a4fa8ba148f41fcfd236b4fdf5' as Hex,
+  L2_BLOCK_ADVANCER_PRIVATE_KEY:
+    '0x1be2b93dfbeb7e7f7e9d8dc2b86d660ad12916f2f5234c89c5aa9e64c664d995' as Hex,
+  L3_BLOCK_ADVANCER_PRIVATE_KEY:
+    '0x5ae2006c037bd89ae1c7fa257e29758078354351ccdd7cc3c6841425d7d309da' as Hex,
+  BATCH_POSTER_PRIVATE_KEY:
+    '0x1317581cf78ace289eb730b715c4feca96ff4a60b1378273a8b46cece8bcf80d' as Hex,
+  VALIDATOR_PRIVATE_KEY:
+    '0x6d3ba9c3b5f1cef024c7965ee3854269b679ebc486876872582951ba25ffdea9' as Hex,
   L2_CHAIN_ID: 421_337,
   L3_CHAIN_ID: 421_338,
   L1_RPC_PORT: 9545,

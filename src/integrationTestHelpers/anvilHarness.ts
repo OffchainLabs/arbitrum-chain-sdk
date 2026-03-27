@@ -361,10 +361,10 @@ export async function setupAnvilTestStack(): Promise<AnvilTestStack> {
     const l1RpcUrlWithCaching = l1RpcCachingProxy.proxyUrl;
 
     const harnessDeployer = createAccount(testConstants.DEPLOYER_PRIVATE_KEY);
-    const l2BlockAdvancerAccount = createAccount();
-    const l3BlockAdvancerAccount = createAccount();
-    const batchPosterAccount = createAccount();
-    const validatorAccount = createAccount();
+    const l2BlockAdvancerAccount = createAccount(testConstants.L2_BLOCK_ADVANCER_PRIVATE_KEY);
+    const l3BlockAdvancerAccount = createAccount(testConstants.L3_BLOCK_ADVANCER_PRIVATE_KEY);
+    const batchPosterAccount = createAccount(testConstants.BATCH_POSTER_PRIVATE_KEY);
+    const validatorAccount = createAccount(testConstants.VALIDATOR_PRIVATE_KEY);
 
     // Starting L1 node (Anvil)
     l1ContainerName = `chain-sdk-int-test-l1-${Date.now()}`;
