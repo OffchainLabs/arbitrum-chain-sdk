@@ -93,23 +93,13 @@ type TestnodeInformation = {
 };
 
 function getInformationFromConfigDir(configDir: string): TestnodeInformation {
-  const deploymentJson = JSON.parse(
-    readFileSync(join(configDir, 'deployment.json'), 'utf-8'),
-  );
-  const l3DeploymentJson = JSON.parse(
-    readFileSync(join(configDir, 'l3deployment.json'), 'utf-8'),
-  );
-  const sequencerConfig = JSON.parse(
-    readFileSync(join(configDir, 'l2-nodeConfig.json'), 'utf-8'),
-  );
-  const l3NodeConfig = JSON.parse(
-    readFileSync(join(configDir, 'l3-nodeConfig.json'), 'utf-8'),
-  );
+  const deploymentJson = JSON.parse(readFileSync(join(configDir, 'deployment.json'), 'utf-8'));
+  const l3DeploymentJson = JSON.parse(readFileSync(join(configDir, 'l3deployment.json'), 'utf-8'));
+  const sequencerConfig = JSON.parse(readFileSync(join(configDir, 'l2-nodeConfig.json'), 'utf-8'));
+  const l3NodeConfig = JSON.parse(readFileSync(join(configDir, 'l3-nodeConfig.json'), 'utf-8'));
 
-  const batchPosterKey =
-    sequencerConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
-  const l3BatchPosterKey =
-    l3NodeConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
+  const batchPosterKey = sequencerConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
+  const l3BatchPosterKey = l3NodeConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
 
   return {
     bridge: deploymentJson['bridge'],
