@@ -2,6 +2,8 @@ import { Address, Chain, PublicClient, zeroAddress } from 'viem';
 import { PrivateKeyAccount, privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
 import { config } from 'dotenv';
 import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { generateChainId, sanitizePrivateKey } from './utils';
 import { createRollup } from './createRollup';
@@ -90,7 +92,45 @@ type TestnodeInformation = {
   l3NativeToken: `0x${string}`;
 };
 
+function getInformationFromConfigDir(configDir: string): TestnodeInformation {
+  const deploymentJson = JSON.parse(
+    readFileSync(join(configDir, 'deployment.json'), 'utf-8'),
+  );
+  const l3DeploymentJson = JSON.parse(
+    readFileSync(join(configDir, 'l3deployment.json'), 'utf-8'),
+  );
+  const sequencerConfig = JSON.parse(
+    readFileSync(join(configDir, 'l2-nodeConfig.json'), 'utf-8'),
+  );
+  const l3NodeConfig = JSON.parse(
+    readFileSync(join(configDir, 'l3-nodeConfig.json'), 'utf-8'),
+  );
+
+  const batchPosterKey =
+    sequencerConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
+  const l3BatchPosterKey =
+    l3NodeConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
+
+  return {
+    bridge: deploymentJson['bridge'],
+    rollup: deploymentJson['rollup'],
+    sequencerInbox: deploymentJson['sequencer-inbox'],
+    batchPoster: privateKeyToAccount(`0x${batchPosterKey}`).address,
+    l3Bridge: l3DeploymentJson['bridge'],
+    l3Rollup: l3DeploymentJson['rollup'],
+    l3SequencerInbox: l3DeploymentJson['sequencer-inbox'],
+    l3NativeToken: l3DeploymentJson['native-token'],
+    l3BatchPoster: privateKeyToAccount(`0x${l3BatchPosterKey}`).address,
+    l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
+  };
+}
+
 export function getInformationFromTestnode(): TestnodeInformation {
+  const configDir = process.env.ARBITRUM_TESTNODE_CONFIG_DIR;
+  if (configDir) {
+    return getInformationFromConfigDir(configDir);
+  }
+
   const containers = [
     'nitro_sequencer_1',
     'nitro-sequencer-1',
