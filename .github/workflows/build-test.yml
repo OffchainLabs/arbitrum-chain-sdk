@@ -211,6 +211,7 @@ jobs:
           l3-node: true
           fee-token-decimals: ${{ matrix.config.decimals }}
           nitro-contracts-version: ${{ matrix.config.nitro-contracts-version }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Copy .env
         run: cp ./.env.example ./.env
