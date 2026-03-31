@@ -61,6 +61,7 @@
     "@offchainlabs/fund-distribution-contracts": "^1.0.1",
     "@safe-global/protocol-kit": "^4.1.7",
     "abitype": "^0.9.8",
-    "ethers": "^5.7.2"
+    "ethers": "^5.7.2",
+    "zod": "^3.22.4"
   }
 }

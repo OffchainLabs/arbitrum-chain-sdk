@@ -191,6 +191,8 @@ import {
   FetchDecimalsProps,
 } from './utils/erc20';
 import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
+import { runScript } from './scripting/runScript';
+import { toPublicClient, toAccount, toWalletClient } from './scripting/viemTransforms';
 
 export {
   arbOwnerPublicActions,
@@ -354,4 +356,9 @@ export {
   FetchDecimalsProps,
   //
   prepareArbitrumNetwork,
+  //
+  runScript,
+  toPublicClient,
+  toAccount,
+  toWalletClient,
 };
