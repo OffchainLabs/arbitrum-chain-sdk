@@ -193,6 +193,20 @@ import {
 import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
 import { runScript } from './scripting/runScript';
 import { toPublicClient, toAccount, toWalletClient } from './scripting/viemTransforms';
+import {
+  addressSchema,
+  hexSchema,
+  bigintSchema,
+  coreContractsSchema,
+  sequencerInboxMaxTimeVariationSchema,
+  gasOverridesSchema,
+  retryableGasOverridesSchema,
+  setWethGatewayGasOverridesSchema,
+  gasOverrideOptionsSchema,
+  createRollupSchema,
+  setValidKeysetSchema,
+  createTokenBridgeSchema,
+} from './scripting/schemas';
 
 export {
   arbOwnerPublicActions,
@@ -361,4 +375,17 @@ export {
   toPublicClient,
   toAccount,
   toWalletClient,
+  //
+  addressSchema,
+  hexSchema,
+  bigintSchema,
+  coreContractsSchema,
+  sequencerInboxMaxTimeVariationSchema,
+  gasOverridesSchema,
+  retryableGasOverridesSchema,
+  setWethGatewayGasOverridesSchema,
+  gasOverrideOptionsSchema,
+  createRollupSchema,
+  setValidKeysetSchema,
+  createTokenBridgeSchema,
 };
