@@ -7,12 +7,18 @@ import { setValidKeyset } from '../../setValidKeyset';
 import { createTokenBridge } from '../../createTokenBridge';
 import { getKeysets } from '../../getKeysets';
 import { CoreContracts } from '../../types/CoreContracts';
+import { ChainConfig } from '../../types/ChainConfig';
+import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
 
 import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
 import { createTokenBridgeTransform } from './createTokenBridge';
 import { getKeysetsTransform } from './getKeysets';
-import { coreContractsSchema } from './common';
+import {
+  prepareDeploymentParamsConfigV32Transform,
+  prepareDeploymentParamsConfigV21Transform,
+} from './createRollupPrepareDeploymentParamsConfig';
+import { coreContractsSchema, chainConfigSchema } from './common';
 
 // ------------------------------------------------------------------
 // DeepNormalize<T>
@@ -154,4 +160,19 @@ it('getKeysetsTransform output matches getKeysets params', () =>
 
 it('coreContractsSchema matches CoreContracts', () =>
   expectTypeOf<z.output<typeof coreContractsSchema>>().toEqualTypeOf<CoreContracts>());
+
+it('chainConfigSchema matches ChainConfig', () =>
+  expectTypeOf<z.output<typeof chainConfigSchema>>().toEqualTypeOf<ChainConfig>());
+
+it('prepareDeploymentParamsConfigV32Transform params match CreateRollupPrepareDeploymentParamsConfigParams', () => {
+  type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV32Transform>;
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
+    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>>();
+});
+
+it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDeploymentParamsConfigParams<v2.1>', () => {
+  type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV21Transform>;
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
+    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>>();
+});
 

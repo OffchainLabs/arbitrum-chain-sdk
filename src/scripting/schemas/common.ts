@@ -57,3 +57,51 @@ export const coreContractsSchema = z.object({
   validatorWalletCreator: addressSchema,
   deployedAtBlockNumber: z.number(),
 });
+
+export const bufferConfigSchema = z.object({
+  threshold: bigintSchema,
+  max: bigintSchema,
+  replenishRateInBasis: bigintSchema,
+});
+
+const globalStateSchema = z.object({
+  bytes32Vals: z.tuple([hexSchema, hexSchema]),
+  u64Vals: z.tuple([bigintSchema, bigintSchema]),
+});
+
+export const assertionStateSchema = z.object({
+  globalState: globalStateSchema,
+  machineStatus: z.number(),
+  endHistoryRoot: hexSchema,
+});
+
+const chainConfigArbitrumParamsSchema = z.object({
+  EnableArbOS: z.boolean(),
+  AllowDebugPrecompiles: z.boolean(),
+  InitialArbOSVersion: z.number(),
+  InitialChainOwner: addressSchema,
+  DataAvailabilityCommittee: z.boolean(),
+  GenesisBlockNum: z.number(),
+  MaxCodeSize: z.number(),
+  MaxInitCodeSize: z.number(),
+});
+
+export const chainConfigSchema = z.object({
+  chainId: z.number(),
+  homesteadBlock: z.number(),
+  daoForkBlock: z.null(),
+  daoForkSupport: z.boolean(),
+  eip150Block: z.number(),
+  eip150Hash: z.string(),
+  eip155Block: z.number(),
+  eip158Block: z.number(),
+  byzantiumBlock: z.number(),
+  constantinopleBlock: z.number(),
+  petersburgBlock: z.number(),
+  istanbulBlock: z.number(),
+  muirGlacierBlock: z.number(),
+  berlinBlock: z.number(),
+  londonBlock: z.number(),
+  clique: z.object({ period: z.number(), epoch: z.number() }),
+  arbitrum: chainConfigArbitrumParamsSchema,
+});

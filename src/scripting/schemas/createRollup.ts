@@ -1,62 +1,20 @@
 import { z } from 'zod';
 import { toPublicClient, toAccount } from '../viemTransforms';
-import { addressSchema, hexSchema, bigintSchema, sequencerInboxMaxTimeVariationSchema } from './common';
+import { addressSchema, bigintSchema } from './common';
+import {
+  paramsV3Dot2Schema as prepareParamsV3Dot2Schema,
+  paramsV2Dot1Schema as prepareParamsV2Dot1Schema,
+} from './createRollupPrepareDeploymentParamsConfig';
 
-const bufferConfigSchema = z.object({
-  threshold: bigintSchema,
-  max: bigintSchema,
-  replenishRateInBasis: bigintSchema,
-});
+const configV3Dot2Schema = prepareParamsV3Dot2Schema
+  .omit({ chainConfig: true })
+  .required()
+  .extend({ chainConfig: z.string() });
 
-const globalStateSchema = z.object({
-  bytes32Vals: z.tuple([hexSchema, hexSchema]),
-  u64Vals: z.tuple([bigintSchema, bigintSchema]),
-});
-
-const assertionStateSchema = z.object({
-  globalState: globalStateSchema,
-  machineStatus: z.number(),
-  endHistoryRoot: hexSchema,
-});
-
-const configV3Dot2Schema = z.object({
-  confirmPeriodBlocks: bigintSchema,
-  stakeToken: addressSchema,
-  baseStake: bigintSchema,
-  wasmModuleRoot: hexSchema,
-  owner: addressSchema,
-  loserStakeEscrow: addressSchema,
-  chainId: bigintSchema,
-  chainConfig: z.string(),
-  minimumAssertionPeriod: bigintSchema,
-  validatorAfkBlocks: bigintSchema,
-  miniStakeValues: z.array(bigintSchema),
-  sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema,
-  layerZeroBlockEdgeHeight: bigintSchema,
-  layerZeroBigStepEdgeHeight: bigintSchema,
-  layerZeroSmallStepEdgeHeight: bigintSchema,
-  genesisAssertionState: assertionStateSchema,
-  genesisInboxCount: bigintSchema,
-  anyTrustFastConfirmer: addressSchema,
-  numBigStepLevel: z.number(),
-  challengeGracePeriodBlocks: bigintSchema,
-  bufferConfig: bufferConfigSchema,
-  dataCostEstimate: bigintSchema,
-});
-
-const configV2Dot1Schema = z.object({
-  confirmPeriodBlocks: bigintSchema,
-  extraChallengeTimeBlocks: bigintSchema,
-  stakeToken: addressSchema,
-  baseStake: bigintSchema,
-  wasmModuleRoot: hexSchema,
-  owner: addressSchema,
-  loserStakeEscrow: addressSchema,
-  chainId: bigintSchema,
-  chainConfig: z.string(),
-  genesisBlockNum: bigintSchema,
-  sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema,
-});
+const configV2Dot1Schema = prepareParamsV2Dot1Schema
+  .omit({ chainConfig: true })
+  .required()
+  .extend({ chainConfig: z.string() });
 
 const paramsV3Dot2Schema = z.object({
   config: configV3Dot2Schema,
