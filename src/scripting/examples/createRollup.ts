@@ -9,20 +9,21 @@ const schema = createRollupDefaultSchema.extend({
   params: createRollupDefaultSchema.shape.params.extend({
     config: paramsV3Dot2Schema,
   }),
+}).transform((input) => {
+  const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
+  const { config: configParams, ...params } = input.params;
+  const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, configParams);
+  return {
+    params: { config, ...params },
+    account: toAccount(input.privateKey),
+    parentChainPublicClient,
+  };
 });
 
 runScript({
   input: schema,
   async run(input) {
-    const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
-    const { config: configParams, ...params } = input.params;
-    const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, configParams);
-
-    const result = await createRollup({
-      params: { config, ...params },
-      account: toAccount(input.privateKey),
-      parentChainPublicClient,
-    });
+    const result = await createRollup(input);
     return result.coreContracts;
   },
 });

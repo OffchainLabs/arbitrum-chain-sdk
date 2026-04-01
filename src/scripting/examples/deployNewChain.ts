@@ -1,30 +1,42 @@
 import { runScript } from '../runScript';
-import { createRollupDefaultSchema, createRollupTransform } from '../schemas/createRollup';
+import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema } from '../schemas/common';
-import { toWalletClient } from '../viemTransforms';
+import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
+import { toPublicClient, toAccount, toWalletClient } from '../viemTransforms';
+import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { createRollup } from '../../createRollup';
 import { setValidKeyset } from '../../setValidKeyset';
 
-const deployNewChainSchema = createRollupDefaultSchema
-  .extend({ keyset: hexSchema.optional() })
-  .transform((input) => ({
-    createRollupArgs: createRollupTransform(input),
-    keyset: input.keyset,
+const schema = createRollupDefaultSchema.extend({
+  params: createRollupDefaultSchema.shape.params.extend({
+    config: paramsV3Dot2Schema,
+  }),
+  keyset: hexSchema.optional(),
+}).transform((input) => {
+  const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
+  const { config: configParams, ...params } = input.params;
+  const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, configParams);
+  return {
+    params: { config, ...params },
+    account: toAccount(input.privateKey),
+    parentChainPublicClient,
     walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
-  }));
+    keyset: input.keyset,
+  };
+});
 
 runScript({
-  input: deployNewChainSchema,
+  input: schema,
   async run(input) {
-    const result = await createRollup(...input.createRollupArgs);
+    const { keyset, walletClient, ...createRollupArgs } = input;
+    const result = await createRollup(createRollupArgs);
     const coreContracts = result.coreContracts;
 
-    if (input.keyset) {
-      const [createRollupArgs] = input.createRollupArgs
+    if (keyset) {
       await setValidKeyset({
-        keyset: input.keyset,
+        keyset,
         publicClient: createRollupArgs.parentChainPublicClient,
-        walletClient: input.walletClient,
+        walletClient,
         coreContracts,
       });
     }
