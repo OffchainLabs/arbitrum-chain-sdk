@@ -70,7 +70,43 @@
     // elliptic has no patched release yet (affected: <=6.6.1)
     // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
     // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
-    "GHSA-848j-6mx2-7j84"
+    "GHSA-848j-6mx2-7j84",
 
+    // flatted
+    ////////////
+    // https://github.com/advisories/GHSA-25h7-pfq9-p65f
+    // flatted ReDoS - transitive dev dep via eslint>file-entry-cache>flat-cache>flatted
+    // not a runtime dependency
+    "GHSA-25h7-pfq9-p65f",
+    // https://github.com/advisories/GHSA-rf6f-7fwh-wjgh
+    // flatted DoS - transitive dev dep via eslint>file-entry-cache>flat-cache>flatted
+    // not a runtime dependency
+    "GHSA-rf6f-7fwh-wjgh",
+
+    // picomatch
+    ////////////
+    // https://github.com/advisories/GHSA-3v7f-55p6-f55p
+    // picomatch method injection - transitive dev dep via @wagmi/cli>chokidar and typescript-eslint
+    // not a runtime dependency
+    "GHSA-3v7f-55p6-f55p",
+    // https://github.com/advisories/GHSA-c2c7-rcm5-vvqj
+    // picomatch ReDoS - transitive dev dep via @wagmi/cli>chokidar and typescript-eslint
+    // not a runtime dependency
+    "GHSA-c2c7-rcm5-vvqj",
+
+    // brace-expansion
+    ////////////
+    // https://github.com/advisories/GHSA-f886-m6hf-6m8v
+    // brace-expansion infinite loop - transitive dev dep via eslint>minimatch, ts-morph, typescript-eslint
+    // not a runtime dependency
+    "GHSA-f886-m6hf-6m8v",
+
+    // yaml
+    ////////////
+    // https://github.com/advisories/GHSA-48c2-rrv3-qjmp
+    // yaml stack overflow via deeply nested collections
+    // transitive dev dep via patch-package>yaml and @arbitrum/nitro-contracts>patch-package>yaml
+    // not a runtime dependency
+    "GHSA-48c2-rrv3-qjmp"
   ]
 }

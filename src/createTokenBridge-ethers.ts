@@ -50,20 +50,12 @@ export async function createTokenBridgeGetInputs<
   const {
     maxSubmissionCost: maxSubmissionCostForFactoryEstimation,
     maxGas: maxGasForFactoryEstimation,
-  } = await getEstimateForDeployingFactory(
-    l1TokenBridgeCreatorAddress,
-    l1Provider,
-    l2Provider,
-  );
+  } = await getEstimateForDeployingFactory(l1TokenBridgeCreatorAddress, l1Provider, l2Provider);
 
   const {
     maxSubmissionCost: maxSubmissionCostForContractsEstimation,
     maxGas: maxGasForContractsEstimation,
-  } = await getEstimateForDeployingContracts(
-    l1TokenBridgeCreatorAddress,
-    l1Provider,
-    l2Provider,
-  );
+  } = await getEstimateForDeployingContracts(l1TokenBridgeCreatorAddress, l1Provider, l2Provider);
 
   //// apply gas overrides
   const maxSubmissionCostForFactory =
@@ -161,7 +153,9 @@ export async function getContractsDeploymentData(
     wethGateway: await l1Provider.getCode(await l1TokenBridgeCreator.l2WethGatewayTemplate()),
     aeWeth: await l1Provider.getCode(await l1TokenBridgeCreator.l2WethTemplate()),
     upgradeExecutor: await l1Provider.getCode(
-      (await l1TokenBridgeCreator.l1Templates()).upgradeExecutor,
+      (
+        await l1TokenBridgeCreator.l1Templates()
+      ).upgradeExecutor,
     ),
     multicall: await l1Provider.getCode(await l1TokenBridgeCreator.l2MulticallTemplate()),
   };
