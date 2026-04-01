@@ -75,16 +75,21 @@ export const assertionStateSchema = z.object({
   endHistoryRoot: hexSchema,
 });
 
-const chainConfigArbitrumParamsSchema = z.object({
-  EnableArbOS: z.boolean(),
-  AllowDebugPrecompiles: z.boolean(),
-  InitialArbOSVersion: z.number(),
+export const prepareChainConfigArbitrumParamsSchema = z.object({
   InitialChainOwner: addressSchema,
-  DataAvailabilityCommittee: z.boolean(),
-  GenesisBlockNum: z.number(),
-  MaxCodeSize: z.number(),
-  MaxInitCodeSize: z.number(),
+  DataAvailabilityCommittee: z.boolean().optional(),
+  InitialArbOSVersion: z.number().optional(),
+  MaxCodeSize: z.number().optional(),
+  MaxInitCodeSize: z.number().optional(),
 });
+
+const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema
+  .required()
+  .extend({
+    EnableArbOS: z.boolean(),
+    AllowDebugPrecompiles: z.boolean(),
+    GenesisBlockNum: z.number(),
+  });
 
 export const chainConfigSchema = z.object({
   chainId: z.number(),

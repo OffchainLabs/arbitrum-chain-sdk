@@ -9,6 +9,7 @@ import { getKeysets } from '../../getKeysets';
 import { CoreContracts } from '../../types/CoreContracts';
 import { ChainConfig } from '../../types/ChainConfig';
 import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
+import { prepareChainConfig, PrepareChainConfigParams } from '../../prepareChainConfig';
 
 import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
@@ -18,6 +19,7 @@ import {
   prepareDeploymentParamsConfigV32Transform,
   prepareDeploymentParamsConfigV21Transform,
 } from './createRollupPrepareDeploymentParamsConfig';
+import { prepareChainConfigTransform } from './prepareChainConfig';
 import { coreContractsSchema, chainConfigSchema } from './common';
 
 // ------------------------------------------------------------------
@@ -175,4 +177,8 @@ it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDe
   expectTypeOf<DeepNormalize<TransformOutput[1]>>()
     .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>>();
 });
+
+it('prepareChainConfigTransform output matches prepareChainConfig params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof prepareChainConfigTransform>>>()
+    .toEqualTypeOf<DeepNormalize<Parameters<typeof prepareChainConfig>>>());
 
