@@ -10,6 +10,7 @@ import { CoreContracts } from '../../types/CoreContracts';
 import { ChainConfig } from '../../types/ChainConfig';
 import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig, PrepareChainConfigParams } from '../../prepareChainConfig';
+import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 
 import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
@@ -20,6 +21,7 @@ import {
   prepareDeploymentParamsConfigV21Transform,
 } from './createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfigTransform } from './prepareChainConfig';
+import { upgradeExecutorPrepareTransactionRequestTransform } from './upgradeExecutor';
 import { coreContractsSchema, chainConfigSchema } from './common';
 
 // ------------------------------------------------------------------
@@ -181,4 +183,8 @@ it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDe
 it('prepareChainConfigTransform output matches prepareChainConfig params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof prepareChainConfigTransform>>>()
     .toEqualTypeOf<DeepNormalize<Parameters<typeof prepareChainConfig>>>());
+
+it('upgradeExecutorPrepareTransactionRequestTransform output matches upgradeExecutorPrepareAddExecutorTransactionRequest params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof upgradeExecutorPrepareTransactionRequestTransform>>>()
+    .toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest>>>());
 

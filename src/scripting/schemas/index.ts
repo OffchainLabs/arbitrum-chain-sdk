@@ -12,6 +12,10 @@ export {
   prepareChainConfigArbitrumParamsSchema,
 } from './common';
 export { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './prepareChainConfig';
+export {
+  upgradeExecutorPrepareTransactionRequestSchema,
+  upgradeExecutorPrepareTransactionRequestTransform,
+} from './upgradeExecutor';
 export { createRollupSchema, createRollupTransform } from './createRollup';
 export { setValidKeysetSchema, setValidKeysetTransform } from './setValidKeyset';
 export { createTokenBridgeSchema, createTokenBridgeTransform } from './createTokenBridge';
