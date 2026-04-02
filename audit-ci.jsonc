@@ -71,6 +71,5 @@
     // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
     // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
     "GHSA-848j-6mx2-7j84"
-
   ]
 }
