@@ -4,10 +4,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from './chains';
 import { rollupAdminLogicPublicActions } from './decorators/rollupAdminLogicPublicActions';
-import {
-  getInformationFromTestnode,
-  getNitroTestnodePrivateKeyAccounts,
-} from './testHelpers';
+import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 import { getValidators } from './getValidators';
 
 const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
