@@ -21,7 +21,7 @@ beforeEach(() => {
 
   vi.spyOn(process, 'exit').mockImplementation((() => {
     // intentionally empty -- just prevents the real exit
-  }) as any);
+  }) as never);
 });
 
 afterEach(() => {
@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 function getExitCode(): number | undefined {
-  const calls = (process.exit as any).mock?.calls;
+  const calls = (process.exit as unknown as { mock?: { calls: number[][] } }).mock?.calls;
   if (calls && calls.length > 0) {
     return calls[calls.length - 1][0];
   }
@@ -50,7 +50,7 @@ it('parses JSON from argv and writes result to stdout', async () => {
 });
 
 it('exits with code 1 when no JSON argument provided', () => {
-  process.argv[2] = undefined as any;
+  process.argv[2] = undefined as unknown as string;
   runScript({
     input: z.object({}),
     run: async () => ({}),

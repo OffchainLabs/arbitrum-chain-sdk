@@ -47,18 +47,24 @@ const commonFieldsSchema = z.object({
   privateKey: z.string().startsWith('0x'),
 });
 
-export const createRollupV21Schema = commonFieldsSchema.extend({
-  params: paramsV2Dot1Schema,
-  rollupCreatorVersion: z.literal('v2.1'),
-}).strict();
-export const createRollupV32Schema = commonFieldsSchema.extend({
-  params: paramsV3Dot2Schema,
-  rollupCreatorVersion: z.literal('v3.2'),
-}).strict();
-export const createRollupDefaultSchema = commonFieldsSchema.extend({
-  params: paramsV3Dot2Schema,
-  rollupCreatorVersion: z.never().optional(),
-}).strict();
+export const createRollupV21Schema = commonFieldsSchema
+  .extend({
+    params: paramsV2Dot1Schema,
+    rollupCreatorVersion: z.literal('v2.1'),
+  })
+  .strict();
+export const createRollupV32Schema = commonFieldsSchema
+  .extend({
+    params: paramsV3Dot2Schema,
+    rollupCreatorVersion: z.literal('v3.2'),
+  })
+  .strict();
+export const createRollupDefaultSchema = commonFieldsSchema
+  .extend({
+    params: paramsV3Dot2Schema,
+    rollupCreatorVersion: z.never().optional(),
+  })
+  .strict();
 
 export const createRollupSchema = z.union([
   createRollupV21Schema,
@@ -66,37 +72,47 @@ export const createRollupSchema = z.union([
   createRollupDefaultSchema,
 ]);
 
-type Params<V extends 'v2.1' | 'v3.2' | undefined> = [Extract<
-  CreateRollupFunctionParams<Chain | undefined>,
-  V extends undefined ? { rollupCreatorVersion?: never } : { rollupCreatorVersion: V }
->];
+type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
+  Extract<
+    CreateRollupFunctionParams<Chain | undefined>,
+    V extends undefined ? { rollupCreatorVersion?: never } : { rollupCreatorVersion: V }
+  >,
+];
 
-const transformV21 = (input: z.output<typeof createRollupV21Schema>): Params<'v2.1'> => [{
-  params: input.params,
-  account: toAccount(input.privateKey),
-  parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-  rollupCreatorVersion: input.rollupCreatorVersion,
-}];
+const transformV21 = (input: z.output<typeof createRollupV21Schema>): Params<'v2.1'> => [
+  {
+    params: input.params,
+    account: toAccount(input.privateKey),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    rollupCreatorVersion: input.rollupCreatorVersion,
+  },
+];
 
-const transformV32 = (input: z.output<typeof createRollupV32Schema>): Params<'v3.2'> => [{
-  params: input.params,
-  account: toAccount(input.privateKey),
-  parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-  rollupCreatorVersion: input.rollupCreatorVersion,
-}];
+const transformV32 = (input: z.output<typeof createRollupV32Schema>): Params<'v3.2'> => [
+  {
+    params: input.params,
+    account: toAccount(input.privateKey),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    rollupCreatorVersion: input.rollupCreatorVersion,
+  },
+];
 
-const transformDefault = (input: z.output<typeof createRollupDefaultSchema>): Params<undefined> => [{
-  params: input.params,
-  account: toAccount(input.privateKey),
-  parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-  rollupCreatorVersion: input.rollupCreatorVersion,
-}];
+const transformDefault = (input: z.output<typeof createRollupDefaultSchema>): Params<undefined> => [
+  {
+    params: input.params,
+    account: toAccount(input.privateKey),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    rollupCreatorVersion: input.rollupCreatorVersion,
+  },
+];
 
 export const createRollupTransform = (
   input: z.output<typeof createRollupSchema>,
 ): [CreateRollupFunctionParams<Chain | undefined>] => {
-  if (input.rollupCreatorVersion === 'v2.1') return transformV21(input as z.output<typeof createRollupV21Schema>);
-  if (input.rollupCreatorVersion === 'v3.2') return transformV32(input as z.output<typeof createRollupV32Schema>);
+  if (input.rollupCreatorVersion === 'v2.1')
+    return transformV21(input as z.output<typeof createRollupV21Schema>);
+  if (input.rollupCreatorVersion === 'v3.2')
+    return transformV32(input as z.output<typeof createRollupV32Schema>);
   return transformDefault(input as z.output<typeof createRollupDefaultSchema>);
 };
 

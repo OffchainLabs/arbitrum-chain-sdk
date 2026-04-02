@@ -46,7 +46,10 @@ export {
   createRollupFetchCoreContractsSchema,
   createRollupFetchCoreContractsTransform,
 } from './createRollupFetchCoreContracts';
-export { isTokenBridgeDeployedSchema, isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
+export {
+  isTokenBridgeDeployedSchema,
+  isTokenBridgeDeployedTransform,
+} from './isTokenBridgeDeployed';
 export {
   createTokenBridgePrepareTransactionRequestSchema,
   createTokenBridgePrepareTransactionRequestTransform,

@@ -85,13 +85,11 @@ export const prepareChainConfigArbitrumParamsSchema = z.object({
   MaxInitCodeSize: z.number().optional(),
 });
 
-const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema
-  .required()
-  .extend({
-    EnableArbOS: z.boolean(),
-    AllowDebugPrecompiles: z.boolean(),
-    GenesisBlockNum: z.number(),
-  });
+const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema.required().extend({
+  EnableArbOS: z.boolean(),
+  AllowDebugPrecompiles: z.boolean(),
+  GenesisBlockNum: z.number(),
+});
 
 export const chainConfigSchema = z.object({
   chainId: z.number(),

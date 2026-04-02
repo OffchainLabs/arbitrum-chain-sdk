@@ -11,35 +11,44 @@ const createRollupCustomFeeTokenBaseSchema = z.object({
   rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
 });
 
-export const createRollupEnoughCustomFeeTokenAllowanceSchema = createRollupCustomFeeTokenBaseSchema.strict();
+export const createRollupEnoughCustomFeeTokenAllowanceSchema =
+  createRollupCustomFeeTokenBaseSchema.strict();
 
 export const createRollupEnoughCustomFeeTokenAllowanceTransform = (
   input: z.output<typeof createRollupEnoughCustomFeeTokenAllowanceSchema>,
-) => [{
-  nativeToken: input.nativeToken,
-  maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
-  account: input.account,
-  publicClient: toPublicClient(input.rpcUrl),
-  rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
-  rollupCreatorVersion: input.rollupCreatorVersion,
-}] as const;
+) =>
+  [
+    {
+      nativeToken: input.nativeToken,
+      maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
+      account: input.account,
+      publicClient: toPublicClient(input.rpcUrl),
+      rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
+      rollupCreatorVersion: input.rollupCreatorVersion,
+    },
+  ] as const;
 
 export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema =
-  createRollupCustomFeeTokenBaseSchema.extend({
-    amount: bigintSchema.optional(),
-  }).strict();
+  createRollupCustomFeeTokenBaseSchema
+    .extend({
+      amount: bigintSchema.optional(),
+    })
+    .strict();
 
 export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform = (
   input: z.output<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema>,
-) => [{
-  amount: input.amount,
-  nativeToken: input.nativeToken,
-  maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
-  account: input.account,
-  publicClient: toPublicClient(input.rpcUrl),
-  rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
-  rollupCreatorVersion: input.rollupCreatorVersion,
-}] as const;
+) =>
+  [
+    {
+      amount: input.amount,
+      nativeToken: input.nativeToken,
+      maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
+      account: input.account,
+      publicClient: toPublicClient(input.rpcUrl),
+      rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
+      rollupCreatorVersion: input.rollupCreatorVersion,
+    },
+  ] as const;
 
 const createTokenBridgeCustomFeeTokenBaseSchema = z.object({
   rpcUrl: z.string().url(),
@@ -53,24 +62,32 @@ export const createTokenBridgeEnoughCustomFeeTokenAllowanceSchema =
 
 export const createTokenBridgeEnoughCustomFeeTokenAllowanceTransform = (
   input: z.output<typeof createTokenBridgeEnoughCustomFeeTokenAllowanceSchema>,
-) => [{
-  nativeToken: input.nativeToken,
-  owner: input.owner,
-  publicClient: toPublicClient(input.rpcUrl),
-  tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-}] as const;
+) =>
+  [
+    {
+      nativeToken: input.nativeToken,
+      owner: input.owner,
+      publicClient: toPublicClient(input.rpcUrl),
+      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+    },
+  ] as const;
 
 export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema =
-  createTokenBridgeCustomFeeTokenBaseSchema.extend({
-    amount: bigintSchema.optional(),
-  }).strict();
+  createTokenBridgeCustomFeeTokenBaseSchema
+    .extend({
+      amount: bigintSchema.optional(),
+    })
+    .strict();
 
 export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform = (
   input: z.output<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema>,
-) => [{
-  amount: input.amount,
-  nativeToken: input.nativeToken,
-  owner: input.owner,
-  publicClient: toPublicClient(input.rpcUrl),
-  tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-}] as const;
+) =>
+  [
+    {
+      amount: input.amount,
+      nativeToken: input.nativeToken,
+      owner: input.owner,
+      publicClient: toPublicClient(input.rpcUrl),
+      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+    },
+  ] as const;

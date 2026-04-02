@@ -7,26 +7,31 @@ import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPre
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { createRollup } from '../../createRollup';
 
-const schema = createRollupDefaultSchema.extend({
-  params: createRollupDefaultSchema.shape.params.extend({
-    config: paramsV3Dot2Schema.extend({
-      chainConfig: prepareChainConfigParamsSchema.optional(),
+const schema = createRollupDefaultSchema
+  .extend({
+    params: createRollupDefaultSchema.shape.params.extend({
+      config: paramsV3Dot2Schema.extend({
+        chainConfig: prepareChainConfigParamsSchema.optional(),
+      }),
     }),
-  }),
-}).transform((input) => {
-  const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
-  const { config: { chainConfig: chainConfigParams, ...restConfig }, ...params } = input.params;
-  const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
-  const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
-    ...restConfig,
-    chainConfig,
+  })
+  .transform((input) => {
+    const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
+    const {
+      config: { chainConfig: chainConfigParams, ...restConfig },
+      ...params
+    } = input.params;
+    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
+    const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
+      ...restConfig,
+      chainConfig,
+    });
+    return {
+      params: { config, ...params },
+      account: toAccount(input.privateKey),
+      parentChainPublicClient,
+    };
   });
-  return {
-    params: { config, ...params },
-    account: toAccount(input.privateKey),
-    parentChainPublicClient,
-  };
-});
 
 runScript({
   input: schema,

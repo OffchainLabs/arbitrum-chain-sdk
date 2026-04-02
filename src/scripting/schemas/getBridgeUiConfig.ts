@@ -12,28 +12,30 @@ function findChain(chainId: number): Chain {
   return chain;
 }
 
-export const getBridgeUiConfigSchema = z.object({
-  parentChainRpcUrl: z.string().url(),
-  parentChainId: z.number(),
-  deploymentTxHash: hexSchema,
-  chainName: z.string().optional(),
-  rpcUrl: z.string().optional(),
-  explorerUrl: z.string().optional(),
-}).strict();
+export const getBridgeUiConfigSchema = z
+  .object({
+    parentChainRpcUrl: z.string().url(),
+    parentChainId: z.number(),
+    deploymentTxHash: hexSchema,
+    chainName: z.string().optional(),
+    rpcUrl: z.string().optional(),
+    explorerUrl: z.string().optional(),
+  })
+  .strict();
 
-export const getBridgeUiConfigTransform = (
-  input: z.output<typeof getBridgeUiConfigSchema>,
-) => {
+export const getBridgeUiConfigTransform = (input: z.output<typeof getBridgeUiConfigSchema>) => {
   const parentChain = findChain(input.parentChainId);
 
-  return [{
-    params: {
-      parentChain,
-      deploymentTxHash: input.deploymentTxHash,
-      chainName: input.chainName,
-      rpcUrl: input.rpcUrl,
-      explorerUrl: input.explorerUrl,
+  return [
+    {
+      params: {
+        parentChain,
+        deploymentTxHash: input.deploymentTxHash,
+        chainName: input.chainName,
+        rpcUrl: input.rpcUrl,
+        explorerUrl: input.explorerUrl,
+      },
+      parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, parentChain),
     },
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, parentChain),
-  }] as const;
+  ] as const;
 };

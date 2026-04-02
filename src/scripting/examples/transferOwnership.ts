@@ -27,9 +27,7 @@ const createRetryableTicketEthABI = parseAbi([
 const createRetryableTicketErc20ABI = parseAbi([
   'function createRetryableTicket(address to, uint256 l2CallValue, uint256 maxSubmissionCost, address excessFeeRefundAddress, address callValueRefundAddress, uint256 gasLimit, uint256 maxFeePerGas, uint256 tokenTotalFeeAmount, bytes data) returns (uint256)',
 ]);
-const sendL2MessageABI = parseAbi([
-  'function sendL2Message(bytes messageData) returns (uint256)',
-]);
+const sendL2MessageABI = parseAbi(['function sendL2Message(bytes messageData) returns (uint256)']);
 const inboxSubmissionFeeABI = parseAbi([
   'function calculateRetryableSubmissionFee(uint256 dataLength, uint256 baseFee) view returns (uint256)',
 ]);
@@ -62,19 +60,32 @@ async function sendRetryableViaUpgradeExecutor(
   data: `0x${string}`,
 ) {
   const {
-    publicClient, walletClient, account, upgradeExecutorAddress,
-    inboxAddress, refundAddress, maxGasPrice, nativeToken,
+    publicClient,
+    walletClient,
+    account,
+    upgradeExecutorAddress,
+    inboxAddress,
+    refundAddress,
+    maxGasPrice,
+    nativeToken,
   } = input;
   const isErc20 = nativeToken !== zeroAddress;
-  const createRetryableTicketAbi = isErc20 ? createRetryableTicketErc20ABI : createRetryableTicketEthABI;
+  const createRetryableTicketAbi = isErc20
+    ? createRetryableTicketErc20ABI
+    : createRetryableTicketEthABI;
 
   const maxSubmissionCost = applyBuffer(await calculateMaxSubmissionCost(input, data));
   const gasLimit = applyBuffer(DEFAULT_GAS_LIMIT);
   const deposit = maxSubmissionCost + gasLimit * maxGasPrice;
 
   const retryableArgs: unknown[] = [
-    to, 0n, maxSubmissionCost, refundAddress, refundAddress,
-    gasLimit, maxGasPrice,
+    to,
+    0n,
+    maxSubmissionCost,
+    refundAddress,
+    refundAddress,
+    gasLimit,
+    maxGasPrice,
   ];
   if (isErc20) retryableArgs.push(deposit);
   retryableArgs.push(data);
@@ -153,7 +164,8 @@ async function sendL2Message(
   return txHash;
 }
 
-const schema = z.object({
+const schema = z
+  .object({
     rpcUrl: z.string().url(),
     privateKey: z.string().startsWith('0x'),
     upgradeExecutorAddress: addressSchema,
@@ -178,7 +190,10 @@ runScript({
   input: schema,
   async run(input) {
     const {
-      publicClient, account, upgradeExecutorAddress, newOwnerAddress,
+      publicClient,
+      account,
+      upgradeExecutorAddress,
+      newOwnerAddress,
       childUpgradeExecutorAddress,
     } = input;
 
@@ -204,7 +219,11 @@ runScript({
       functionName: 'executeCall',
       args: [childUpgradeExecutorAddress, grantRoleCalldata],
     });
-    const step2TxHash = await sendRetryableViaUpgradeExecutor(input, childUpgradeExecutorAddress, addChildExecutorData);
+    const step2TxHash = await sendRetryableViaUpgradeExecutor(
+      input,
+      childUpgradeExecutorAddress,
+      addChildExecutorData,
+    );
 
     // Step 3: Add child-chain UpgradeExecutor as chain owner (via sendL2Message)
     const addChainOwnerCalldata = encodeFunctionData({
@@ -232,15 +251,20 @@ runScript({
       functionName: 'executeCall',
       args: [childUpgradeExecutorAddress, revokeRoleCalldata],
     });
-    const step5TxHash = await sendRetryableViaUpgradeExecutor(input, childUpgradeExecutorAddress, removeChildExecutorData);
+    const step5TxHash = await sendRetryableViaUpgradeExecutor(
+      input,
+      childUpgradeExecutorAddress,
+      removeChildExecutorData,
+    );
 
     // Step 6: Remove deployer as executor on parent-chain UpgradeExecutor
-    const removeParentExecutorTxRequest = await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
-      account: account.address,
-      upgradeExecutorAddress,
-      executorAccountAddress: account.address,
-      publicClient,
-    });
+    const removeParentExecutorTxRequest =
+      await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
+        account: account.address,
+        upgradeExecutorAddress,
+        executorAccountAddress: account.address,
+        publicClient,
+      });
     const step6TxHash = await publicClient.sendRawTransaction({
       serializedTransaction: await account.signTransaction(removeParentExecutorTxRequest),
     });

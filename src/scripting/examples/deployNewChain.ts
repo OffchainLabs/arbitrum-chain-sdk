@@ -12,44 +12,53 @@ import { zeroAddress } from 'viem';
 import { setValidKeyset } from '../../setValidKeyset';
 import { generateChainId } from '../../utils/generateChainId';
 
-const schema = createRollupDefaultSchema.extend({
-  params: createRollupDefaultSchema.shape.params.extend({
-    config: paramsV3Dot2Schema.extend({
-      chainId: bigintSchema.default(() => String(generateChainId())),
-      chainConfig: prepareChainConfigParamsSchema.optional(),
+const schema = createRollupDefaultSchema
+  .extend({
+    params: createRollupDefaultSchema.shape.params.extend({
+      config: paramsV3Dot2Schema.extend({
+        chainId: bigintSchema.default(() => String(generateChainId())),
+        chainConfig: prepareChainConfigParamsSchema.optional(),
+      }),
+      nativeToken: addressSchema.default(zeroAddress),
+      keyset: hexSchema.optional(),
     }),
-    nativeToken: addressSchema.default(zeroAddress),
-    keyset: hexSchema.optional(),
-  }),
-}).superRefine((data, ctx) => {
-  const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
-  if (data.params.keyset && !isAnytrust) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['params', 'keyset'],
-      message: 'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
+  })
+  .superRefine((data, ctx) => {
+    const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
+    if (data.params.keyset && !isAnytrust) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['params', 'keyset'],
+        message:
+          'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
+      });
+    }
+  })
+  .transform((input) => {
+    const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
+    const {
+      config: { chainConfig: chainConfigParams, ...restConfig },
+      keyset,
+      ...params
+    } = input.params;
+    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
+    const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
+    const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
+      ...restConfig,
+      chainConfig,
     });
-  }
-}).transform((input) => {
-  const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
-  const { config: { chainConfig: chainConfigParams, ...restConfig }, keyset, ...params } = input.params;
-  const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
-  const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
-  const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
-    ...restConfig,
-    chainConfig,
+
+    const DEFAULT_KEYSET: `0x${string}` =
+      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+    return {
+      params: { config, ...params },
+      account: toAccount(input.privateKey),
+      parentChainPublicClient,
+      walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
+      keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
+    };
   });
-
-  const DEFAULT_KEYSET: `0x${string}` = '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-
-  return {
-    params: { config, ...params },
-    account: toAccount(input.privateKey),
-    parentChainPublicClient,
-    walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
-    keyset: isAnytrust ? (keyset ?? DEFAULT_KEYSET) : undefined,
-  };
-});
 
 runScript({
   input: schema,

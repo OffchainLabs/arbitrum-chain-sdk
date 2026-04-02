@@ -30,12 +30,15 @@ import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from
 import { prepareKeyset } from '../../prepareKeyset';
 import { prepareKeysetHash } from '../../prepareKeysetHash';
 import { getDefaultConfirmPeriodBlocks } from '../../getDefaultConfirmPeriodBlocks';
-import { createRollupGetRetryablesFees, createRollupGetRetryablesFeesWithDefaults } from '../../createRollupGetRetryablesFees';
+import {
+  createRollupGetRetryablesFees,
+  createRollupGetRetryablesFeesWithDefaults,
+} from '../../createRollupGetRetryablesFees';
 import { fetchAllowance, fetchDecimals } from '../../utils/erc20';
 import { CoreContracts } from '../../types/CoreContracts';
 import { ChainConfig } from '../../types/ChainConfig';
 import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfig, PrepareChainConfigParams } from '../../prepareChainConfig';
+import { prepareChainConfig } from '../../prepareChainConfig';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 
 import { createRollupTransformedSchema } from './createRollup';
@@ -64,12 +67,8 @@ import { isAnyTrustTransform } from './isAnyTrust';
 import { createRollupFetchTransactionHashTransform } from './createRollupFetchTransactionHash';
 import { createRollupFetchCoreContractsTransform } from './createRollupFetchCoreContracts';
 import { isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
-import {
-  createTokenBridgePrepareTransactionRequestTransform,
-} from './createTokenBridgePrepareTransactionRequest';
-import {
-  createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
-} from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
+import { createTokenBridgePrepareTransactionRequestTransform } from './createTokenBridgePrepareTransactionRequest';
+import { createTokenBridgePrepareSetWethGatewayTransactionRequestTransform } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { setValidKeysetPrepareTransactionRequestTransform } from './setValidKeysetPrepareTransactionRequest';
 import { createRollupPrepareTransactionRequestTransformedSchema } from './createRollupPrepareTransactionRequest';
 import { createSafePrepareTransactionRequestTransform } from './createSafePrepareTransactionRequest';
@@ -151,10 +150,10 @@ type Optional<T> = { __optional: T };
 type ToCanonicalViem<V> = V extends PublicClient
   ? PublicClient
   : V extends WalletClient
-    ? WalletClient
-    : V extends PrivateKeyAccount
-      ? PrivateKeyAccount
-      : never;
+  ? WalletClient
+  : V extends PrivateKeyAccount
+  ? PrivateKeyAccount
+  : never;
 
 // Normalizes a value type recursively.
 //
@@ -164,8 +163,8 @@ type ToCanonicalViem<V> = V extends PublicClient
 type NormalizeValue<V> = V extends readonly (infer U)[]
   ? U[]
   : V extends object
-    ? DeepNormalize<V>
-    : V;
+  ? DeepNormalize<V>
+  : V;
 
 // Normalizes a single field of T. Processing order:
 //   1. If the value is a viem type, replace with its canonical form
@@ -176,12 +175,11 @@ type NormalizeValue<V> = V extends readonly (infer U)[]
 //   NormalizeField<{ pc: PublicClient<HttpTransport> }, 'pc'>  ->  PublicClient
 //   NormalizeField<{ n?: Address }, 'n'>                       ->  Optional<Address>
 //   NormalizeField<{ x: bigint }, 'x'>                         ->  bigint
-type NormalizeField<T, K extends keyof T> =
-  ToCanonicalViem<NonNullable<T[K]>> extends never
-    ? undefined extends T[K]
-      ? Optional<NormalizeValue<NonNullable<T[K]>>>
-      : NormalizeValue<NonNullable<T[K]>>
-    : ToCanonicalViem<NonNullable<T[K]>>;
+type NormalizeField<T, K extends keyof T> = ToCanonicalViem<NonNullable<T[K]>> extends never
+  ? undefined extends T[K]
+    ? Optional<NormalizeValue<NonNullable<T[K]>>>
+    : NormalizeValue<NonNullable<T[K]>>
+  : ToCanonicalViem<NonNullable<T[K]>>;
 
 // Normalizes every field in T using NormalizeField.
 //   -?  makes all keys required (Optional<> already records which were optional)
@@ -191,6 +189,7 @@ type NormalizeField<T, K extends keyof T> =
 //
 //   DeepNormalize<{ a: PublicClient<HttpTransport>; b?: bigint }>
 //     ->  { a: PublicClient; b: Optional<bigint> }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DeepNormalize<T> = T extends any
   ? { -readonly [K in keyof T]-?: NormalizeField<T, K> }
   : never;
@@ -199,9 +198,15 @@ it('createRollupTransformedSchema output matches createRollup params', () => {
   type SchemaOutput = z.output<typeof createRollupTransformedSchema>;
   type FunctionParam = Parameters<typeof createRollup>[0];
 
-  type SO_v21 = DeepNormalize<Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v2.1' }]>[0]>;
-  type SO_v32 = DeepNormalize<Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v3.2' }]>[0]>;
-  type SO_default = DeepNormalize<Extract<SchemaOutput, readonly [{ rollupCreatorVersion?: never }]>[0]>;
+  type SO_v21 = DeepNormalize<
+    Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v2.1' }]>[0]
+  >;
+  type SO_v32 = DeepNormalize<
+    Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v3.2' }]>[0]
+  >;
+  type SO_default = DeepNormalize<
+    Extract<SchemaOutput, readonly [{ rollupCreatorVersion?: never }]>[0]
+  >;
 
   type FP_v21 = DeepNormalize<Extract<FunctionParam, { rollupCreatorVersion: 'v2.1' }>>;
   type FP_v32 = DeepNormalize<Extract<FunctionParam, { rollupCreatorVersion: 'v3.2' }>>;
@@ -213,16 +218,19 @@ it('createRollupTransformedSchema output matches createRollup params', () => {
 });
 
 it('setValidKeysetTransform output matches setValidKeyset params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof setValidKeysetTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof setValidKeyset>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof setValidKeysetTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof setValidKeyset>>
+  >());
 
 it('createTokenBridgeTransform output matches createTokenBridge params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgeTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createTokenBridge>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgeTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createTokenBridge>>
+  >());
 
 it('getKeysetsTransform output matches getKeysets params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getKeysetsTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof getKeysets>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof getKeysetsTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getKeysets>>
+  >());
 
 it('coreContractsSchema matches CoreContracts', () =>
   expectTypeOf<z.output<typeof coreContractsSchema>>().toEqualTypeOf<CoreContracts>());
@@ -232,91 +240,124 @@ it('chainConfigSchema matches ChainConfig', () =>
 
 it('prepareDeploymentParamsConfigV32Transform params match CreateRollupPrepareDeploymentParamsConfigParams', () => {
   type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV32Transform>;
-  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
-    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>>();
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>().toEqualTypeOf<
+    DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>
+  >();
 });
 
 it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDeploymentParamsConfigParams<v2.1>', () => {
   type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV21Transform>;
-  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
-    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>>();
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>().toEqualTypeOf<
+    DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>
+  >();
 });
 
 it('prepareChainConfigTransform output matches prepareChainConfig params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareChainConfigTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof prepareChainConfig>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof prepareChainConfigTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof prepareChainConfig>>
+  >());
 
 it('upgradeExecutorPrepareTransactionRequestTransform output matches upgradeExecutorPrepareAddExecutorTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof upgradeExecutorPrepareTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof upgradeExecutorPrepareTransactionRequestTransform>>
+  >().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest>>
+  >());
 
 it('getValidatorsTransform output matches getValidators params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getValidatorsTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof getValidators>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof getValidatorsTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getValidators>>
+  >());
 
 it('getBatchPostersTransform output matches getBatchPosters params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getBatchPostersTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof getBatchPosters>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof getBatchPostersTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getBatchPosters>>
+  >());
 
 it('upgradeExecutorFetchPrivilegedAccountsTransform output matches upgradeExecutorFetchPrivilegedAccounts params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof upgradeExecutorFetchPrivilegedAccountsTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof upgradeExecutorFetchPrivilegedAccountsTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>>());
 
 it('setAnyTrustFastConfirmerTransform output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof setAnyTrustFastConfirmerTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof setAnyTrustFastConfirmerPrepareTransactionRequest>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof setAnyTrustFastConfirmerTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof setAnyTrustFastConfirmerPrepareTransactionRequest>>
+  >());
 
 it('prepareNodeConfigTransform output matches prepareNodeConfig params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareNodeConfigTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof prepareNodeConfig>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof prepareNodeConfigTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof prepareNodeConfig>>
+  >());
 
 it('feeRouterDeployRewardDistributorTransform output matches feeRouterDeployRewardDistributor params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof feeRouterDeployRewardDistributorTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployRewardDistributor>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof feeRouterDeployRewardDistributorTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployRewardDistributor>>>());
 
 it('feeRouterDeployChildToParentRewardRouterTransform output matches feeRouterDeployChildToParentRewardRouter params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof feeRouterDeployChildToParentRewardRouterTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployChildToParentRewardRouter>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof feeRouterDeployChildToParentRewardRouterTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployChildToParentRewardRouter>>>());
 
 it('getBridgeUiConfigTransform output matches getBridgeUiConfig params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getBridgeUiConfigTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof getBridgeUiConfig>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof getBridgeUiConfigTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getBridgeUiConfig>>
+  >());
 
 it('isAnyTrustTransform output matches isAnyTrust params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isAnyTrustTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof isAnyTrust>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof isAnyTrustTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isAnyTrust>>
+  >());
 
 it('createRollupFetchTransactionHashTransform output matches createRollupFetchTransactionHash params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createRollupFetchTransactionHashTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchTransactionHash>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createRollupFetchTransactionHashTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchTransactionHash>>>());
 
 it('createRollupFetchCoreContractsTransform output matches createRollupFetchCoreContracts params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createRollupFetchCoreContractsTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchCoreContracts>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createRollupFetchCoreContractsTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchCoreContracts>>>());
 
 it('isTokenBridgeDeployedTransform output matches isTokenBridgeDeployed params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isTokenBridgeDeployedTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof isTokenBridgeDeployed>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof isTokenBridgeDeployedTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isTokenBridgeDeployed>>
+  >());
 
 it('createTokenBridgePrepareTransactionRequestTransform output matches createTokenBridgePrepareTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgePrepareTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createTokenBridgePrepareTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createTokenBridgePrepareTransactionRequestTransform>>
+  >().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createTokenBridgePrepareTransactionRequest>>
+  >());
 
 it('createTokenBridgePrepareSetWethGatewayTransactionRequestTransform output matches createTokenBridgePrepareSetWethGatewayTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createTokenBridgePrepareSetWethGatewayTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<
+      ReturnType<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestTransform>
+    >
+  >().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createTokenBridgePrepareSetWethGatewayTransactionRequest>>
+  >());
 
 it('setValidKeysetPrepareTransactionRequestTransform output matches setValidKeysetPrepareTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof setValidKeysetPrepareTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof setValidKeysetPrepareTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof setValidKeysetPrepareTransactionRequestTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof setValidKeysetPrepareTransactionRequest>>>());
 
 it('createRollupPrepareTransactionRequestTransformedSchema output matches createRollupPrepareTransactionRequest params', () => {
   type SchemaOutput = z.output<typeof createRollupPrepareTransactionRequestTransformedSchema>;
   type FunctionParam = Parameters<typeof createRollupPrepareTransactionRequest>[0];
 
-  type SO_v21 = DeepNormalize<Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v2.1' }]>[0]>;
-  type SO_v32 = DeepNormalize<Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v3.2' }]>[0]>;
-  type SO_default = DeepNormalize<Extract<SchemaOutput, readonly [{ rollupCreatorVersion?: never }]>[0]>;
+  type SO_v21 = DeepNormalize<
+    Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v2.1' }]>[0]
+  >;
+  type SO_v32 = DeepNormalize<
+    Extract<SchemaOutput, readonly [{ rollupCreatorVersion: 'v3.2' }]>[0]
+  >;
+  type SO_default = DeepNormalize<
+    Extract<SchemaOutput, readonly [{ rollupCreatorVersion?: never }]>[0]
+  >;
 
   type FP_v21 = DeepNormalize<Extract<FunctionParam, { rollupCreatorVersion: 'v2.1' }>>;
   type FP_v32 = DeepNormalize<Extract<FunctionParam, { rollupCreatorVersion: 'v3.2' }>>;
@@ -328,50 +369,73 @@ it('createRollupPrepareTransactionRequestTransformedSchema output matches create
 });
 
 it('createSafePrepareTransactionRequestTransform output matches createSafePrepareTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createSafePrepareTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createSafePrepareTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createSafePrepareTransactionRequestTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createSafePrepareTransactionRequest>>>());
 
 it('createRollupEnoughCustomFeeTokenAllowanceTransform output matches createRollupEnoughCustomFeeTokenAllowance params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createRollupEnoughCustomFeeTokenAllowanceTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupEnoughCustomFeeTokenAllowance>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createRollupEnoughCustomFeeTokenAllowanceTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupEnoughCustomFeeTokenAllowance>>>());
 
 it('createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform output matches createRollupPrepareCustomFeeTokenApprovalTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<
+      ReturnType<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform>
+    >
+  >().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequest>>
+  >());
 
 it('createTokenBridgeEnoughCustomFeeTokenAllowanceTransform output matches createTokenBridgeEnoughCustomFeeTokenAllowance params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgeEnoughCustomFeeTokenAllowanceTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createTokenBridgeEnoughCustomFeeTokenAllowance>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createTokenBridgeEnoughCustomFeeTokenAllowanceTransform>>
+  >().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createTokenBridgeEnoughCustomFeeTokenAllowance>>
+  >());
 
 it('createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform output matches createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest>>>());
+  expectTypeOf<
+    DeepNormalize<
+      ReturnType<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform>
+    >
+  >().toEqualTypeOf<
+    DeepNormalize<
+      Parameters<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest>
+    >
+  >());
 
 it('prepareKeysetTransform output matches prepareKeyset params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareKeysetTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof prepareKeyset>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof prepareKeysetTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof prepareKeyset>>
+  >());
 
 it('prepareKeysetHashTransform output matches prepareKeysetHash params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareKeysetHashTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof prepareKeysetHash>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof prepareKeysetHashTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof prepareKeysetHash>>
+  >());
 
 it('getDefaultsTransform output matches getDefaultConfirmPeriodBlocks params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getDefaultsTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof getDefaultConfirmPeriodBlocks>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof getDefaultsTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getDefaultConfirmPeriodBlocks>>
+  >());
 
 it('createRollupGetRetryablesFeesTransform output matches createRollupGetRetryablesFees params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFees>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFees>>>());
 
 it('createRollupGetRetryablesFeesTransform output matches createRollupGetRetryablesFeesWithDefaults params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFeesWithDefaults>>>());
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFeesWithDefaults>>>());
 
 it('fetchAllowanceTransform output matches fetchAllowance params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof fetchAllowanceTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof fetchAllowance>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof fetchAllowanceTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof fetchAllowance>>
+  >());
 
 it('fetchDecimalsTransform output matches fetchDecimals params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof fetchDecimalsTransform>>>()
-    .toEqualTypeOf<DeepNormalize<Parameters<typeof fetchDecimals>>>());
-
+  expectTypeOf<DeepNormalize<ReturnType<typeof fetchDecimalsTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof fetchDecimals>>
+  >());
