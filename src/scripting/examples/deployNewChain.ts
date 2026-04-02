@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { runScript } from '../runScript';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
@@ -20,6 +21,15 @@ const schema = createRollupDefaultSchema.extend({
     nativeToken: addressSchema.default(zeroAddress),
     keyset: hexSchema.optional(),
   }),
+}).superRefine((data, ctx) => {
+  const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
+  if (data.params.keyset && !isAnytrust) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['params', 'keyset'],
+      message: 'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
+    });
+  }
 }).transform((input) => {
   const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
   const { config: { chainConfig: chainConfigParams, ...restConfig }, keyset, ...params } = input.params;
@@ -37,7 +47,7 @@ const schema = createRollupDefaultSchema.extend({
     account: toAccount(input.privateKey),
     parentChainPublicClient,
     walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
-    keyset: isAnytrust ? (keyset ?? DEFAULT_KEYSET) : keyset,
+    keyset: isAnytrust ? (keyset ?? DEFAULT_KEYSET) : undefined,
   };
 });
 
