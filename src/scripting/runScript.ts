@@ -18,13 +18,10 @@ function handleError(error: unknown): void {
   process.exit(1);
 }
 
-export function runScript<TSchema extends ZodType>({
-  input,
-  run,
-}: {
-  input: TSchema;
-  run: (input: z.output<TSchema>) => unknown;
-}): void {
+export function runScript<TSchema extends ZodType>(
+  schema: TSchema,
+  run: (input: z.output<TSchema>) => unknown,
+): void {
   const jsonString = process.argv[2];
 
   if (!jsonString) {
@@ -40,7 +37,7 @@ export function runScript<TSchema extends ZodType>({
   }
 
   (async () => {
-    const parsed = input.parse(rawInput);
+    const parsed = schema.parse(rawInput);
     const result = await run(parsed);
     const output = typeof result === 'string' ? result : JSON.stringify(result, replacer, 2);
     process.stdout.write(output + '\n');

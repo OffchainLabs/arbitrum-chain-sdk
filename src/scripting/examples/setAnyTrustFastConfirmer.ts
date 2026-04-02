@@ -4,9 +4,4 @@ import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyT
 
 const schema = setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform);
 
-runScript({
-  input: schema,
-  async run(args) {
-    return setAnyTrustFastConfirmerPrepareTransactionRequest(...args);
-  },
-});
+runScript(schema, async (args) => setAnyTrustFastConfirmerPrepareTransactionRequest(...args));

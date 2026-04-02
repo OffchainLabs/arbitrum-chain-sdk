@@ -33,10 +33,7 @@ const schema = createRollupDefaultSchema
     };
   });
 
-runScript({
-  input: schema,
-  async run(input) {
-    const result = await createRollup(input);
-    return result.coreContracts;
-  },
+runScript(schema, async (input) => {
+  const result = await createRollup(input);
+  return result.coreContracts;
 });

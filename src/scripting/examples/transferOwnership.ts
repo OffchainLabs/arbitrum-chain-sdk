@@ -186,97 +186,94 @@ const schema = z
     newOwnerAddress,
   }));
 
-runScript({
-  input: schema,
-  async run(input) {
-    const {
-      publicClient,
-      account,
-      upgradeExecutorAddress,
-      newOwnerAddress,
-      childUpgradeExecutorAddress,
-    } = input;
+runScript(schema, async (input) => {
+  const {
+    publicClient,
+    account,
+    upgradeExecutorAddress,
+    newOwnerAddress,
+    childUpgradeExecutorAddress,
+  } = input;
 
-    // Step 1: Add new owner as executor on parent-chain UpgradeExecutor
-    const addParentExecutorTxRequest = await upgradeExecutorPrepareAddExecutorTransactionRequest({
-      account: newOwnerAddress,
+  // Step 1: Add new owner as executor on parent-chain UpgradeExecutor
+  const addParentExecutorTxRequest = await upgradeExecutorPrepareAddExecutorTransactionRequest({
+    account: newOwnerAddress,
+    upgradeExecutorAddress,
+    executorAccountAddress: account.address,
+    publicClient,
+  });
+  const step1TxHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await account.signTransaction(addParentExecutorTxRequest),
+  });
+  await publicClient.waitForTransactionReceipt({ hash: step1TxHash });
+
+  // Step 2: Grant executor role on child-chain UpgradeExecutor (via retryable)
+  const grantRoleCalldata = encodeFunctionData({
+    abi: upgradeExecutorABI,
+    functionName: 'grantRole',
+    args: [UPGRADE_EXECUTOR_ROLE_EXECUTOR, newOwnerAddress],
+  });
+  const addChildExecutorData = upgradeExecutorEncodeFunctionData({
+    functionName: 'executeCall',
+    args: [childUpgradeExecutorAddress, grantRoleCalldata],
+  });
+  const step2TxHash = await sendRetryableViaUpgradeExecutor(
+    input,
+    childUpgradeExecutorAddress,
+    addChildExecutorData,
+  );
+
+  // Step 3: Add child-chain UpgradeExecutor as chain owner (via sendL2Message)
+  const addChainOwnerCalldata = encodeFunctionData({
+    abi: arbOwnerABI,
+    functionName: 'addChainOwner',
+    args: [childUpgradeExecutorAddress],
+  });
+  const step3TxHash = await sendL2Message(input, arbOwnerAddress, addChainOwnerCalldata, 0);
+
+  // Step 4: Remove deployer as chain owner (via sendL2Message)
+  const removeChainOwnerCalldata = encodeFunctionData({
+    abi: arbOwnerABI,
+    functionName: 'removeChainOwner',
+    args: [account.address],
+  });
+  const step4TxHash = await sendL2Message(input, arbOwnerAddress, removeChainOwnerCalldata, 1);
+
+  // Step 5: Revoke deployer's executor role on child-chain UpgradeExecutor (via retryable)
+  const revokeRoleCalldata = encodeFunctionData({
+    abi: upgradeExecutorABI,
+    functionName: 'revokeRole',
+    args: [UPGRADE_EXECUTOR_ROLE_EXECUTOR, account.address],
+  });
+  const removeChildExecutorData = upgradeExecutorEncodeFunctionData({
+    functionName: 'executeCall',
+    args: [childUpgradeExecutorAddress, revokeRoleCalldata],
+  });
+  const step5TxHash = await sendRetryableViaUpgradeExecutor(
+    input,
+    childUpgradeExecutorAddress,
+    removeChildExecutorData,
+  );
+
+  // Step 6: Remove deployer as executor on parent-chain UpgradeExecutor
+  const removeParentExecutorTxRequest =
+    await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
+      account: account.address,
       upgradeExecutorAddress,
       executorAccountAddress: account.address,
       publicClient,
     });
-    const step1TxHash = await publicClient.sendRawTransaction({
-      serializedTransaction: await account.signTransaction(addParentExecutorTxRequest),
-    });
-    await publicClient.waitForTransactionReceipt({ hash: step1TxHash });
+  const step6TxHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await account.signTransaction(removeParentExecutorTxRequest),
+  });
+  await publicClient.waitForTransactionReceipt({ hash: step6TxHash });
 
-    // Step 2: Grant executor role on child-chain UpgradeExecutor (via retryable)
-    const grantRoleCalldata = encodeFunctionData({
-      abi: upgradeExecutorABI,
-      functionName: 'grantRole',
-      args: [UPGRADE_EXECUTOR_ROLE_EXECUTOR, newOwnerAddress],
-    });
-    const addChildExecutorData = upgradeExecutorEncodeFunctionData({
-      functionName: 'executeCall',
-      args: [childUpgradeExecutorAddress, grantRoleCalldata],
-    });
-    const step2TxHash = await sendRetryableViaUpgradeExecutor(
-      input,
-      childUpgradeExecutorAddress,
-      addChildExecutorData,
-    );
-
-    // Step 3: Add child-chain UpgradeExecutor as chain owner (via sendL2Message)
-    const addChainOwnerCalldata = encodeFunctionData({
-      abi: arbOwnerABI,
-      functionName: 'addChainOwner',
-      args: [childUpgradeExecutorAddress],
-    });
-    const step3TxHash = await sendL2Message(input, arbOwnerAddress, addChainOwnerCalldata, 0);
-
-    // Step 4: Remove deployer as chain owner (via sendL2Message)
-    const removeChainOwnerCalldata = encodeFunctionData({
-      abi: arbOwnerABI,
-      functionName: 'removeChainOwner',
-      args: [account.address],
-    });
-    const step4TxHash = await sendL2Message(input, arbOwnerAddress, removeChainOwnerCalldata, 1);
-
-    // Step 5: Revoke deployer's executor role on child-chain UpgradeExecutor (via retryable)
-    const revokeRoleCalldata = encodeFunctionData({
-      abi: upgradeExecutorABI,
-      functionName: 'revokeRole',
-      args: [UPGRADE_EXECUTOR_ROLE_EXECUTOR, account.address],
-    });
-    const removeChildExecutorData = upgradeExecutorEncodeFunctionData({
-      functionName: 'executeCall',
-      args: [childUpgradeExecutorAddress, revokeRoleCalldata],
-    });
-    const step5TxHash = await sendRetryableViaUpgradeExecutor(
-      input,
-      childUpgradeExecutorAddress,
-      removeChildExecutorData,
-    );
-
-    // Step 6: Remove deployer as executor on parent-chain UpgradeExecutor
-    const removeParentExecutorTxRequest =
-      await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
-        account: account.address,
-        upgradeExecutorAddress,
-        executorAccountAddress: account.address,
-        publicClient,
-      });
-    const step6TxHash = await publicClient.sendRawTransaction({
-      serializedTransaction: await account.signTransaction(removeParentExecutorTxRequest),
-    });
-    await publicClient.waitForTransactionReceipt({ hash: step6TxHash });
-
-    return {
-      step1TxHash,
-      step2TxHash,
-      step3TxHash,
-      step4TxHash,
-      step5TxHash,
-      step6TxHash,
-    };
-  },
+  return {
+    step1TxHash,
+    step2TxHash,
+    step3TxHash,
+    step4TxHash,
+    step5TxHash,
+    step6TxHash,
+  };
 });

@@ -38,10 +38,7 @@ function getExitCode(): number | undefined {
 
 it('parses JSON from argv and writes result to stdout', async () => {
   process.argv[2] = '{"x": 5}';
-  runScript({
-    input: z.object({ x: z.number() }),
-    run: async (input) => ({ doubled: input.x * 2 }),
-  });
+  runScript(z.object({ x: z.number() }), async (input) => ({ doubled: input.x * 2 }));
 
   await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -51,10 +48,7 @@ it('parses JSON from argv and writes result to stdout', async () => {
 
 it('exits with code 1 when no JSON argument provided', () => {
   process.argv[2] = undefined as unknown as string;
-  runScript({
-    input: z.object({}),
-    run: async () => ({}),
-  });
+  runScript(z.object({}), async () => ({}));
 
   expect(getExitCode()).toBe(1);
   expect(stderrData).toContain('Usage');
@@ -62,10 +56,7 @@ it('exits with code 1 when no JSON argument provided', () => {
 
 it('exits with code 1 for invalid JSON', () => {
   process.argv[2] = 'not json';
-  runScript({
-    input: z.object({}),
-    run: async () => ({}),
-  });
+  runScript(z.object({}), async () => ({}));
 
   expect(getExitCode()).toBe(1);
   expect(stderrData).toContain('Unexpected token');
@@ -73,10 +64,7 @@ it('exits with code 1 for invalid JSON', () => {
 
 it('prints validation errors to stderr on schema failure', async () => {
   process.argv[2] = '{"name": 123}';
-  runScript({
-    input: z.object({ name: z.string() }),
-    run: async (input) => input,
-  });
+  runScript(z.object({ name: z.string() }), async (input) => input);
 
   await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -86,10 +74,7 @@ it('prints validation errors to stderr on schema failure', async () => {
 
 it('serializes bigint values as strings', async () => {
   process.argv[2] = '{}';
-  runScript({
-    input: z.object({}),
-    run: async () => ({ value: BigInt('123456789012345678901234567890') }),
-  });
+  runScript(z.object({}), async () => ({ value: BigInt('123456789012345678901234567890') }));
 
   await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -99,11 +84,8 @@ it('serializes bigint values as strings', async () => {
 
 it('prints run errors to stderr', async () => {
   process.argv[2] = '{}';
-  runScript({
-    input: z.object({}),
-    run: async () => {
-      throw new Error('something broke');
-    },
+  runScript(z.object({}), async () => {
+    throw new Error('something broke');
   });
 
   await new Promise((resolve) => setTimeout(resolve, 10));

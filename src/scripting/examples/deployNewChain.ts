@@ -60,22 +60,19 @@ const schema = createRollupDefaultSchema
     };
   });
 
-runScript({
-  input: schema,
-  async run(input) {
-    const { keyset, walletClient, ...createRollupArgs } = input;
-    const result = await createRollup(createRollupArgs);
-    const coreContracts = result.coreContracts;
+runScript(schema, async (input) => {
+  const { keyset, walletClient, ...createRollupArgs } = input;
+  const result = await createRollup(createRollupArgs);
+  const coreContracts = result.coreContracts;
 
-    if (keyset) {
-      await setValidKeyset({
-        keyset,
-        publicClient: createRollupArgs.parentChainPublicClient,
-        walletClient,
-        coreContracts,
-      });
-    }
+  if (keyset) {
+    await setValidKeyset({
+      keyset,
+      publicClient: createRollupArgs.parentChainPublicClient,
+      walletClient,
+      coreContracts,
+    });
+  }
 
-    return coreContracts;
-  },
+  return coreContracts;
 });
