@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { toPublicClient, toAccount } from '../viemTransforms';
-import { addressSchema, bigintSchema } from './common';
+import { toPublicClient } from '../viemTransforms';
+import { addressSchema, bigintSchema, gasOverridesSchema } from './common';
 import {
   paramsV3Dot2Schema as prepareParamsV3Dot2Schema,
   paramsV2Dot1Schema as prepareParamsV2Dot1Schema,
@@ -41,38 +41,46 @@ const paramsV2Dot1Schema = z.object({
 });
 
 const commonFieldsSchema = z.object({
-  parentChainRpcUrl: z.string().url(),
-  privateKey: z.string().startsWith('0x'),
+  rpcUrl: z.string().url(),
+  account: addressSchema,
+  value: bigintSchema.optional(),
+  gasOverrides: gasOverridesSchema.optional(),
+  rollupCreatorAddressOverride: addressSchema.optional(),
 });
 
-export const createRollupV21Schema = commonFieldsSchema.extend({
+export const createRollupPrepareTransactionRequestV21Schema = commonFieldsSchema.extend({
   params: paramsV2Dot1Schema,
   rollupCreatorVersion: z.literal('v2.1'),
 }).strict();
-export const createRollupV32Schema = commonFieldsSchema.extend({
+export const createRollupPrepareTransactionRequestV32Schema = commonFieldsSchema.extend({
   params: paramsV3Dot2Schema,
   rollupCreatorVersion: z.literal('v3.2'),
 }).strict();
-export const createRollupDefaultSchema = commonFieldsSchema.extend({
+export const createRollupPrepareTransactionRequestDefaultSchema = commonFieldsSchema.extend({
   params: paramsV3Dot2Schema,
   rollupCreatorVersion: z.never().optional(),
 }).strict();
 
-export const createRollupSchema = z.union([
-  createRollupV21Schema,
-  createRollupV32Schema,
-  createRollupDefaultSchema,
+export const createRollupPrepareTransactionRequestSchema = z.union([
+  createRollupPrepareTransactionRequestV21Schema,
+  createRollupPrepareTransactionRequestV32Schema,
+  createRollupPrepareTransactionRequestDefaultSchema,
 ]);
 
-export const createRollupTransform = <T extends z.output<typeof createRollupSchema>>(input: T) => [{
+export const createRollupPrepareTransactionRequestTransform = <
+  T extends z.output<typeof createRollupPrepareTransactionRequestSchema>,
+>(input: T) => [{
   params: input.params as T['params'],
-  account: toAccount(input.privateKey),
-  parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+  account: input.account,
+  value: input.value,
+  publicClient: toPublicClient(input.rpcUrl),
+  gasOverrides: input.gasOverrides,
+  rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
   rollupCreatorVersion: input.rollupCreatorVersion as T['rollupCreatorVersion'],
 }] as const;
 
-export const createRollupTransformedSchema = z.union([
-  createRollupV21Schema.transform(createRollupTransform),
-  createRollupV32Schema.transform(createRollupTransform),
-  createRollupDefaultSchema.transform(createRollupTransform),
+export const createRollupPrepareTransactionRequestTransformedSchema = z.union([
+  createRollupPrepareTransactionRequestV21Schema.transform(createRollupPrepareTransactionRequestTransform),
+  createRollupPrepareTransactionRequestV32Schema.transform(createRollupPrepareTransactionRequestTransform),
+  createRollupPrepareTransactionRequestDefaultSchema.transform(createRollupPrepareTransactionRequestTransform),
 ]);

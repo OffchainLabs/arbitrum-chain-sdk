@@ -12,6 +12,8 @@ export const hexSchema = z.custom<`0x${string}`>(
 
 export const bigintSchema = z.string().transform(BigInt);
 
+export const rollupCreatorVersionSchema = z.enum(['v3.2', 'v2.1']);
+
 export const sequencerInboxMaxTimeVariationSchema = z.object({
   delayBlocks: bigintSchema,
   futureBlocks: bigintSchema,

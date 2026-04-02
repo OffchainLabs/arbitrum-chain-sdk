@@ -3,15 +3,15 @@ import { Chain } from 'viem';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema } from './common';
 
-export const getKeysetsSchema = z.object({
+export const getValidatorsSchema = z.object({
   rpcUrl: z.string().url(),
-  sequencerInbox: addressSchema,
+  rollup: addressSchema,
 }).strict();
 
-export const getKeysetsTransform = <TChain extends Chain | undefined = undefined>(
-  input: z.output<typeof getKeysetsSchema>,
+export const getValidatorsTransform = <TChain extends Chain | undefined = undefined>(
+  input: z.output<typeof getValidatorsSchema>,
   chain?: TChain,
 ) => [
   toPublicClient(input.rpcUrl, chain),
-  { sequencerInbox: input.sequencerInbox },
+  { rollup: input.rollup },
 ] as const;

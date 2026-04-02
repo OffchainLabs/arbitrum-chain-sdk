@@ -55,11 +55,11 @@ const commonFieldsSchema = z.object({
 
 export const prepareDeploymentParamsConfigV21Schema = commonFieldsSchema.extend(
   paramsV2Dot1Schema.shape,
-);
+).strict();
 
 export const prepareDeploymentParamsConfigV32Schema = commonFieldsSchema.extend(
   paramsV3Dot2Schema.shape,
-);
+).strict();
 
 export const prepareDeploymentParamsConfigV21Transform = (
   input: z.output<typeof prepareDeploymentParamsConfigV21Schema>,

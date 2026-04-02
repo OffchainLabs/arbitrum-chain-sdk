@@ -20,7 +20,7 @@ export const createTokenBridgeSchema = z.object({
   gasOverrides: gasOverridesSchema.optional(),
   retryableGasOverrides: retryableGasOverridesSchema.optional(),
   setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
-});
+}).strict();
 
 export const createTokenBridgeTransform = (input: z.output<typeof createTokenBridgeSchema>) => [{
   rollupOwner: input.rollupOwner,

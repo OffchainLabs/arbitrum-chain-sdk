@@ -10,7 +10,7 @@ export const setValidKeysetSchema = z.object({
     sequencerInbox: true,
   }),
   keyset: hexSchema,
-});
+}).strict();
 
 export const setValidKeysetTransform = (input: z.output<typeof setValidKeysetSchema>) => [{
   coreContracts: input.coreContracts,

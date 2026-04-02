@@ -41,6 +41,118 @@ function applyBuffer(value: bigint): bigint {
   return value + (value * BUFFER_PERCENT) / 100n;
 }
 
+type Input = z.output<typeof schema>;
+
+async function calculateMaxSubmissionCost(
+  { publicClient, inboxAddress }: Input,
+  data: `0x${string}`,
+) {
+  const gasPrice = await publicClient.getGasPrice();
+  return publicClient.readContract({
+    address: inboxAddress,
+    abi: inboxSubmissionFeeABI,
+    functionName: 'calculateRetryableSubmissionFee',
+    args: [BigInt(Math.ceil((data.length - 2) / 2)), applyBuffer(gasPrice)],
+  });
+}
+
+async function sendRetryableViaUpgradeExecutor(
+  input: Input,
+  to: `0x${string}`,
+  data: `0x${string}`,
+) {
+  const {
+    publicClient, walletClient, account, upgradeExecutorAddress,
+    inboxAddress, refundAddress, maxGasPrice, nativeToken,
+  } = input;
+  const isErc20 = nativeToken !== zeroAddress;
+  const createRetryableTicketAbi = isErc20 ? createRetryableTicketErc20ABI : createRetryableTicketEthABI;
+
+  const maxSubmissionCost = applyBuffer(await calculateMaxSubmissionCost(input, data));
+  const gasLimit = applyBuffer(DEFAULT_GAS_LIMIT);
+  const deposit = maxSubmissionCost + gasLimit * maxGasPrice;
+
+  const retryableArgs: unknown[] = [
+    to, 0n, maxSubmissionCost, refundAddress, refundAddress,
+    gasLimit, maxGasPrice,
+  ];
+  if (isErc20) retryableArgs.push(deposit);
+  retryableArgs.push(data);
+
+  const createRetryableTicketData = encodeFunctionData({
+    abi: createRetryableTicketAbi,
+    functionName: 'createRetryableTicket',
+    args: retryableArgs as never,
+  });
+
+  const { request } = await publicClient.simulateContract({
+    account: account.address,
+    address: upgradeExecutorAddress,
+    abi: upgradeExecutorABI,
+    functionName: 'executeCall',
+    args: [inboxAddress, createRetryableTicketData],
+    // executeCall ABI is missing payable modifier but the contract accepts value
+    ...(!isErc20 && { value: deposit }),
+  } as Parameters<typeof publicClient.simulateContract>[0]);
+
+  const txHash = await walletClient.writeContract(request);
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  return txHash;
+}
+
+async function sendL2Message(
+  { publicClient, walletClient, account, inboxAddress, childChainId, maxGasPrice }: Input,
+  to: `0x${string}`,
+  data: `0x${string}`,
+  nonce: number,
+) {
+  const childChain = defineChain({
+    id: childChainId,
+    name: 'Child Chain',
+    network: 'child-chain',
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: {
+      default: { http: ['http://localhost'] },
+      public: { http: ['http://localhost'] },
+    },
+  });
+
+  const mockedWalletClient = createWalletClient({
+    account,
+    chain: childChain,
+    transport: custom({
+      async request({ method }) {
+        if (method === 'eth_chainId') return toHex(childChainId);
+        throw new Error(`Unexpected RPC call: ${method}`);
+      },
+    }),
+  });
+
+  const signedTx = await mockedWalletClient.signTransaction({
+    to,
+    data,
+    nonce,
+    gas: DEFAULT_GAS_LIMIT,
+    maxFeePerGas: maxGasPrice,
+    maxPriorityFeePerGas: 0n,
+  });
+
+  // InboxMessageKind.L2MessageType_signedTx = 4
+  const message = concatHex([toHex(4, { size: 1 }), signedTx]);
+
+  const { request } = await publicClient.simulateContract({
+    account: account.address,
+    address: inboxAddress,
+    abi: sendL2MessageABI,
+    functionName: 'sendL2Message',
+    args: [message],
+  });
+
+  const txHash = await walletClient.writeContract(request);
+  await publicClient.waitForTransactionReceipt({ hash: txHash });
+  return txHash;
+}
+
 const schema = z.object({
     rpcUrl: z.string().url(),
     privateKey: z.string().startsWith('0x'),
@@ -51,135 +163,24 @@ const schema = z.object({
     childChainId: z.number(),
     nativeToken: addressSchema.default(zeroAddress),
     maxGasPrice: bigintSchema,
+    refundAddress: addressSchema.optional(),
   })
-  .transform((input) => {
-    const account = toAccount(input.privateKey);
-    const publicClient = toPublicClient(input.rpcUrl);
-    return {
-      publicClient,
-      account,
-      walletClient: toWalletClient(input.rpcUrl, input.privateKey),
-      upgradeExecutorAddress: input.upgradeExecutorAddress,
-      newOwnerAddress: input.newOwnerAddress,
-      inboxAddress: input.inboxAddress,
-      childUpgradeExecutorAddress: input.childUpgradeExecutorAddress,
-      childChainId: input.childChainId,
-      nativeToken: input.nativeToken,
-      maxGasPrice: input.maxGasPrice,
-    };
-  });
+  .transform(({ rpcUrl, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
+    ...rest,
+    publicClient: toPublicClient(rpcUrl),
+    account: toAccount(privateKey),
+    walletClient: toWalletClient(rpcUrl, privateKey),
+    refundAddress: refundAddress ?? newOwnerAddress,
+    newOwnerAddress,
+  }));
 
 runScript({
   input: schema,
   async run(input) {
     const {
-      publicClient, account, walletClient, upgradeExecutorAddress, newOwnerAddress,
-      inboxAddress, childUpgradeExecutorAddress, childChainId, nativeToken, maxGasPrice,
+      publicClient, account, upgradeExecutorAddress, newOwnerAddress,
+      childUpgradeExecutorAddress,
     } = input;
-
-    const isErc20 = nativeToken !== zeroAddress;
-    const createRetryableTicketAbi = isErc20 ? createRetryableTicketErc20ABI : createRetryableTicketEthABI;
-
-    // Helper: calculate submission cost from calldata
-    const calculateMaxSubmissionCost = async (data: `0x${string}`) => {
-      const gasPrice = await publicClient.getGasPrice();
-      return publicClient.readContract({
-        address: inboxAddress,
-        abi: inboxSubmissionFeeABI,
-        functionName: 'calculateRetryableSubmissionFee',
-        args: [BigInt(Math.ceil((data.length - 2) / 2)), applyBuffer(gasPrice)],
-      });
-    };
-
-    // Helper: send retryable ticket through parent-chain UpgradeExecutor
-    const sendRetryableViaUpgradeExecutor = async (
-      to: `0x${string}`,
-      data: `0x${string}`,
-    ) => {
-      const maxSubmissionCost = applyBuffer(await calculateMaxSubmissionCost(data));
-      const gasLimit = applyBuffer(DEFAULT_GAS_LIMIT);
-      const deposit = maxSubmissionCost + gasLimit * maxGasPrice;
-
-      const retryableArgs: unknown[] = [
-        to, 0n, maxSubmissionCost, newOwnerAddress, newOwnerAddress,
-        gasLimit, maxGasPrice,
-      ];
-      if (isErc20) retryableArgs.push(deposit);
-      retryableArgs.push(data);
-
-      const createRetryableTicketData = encodeFunctionData({
-        abi: createRetryableTicketAbi,
-        functionName: 'createRetryableTicket',
-        args: retryableArgs as never,
-      });
-
-      const { request } = await publicClient.simulateContract({
-        account: account.address,
-        address: upgradeExecutorAddress,
-        abi: upgradeExecutorABI,
-        functionName: 'executeCall',
-        args: [inboxAddress, createRetryableTicketData],
-        // executeCall ABI is missing payable modifier but the contract accepts value
-        ...(!isErc20 && { value: deposit }),
-      } as Parameters<typeof publicClient.simulateContract>[0]);
-
-      const txHash = await walletClient.writeContract(request);
-      await publicClient.waitForTransactionReceipt({ hash: txHash });
-      return txHash;
-    };
-
-    // Helper: send signed child-chain tx via Inbox.sendL2Message
-    const sendL2Message = async (
-      to: `0x${string}`,
-      data: `0x${string}`,
-      nonce: number,
-    ) => {
-      const childChain = defineChain({
-        id: childChainId,
-        name: 'Child Chain',
-        network: 'child-chain',
-        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        rpcUrls: {
-          default: { http: ['http://localhost'] },
-          public: { http: ['http://localhost'] },
-        },
-      });
-
-      const mockedWalletClient = createWalletClient({
-        account,
-        chain: childChain,
-        transport: custom({
-          async request({ method }) {
-            if (method === 'eth_chainId') return toHex(childChainId);
-            throw new Error(`Unexpected RPC call: ${method}`);
-          },
-        }),
-      });
-
-      const signedTx = await mockedWalletClient.signTransaction({
-        to,
-        data,
-        nonce,
-        gas: DEFAULT_GAS_LIMIT,
-        maxFeePerGas: maxGasPrice,
-        maxPriorityFeePerGas: 0n,
-      });
-
-      // InboxMessageKind.L2MessageType_signedTx = 4
-      const message = concatHex([toHex(4, { size: 1 }), signedTx]);
-
-      const { request } = await publicClient.simulateContract({
-        account: account.address,
-        address: inboxAddress,
-        abi: sendL2MessageABI,
-        functionName: 'sendL2Message',
-        args: [message],
-      });
-
-      const txHash = await walletClient.writeContract(request);
-      await publicClient.waitForTransactionReceipt({ hash: txHash });
-      return txHash;
-    };
 
     // Step 1: Add new owner as executor on parent-chain UpgradeExecutor
     const addParentExecutorTxRequest = await upgradeExecutorPrepareAddExecutorTransactionRequest({
@@ -203,7 +204,7 @@ runScript({
       functionName: 'executeCall',
       args: [childUpgradeExecutorAddress, grantRoleCalldata],
     });
-    const step2TxHash = await sendRetryableViaUpgradeExecutor(childUpgradeExecutorAddress, addChildExecutorData);
+    const step2TxHash = await sendRetryableViaUpgradeExecutor(input, childUpgradeExecutorAddress, addChildExecutorData);
 
     // Step 3: Add child-chain UpgradeExecutor as chain owner (via sendL2Message)
     const addChainOwnerCalldata = encodeFunctionData({
@@ -211,7 +212,7 @@ runScript({
       functionName: 'addChainOwner',
       args: [childUpgradeExecutorAddress],
     });
-    const step3TxHash = await sendL2Message(arbOwnerAddress, addChainOwnerCalldata, 0);
+    const step3TxHash = await sendL2Message(input, arbOwnerAddress, addChainOwnerCalldata, 0);
 
     // Step 4: Remove deployer as chain owner (via sendL2Message)
     const removeChainOwnerCalldata = encodeFunctionData({
@@ -219,7 +220,7 @@ runScript({
       functionName: 'removeChainOwner',
       args: [account.address],
     });
-    const step4TxHash = await sendL2Message(arbOwnerAddress, removeChainOwnerCalldata, 1);
+    const step4TxHash = await sendL2Message(input, arbOwnerAddress, removeChainOwnerCalldata, 1);
 
     // Step 5: Revoke deployer's executor role on child-chain UpgradeExecutor (via retryable)
     const revokeRoleCalldata = encodeFunctionData({
@@ -231,7 +232,7 @@ runScript({
       functionName: 'executeCall',
       args: [childUpgradeExecutorAddress, revokeRoleCalldata],
     });
-    const step5TxHash = await sendRetryableViaUpgradeExecutor(childUpgradeExecutorAddress, removeChildExecutorData);
+    const step5TxHash = await sendRetryableViaUpgradeExecutor(input, childUpgradeExecutorAddress, removeChildExecutorData);
 
     // Step 6: Remove deployer as executor on parent-chain UpgradeExecutor
     const removeParentExecutorTxRequest = await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
