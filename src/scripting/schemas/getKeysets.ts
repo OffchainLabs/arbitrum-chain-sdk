@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Chain } from 'viem';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema } from './common';
 
@@ -8,10 +7,9 @@ export const getKeysetsSchema = z.object({
   sequencerInbox: addressSchema,
 }).strict();
 
-export const getKeysetsTransform = <TChain extends Chain | undefined = undefined>(
+export const getKeysetsTransform = (
   input: z.output<typeof getKeysetsSchema>,
-  chain?: TChain,
 ) => [
-  toPublicClient(input.rpcUrl, chain),
+  toPublicClient(input.rpcUrl),
   { sequencerInbox: input.sequencerInbox },
 ] as const;

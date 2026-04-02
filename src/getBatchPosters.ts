@@ -116,7 +116,7 @@ export type GetBatchPostersReturnType = {
  *   // batch posters list is not guaranteed to be accurate
  * }
  */
-export async function getBatchPosters<TChain extends Chain>(
+export async function getBatchPosters<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { rollup, sequencerInbox }: GetBatchPostersParams,
 ): Promise<GetBatchPostersReturnType> {

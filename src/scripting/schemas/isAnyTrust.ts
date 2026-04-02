@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Chain } from 'viem';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema } from './common';
 
@@ -8,10 +7,9 @@ export const isAnyTrustSchema = z.object({
   rollup: addressSchema,
 }).strict();
 
-export const isAnyTrustTransform = <TChain extends Chain | undefined = undefined>(
+export const isAnyTrustTransform = (
   input: z.output<typeof isAnyTrustSchema>,
-  chain?: TChain,
 ) => [{
   rollup: input.rollup,
-  publicClient: toPublicClient(input.rpcUrl, chain),
+  publicClient: toPublicClient(input.rpcUrl),
 }] as const;

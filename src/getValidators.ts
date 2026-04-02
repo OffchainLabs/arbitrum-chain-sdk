@@ -101,7 +101,7 @@ export type GetValidatorsReturnType = {
   validators: Address[];
 };
 
-async function getValidatorsPreV3Dot1<TChain extends Chain>(
+async function getValidatorsPreV3Dot1<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { rollup }: GetValidatorsParams,
   blockNumber: bigint,
@@ -214,7 +214,7 @@ async function getValidatorsPreV3Dot1<TChain extends Chain>(
  *   // Validators list is not guaranteed to be accurate
  * }
  */
-export async function getValidators<TChain extends Chain>(
+export async function getValidators<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { rollup }: GetValidatorsParams,
 ): Promise<GetValidatorsReturnType> {

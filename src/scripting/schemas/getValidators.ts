@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Chain } from 'viem';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema } from './common';
 
@@ -8,10 +7,9 @@ export const getValidatorsSchema = z.object({
   rollup: addressSchema,
 }).strict();
 
-export const getValidatorsTransform = <TChain extends Chain | undefined = undefined>(
+export const getValidatorsTransform = (
   input: z.output<typeof getValidatorsSchema>,
-  chain?: TChain,
 ) => [
-  toPublicClient(input.rpcUrl, chain),
+  toPublicClient(input.rpcUrl),
   { rollup: input.rollup },
 ] as const;

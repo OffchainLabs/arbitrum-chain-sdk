@@ -33,7 +33,7 @@ export type GetKeysetsReturnType = {
  * });
  *
  */
-export async function getKeysets<TChain extends Chain>(
+export async function getKeysets<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { sequencerInbox }: GetKeysetsParams,
 ): Promise<GetKeysetsReturnType> {

@@ -1,5 +1,7 @@
 import { z } from 'zod';
+import { Chain } from 'viem';
 import { toPublicClient, toAccount } from '../viemTransforms';
+import { CreateRollupFunctionParams } from '../../createRollup';
 import { addressSchema, bigintSchema } from './common';
 import {
   paramsV3Dot2Schema as prepareParamsV3Dot2Schema,
@@ -64,15 +66,42 @@ export const createRollupSchema = z.union([
   createRollupDefaultSchema,
 ]);
 
-export const createRollupTransform = <T extends z.output<typeof createRollupSchema>>(input: T) => [{
-  params: input.params as T['params'],
+type Params<V extends 'v2.1' | 'v3.2' | undefined> = [Extract<
+  CreateRollupFunctionParams<Chain | undefined>,
+  V extends undefined ? { rollupCreatorVersion?: never } : { rollupCreatorVersion: V }
+>];
+
+const transformV21 = (input: z.output<typeof createRollupV21Schema>): Params<'v2.1'> => [{
+  params: input.params,
   account: toAccount(input.privateKey),
   parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-  rollupCreatorVersion: input.rollupCreatorVersion as T['rollupCreatorVersion'],
-}] as const;
+  rollupCreatorVersion: input.rollupCreatorVersion,
+}];
+
+const transformV32 = (input: z.output<typeof createRollupV32Schema>): Params<'v3.2'> => [{
+  params: input.params,
+  account: toAccount(input.privateKey),
+  parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+  rollupCreatorVersion: input.rollupCreatorVersion,
+}];
+
+const transformDefault = (input: z.output<typeof createRollupDefaultSchema>): Params<undefined> => [{
+  params: input.params,
+  account: toAccount(input.privateKey),
+  parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+  rollupCreatorVersion: input.rollupCreatorVersion,
+}];
+
+export const createRollupTransform = (
+  input: z.output<typeof createRollupSchema>,
+): [CreateRollupFunctionParams<Chain | undefined>] => {
+  if (input.rollupCreatorVersion === 'v2.1') return transformV21(input as z.output<typeof createRollupV21Schema>);
+  if (input.rollupCreatorVersion === 'v3.2') return transformV32(input as z.output<typeof createRollupV32Schema>);
+  return transformDefault(input as z.output<typeof createRollupDefaultSchema>);
+};
 
 export const createRollupTransformedSchema = z.union([
-  createRollupV21Schema.transform(createRollupTransform),
-  createRollupV32Schema.transform(createRollupTransform),
-  createRollupDefaultSchema.transform(createRollupTransform),
+  createRollupV21Schema.transform(transformV21),
+  createRollupV32Schema.transform(transformV32),
+  createRollupDefaultSchema.transform(transformDefault),
 ]);
