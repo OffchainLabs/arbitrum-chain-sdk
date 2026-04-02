@@ -1,16 +1,16 @@
 import { it, expect } from 'vitest';
-import { Address, createPublicClient, http } from 'viem';
+import { createPublicClient, http } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { nitroTestnodeL3 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
 import { arbGasInfoPublicActions } from './arbGasInfoPublicActions';
-import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
 
 // L3 Owner Private Key
 const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l3RollupOwner.privateKey;
 
 // L3 Upgrade Executor Address
-const upgradeExecutorAddress: Address = '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
+const { l3UpgradeExecutor: upgradeExecutorAddress } = getInformationFromTestnode();
 
 const owner = privateKeyToAccount(devPrivateKey);
 const randomAccount = privateKeyToAccount(generatePrivateKey());
