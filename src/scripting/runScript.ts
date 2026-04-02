@@ -42,7 +42,8 @@ export function runScript<TSchema extends ZodType>({
   (async () => {
     const parsed = input.parse(rawInput);
     const result = await run(parsed);
-    process.stdout.write(JSON.stringify(result, replacer, 2) + '\n');
+    const output = typeof result === 'string' ? result : JSON.stringify(result, replacer, 2);
+    process.stdout.write(output + '\n');
   })().catch(handleError);
 }
 
@@ -86,6 +87,7 @@ export function runCli(
   (async () => {
     const parsed = command.input.parse(rawInput);
     const result = await command.run(parsed);
-    process.stdout.write(JSON.stringify(result, replacer, 2) + '\n');
+    const output = typeof result === 'string' ? result : JSON.stringify(result, replacer, 2);
+    process.stdout.write(output + '\n');
   })().catch(handleError);
 }
