@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient } from '../viemTransforms';
+import { toPublicClient, findChain } from '../viemTransforms';
 import {
   addressSchema,
   hexSchema,
@@ -52,6 +52,7 @@ export const paramsV2Dot1Schema = z.object({
 
 const commonFieldsSchema = z.object({
   parentChainRpcUrl: z.string().url(),
+  parentChainId: z.number(),
 });
 
 export const prepareDeploymentParamsConfigV21Schema = commonFieldsSchema
@@ -65,13 +66,13 @@ export const prepareDeploymentParamsConfigV32Schema = commonFieldsSchema
 export const prepareDeploymentParamsConfigV21Transform = (
   input: z.output<typeof prepareDeploymentParamsConfigV21Schema>,
 ): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
-  const { parentChainRpcUrl, ...params } = input;
-  return [toPublicClient(parentChainRpcUrl), params];
+  const { parentChainRpcUrl, parentChainId, ...params } = input;
+  return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
 };
 
 export const prepareDeploymentParamsConfigV32Transform = (
   input: z.output<typeof prepareDeploymentParamsConfigV32Schema>,
 ): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
-  const { parentChainRpcUrl, ...params } = input;
-  return [toPublicClient(parentChainRpcUrl), params];
+  const { parentChainRpcUrl, parentChainId, ...params } = input;
+  return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
 };

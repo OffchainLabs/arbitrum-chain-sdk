@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import { toPublicClient, toWalletClient } from '../viemTransforms';
-import { hexSchema, coreContractsSchema } from './common';
+import { toPublicClient, toWalletClient, findChain } from '../viemTransforms';
+import { hexSchema, coreContractsSchema, privateKeySchema } from './common';
 import { setValidKeyset } from '../../setValidKeyset';
 
 export const setValidKeysetSchema = z
   .object({
     parentChainRpcUrl: z.string().url(),
-    privateKey: z.string().startsWith('0x'),
+    parentChainId: z.number(),
+    privateKey: privateKeySchema,
     coreContracts: coreContractsSchema.pick({
       upgradeExecutor: true,
       sequencerInbox: true,
@@ -21,7 +22,7 @@ export const setValidKeysetTransform = (
   {
     coreContracts: input.coreContracts,
     keyset: input.keyset,
-    publicClient: toPublicClient(input.parentChainRpcUrl),
-    walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
+    publicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey, findChain(input.parentChainId)),
   },
 ];

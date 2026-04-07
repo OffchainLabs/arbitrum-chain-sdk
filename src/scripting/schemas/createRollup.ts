@@ -1,50 +1,14 @@
 import { z } from 'zod';
 import { Chain } from 'viem';
-import { toPublicClient, toAccount } from '../viemTransforms';
+import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import { CreateRollupFunctionParams } from '../../createRollup';
-import { addressSchema, bigintSchema } from './common';
-import {
-  paramsV3Dot2Schema as prepareParamsV3Dot2Schema,
-  paramsV2Dot1Schema as prepareParamsV2Dot1Schema,
-} from './createRollupPrepareDeploymentParamsConfig';
-
-const configV3Dot2Schema = prepareParamsV3Dot2Schema
-  .omit({ chainConfig: true })
-  .required()
-  .extend({ chainConfig: z.string() });
-
-const configV2Dot1Schema = prepareParamsV2Dot1Schema
-  .omit({ chainConfig: true })
-  .required()
-  .extend({ chainConfig: z.string() });
-
-const paramsV3Dot2Schema = z.object({
-  config: configV3Dot2Schema,
-  batchPosters: z.array(addressSchema).min(1),
-  validators: z.array(addressSchema).min(1),
-  maxDataSize: bigintSchema.optional(),
-  nativeToken: addressSchema.optional(),
-  deployFactoriesToL2: z.boolean().optional(),
-  maxFeePerGasForRetryables: bigintSchema.optional(),
-  batchPosterManager: addressSchema.optional(),
-  feeTokenPricer: addressSchema.optional(),
-  customOsp: addressSchema.optional(),
-});
-
-const paramsV2Dot1Schema = z.object({
-  config: configV2Dot1Schema,
-  batchPosters: z.array(addressSchema).min(1),
-  validators: z.array(addressSchema).min(1),
-  maxDataSize: bigintSchema.optional(),
-  nativeToken: addressSchema.optional(),
-  deployFactoriesToL2: z.boolean().optional(),
-  maxFeePerGasForRetryables: bigintSchema.optional(),
-  batchPosterManager: addressSchema.optional(),
-});
+import { privateKeySchema } from './common';
+import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
 const commonFieldsSchema = z.object({
   parentChainRpcUrl: z.string().url(),
-  privateKey: z.string().startsWith('0x'),
+  parentChainId: z.number(),
+  privateKey: privateKeySchema,
 });
 
 export const createRollupV21Schema = commonFieldsSchema
@@ -83,7 +47,7 @@ const transformV21 = (input: z.output<typeof createRollupV21Schema>): Params<'v2
   {
     params: input.params,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
 ];
@@ -92,7 +56,7 @@ const transformV32 = (input: z.output<typeof createRollupV32Schema>): Params<'v3
   {
     params: input.params,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
 ];
@@ -101,7 +65,7 @@ const transformDefault = (input: z.output<typeof createRollupDefaultSchema>): Pa
   {
     params: input.params,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
 ];

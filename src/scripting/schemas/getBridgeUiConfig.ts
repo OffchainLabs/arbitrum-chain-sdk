@@ -1,17 +1,7 @@
 import { z } from 'zod';
-import { Chain } from 'viem';
-import { toPublicClient } from '../viemTransforms';
+import { toPublicClient, findChain } from '../viemTransforms';
 import { hexSchema } from './common';
-import { chains, getCustomParentChains } from '../../chains';
 import { getBridgeUiConfig } from '../../getBridgeUiConfig';
-
-function findChain(chainId: number): Chain {
-  const chain = [...chains, ...getCustomParentChains()].find((c) => c.id === chainId);
-  if (!chain) {
-    throw new Error(`Unknown chain ID: ${chainId}`);
-  }
-  return chain;
-}
 
 export const getBridgeUiConfigSchema = z
   .object({

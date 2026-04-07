@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient } from '../viemTransforms';
+import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema, bigintSchema, rollupCreatorVersionSchema } from './common';
 import { createRollupEnoughCustomFeeTokenAllowance } from '../../createRollupEnoughCustomFeeTokenAllowance';
 import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
@@ -8,6 +8,7 @@ import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from
 
 const createRollupCustomFeeTokenBaseSchema = z.object({
   rpcUrl: z.string().url(),
+  chainId: z.number(),
   nativeToken: addressSchema,
   account: addressSchema,
   maxFeePerGasForRetryables: bigintSchema.optional(),
@@ -25,7 +26,7 @@ export const createRollupEnoughCustomFeeTokenAllowanceTransform = (
     nativeToken: input.nativeToken,
     maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
     account: input.account,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
@@ -46,7 +47,7 @@ export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransfor
     nativeToken: input.nativeToken,
     maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
     account: input.account,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
@@ -54,6 +55,7 @@ export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransfor
 
 const createTokenBridgeCustomFeeTokenBaseSchema = z.object({
   rpcUrl: z.string().url(),
+  chainId: z.number(),
   nativeToken: addressSchema,
   owner: addressSchema,
   tokenBridgeCreatorAddressOverride: addressSchema.optional(),
@@ -68,7 +70,7 @@ export const createTokenBridgeEnoughCustomFeeTokenAllowanceTransform = (
   {
     nativeToken: input.nativeToken,
     owner: input.owner,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
   },
 ];
@@ -87,7 +89,7 @@ export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTra
     amount: input.amount,
     nativeToken: input.nativeToken,
     owner: input.owner,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
   },
 ];

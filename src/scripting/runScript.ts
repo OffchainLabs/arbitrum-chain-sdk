@@ -13,7 +13,7 @@ function formatError(error: unknown): string {
 
 const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? v.toString() : v);
 
-function handleError(error: unknown): void {
+function handleError(error: unknown): never {
   process.stderr.write(formatError(error) + '\n');
   process.exit(1);
 }

@@ -1,6 +1,6 @@
-import { it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
-import { runScript } from './runScript';
+import { runScript, runCli, cmd } from './runScript';
 
 let stdoutData: string;
 let stderrData: string;
@@ -93,4 +93,91 @@ it('prints run errors to stderr', async () => {
   expect(getExitCode()).toBe(1);
   expect(stderrData).toContain('something broke');
   expect(stderrData).toContain('at');
+});
+
+it('outputs raw string without JSON quotes', async () => {
+  process.argv[2] = '{}';
+  runScript(z.object({}), async () => 'hello world');
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  expect(stdoutData).toBe('hello world\n');
+  expect(getExitCode()).toBeUndefined();
+});
+
+describe('runCli', () => {
+  const testSchema = z.object({ value: z.string() });
+  const testCommands = {
+    echo: cmd(
+      testSchema.transform((input) => [input]),
+      (input: { value: string }) => input,
+    ),
+  };
+
+  it('prints usage and exits 1 for unknown command', () => {
+    process.argv[2] = 'nope';
+    process.argv[3] = '{}';
+    runCli('test-cli', testCommands);
+
+    expect(getExitCode()).toBe(1);
+    expect(stderrData).toContain('Usage');
+    expect(stderrData).toContain('echo');
+  });
+
+  it('prints usage and exits 1 when JSON arg is missing', () => {
+    process.argv[2] = 'echo';
+    process.argv[3] = undefined as unknown as string;
+    runCli('test-cli', testCommands);
+
+    expect(getExitCode()).toBe(1);
+    expect(stderrData).toContain('Usage');
+  });
+
+  it('prints parse error and exits 1 for invalid JSON', () => {
+    process.argv[2] = 'echo';
+    process.argv[3] = 'not json';
+    runCli('test-cli', testCommands);
+
+    expect(getExitCode()).toBe(1);
+    expect(stderrData).toContain('Unexpected token');
+  });
+
+  it('prints validation error and exits 1 on schema failure', async () => {
+    process.argv[2] = 'echo';
+    process.argv[3] = '{"value": 123}';
+    runCli('test-cli', testCommands);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(getExitCode()).toBe(1);
+    expect(stderrData).toContain('validation failed');
+  });
+
+  it('calls the command and writes result to stdout', async () => {
+    process.argv[2] = 'echo';
+    process.argv[3] = '{"value": "hi"}';
+    runCli('test-cli', testCommands);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(JSON.parse(stdoutData)).toEqual({ value: 'hi' });
+    expect(getExitCode()).toBeUndefined();
+  });
+
+  it('outputs raw string without JSON quotes', async () => {
+    const stringCommands = {
+      greet: cmd(
+        z.object({}).transform((input) => [input]),
+        () => 'hello world',
+      ),
+    };
+    process.argv[2] = 'greet';
+    process.argv[3] = '{}';
+    runCli('test-cli', stringCommands);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(stdoutData).toBe('hello world\n');
+    expect(getExitCode()).toBeUndefined();
+  });
 });

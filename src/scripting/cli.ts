@@ -113,7 +113,6 @@ import { getDefaultSequencerInboxMaxTimeVariation } from '../getDefaultSequencer
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
 
 runCli('chain-sdk', {
-  // reads
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),
@@ -143,7 +142,6 @@ runCli('chain-sdk', {
   fetchAllowance: cmd(fetchAllowanceSchema.transform(fetchAllowanceTransform), fetchAllowance),
   fetchDecimals: cmd(fetchDecimalsSchema.transform(fetchDecimalsTransform), fetchDecimals),
 
-  // writes
   setAnyTrustFastConfirmer: cmd(
     setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform),
     setAnyTrustFastConfirmerPrepareTransactionRequest,
@@ -231,7 +229,6 @@ runCli('chain-sdk', {
     feeRouterDeployChildToParentRewardRouter,
   ),
 
-  // config
   prepareChainConfig: cmd(
     prepareChainConfigParamsSchema.transform(prepareChainConfigTransform),
     prepareChainConfig,
@@ -258,7 +255,6 @@ runCli('chain-sdk', {
     createRollupGetRetryablesFees,
   ),
 
-  // defaults
   getDefaultConfirmPeriodBlocks: cmd(
     getDefaultsSchema.transform(getDefaultsTransform),
     getDefaultConfirmPeriodBlocks,

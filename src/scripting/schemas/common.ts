@@ -10,7 +10,12 @@ export const hexSchema = z.custom<`0x${string}`>(
   'Invalid hex string',
 );
 
-export const bigintSchema = z.string().transform(BigInt);
+export const bigintSchema = z.coerce.bigint();
+
+export const privateKeySchema = z.custom<`0x${string}`>(
+  (val) => typeof val === 'string' && /^0x[0-9a-fA-F]{64}$/.test(val),
+  'Invalid private key',
+);
 
 export const rollupCreatorVersionSchema = z.enum(['v3.2', 'v2.1']);
 

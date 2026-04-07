@@ -1,8 +1,9 @@
 import { z } from 'zod';
-import { toPublicClient, toAccount } from '../viemTransforms';
+import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import {
   addressSchema,
   bigintSchema,
+  privateKeySchema,
   gasOverridesSchema,
   retryableGasOverridesSchema,
   setWethGatewayGasOverridesSchema,
@@ -12,8 +13,9 @@ import { createTokenBridge } from '../../createTokenBridge';
 export const createTokenBridgeSchema = z
   .object({
     parentChainRpcUrl: z.string().url(),
+    parentChainId: z.number(),
     orbitChainRpcUrl: z.string().url(),
-    privateKey: z.string().startsWith('0x'),
+    privateKey: privateKeySchema,
     rollupOwner: addressSchema,
     rollupAddress: addressSchema,
     rollupDeploymentBlockNumber: bigintSchema.optional(),
@@ -32,7 +34,7 @@ export const createTokenBridgeTransform = (
     rollupOwner: input.rollupOwner,
     rollupAddress: input.rollupAddress,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
     orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
     nativeTokenAddress: input.nativeTokenAddress,

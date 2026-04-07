@@ -10,8 +10,8 @@ import {
   zeroAddress,
 } from 'viem';
 import { runScript } from '../runScript';
-import { addressSchema, bigintSchema } from '../schemas/common';
-import { toPublicClient, toAccount, toWalletClient } from '../viemTransforms';
+import { addressSchema, bigintSchema, privateKeySchema } from '../schemas/common';
+import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorPrepareRemoveExecutorTransactionRequest } from '../../upgradeExecutorPrepareRemoveExecutorTransactionRequest';
 import {
@@ -167,7 +167,8 @@ async function sendL2Message(
 const schema = z
   .object({
     rpcUrl: z.string().url(),
-    privateKey: z.string().startsWith('0x'),
+    chainId: z.number(),
+    privateKey: privateKeySchema,
     upgradeExecutorAddress: addressSchema,
     newOwnerAddress: addressSchema,
     inboxAddress: addressSchema,
@@ -177,11 +178,11 @@ const schema = z
     maxGasPrice: bigintSchema,
     refundAddress: addressSchema.optional(),
   })
-  .transform(({ rpcUrl, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
+  .transform(({ rpcUrl, chainId, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
     ...rest,
-    publicClient: toPublicClient(rpcUrl),
+    publicClient: toPublicClient(rpcUrl, findChain(chainId)),
     account: toAccount(privateKey),
-    walletClient: toWalletClient(rpcUrl, privateKey),
+    walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)),
     refundAddress: refundAddress ?? newOwnerAddress,
     newOwnerAddress,
   }));

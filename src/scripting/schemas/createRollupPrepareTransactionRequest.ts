@@ -1,49 +1,13 @@
 import { z } from 'zod';
 import { Chain } from 'viem';
-import { toPublicClient } from '../viemTransforms';
+import { toPublicClient, findChain } from '../viemTransforms';
 import { CreateRollupPrepareTransactionRequestParams } from '../../createRollupPrepareTransactionRequest';
 import { addressSchema, bigintSchema, gasOverridesSchema } from './common';
-import {
-  paramsV3Dot2Schema as prepareParamsV3Dot2Schema,
-  paramsV2Dot1Schema as prepareParamsV2Dot1Schema,
-} from './createRollupPrepareDeploymentParamsConfig';
-
-const configV3Dot2Schema = prepareParamsV3Dot2Schema
-  .omit({ chainConfig: true })
-  .required()
-  .extend({ chainConfig: z.string() });
-
-const configV2Dot1Schema = prepareParamsV2Dot1Schema
-  .omit({ chainConfig: true })
-  .required()
-  .extend({ chainConfig: z.string() });
-
-const paramsV3Dot2Schema = z.object({
-  config: configV3Dot2Schema,
-  batchPosters: z.array(addressSchema).min(1),
-  validators: z.array(addressSchema).min(1),
-  maxDataSize: bigintSchema.optional(),
-  nativeToken: addressSchema.optional(),
-  deployFactoriesToL2: z.boolean().optional(),
-  maxFeePerGasForRetryables: bigintSchema.optional(),
-  batchPosterManager: addressSchema.optional(),
-  feeTokenPricer: addressSchema.optional(),
-  customOsp: addressSchema.optional(),
-});
-
-const paramsV2Dot1Schema = z.object({
-  config: configV2Dot1Schema,
-  batchPosters: z.array(addressSchema).min(1),
-  validators: z.array(addressSchema).min(1),
-  maxDataSize: bigintSchema.optional(),
-  nativeToken: addressSchema.optional(),
-  deployFactoriesToL2: z.boolean().optional(),
-  maxFeePerGasForRetryables: bigintSchema.optional(),
-  batchPosterManager: addressSchema.optional(),
-});
+import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
 const commonFieldsSchema = z.object({
   rpcUrl: z.string().url(),
+  chainId: z.number(),
   account: addressSchema,
   value: bigintSchema.optional(),
   gasOverrides: gasOverridesSchema.optional(),
@@ -89,7 +53,7 @@ const transformV21 = (
     params: input.params,
     account: input.account,
     value: input.value,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     gasOverrides: input.gasOverrides,
     rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
     rollupCreatorVersion: input.rollupCreatorVersion,
@@ -103,7 +67,7 @@ const transformV32 = (
     params: input.params,
     account: input.account,
     value: input.value,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     gasOverrides: input.gasOverrides,
     rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
     rollupCreatorVersion: input.rollupCreatorVersion,
@@ -117,7 +81,7 @@ const transformDefault = (
     params: input.params,
     account: input.account,
     value: input.value,
-    publicClient: toPublicClient(input.rpcUrl),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     gasOverrides: input.gasOverrides,
     rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
     rollupCreatorVersion: input.rollupCreatorVersion,

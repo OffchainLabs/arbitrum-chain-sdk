@@ -1,6 +1,15 @@
 import { Chain, createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
+import { chains, getCustomParentChains } from '../chains';
+
+export function findChain(chainId: number): Chain {
+  const chain = [...chains, ...getCustomParentChains()].find((c) => c.id === chainId);
+  if (!chain) {
+    throw new Error(`Unknown chain ID: ${chainId}`);
+  }
+  return chain;
+}
 
 export function toPublicClient<TChain extends Chain | undefined = undefined>(
   rpcUrl: string,
