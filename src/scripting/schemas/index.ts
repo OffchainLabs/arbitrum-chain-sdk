@@ -10,6 +10,7 @@ export {
   setWethGatewayGasOverridesSchema,
   chainConfigSchema,
   prepareChainConfigArbitrumParamsSchema,
+  privateKeySchema,
   rollupCreatorVersionSchema,
 } from './common';
 export { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './prepareChainConfig';
