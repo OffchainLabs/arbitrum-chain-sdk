@@ -6,7 +6,7 @@ import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContr
 export const createRollupFetchCoreContractsSchema = z
   .object({
     rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
+    chainId: z.number(),
     rollup: addressSchema,
     rollupDeploymentBlockNumber: bigintSchema.optional(),
   })
@@ -17,10 +17,7 @@ export const createRollupFetchCoreContractsTransform = (
 ): Parameters<typeof createRollupFetchCoreContracts> => [
   {
     rollup: input.rollup,
-    publicClient: toPublicClient(
-      input.rpcUrl,
-      input.chainId ? findChain(input.chainId) : undefined,
-    ),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
   },
 ];

@@ -12,7 +12,7 @@ const recipientSchema = z.object({
 export const feeRouterDeployRewardDistributorSchema = z
   .object({
     orbitChainRpcUrl: z.string().url(),
-    orbitChainId: z.number().optional(),
+    orbitChainId: z.number(),
     privateKey: privateKeySchema,
     recipients: z.array(recipientSchema),
   })
@@ -25,7 +25,7 @@ export const feeRouterDeployRewardDistributorTransform = (
     orbitChainWalletClient: toWalletClient(
       input.orbitChainRpcUrl,
       input.privateKey,
-      input.orbitChainId ? findChain(input.orbitChainId) : undefined,
+      findChain(input.orbitChainId),
     ),
     recipients: input.recipients,
   },
