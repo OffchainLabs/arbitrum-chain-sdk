@@ -6,7 +6,7 @@ import { getBatchPosters } from '../../getBatchPosters';
 export const getBatchPostersSchema = z
   .object({
     rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
+    chainId: z.number(),
     rollup: addressSchema,
     sequencerInbox: addressSchema,
   })
@@ -15,6 +15,6 @@ export const getBatchPostersSchema = z
 export const getBatchPostersTransform = (
   input: z.output<typeof getBatchPostersSchema>,
 ): Parameters<typeof getBatchPosters> => [
-  toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+  toPublicClient(input.rpcUrl, findChain(input.chainId)),
   { rollup: input.rollup, sequencerInbox: input.sequencerInbox },
 ];

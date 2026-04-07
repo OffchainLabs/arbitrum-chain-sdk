@@ -6,7 +6,7 @@ import { getKeysets } from '../../getKeysets';
 export const getKeysetsSchema = z
   .object({
     rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
+    chainId: z.number(),
     sequencerInbox: addressSchema,
   })
   .strict();
@@ -14,6 +14,6 @@ export const getKeysetsSchema = z
 export const getKeysetsTransform = (
   input: z.output<typeof getKeysetsSchema>,
 ): Parameters<typeof getKeysets> => [
-  toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+  toPublicClient(input.rpcUrl, findChain(input.chainId)),
   { sequencerInbox: input.sequencerInbox },
 ];
