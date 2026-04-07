@@ -17,7 +17,10 @@ export const createRollupFetchTransactionHashTransform = (
 ): Parameters<typeof createRollupFetchTransactionHash> => [
   {
     rollup: input.rollup,
-    publicClient: toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+    publicClient: toPublicClient(
+      input.rpcUrl,
+      input.chainId ? findChain(input.chainId) : undefined,
+    ),
     fromBlock: input.fromBlock,
   },
 ];

@@ -23,6 +23,10 @@ export const setValidKeysetTransform = (
     coreContracts: input.coreContracts,
     keyset: input.keyset,
     publicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
-    walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey, findChain(input.parentChainId)),
+    walletClient: toWalletClient(
+      input.parentChainRpcUrl,
+      input.privateKey,
+      findChain(input.parentChainId),
+    ),
   },
 ];

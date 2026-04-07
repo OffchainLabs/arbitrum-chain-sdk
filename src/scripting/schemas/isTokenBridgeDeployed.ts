@@ -17,7 +17,10 @@ export const isTokenBridgeDeployedTransform = (
   input: z.output<typeof isTokenBridgeDeployedSchema>,
 ): Parameters<typeof isTokenBridgeDeployed> => [
   {
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     rollup: input.rollup,
     tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,

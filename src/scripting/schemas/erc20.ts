@@ -20,7 +20,10 @@ export const fetchAllowanceTransform = (
     address: input.address,
     owner: input.owner,
     spender: input.spender,
-    publicClient: toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+    publicClient: toPublicClient(
+      input.rpcUrl,
+      input.chainId ? findChain(input.chainId) : undefined,
+    ),
   },
 ];
 
@@ -37,6 +40,9 @@ export const fetchDecimalsTransform = (
 ): Parameters<typeof fetchDecimals> => [
   {
     address: input.address,
-    publicClient: toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+    publicClient: toPublicClient(
+      input.rpcUrl,
+      input.chainId ? findChain(input.chainId) : undefined,
+    ),
   },
 ];

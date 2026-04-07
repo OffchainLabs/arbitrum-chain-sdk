@@ -34,7 +34,10 @@ export const createTokenBridgeTransform = (
     rollupOwner: input.rollupOwner,
     rollupAddress: input.rollupAddress,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
     nativeTokenAddress: input.nativeTokenAddress,

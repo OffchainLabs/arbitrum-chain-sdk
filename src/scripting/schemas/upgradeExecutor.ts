@@ -38,6 +38,9 @@ export const upgradeExecutorFetchPrivilegedAccountsTransform = (
 ): Parameters<typeof upgradeExecutorFetchPrivilegedAccounts> => [
   {
     upgradeExecutorAddress: input.upgradeExecutorAddress,
-    publicClient: toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+    publicClient: toPublicClient(
+      input.rpcUrl,
+      input.chainId ? findChain(input.chainId) : undefined,
+    ),
   },
 ];

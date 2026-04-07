@@ -24,7 +24,10 @@ export const createTokenBridgePrepareTransactionRequestTransform = (
 ): Parameters<typeof createTokenBridgePrepareTransactionRequest> => [
   {
     params: input.params,
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     account: input.account,
     gasOverrides: input.gasOverrides,

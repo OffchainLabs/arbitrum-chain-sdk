@@ -22,7 +22,11 @@ export const feeRouterDeployRewardDistributorTransform = (
   input: z.output<typeof feeRouterDeployRewardDistributorSchema>,
 ): Parameters<typeof feeRouterDeployRewardDistributor> => [
   {
-    orbitChainWalletClient: toWalletClient(input.orbitChainRpcUrl, input.privateKey, input.orbitChainId ? findChain(input.orbitChainId) : undefined),
+    orbitChainWalletClient: toWalletClient(
+      input.orbitChainRpcUrl,
+      input.privateKey,
+      input.orbitChainId ? findChain(input.orbitChainId) : undefined,
+    ),
     recipients: input.recipients,
   },
 ];
@@ -45,7 +49,10 @@ export const feeRouterDeployChildToParentRewardRouterTransform = (
   input: z.output<typeof feeRouterDeployChildToParentRewardRouterSchema>,
 ): Parameters<typeof feeRouterDeployChildToParentRewardRouter> => [
   {
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     orbitChainWalletClient: toWalletClient(input.orbitChainRpcUrl, input.privateKey),
     parentChainTargetAddress: input.parentChainTargetAddress,
     minDistributionInvervalSeconds: input.minDistributionInvervalSeconds,

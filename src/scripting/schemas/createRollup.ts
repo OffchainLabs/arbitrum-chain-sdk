@@ -47,7 +47,10 @@ const transformV21 = (input: z.output<typeof createRollupV21Schema>): Params<'v2
   {
     params: input.params,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
 ];
@@ -56,7 +59,10 @@ const transformV32 = (input: z.output<typeof createRollupV32Schema>): Params<'v3
   {
     params: input.params,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
 ];
@@ -65,7 +71,10 @@ const transformDefault = (input: z.output<typeof createRollupDefaultSchema>): Pa
   {
     params: input.params,
     account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     rollupCreatorVersion: input.rollupCreatorVersion,
   },
 ];

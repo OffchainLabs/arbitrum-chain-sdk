@@ -22,7 +22,10 @@ export const createTokenBridgePrepareSetWethGatewayTransactionRequestTransform =
   {
     rollup: input.rollup,
     rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
-    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+    parentChainPublicClient: toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    ),
     orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     account: input.account,
     retryableGasOverrides: input.retryableGasOverrides,

@@ -240,14 +240,16 @@ it('chainConfigSchema matches ChainConfig', () =>
 
 it('prepareDeploymentParamsConfigV32Transform params match CreateRollupPrepareDeploymentParamsConfigParams', () => {
   type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV32Transform>;
-  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
-    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>>();
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>().toEqualTypeOf<
+    DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>
+  >();
 });
 
 it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDeploymentParamsConfigParams<v2.1>', () => {
   type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV21Transform>;
-  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
-    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>>();
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>().toEqualTypeOf<
+    DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>
+  >();
 });
 
 it('prepareChainConfigTransform output matches prepareChainConfig params', () =>

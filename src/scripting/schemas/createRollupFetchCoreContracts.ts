@@ -17,7 +17,10 @@ export const createRollupFetchCoreContractsTransform = (
 ): Parameters<typeof createRollupFetchCoreContracts> => [
   {
     rollup: input.rollup,
-    publicClient: toPublicClient(input.rpcUrl, input.chainId ? findChain(input.chainId) : undefined),
+    publicClient: toPublicClient(
+      input.rpcUrl,
+      input.chainId ? findChain(input.chainId) : undefined,
+    ),
     rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
   },
 ];
