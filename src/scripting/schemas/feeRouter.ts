@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { toPublicClient, toWalletClient } from '../viemTransforms';
 import { addressSchema, bigintSchema } from './common';
+import { feeRouterDeployRewardDistributor } from '../../feeRouterDeployRewardDistributor';
+import { feeRouterDeployChildToParentRewardRouter } from '../../feeRouterDeployChildToParentRewardRouter';
 
 const recipientSchema = z.object({
   account: addressSchema,
@@ -17,13 +19,12 @@ export const feeRouterDeployRewardDistributorSchema = z
 
 export const feeRouterDeployRewardDistributorTransform = (
   input: z.output<typeof feeRouterDeployRewardDistributorSchema>,
-) =>
-  [
-    {
-      orbitChainWalletClient: toWalletClient(input.orbitChainRpcUrl, input.privateKey),
-      recipients: input.recipients,
-    },
-  ] as const;
+): Parameters<typeof feeRouterDeployRewardDistributor> => [
+  {
+    orbitChainWalletClient: toWalletClient(input.orbitChainRpcUrl, input.privateKey),
+    recipients: input.recipients,
+  },
+];
 
 export const feeRouterDeployChildToParentRewardRouterSchema = z
   .object({
@@ -40,15 +41,14 @@ export const feeRouterDeployChildToParentRewardRouterSchema = z
 
 export const feeRouterDeployChildToParentRewardRouterTransform = (
   input: z.output<typeof feeRouterDeployChildToParentRewardRouterSchema>,
-) =>
-  [
-    {
-      parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-      orbitChainWalletClient: toWalletClient(input.orbitChainRpcUrl, input.privateKey),
-      parentChainTargetAddress: input.parentChainTargetAddress,
-      minDistributionInvervalSeconds: input.minDistributionInvervalSeconds,
-      rollup: input.rollup,
-      parentChainTokenAddress: input.parentChainTokenAddress,
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-    },
-  ] as const;
+): Parameters<typeof feeRouterDeployChildToParentRewardRouter> => [
+  {
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    orbitChainWalletClient: toWalletClient(input.orbitChainRpcUrl, input.privateKey),
+    parentChainTargetAddress: input.parentChainTargetAddress,
+    minDistributionInvervalSeconds: input.minDistributionInvervalSeconds,
+    rollup: input.rollup,
+    parentChainTokenAddress: input.parentChainTokenAddress,
+    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+  },
+];

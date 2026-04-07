@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema, hexSchema, coreContractsSchema } from './common';
+import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
 
 export const setValidKeysetPrepareTransactionRequestSchema = z
   .object({
@@ -16,12 +17,11 @@ export const setValidKeysetPrepareTransactionRequestSchema = z
 
 export const setValidKeysetPrepareTransactionRequestTransform = (
   input: z.output<typeof setValidKeysetPrepareTransactionRequestSchema>,
-) =>
-  [
-    {
-      coreContracts: input.coreContracts,
-      keyset: input.keyset,
-      account: input.account,
-      publicClient: toPublicClient(input.rpcUrl),
-    },
-  ] as const;
+): Parameters<typeof setValidKeysetPrepareTransactionRequest> => [
+  {
+    coreContracts: input.coreContracts,
+    keyset: input.keyset,
+    account: input.account,
+    publicClient: toPublicClient(input.rpcUrl),
+  },
+];

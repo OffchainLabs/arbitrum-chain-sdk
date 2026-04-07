@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema, gasOverridesSchema, retryableGasOverridesSchema } from './common';
+import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 
 export const createTokenBridgePrepareTransactionRequestSchema = z
   .object({
@@ -19,15 +20,14 @@ export const createTokenBridgePrepareTransactionRequestSchema = z
 
 export const createTokenBridgePrepareTransactionRequestTransform = (
   input: z.output<typeof createTokenBridgePrepareTransactionRequestSchema>,
-) =>
-  [
-    {
-      params: input.params,
-      parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-      orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
-      account: input.account,
-      gasOverrides: input.gasOverrides,
-      retryableGasOverrides: input.retryableGasOverrides,
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-    },
-  ] as const;
+): Parameters<typeof createTokenBridgePrepareTransactionRequest> => [
+  {
+    params: input.params,
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
+    account: input.account,
+    gasOverrides: input.gasOverrides,
+    retryableGasOverrides: input.retryableGasOverrides,
+    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+  },
+];

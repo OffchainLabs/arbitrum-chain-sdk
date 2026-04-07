@@ -3,6 +3,7 @@ import { Chain } from 'viem';
 import { toPublicClient } from '../viemTransforms';
 import { hexSchema } from './common';
 import { chains, getCustomParentChains } from '../../chains';
+import { getBridgeUiConfig } from '../../getBridgeUiConfig';
 
 function findChain(chainId: number): Chain {
   const chain = [...chains, ...getCustomParentChains()].find((c) => c.id === chainId);
@@ -23,7 +24,9 @@ export const getBridgeUiConfigSchema = z
   })
   .strict();
 
-export const getBridgeUiConfigTransform = (input: z.output<typeof getBridgeUiConfigSchema>) => {
+export const getBridgeUiConfigTransform = (
+  input: z.output<typeof getBridgeUiConfigSchema>,
+): Parameters<typeof getBridgeUiConfig> => {
   const parentChain = findChain(input.parentChainId);
 
   return [
@@ -37,5 +40,5 @@ export const getBridgeUiConfigTransform = (input: z.output<typeof getBridgeUiCon
       },
       parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, parentChain),
     },
-  ] as const;
+  ];
 };

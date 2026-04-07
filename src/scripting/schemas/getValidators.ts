@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema } from './common';
+import { getValidators } from '../../getValidators';
 
 export const getValidatorsSchema = z
   .object({
@@ -9,5 +10,6 @@ export const getValidatorsSchema = z
   })
   .strict();
 
-export const getValidatorsTransform = (input: z.output<typeof getValidatorsSchema>) =>
-  [toPublicClient(input.rpcUrl), { rollup: input.rollup }] as const;
+export const getValidatorsTransform = (
+  input: z.output<typeof getValidatorsSchema>,
+): Parameters<typeof getValidators> => [toPublicClient(input.rpcUrl), { rollup: input.rollup }];

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient, toAccount } from '../viemTransforms';
 import { addressSchema } from './common';
+import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
 
 export const setAnyTrustFastConfirmerSchema = z
   .object({
@@ -14,13 +15,12 @@ export const setAnyTrustFastConfirmerSchema = z
 
 export const setAnyTrustFastConfirmerTransform = (
   input: z.output<typeof setAnyTrustFastConfirmerSchema>,
-) =>
-  [
-    {
-      publicClient: toPublicClient(input.rpcUrl),
-      account: toAccount(input.privateKey),
-      rollup: input.rollup,
-      upgradeExecutor: input.upgradeExecutor,
-      fastConfirmer: input.fastConfirmer,
-    },
-  ] as const;
+): Parameters<typeof setAnyTrustFastConfirmerPrepareTransactionRequest> => [
+  {
+    publicClient: toPublicClient(input.rpcUrl),
+    account: toAccount(input.privateKey),
+    rollup: input.rollup,
+    upgradeExecutor: input.upgradeExecutor,
+    fastConfirmer: input.fastConfirmer,
+  },
+];

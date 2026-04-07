@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema, bigintSchema } from './common';
+import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
 
 export const createRollupFetchTransactionHashSchema = z
   .object({
@@ -12,11 +13,10 @@ export const createRollupFetchTransactionHashSchema = z
 
 export const createRollupFetchTransactionHashTransform = (
   input: z.output<typeof createRollupFetchTransactionHashSchema>,
-) =>
-  [
-    {
-      rollup: input.rollup,
-      publicClient: toPublicClient(input.rpcUrl),
-      fromBlock: input.fromBlock,
-    },
-  ] as const;
+): Parameters<typeof createRollupFetchTransactionHash> => [
+  {
+    rollup: input.rollup,
+    publicClient: toPublicClient(input.rpcUrl),
+    fromBlock: input.fromBlock,
+  },
+];

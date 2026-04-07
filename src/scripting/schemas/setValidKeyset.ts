@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient, toWalletClient } from '../viemTransforms';
 import { hexSchema, coreContractsSchema } from './common';
+import { setValidKeyset } from '../../setValidKeyset';
 
 export const setValidKeysetSchema = z
   .object({
@@ -14,12 +15,13 @@ export const setValidKeysetSchema = z
   })
   .strict();
 
-export const setValidKeysetTransform = (input: z.output<typeof setValidKeysetSchema>) =>
-  [
-    {
-      coreContracts: input.coreContracts,
-      keyset: input.keyset,
-      publicClient: toPublicClient(input.parentChainRpcUrl),
-      walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
-    },
-  ] as const;
+export const setValidKeysetTransform = (
+  input: z.output<typeof setValidKeysetSchema>,
+): Parameters<typeof setValidKeyset> => [
+  {
+    coreContracts: input.coreContracts,
+    keyset: input.keyset,
+    publicClient: toPublicClient(input.parentChainRpcUrl),
+    walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
+  },
+];

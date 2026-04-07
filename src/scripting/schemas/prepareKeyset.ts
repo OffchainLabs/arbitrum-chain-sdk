@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { prepareKeyset } from '../../prepareKeyset';
 
 export const prepareKeysetSchema = z
   .object({
@@ -7,5 +8,6 @@ export const prepareKeysetSchema = z
   })
   .strict();
 
-export const prepareKeysetTransform = (input: z.output<typeof prepareKeysetSchema>) =>
-  [input.publicKeys, input.assumedHonest] as const;
+export const prepareKeysetTransform = (
+  input: z.output<typeof prepareKeysetSchema>,
+): Parameters<typeof prepareKeyset> => [input.publicKeys, input.assumedHonest];

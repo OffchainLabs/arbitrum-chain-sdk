@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { prepareChainConfigArbitrumParamsSchema } from './common';
+import { prepareChainConfig } from '../../prepareChainConfig';
 
 export const prepareChainConfigParamsSchema = z
   .object({
@@ -10,4 +11,4 @@ export const prepareChainConfigParamsSchema = z
 
 export const prepareChainConfigTransform = (
   input: z.output<typeof prepareChainConfigParamsSchema>,
-) => [input] as const;
+): Parameters<typeof prepareChainConfig> => [input];

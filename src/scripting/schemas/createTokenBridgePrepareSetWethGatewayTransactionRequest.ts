@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema, bigintSchema, setWethGatewayGasOverridesSchema } from './common';
+import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
 export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema = z
   .object({
@@ -16,15 +17,14 @@ export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema = z
 
 export const createTokenBridgePrepareSetWethGatewayTransactionRequestTransform = (
   input: z.output<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestSchema>,
-) =>
-  [
-    {
-      rollup: input.rollup,
-      rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
-      parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
-      orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
-      account: input.account,
-      retryableGasOverrides: input.retryableGasOverrides,
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-    },
-  ] as const;
+): Parameters<typeof createTokenBridgePrepareSetWethGatewayTransactionRequest> => [
+  {
+    rollup: input.rollup,
+    rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
+    parentChainPublicClient: toPublicClient(input.parentChainRpcUrl),
+    orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
+    account: input.account,
+    retryableGasOverrides: input.retryableGasOverrides,
+    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+  },
+];

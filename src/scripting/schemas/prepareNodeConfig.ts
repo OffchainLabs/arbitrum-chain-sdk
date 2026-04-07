@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ParentChainId } from '../../types/ParentChain';
 import { chainConfigSchema, coreContractsSchema } from './common';
+import { prepareNodeConfig } from '../../prepareNodeConfig';
 
 export const prepareNodeConfigSchema = z
   .object({
@@ -18,5 +19,6 @@ export const prepareNodeConfigSchema = z
   })
   .strict();
 
-export const prepareNodeConfigTransform = (input: z.output<typeof prepareNodeConfigSchema>) =>
-  [input] as const;
+export const prepareNodeConfigTransform = (
+  input: z.output<typeof prepareNodeConfigSchema>,
+): Parameters<typeof prepareNodeConfig> => [input];

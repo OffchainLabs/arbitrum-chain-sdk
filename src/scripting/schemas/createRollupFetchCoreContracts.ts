@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema, bigintSchema } from './common';
+import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContracts';
 
 export const createRollupFetchCoreContractsSchema = z
   .object({
@@ -12,11 +13,10 @@ export const createRollupFetchCoreContractsSchema = z
 
 export const createRollupFetchCoreContractsTransform = (
   input: z.output<typeof createRollupFetchCoreContractsSchema>,
-) =>
-  [
-    {
-      rollup: input.rollup,
-      publicClient: toPublicClient(input.rpcUrl),
-      rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
-    },
-  ] as const;
+): Parameters<typeof createRollupFetchCoreContracts> => [
+  {
+    rollup: input.rollup,
+    publicClient: toPublicClient(input.rpcUrl),
+    rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
+  },
+];

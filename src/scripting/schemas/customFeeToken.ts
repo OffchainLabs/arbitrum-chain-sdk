@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { toPublicClient } from '../viemTransforms';
 import { addressSchema, bigintSchema, rollupCreatorVersionSchema } from './common';
+import { createRollupEnoughCustomFeeTokenAllowance } from '../../createRollupEnoughCustomFeeTokenAllowance';
+import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
+import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
+import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 
 const createRollupCustomFeeTokenBaseSchema = z.object({
   rpcUrl: z.string().url(),
@@ -16,17 +20,16 @@ export const createRollupEnoughCustomFeeTokenAllowanceSchema =
 
 export const createRollupEnoughCustomFeeTokenAllowanceTransform = (
   input: z.output<typeof createRollupEnoughCustomFeeTokenAllowanceSchema>,
-) =>
-  [
-    {
-      nativeToken: input.nativeToken,
-      maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
-      account: input.account,
-      publicClient: toPublicClient(input.rpcUrl),
-      rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
-      rollupCreatorVersion: input.rollupCreatorVersion,
-    },
-  ] as const;
+): Parameters<typeof createRollupEnoughCustomFeeTokenAllowance> => [
+  {
+    nativeToken: input.nativeToken,
+    maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
+    account: input.account,
+    publicClient: toPublicClient(input.rpcUrl),
+    rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
+    rollupCreatorVersion: input.rollupCreatorVersion,
+  },
+];
 
 export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema =
   createRollupCustomFeeTokenBaseSchema
@@ -37,18 +40,17 @@ export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema =
 
 export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform = (
   input: z.output<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema>,
-) =>
-  [
-    {
-      amount: input.amount,
-      nativeToken: input.nativeToken,
-      maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
-      account: input.account,
-      publicClient: toPublicClient(input.rpcUrl),
-      rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
-      rollupCreatorVersion: input.rollupCreatorVersion,
-    },
-  ] as const;
+): Parameters<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequest> => [
+  {
+    amount: input.amount,
+    nativeToken: input.nativeToken,
+    maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
+    account: input.account,
+    publicClient: toPublicClient(input.rpcUrl),
+    rollupCreatorAddressOverride: input.rollupCreatorAddressOverride,
+    rollupCreatorVersion: input.rollupCreatorVersion,
+  },
+];
 
 const createTokenBridgeCustomFeeTokenBaseSchema = z.object({
   rpcUrl: z.string().url(),
@@ -62,15 +64,14 @@ export const createTokenBridgeEnoughCustomFeeTokenAllowanceSchema =
 
 export const createTokenBridgeEnoughCustomFeeTokenAllowanceTransform = (
   input: z.output<typeof createTokenBridgeEnoughCustomFeeTokenAllowanceSchema>,
-) =>
-  [
-    {
-      nativeToken: input.nativeToken,
-      owner: input.owner,
-      publicClient: toPublicClient(input.rpcUrl),
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-    },
-  ] as const;
+): Parameters<typeof createTokenBridgeEnoughCustomFeeTokenAllowance> => [
+  {
+    nativeToken: input.nativeToken,
+    owner: input.owner,
+    publicClient: toPublicClient(input.rpcUrl),
+    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+  },
+];
 
 export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema =
   createTokenBridgeCustomFeeTokenBaseSchema
@@ -81,13 +82,12 @@ export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSch
 
 export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform = (
   input: z.output<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema>,
-) =>
-  [
-    {
-      amount: input.amount,
-      nativeToken: input.nativeToken,
-      owner: input.owner,
-      publicClient: toPublicClient(input.rpcUrl),
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-    },
-  ] as const;
+): Parameters<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest> => [
+  {
+    amount: input.amount,
+    nativeToken: input.nativeToken,
+    owner: input.owner,
+    publicClient: toPublicClient(input.rpcUrl),
+    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+  },
+];
