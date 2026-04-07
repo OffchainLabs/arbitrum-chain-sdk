@@ -4,9 +4,11 @@ import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
 import { chains, getCustomParentChains } from '../chains';
 
 export function findChain(chainId: number): Chain {
-  const chain = [...chains, ...getCustomParentChains()].find((c) => c.id === chainId);
+  const knownChains = [...chains, ...getCustomParentChains()];
+  const chain = knownChains.find((c) => c.id === chainId);
   if (!chain) {
-    throw new Error(`Unknown chain ID: ${chainId}`);
+    const known = knownChains.map((c) => c.id).join(', ');
+    throw new Error(`Unknown chain ID: ${chainId}. Known chain IDs: ${known}`);
   }
   return chain;
 }

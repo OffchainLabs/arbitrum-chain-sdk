@@ -33,9 +33,16 @@ export const createRollupPrepareTransactionRequestDefaultSchema = commonFieldsSc
   })
   .strict();
 
+const versionedCreateRollupPrepareTransactionRequestSchema = z.discriminatedUnion(
+  'rollupCreatorVersion',
+  [
+    createRollupPrepareTransactionRequestV21Schema,
+    createRollupPrepareTransactionRequestV32Schema,
+  ],
+);
+
 export const createRollupPrepareTransactionRequestSchema = z.union([
-  createRollupPrepareTransactionRequestV21Schema,
-  createRollupPrepareTransactionRequestV32Schema,
+  versionedCreateRollupPrepareTransactionRequestSchema,
   createRollupPrepareTransactionRequestDefaultSchema,
 ]);
 

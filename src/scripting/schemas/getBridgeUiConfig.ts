@@ -9,8 +9,8 @@ export const getBridgeUiConfigSchema = z
     parentChainId: z.number(),
     deploymentTxHash: hexSchema,
     chainName: z.string().optional(),
-    rpcUrl: z.string().optional(),
-    explorerUrl: z.string().optional(),
+    rpcUrl: z.string().url().optional(),
+    explorerUrl: z.string().url().optional(),
   })
   .strict();
 

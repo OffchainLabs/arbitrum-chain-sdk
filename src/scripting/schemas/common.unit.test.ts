@@ -63,16 +63,20 @@ describe('bigintSchema', () => {
     if (result.success) expect(result.data).toBe(0n);
   });
 
-  it('transforms numeric input to bigint', () => {
-    const result = bigintSchema.safeParse(123);
+  it('transforms negative numeric string to bigint', () => {
+    const result = bigintSchema.safeParse('-42');
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data).toBe(123n);
+    if (result.success) expect(result.data).toBe(-42n);
   });
 
-  // z.coerce.bigint() calls BigInt() which throws on invalid input
-  // rather than returning a ZodError through safeParse
-  it('throws on non-numeric strings', () => {
-    expect(() => bigintSchema.safeParse('abc')).toThrow();
+  it('rejects non-numeric strings', () => {
+    const result = bigintSchema.safeParse('abc');
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects non-string input', () => {
+    const result = bigintSchema.safeParse(123);
+    expect(result.success).toBe(false);
   });
 });
 

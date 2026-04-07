@@ -13,9 +13,9 @@ export const prepareNodeConfigSchema = z
     stakeToken: z.string(),
     parentChainId: z.number().transform((n) => n as ParentChainId),
     parentChainIsArbitrum: z.boolean().optional(),
-    parentChainRpcUrl: z.string(),
-    parentChainBeaconRpcUrl: z.string().optional(),
-    dasServerUrl: z.string().optional(),
+    parentChainRpcUrl: z.string().url(),
+    parentChainBeaconRpcUrl: z.string().url().optional(),
+    dasServerUrl: z.string().url().optional(),
   })
   .strict();
 

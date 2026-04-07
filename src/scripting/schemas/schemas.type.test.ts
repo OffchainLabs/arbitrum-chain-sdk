@@ -85,7 +85,6 @@ import { createRollupGetRetryablesFeesTransform } from './createRollupGetRetryab
 import { fetchAllowanceTransform, fetchDecimalsTransform } from './erc20';
 import { coreContractsSchema, chainConfigSchema } from './common';
 
-// ------------------------------------------------------------------
 // DeepNormalize<T>
 //
 // Transforms a type into a canonical form so that zod schema output
@@ -131,7 +130,6 @@ import { coreContractsSchema, chainConfigSchema } from './common';
 //      Schema:   miniStakeValues: bigint[]
 //      SDK:      miniStakeValues: readonly bigint[]
 //      Both ->   miniStakeValues: bigint[]
-// ------------------------------------------------------------------
 
 // Wraps a type to indicate the original field was optional.
 // Used to preserve optionality information after -? removes it from keys.

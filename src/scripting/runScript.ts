@@ -4,7 +4,7 @@ function formatError(error: unknown): string {
   if (error instanceof Error) {
     const stack = error.stack ?? error.message;
     if (error instanceof ZodError) {
-      return `Input validation failed:\n${error.message}\n${stack}`;
+      return `Input validation failed:\n${error.message}`;
     }
     return stack;
   }

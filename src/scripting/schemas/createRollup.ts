@@ -30,11 +30,12 @@ export const createRollupDefaultSchema = commonFieldsSchema
   })
   .strict();
 
-export const createRollupSchema = z.union([
+const versionedCreateRollupSchema = z.discriminatedUnion('rollupCreatorVersion', [
   createRollupV21Schema,
   createRollupV32Schema,
-  createRollupDefaultSchema,
 ]);
+
+export const createRollupSchema = z.union([versionedCreateRollupSchema, createRollupDefaultSchema]);
 
 type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
   Extract<
