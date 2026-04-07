@@ -6,7 +6,7 @@ import { isAnyTrust } from '../../isAnyTrust';
 export const isAnyTrustSchema = z
   .object({
     rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
+    chainId: z.number(),
     rollup: addressSchema,
   })
   .strict();
@@ -16,9 +16,6 @@ export const isAnyTrustTransform = (
 ): Parameters<typeof isAnyTrust> => [
   {
     rollup: input.rollup,
-    publicClient: toPublicClient(
-      input.rpcUrl,
-      input.chainId ? findChain(input.chainId) : undefined,
-    ),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
   },
 ];

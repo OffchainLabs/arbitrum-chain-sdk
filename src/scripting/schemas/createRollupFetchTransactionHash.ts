@@ -6,7 +6,7 @@ import { createRollupFetchTransactionHash } from '../../createRollupFetchTransac
 export const createRollupFetchTransactionHashSchema = z
   .object({
     rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
+    chainId: z.number(),
     rollup: addressSchema,
     fromBlock: bigintSchema.optional(),
   })
@@ -17,10 +17,7 @@ export const createRollupFetchTransactionHashTransform = (
 ): Parameters<typeof createRollupFetchTransactionHash> => [
   {
     rollup: input.rollup,
-    publicClient: toPublicClient(
-      input.rpcUrl,
-      input.chainId ? findChain(input.chainId) : undefined,
-    ),
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
     fromBlock: input.fromBlock,
   },
 ];

@@ -15,7 +15,7 @@ function parseConfig(config: { chainConfig: string }): boolean {
   return JSON.parse(config.chainConfig).arbitrum.DataAvailabilityCommittee;
 }
 
-export async function isAnyTrust<TChain extends Chain | undefined>({
+export async function isAnyTrust<TChain extends Chain>({
   rollup,
   publicClient,
 }: {
