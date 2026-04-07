@@ -37,7 +37,7 @@ import {
 import { fetchAllowance, fetchDecimals } from '../../utils/erc20';
 import { CoreContracts } from '../../types/CoreContracts';
 import { ChainConfig } from '../../types/ChainConfig';
-import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
+import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 
@@ -238,15 +238,17 @@ it('coreContractsSchema matches CoreContracts', () =>
 it('chainConfigSchema matches ChainConfig', () =>
   expectTypeOf<z.output<typeof chainConfigSchema>>().toEqualTypeOf<ChainConfig>());
 
-it('prepareDeploymentParamsConfigV32Transform output matches createRollupPrepareDeploymentParamsConfig params', () =>
-  expectTypeOf<
-    DeepNormalize<ReturnType<typeof prepareDeploymentParamsConfigV32Transform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupPrepareDeploymentParamsConfig>>>());
+it('prepareDeploymentParamsConfigV32Transform params match CreateRollupPrepareDeploymentParamsConfigParams', () => {
+  type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV32Transform>;
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
+    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>>();
+});
 
-it('prepareDeploymentParamsConfigV21Transform output matches createRollupPrepareDeploymentParamsConfig params', () =>
-  expectTypeOf<
-    DeepNormalize<ReturnType<typeof prepareDeploymentParamsConfigV21Transform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupPrepareDeploymentParamsConfig>>>());
+it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDeploymentParamsConfigParams<v2.1>', () => {
+  type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV21Transform>;
+  expectTypeOf<DeepNormalize<TransformOutput[1]>>()
+    .toEqualTypeOf<DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>>();
+});
 
 it('prepareChainConfigTransform output matches prepareChainConfig params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof prepareChainConfigTransform>>>().toEqualTypeOf<

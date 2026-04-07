@@ -9,7 +9,7 @@ import {
   assertionStateSchema,
   chainConfigSchema,
 } from './common';
-import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
+import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
 
 export const paramsV3Dot2Schema = z.object({
   chainId: bigintSchema,
@@ -64,14 +64,14 @@ export const prepareDeploymentParamsConfigV32Schema = commonFieldsSchema
 
 export const prepareDeploymentParamsConfigV21Transform = (
   input: z.output<typeof prepareDeploymentParamsConfigV21Schema>,
-): Parameters<typeof createRollupPrepareDeploymentParamsConfig> => {
+): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
   const { parentChainRpcUrl, ...params } = input;
   return [toPublicClient(parentChainRpcUrl), params];
 };
 
 export const prepareDeploymentParamsConfigV32Transform = (
   input: z.output<typeof prepareDeploymentParamsConfigV32Schema>,
-): Parameters<typeof createRollupPrepareDeploymentParamsConfig> => {
+): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
   const { parentChainRpcUrl, ...params } = input;
   return [toPublicClient(parentChainRpcUrl), params];
 };
