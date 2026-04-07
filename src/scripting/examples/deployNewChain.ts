@@ -16,7 +16,7 @@ const schema = createRollupDefaultSchema
   .extend({
     params: createRollupDefaultSchema.shape.params.extend({
       config: paramsV3Dot2Schema.extend({
-        chainId: bigintSchema.default(() => BigInt(generateChainId())),
+        chainId: bigintSchema.default(() => String(generateChainId())),
         chainConfig: prepareChainConfigParamsSchema.optional(),
       }),
       nativeToken: addressSchema.default(zeroAddress),

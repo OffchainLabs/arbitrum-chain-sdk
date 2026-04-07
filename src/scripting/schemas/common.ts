@@ -1,21 +1,27 @@
 import { z } from 'zod';
 
-export const addressSchema = z.custom<`0x${string}`>(
-  (val) => typeof val === 'string' && /^0x[0-9a-fA-F]{40}$/.test(val),
-  'Invalid Ethereum address',
-);
+export const addressSchema = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]{40}$/, 'Invalid Ethereum address')
+  .transform((val) => val as `0x${string}`);
 
-export const hexSchema = z.custom<`0x${string}`>(
-  (val) => typeof val === 'string' && /^0x[0-9a-fA-F]*$/.test(val),
-  'Invalid hex string',
-);
+export const hexSchema = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]*$/, 'Invalid hex string')
+  .transform((val) => val as `0x${string}`);
 
-export const bigintSchema = z.coerce.bigint();
+// z.coerce.bigint() calls BigInt() which throws a raw SyntaxError on invalid
+// input, bypassing zod's error pipeline -- safeParse can throw, and the error
+// has no field path context. Regex guard makes the BigInt() call provably safe.
+export const bigintSchema = z
+  .string()
+  .regex(/^-?\d+$/, 'Expected a numeric string')
+  .transform(BigInt);
 
-export const privateKeySchema = z.custom<`0x${string}`>(
-  (val) => typeof val === 'string' && /^0x[0-9a-fA-F]{64}$/.test(val),
-  'Invalid private key',
-);
+export const privateKeySchema = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]{64}$/, 'Invalid private key')
+  .transform((val) => val as `0x${string}`);
 
 export const rollupCreatorVersionSchema = z.enum(['v3.2', 'v2.1']);
 
