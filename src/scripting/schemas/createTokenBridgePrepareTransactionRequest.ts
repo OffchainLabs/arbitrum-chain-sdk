@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema, gasOverridesSchema, retryableGasOverridesSchema } from './common';
+import { addressSchema, gasLimitSchema, tokenBridgeRetryableGasOverridesSchema } from './common';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 
 export const createTokenBridgePrepareTransactionRequestSchema = z.strictObject({
@@ -12,8 +12,8 @@ export const createTokenBridgePrepareTransactionRequestSchema = z.strictObject({
     rollup: addressSchema,
     rollupOwner: addressSchema,
   }),
-  gasOverrides: gasOverridesSchema.optional(),
-  retryableGasOverrides: retryableGasOverridesSchema.optional(),
+  gasOverrides: gasLimitSchema.optional(),
+  retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
   tokenBridgeCreatorAddressOverride: addressSchema.optional(),
 });
 

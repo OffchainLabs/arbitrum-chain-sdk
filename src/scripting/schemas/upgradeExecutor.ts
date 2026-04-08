@@ -14,14 +14,10 @@ export const upgradeExecutorPrepareTransactionRequestSchema = z.strictObject({
 
 export const upgradeExecutorPrepareTransactionRequestTransform = (
   input: z.output<typeof upgradeExecutorPrepareTransactionRequestSchema>,
-): Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest> => [
-  {
-    account: input.account,
-    upgradeExecutorAddress: input.upgradeExecutorAddress,
-    executorAccountAddress: input.executorAccountAddress,
-    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  },
-];
+): Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest> => {
+  const { rpcUrl, chainId, ...rest } = input;
+  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+};
 
 export const upgradeExecutorFetchPrivilegedAccountsSchema = z.strictObject({
   rpcUrl: z.url(),

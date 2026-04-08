@@ -4,8 +4,8 @@ import {
   addressSchema,
   bigintSchema,
   privateKeySchema,
-  gasOverridesSchema,
-  retryableGasOverridesSchema,
+  gasLimitSchema,
+  tokenBridgeRetryableGasOverridesSchema,
   setWethGatewayGasOverridesSchema,
 } from './common';
 import { createTokenBridge } from '../../createTokenBridge';
@@ -20,8 +20,8 @@ export const createTokenBridgeSchema = z.strictObject({
   rollupDeploymentBlockNumber: bigintSchema.optional(),
   nativeTokenAddress: addressSchema.optional(),
   tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-  gasOverrides: gasOverridesSchema.optional(),
-  retryableGasOverrides: retryableGasOverridesSchema.optional(),
+  gasOverrides: gasLimitSchema.optional(),
+  retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
   setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
 });
 
