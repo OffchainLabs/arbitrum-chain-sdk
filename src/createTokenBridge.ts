@@ -241,9 +241,9 @@ export async function createTokenBridge<
     },
     parentChainPublicClient,
     account: account.address,
+    tokenBridgeCreatorAddressOverride,
     gasOverrides,
     retryableGasOverrides,
-    tokenBridgeCreatorAddressOverride,
   });
 
   // sign and send the transaction
@@ -299,8 +299,8 @@ export async function createTokenBridge<
       rollupDeploymentBlockNumber,
       parentChainPublicClient,
       account: account.address,
-      retryableGasOverrides: setWethGatewayGasOverrides,
       tokenBridgeCreatorAddressOverride,
+      retryableGasOverrides: setWethGatewayGasOverrides,
     });
 
     // sign and send the transaction
