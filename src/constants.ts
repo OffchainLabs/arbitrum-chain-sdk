@@ -21,3 +21,5 @@ export const defaultSubmissionFeePercentIncrease = 300n;
 // ~30% headroom over observed gas usage for token bridge retryables
 export const createTokenBridgeDefaultMaxGasForContracts = 20_000_000n;
 export const createTokenBridgeDefaultGasLimitForWethGateway = 100_000n;
+
+export const DEFAULT_ORBIT_ACTIONS_IMAGE = 'offchainlabs/chain-actions:150d84f832ea';

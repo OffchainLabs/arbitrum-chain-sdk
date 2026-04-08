@@ -1,6 +1,7 @@
 import type { Address } from 'viem';
 
 import { runDockerCommand } from './runDockerCommand';
+import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
 
 export type GetOrbitChainContractVersionsParameters = {
   image?: string;
@@ -15,7 +16,7 @@ export type GetOrbitChainContractVersionsResult = {
 };
 
 export async function getOrbitChainContractVersions({
-  image = 'offchainlabs/chain-actions',
+  image = DEFAULT_ORBIT_ACTIONS_IMAGE,
   inboxAddress,
   network,
   env,
