@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { runScript } from '../runScript';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
