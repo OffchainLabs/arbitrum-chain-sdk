@@ -107,6 +107,19 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  examples/get-chain-contract-versions:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
+    devDependencies:
+      '@types/node':
+        specifier: ^20.9.0
+        version: 20.9.0
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+
   examples/prepare-node-config:
     devDependencies:
       '@types/node':
