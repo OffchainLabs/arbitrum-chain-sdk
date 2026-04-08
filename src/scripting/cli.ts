@@ -1,4 +1,4 @@
-import { runCli, cmd } from './runScript';
+import { runCli, cmd } from './scriptUtils';
 
 import {
   getValidatorsSchema,

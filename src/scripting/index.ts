@@ -1,3 +1,3 @@
-export { runScript } from './runScript';
+export { runScript } from './scriptUtils';
 export { toPublicClient, toAccount, toWalletClient } from './viemTransforms';
 export * from './schemas';

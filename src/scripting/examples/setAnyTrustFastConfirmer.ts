@@ -1,4 +1,4 @@
-import { runScript } from '../runScript';
+import { runScript } from '../scriptUtils';
 import { setAnyTrustFastConfirmerSchema, setAnyTrustFastConfirmerTransform } from '../schemas';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
 

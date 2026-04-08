@@ -9,7 +9,7 @@ import {
   toHex,
   zeroAddress,
 } from 'viem';
-import { runScript } from '../runScript';
+import { runScript } from '../scriptUtils';
 import { addressSchema, bigintSchema, privateKeySchema } from '../schemas/common';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';

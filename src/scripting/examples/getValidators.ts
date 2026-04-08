@@ -1,4 +1,4 @@
-import { runScript } from '../runScript';
+import { runScript } from '../scriptUtils';
 import { getValidatorsSchema, getValidatorsTransform } from '../schemas';
 import { getValidators } from '../../getValidators';
 

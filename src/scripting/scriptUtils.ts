@@ -25,7 +25,7 @@ export function runScript<TSchema extends ZodType>(
   const jsonString = process.argv[2];
 
   if (!jsonString) {
-    process.stderr.write("Usage: npx tsx <script> '<json>'\n");
+    process.stderr.write('JSON string expected as the first argument.\n');
     process.exit(1);
   }
 

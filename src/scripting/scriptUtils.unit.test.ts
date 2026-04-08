@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
-import { runScript, runCli, cmd } from './runScript';
+import { runScript, runCli, cmd } from './scriptUtils';
 
 let stdoutData: string;
 let stderrData: string;

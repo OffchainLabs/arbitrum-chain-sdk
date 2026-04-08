@@ -1,4 +1,4 @@
-import { runScript } from '../runScript';
+import { runScript } from '../scriptUtils';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
