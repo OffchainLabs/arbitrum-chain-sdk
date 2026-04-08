@@ -189,10 +189,10 @@ importers:
         version: 1.0.1
       '@safe-global/protocol-kit':
         specifier: ^4.1.7
-        version: 4.1.7(typescript@5.2.2)(zod@3.22.4)
+        version: 4.1.7(typescript@5.2.2)(zod@4.3.6)
       abitype:
         specifier: ^0.9.8
-        version: 0.9.8(typescript@5.2.2)(zod@3.22.4)
+        version: 0.9.8(typescript@5.2.2)(zod@4.3.6)
       ethers:
         specifier: ^5.7.2
         version: 5.7.2
@@ -200,8 +200,8 @@ importers:
         specifier: 1.20.0
         version: 1.20.0(typescript@5.2.2)(zod@3.22.4)
       zod:
-        specifier: ^3.22.4
-        version: 3.22.4
+        specifier: ^4.3.6
+        version: 4.3.6
 
 packages:
 
@@ -2711,6 +2711,9 @@ packages:
   zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
 snapshots:
 
   '@adraffy/ens-normalize@1.10.0': {}
@@ -3349,13 +3352,13 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.59.0':
     optional: true
 
-  '@safe-global/protocol-kit@4.1.7(typescript@5.2.2)(zod@3.22.4)':
+  '@safe-global/protocol-kit@4.1.7(typescript@5.2.2)(zod@4.3.6)':
     dependencies:
       '@noble/hashes': 1.4.0
-      '@safe-global/safe-core-sdk-types': 5.1.0(typescript@5.2.2)(zod@3.22.4)
+      '@safe-global/safe-core-sdk-types': 5.1.0(typescript@5.2.2)(zod@4.3.6)
       '@safe-global/safe-deployments': 1.37.32
       '@safe-global/safe-modules-deployments': 2.2.8
-      abitype: 1.0.5(typescript@5.2.2)(zod@3.22.4)
+      abitype: 1.0.5(typescript@5.2.2)(zod@4.3.6)
       ethereumjs-util: 7.1.5
       ethers: 6.13.1
       semver: 7.6.2
@@ -3365,9 +3368,9 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@safe-global/safe-core-sdk-types@5.1.0(typescript@5.2.2)(zod@3.22.4)':
+  '@safe-global/safe-core-sdk-types@5.1.0(typescript@5.2.2)(zod@4.3.6)':
     dependencies:
-      abitype: 1.0.5(typescript@5.2.2)(zod@3.22.4)
+      abitype: 1.0.5(typescript@5.2.2)(zod@4.3.6)
     transitivePeerDependencies:
       - typescript
       - zod
@@ -3608,10 +3611,15 @@ snapshots:
       typescript: 5.2.2
       zod: 3.22.4
 
-  abitype@1.0.5(typescript@5.2.2)(zod@3.22.4):
+  abitype@0.9.8(typescript@5.2.2)(zod@4.3.6):
     optionalDependencies:
       typescript: 5.2.2
-      zod: 3.22.4
+      zod: 4.3.6
+
+  abitype@1.0.5(typescript@5.2.2)(zod@4.3.6):
+    optionalDependencies:
+      typescript: 5.2.2
+      zod: 4.3.6
 
   abort-controller@3.0.0:
     dependencies:
@@ -5568,3 +5576,5 @@ snapshots:
   yocto-queue@1.0.0: {}
 
   zod@3.22.4: {}
+
+  zod@4.3.6: {}

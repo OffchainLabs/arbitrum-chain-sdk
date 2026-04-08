@@ -4,15 +4,13 @@ import { addressSchema } from './common';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../../upgradeExecutorFetchPrivilegedAccounts';
 
-export const upgradeExecutorPrepareTransactionRequestSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    account: addressSchema,
-    upgradeExecutorAddress: addressSchema,
-    executorAccountAddress: addressSchema,
-  })
-  .strict();
+export const upgradeExecutorPrepareTransactionRequestSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  account: addressSchema,
+  upgradeExecutorAddress: addressSchema,
+  executorAccountAddress: addressSchema,
+});
 
 export const upgradeExecutorPrepareTransactionRequestTransform = (
   input: z.output<typeof upgradeExecutorPrepareTransactionRequestSchema>,
@@ -25,13 +23,11 @@ export const upgradeExecutorPrepareTransactionRequestTransform = (
   },
 ];
 
-export const upgradeExecutorFetchPrivilegedAccountsSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
-    upgradeExecutorAddress: addressSchema,
-  })
-  .strict();
+export const upgradeExecutorFetchPrivilegedAccountsSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number().optional(),
+  upgradeExecutorAddress: addressSchema,
+});
 
 export const upgradeExecutorFetchPrivilegedAccountsTransform = (
   input: z.output<typeof upgradeExecutorFetchPrivilegedAccountsSchema>,

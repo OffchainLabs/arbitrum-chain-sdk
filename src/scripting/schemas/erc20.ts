@@ -3,15 +3,13 @@ import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema } from './common';
 import { fetchAllowance, fetchDecimals } from '../../utils/erc20';
 
-export const fetchAllowanceSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
-    address: addressSchema,
-    owner: addressSchema,
-    spender: addressSchema,
-  })
-  .strict();
+export const fetchAllowanceSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number().optional(),
+  address: addressSchema,
+  owner: addressSchema,
+  spender: addressSchema,
+});
 
 export const fetchAllowanceTransform = (
   input: z.output<typeof fetchAllowanceSchema>,
@@ -27,13 +25,11 @@ export const fetchAllowanceTransform = (
   },
 ];
 
-export const fetchDecimalsSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number().optional(),
-    address: addressSchema,
-  })
-  .strict();
+export const fetchDecimalsSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number().optional(),
+  address: addressSchema,
+});
 
 export const fetchDecimalsTransform = (
   input: z.output<typeof fetchDecimalsSchema>,

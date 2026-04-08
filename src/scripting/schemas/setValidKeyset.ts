@@ -3,18 +3,16 @@ import { toPublicClient, toWalletClient, findChain } from '../viemTransforms';
 import { hexSchema, coreContractsSchema, privateKeySchema } from './common';
 import { setValidKeyset } from '../../setValidKeyset';
 
-export const setValidKeysetSchema = z
-  .object({
-    parentChainRpcUrl: z.string().url(),
-    parentChainId: z.number(),
-    privateKey: privateKeySchema,
-    coreContracts: coreContractsSchema.pick({
-      upgradeExecutor: true,
-      sequencerInbox: true,
-    }),
-    keyset: hexSchema,
-  })
-  .strict();
+export const setValidKeysetSchema = z.strictObject({
+  parentChainRpcUrl: z.url(),
+  parentChainId: z.number(),
+  privateKey: privateKeySchema,
+  coreContracts: coreContractsSchema.pick({
+    upgradeExecutor: true,
+    sequencerInbox: true,
+  }),
+  keyset: hexSchema,
+});
 
 export const setValidKeysetTransform = (
   input: z.output<typeof setValidKeysetSchema>,

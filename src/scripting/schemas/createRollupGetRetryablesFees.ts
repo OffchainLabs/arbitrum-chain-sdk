@@ -3,16 +3,14 @@ import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema, bigintSchema, rollupCreatorVersionSchema } from './common';
 import { createRollupGetRetryablesFees } from '../../createRollupGetRetryablesFees';
 
-export const createRollupGetRetryablesFeesSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    account: addressSchema,
-    nativeToken: addressSchema.optional(),
-    maxFeePerGasForRetryables: bigintSchema.optional(),
-    rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
-  })
-  .strict();
+export const createRollupGetRetryablesFeesSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  account: addressSchema,
+  nativeToken: addressSchema.optional(),
+  maxFeePerGasForRetryables: bigintSchema.optional(),
+  rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
+});
 
 export const createRollupGetRetryablesFeesTransform = (
   input: z.output<typeof createRollupGetRetryablesFeesSchema>,

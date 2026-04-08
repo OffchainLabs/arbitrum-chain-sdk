@@ -16,7 +16,7 @@ const schema = createRollupDefaultSchema
   .extend({
     params: createRollupDefaultSchema.shape.params.extend({
       config: paramsV3Dot2Schema.extend({
-        chainId: bigintSchema.default(() => String(generateChainId())),
+        chainId: bigintSchema.prefault(() => String(generateChainId())),
         chainConfig: prepareChainConfigParamsSchema.optional(),
       }),
       nativeToken: addressSchema.default(zeroAddress),
@@ -27,7 +27,7 @@ const schema = createRollupDefaultSchema
     const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['params', 'keyset'],
         message:
           'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',

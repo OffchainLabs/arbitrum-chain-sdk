@@ -3,13 +3,11 @@ import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema } from './common';
 import { getValidators } from '../../getValidators';
 
-export const getValidatorsSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    rollup: addressSchema,
-  })
-  .strict();
+export const getValidatorsSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  rollup: addressSchema,
+});
 
 export const getValidatorsTransform = (
   input: z.output<typeof getValidatorsSchema>,

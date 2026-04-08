@@ -6,7 +6,7 @@ import { addressSchema, bigintSchema, gasOverridesSchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
 const commonFieldsSchema = z.object({
-  rpcUrl: z.string().url(),
+  rpcUrl: z.url(),
   chainId: z.number(),
   account: addressSchema,
   value: bigintSchema.optional(),
@@ -14,31 +14,28 @@ const commonFieldsSchema = z.object({
   rollupCreatorAddressOverride: addressSchema.optional(),
 });
 
-export const createRollupPrepareTransactionRequestV21Schema = commonFieldsSchema
-  .extend({
+export const createRollupPrepareTransactionRequestV21Schema = z.strictObject(
+  commonFieldsSchema.extend({
     params: paramsV2Dot1Schema,
     rollupCreatorVersion: z.literal('v2.1'),
-  })
-  .strict();
-export const createRollupPrepareTransactionRequestV32Schema = commonFieldsSchema
-  .extend({
+  }).shape,
+);
+export const createRollupPrepareTransactionRequestV32Schema = z.strictObject(
+  commonFieldsSchema.extend({
     params: paramsV3Dot2Schema,
     rollupCreatorVersion: z.literal('v3.2'),
-  })
-  .strict();
-export const createRollupPrepareTransactionRequestDefaultSchema = commonFieldsSchema
-  .extend({
+  }).shape,
+);
+export const createRollupPrepareTransactionRequestDefaultSchema = z.strictObject(
+  commonFieldsSchema.extend({
     params: paramsV3Dot2Schema,
     rollupCreatorVersion: z.never().optional(),
-  })
-  .strict();
+  }).shape,
+);
 
 const versionedCreateRollupPrepareTransactionRequestSchema = z.discriminatedUnion(
   'rollupCreatorVersion',
-  [
-    createRollupPrepareTransactionRequestV21Schema,
-    createRollupPrepareTransactionRequestV32Schema,
-  ],
+  [createRollupPrepareTransactionRequestV21Schema, createRollupPrepareTransactionRequestV32Schema],
 );
 
 export const createRollupPrepareTransactionRequestSchema = z.union([

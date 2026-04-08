@@ -3,14 +3,12 @@ import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema } from './common';
 import { getBatchPosters } from '../../getBatchPosters';
 
-export const getBatchPostersSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    rollup: addressSchema,
-    sequencerInbox: addressSchema,
-  })
-  .strict();
+export const getBatchPostersSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  rollup: addressSchema,
+  sequencerInbox: addressSchema,
+});
 
 export const getBatchPostersTransform = (
   input: z.output<typeof getBatchPostersSchema>,

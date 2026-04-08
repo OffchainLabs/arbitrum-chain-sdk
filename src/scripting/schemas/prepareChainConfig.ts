@@ -2,12 +2,10 @@ import { z } from 'zod';
 import { prepareChainConfigArbitrumParamsSchema } from './common';
 import { prepareChainConfig } from '../../prepareChainConfig';
 
-export const prepareChainConfigParamsSchema = z
-  .object({
-    chainId: z.number(),
-    arbitrum: prepareChainConfigArbitrumParamsSchema,
-  })
-  .strict();
+export const prepareChainConfigParamsSchema = z.strictObject({
+  chainId: z.number(),
+  arbitrum: prepareChainConfigArbitrumParamsSchema,
+});
 
 export const prepareChainConfigTransform = (
   input: z.output<typeof prepareChainConfigParamsSchema>,

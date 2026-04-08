@@ -3,16 +3,14 @@ import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import { addressSchema, privateKeySchema } from './common';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
 
-export const setAnyTrustFastConfirmerSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    privateKey: privateKeySchema,
-    rollup: addressSchema,
-    upgradeExecutor: addressSchema,
-    fastConfirmer: addressSchema,
-  })
-  .strict();
+export const setAnyTrustFastConfirmerSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  privateKey: privateKeySchema,
+  rollup: addressSchema,
+  upgradeExecutor: addressSchema,
+  fastConfirmer: addressSchema,
+});
 
 export const setAnyTrustFastConfirmerTransform = (
   input: z.output<typeof setAnyTrustFastConfirmerSchema>,

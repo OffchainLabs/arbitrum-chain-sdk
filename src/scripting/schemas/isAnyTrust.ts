@@ -3,13 +3,11 @@ import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema } from './common';
 import { isAnyTrust } from '../../isAnyTrust';
 
-export const isAnyTrustSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    rollup: addressSchema,
-  })
-  .strict();
+export const isAnyTrustSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  rollup: addressSchema,
+});
 
 export const isAnyTrustTransform = (
   input: z.output<typeof isAnyTrustSchema>,

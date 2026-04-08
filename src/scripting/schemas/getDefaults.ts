@@ -5,7 +5,7 @@ import { ParentChainId } from '../../types/ParentChain';
 
 export const getDefaultsSchema = z.union([
   z.object({ parentChainId: z.number().transform((n) => n as ParentChainId) }),
-  z.object({ rpcUrl: z.string().url() }),
+  z.object({ rpcUrl: z.url() }),
 ]);
 
 export const getDefaultsTransform = (

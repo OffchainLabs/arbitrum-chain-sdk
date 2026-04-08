@@ -6,29 +6,29 @@ import { privateKeySchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
 const commonFieldsSchema = z.object({
-  parentChainRpcUrl: z.string().url(),
+  parentChainRpcUrl: z.url(),
   parentChainId: z.number(),
   privateKey: privateKeySchema,
 });
 
-export const createRollupV21Schema = commonFieldsSchema
-  .extend({
+export const createRollupV21Schema = z.strictObject(
+  commonFieldsSchema.extend({
     params: paramsV2Dot1Schema,
     rollupCreatorVersion: z.literal('v2.1'),
-  })
-  .strict();
-export const createRollupV32Schema = commonFieldsSchema
-  .extend({
+  }).shape,
+);
+export const createRollupV32Schema = z.strictObject(
+  commonFieldsSchema.extend({
     params: paramsV3Dot2Schema,
     rollupCreatorVersion: z.literal('v3.2'),
-  })
-  .strict();
-export const createRollupDefaultSchema = commonFieldsSchema
-  .extend({
+  }).shape,
+);
+export const createRollupDefaultSchema = z.strictObject(
+  commonFieldsSchema.extend({
     params: paramsV3Dot2Schema,
     rollupCreatorVersion: z.never().optional(),
-  })
-  .strict();
+  }).shape,
+);
 
 const versionedCreateRollupSchema = z.discriminatedUnion('rollupCreatorVersion', [
   createRollupV21Schema,

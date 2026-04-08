@@ -9,14 +9,12 @@ const recipientSchema = z.object({
   weight: bigintSchema,
 });
 
-export const feeRouterDeployRewardDistributorSchema = z
-  .object({
-    orbitChainRpcUrl: z.string().url(),
-    orbitChainId: z.number(),
-    privateKey: privateKeySchema,
-    recipients: z.array(recipientSchema),
-  })
-  .strict();
+export const feeRouterDeployRewardDistributorSchema = z.strictObject({
+  orbitChainRpcUrl: z.url(),
+  orbitChainId: z.number(),
+  privateKey: privateKeySchema,
+  recipients: z.array(recipientSchema),
+});
 
 export const feeRouterDeployRewardDistributorTransform = (
   input: z.output<typeof feeRouterDeployRewardDistributorSchema>,
@@ -31,19 +29,17 @@ export const feeRouterDeployRewardDistributorTransform = (
   },
 ];
 
-export const feeRouterDeployChildToParentRewardRouterSchema = z
-  .object({
-    parentChainRpcUrl: z.string().url(),
-    parentChainId: z.number(),
-    orbitChainRpcUrl: z.string().url(),
-    privateKey: privateKeySchema,
-    parentChainTargetAddress: addressSchema,
-    minDistributionInvervalSeconds: bigintSchema.optional(),
-    rollup: addressSchema.optional(),
-    parentChainTokenAddress: addressSchema.optional(),
-    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-  })
-  .strict();
+export const feeRouterDeployChildToParentRewardRouterSchema = z.strictObject({
+  parentChainRpcUrl: z.url(),
+  parentChainId: z.number(),
+  orbitChainRpcUrl: z.url(),
+  privateKey: privateKeySchema,
+  parentChainTargetAddress: addressSchema,
+  minDistributionInvervalSeconds: bigintSchema.optional(),
+  rollup: addressSchema.optional(),
+  parentChainTokenAddress: addressSchema.optional(),
+  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+});
 
 export const feeRouterDeployChildToParentRewardRouterTransform = (
   input: z.output<typeof feeRouterDeployChildToParentRewardRouterSchema>,

@@ -3,14 +3,12 @@ import { toPublicClient, findChain } from '../viemTransforms';
 import { addressSchema, bigintSchema } from './common';
 import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
 
-export const createRollupFetchTransactionHashSchema = z
-  .object({
-    rpcUrl: z.string().url(),
-    chainId: z.number(),
-    rollup: addressSchema,
-    fromBlock: bigintSchema.optional(),
-  })
-  .strict();
+export const createRollupFetchTransactionHashSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  rollup: addressSchema,
+  fromBlock: bigintSchema.optional(),
+});
 
 export const createRollupFetchTransactionHashTransform = (
   input: z.output<typeof createRollupFetchTransactionHashSchema>,

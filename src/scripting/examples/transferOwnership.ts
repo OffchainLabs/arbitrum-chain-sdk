@@ -166,7 +166,7 @@ async function sendL2Message(
 
 const schema = z
   .object({
-    rpcUrl: z.string().url(),
+    rpcUrl: z.url(),
     chainId: z.number(),
     privateKey: privateKeySchema,
     upgradeExecutorAddress: addressSchema,
