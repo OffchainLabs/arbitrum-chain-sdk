@@ -43,12 +43,6 @@ export type CreateTokenBridgePrepareTransactionRequestParams<
   }>
 >;
 
-/**
- * Prepares the transaction to deploy token bridge contracts via `TokenBridgeCreator.createTokenBridge`.
- * The parent chain transaction creates retryable tickets that execute on the orbit chain when it
- * processes its inbox. Retryable gas parameters are estimated from parent chain state, so this
- * function does not require an orbit chain connection.
- */
 export async function createTokenBridgePrepareTransactionRequest<
   TParentChain extends Chain | undefined,
 >({

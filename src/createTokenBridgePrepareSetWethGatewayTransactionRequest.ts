@@ -14,6 +14,33 @@ import {
 } from './constants';
 import { calculateRetryableSubmissionFee } from './calculateRetryableSubmissionFee';
 
+export type TransactionRequestRetryableGasOverrides = {
+  gasLimit?: GasOverrideOptions;
+  maxFeePerGas?: GasOverrideOptions;
+  maxSubmissionCost?: GasOverrideOptions;
+};
+
+export type CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams<
+  TParentChain extends Chain | undefined,
+> = Prettify<
+  WithTokenBridgeCreatorAddressOverride<{
+    /**
+     * Address of the Rollup contract.
+     */
+    rollup: Address;
+    /**
+     * Number of the block in which the Rollup contract was deployed.
+     *
+     * This parameter is used to reduce the span of blocks to query, so it doesn't have to be exactly the right block number.
+     * However, for the query to work properly, it has to be **less than or equal to** the right block number.
+     */
+    rollupDeploymentBlockNumber?: bigint;
+    parentChainPublicClient: PublicClient<Transport, TParentChain>;
+    account: Address;
+    retryableGasOverrides?: TransactionRequestRetryableGasOverrides;
+  }>
+>;
+
 const parentChainGatewayRouterAbi = [
   {
     inputs: [
@@ -75,39 +102,6 @@ const parentChainGatewayRouterAbi = [
   },
 ] as const;
 
-export type TransactionRequestRetryableGasOverrides = {
-  gasLimit?: GasOverrideOptions;
-  maxFeePerGas?: GasOverrideOptions;
-  maxSubmissionCost?: GasOverrideOptions;
-};
-
-export type CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams<
-  TParentChain extends Chain | undefined,
-> = Prettify<
-  WithTokenBridgeCreatorAddressOverride<{
-    /**
-     * Address of the Rollup contract.
-     */
-    rollup: Address;
-    /**
-     * Number of the block in which the Rollup contract was deployed.
-     *
-     * This parameter is used to reduce the span of blocks to query, so it doesn't have to be exactly the right block number.
-     * However, for the query to work properly, it has to be **less than or equal to** the right block number.
-     */
-    rollupDeploymentBlockNumber?: bigint;
-    parentChainPublicClient: PublicClient<Transport, TParentChain>;
-    account: Address;
-    retryableGasOverrides?: TransactionRequestRetryableGasOverrides;
-  }>
->;
-
-/**
- * Prepares the transaction to register the WETH gateway on the parent chain router via the
- * UpgradeExecutor. Must be called after the token bridge deployment transaction has confirmed on
- * the parent chain. Retryable gas parameters are estimated from parent chain state, so this
- * function does not require an orbit chain connection.
- */
 export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
 >({
