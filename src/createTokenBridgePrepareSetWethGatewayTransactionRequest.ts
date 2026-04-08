@@ -100,7 +100,7 @@ const parentChainGatewayRouterAbi = [
     stateMutability: 'payable',
     type: 'function',
   },
-] as const;
+];
 
 export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
@@ -151,19 +151,19 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
     publicClient: parentChainPublicClient,
   });
 
-  // Encode with placeholder values to measure data size (uint256 values are always 32 bytes in ABI encoding)
-  const dummyCalldata = encodeFunctionData({
+  // (we first encode dummy data, to get the retryable message estimates)
+  const setGatewaysDummyCalldata = encodeFunctionData({
     abi: parentChainGatewayRouterAbi,
     functionName: 'setGateways',
     args: [
       [tokenBridgeContracts.parentChainContracts.weth],
       [tokenBridgeContracts.parentChainContracts.wethGateway],
-      0n,
-      0n,
-      0n,
+      1n, // _maxGas
+      1n, // _gasPriceBid
+      1n, // _maxSubmissionCost
     ],
   });
-  const calldataSize = BigInt((dummyCalldata.length - 2) / 2);
+  const calldataSize = BigInt((setGatewaysDummyCalldata.length - 2) / 2);
   const maxSubmissionCostEstimate = await calculateRetryableSubmissionFee(
     parentChainPublicClient,
     inbox,
