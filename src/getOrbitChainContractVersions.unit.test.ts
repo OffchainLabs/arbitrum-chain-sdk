@@ -30,7 +30,7 @@ describe('getOrbitChainContractVersions', () => {
     });
 
     expect(runDockerCommand).toHaveBeenCalledWith({
-      image: 'offchainlabs/chain-actions',
+      image: 'offchainlabs/chain-actions:150d84f832ea',
       entrypoint: 'yarn',
       command: ['--silent', 'orbit:contracts:version', '--network', 'arb1', '--no-compile'],
       env: {
