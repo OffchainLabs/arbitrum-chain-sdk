@@ -355,3 +355,7 @@ export {
   //
   prepareArbitrumNetwork,
 };
+
+export * from './scripting/runScript';
+export * from './scripting/viemTransforms';
+export * from './scripting/schemas';
