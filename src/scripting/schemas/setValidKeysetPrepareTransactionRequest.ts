@@ -16,11 +16,7 @@ export const setValidKeysetPrepareTransactionRequestSchema = z.strictObject({
 
 export const setValidKeysetPrepareTransactionRequestTransform = (
   input: z.output<typeof setValidKeysetPrepareTransactionRequestSchema>,
-): Parameters<typeof setValidKeysetPrepareTransactionRequest> => [
-  {
-    coreContracts: input.coreContracts,
-    keyset: input.keyset,
-    account: input.account,
-    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  },
-];
+): Parameters<typeof setValidKeysetPrepareTransactionRequest> => {
+  const { rpcUrl, chainId, ...rest } = input;
+  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+};

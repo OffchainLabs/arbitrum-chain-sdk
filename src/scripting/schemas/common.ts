@@ -1,13 +1,18 @@
 import { z } from 'zod';
 
+export const hexSchema = z
+  .string()
+  .regex(/^0x[0-9a-fA-F]*$/, 'Invalid hex string')
+  .transform((val) => val as `0x${string}`);
+
 export const addressSchema = z
   .string()
   .regex(/^0x[0-9a-fA-F]{40}$/, 'Invalid Ethereum address')
   .transform((val) => val as `0x${string}`);
 
-export const hexSchema = z
+export const privateKeySchema = z
   .string()
-  .regex(/^0x[0-9a-fA-F]*$/, 'Invalid hex string')
+  .regex(/^0x[0-9a-fA-F]{64}$/, 'Invalid private key')
   .transform((val) => val as `0x${string}`);
 
 // z.coerce.bigint() calls BigInt() which throws a raw SyntaxError on invalid
@@ -18,11 +23,6 @@ export const bigintSchema = z
   .regex(/^-?\d+$/, 'Expected a numeric string')
   .transform(BigInt);
 
-export const privateKeySchema = z
-  .string()
-  .regex(/^0x[0-9a-fA-F]{64}$/, 'Invalid private key')
-  .transform((val) => val as `0x${string}`);
-
 export const rollupCreatorVersionSchema = z.enum(['v3.2', 'v2.1']);
 
 export const sequencerInboxMaxTimeVariationSchema = z.object({
@@ -32,27 +32,27 @@ export const sequencerInboxMaxTimeVariationSchema = z.object({
   futureSeconds: bigintSchema,
 });
 
-export const gasOverrideOptionsSchema = z.object({
+export const gasOptionsSchema = z.object({
   base: bigintSchema.optional(),
   percentIncrease: bigintSchema.optional(),
 });
 
-export const gasOverridesSchema = z.object({
-  gasLimit: gasOverrideOptionsSchema.optional(),
+export const gasLimitSchema = z.object({
+  gasLimit: gasOptionsSchema.optional(),
 });
 
-export const retryableGasOverridesSchema = z.object({
-  maxSubmissionCostForFactory: gasOverrideOptionsSchema.optional(),
-  maxGasForFactory: gasOverrideOptionsSchema.optional(),
-  maxSubmissionCostForContracts: gasOverrideOptionsSchema.optional(),
-  maxGasForContracts: gasOverrideOptionsSchema.optional(),
+export const tokenBridgeRetryableGasOverridesSchema = z.object({
+  maxSubmissionCostForFactory: gasOptionsSchema.optional(),
+  maxGasForFactory: gasOptionsSchema.optional(),
+  maxSubmissionCostForContracts: gasOptionsSchema.optional(),
+  maxGasForContracts: gasOptionsSchema.optional(),
   maxGasPrice: bigintSchema.optional(),
 });
 
 export const setWethGatewayGasOverridesSchema = z.object({
-  gasLimit: gasOverrideOptionsSchema.optional(),
-  maxFeePerGas: gasOverrideOptionsSchema.optional(),
-  maxSubmissionCost: gasOverrideOptionsSchema.optional(),
+  gasLimit: gasOptionsSchema.optional(),
+  maxFeePerGas: gasOptionsSchema.optional(),
+  maxSubmissionCost: gasOptionsSchema.optional(),
 });
 
 export const coreContractsSchema = z.object({
