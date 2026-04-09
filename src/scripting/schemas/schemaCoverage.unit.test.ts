@@ -1,33 +1,72 @@
 import { describe, it, vi } from 'vitest';
 
-const { sideEffects, createTrackedObject } = await vi.hoisted(
-  () => import('./testTracker'),
-);
+const mocks = vi.hoisted(() => {
+  // Inline the registry here so it's available to vi.mock factories
+  // (vi.mock is hoisted above normal imports, so we can't import it)
+  const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
+  const BIGINT_METHODS = new Set(['getGasPrice', 'readContract', 'calculateRetryableSubmissionFee']);
+  const HASH_METHODS = new Set(['sendRawTransaction', 'writeContract', 'signTransaction']);
+  const RECEIPT_METHODS = new Set(['waitForTransactionReceipt']);
+  const SIMULATE_METHODS = new Set(['simulateContract']);
+  let hexCounter = 0;
+  const validHex = (bytes: number) => '0x' + (++hexCounter).toString(16).padStart(bytes * 2, '0');
+  const calls: unknown[] = [];
+
+  function trackedObject(name: string): any {
+    return new Proxy(Object.create(null), {
+      get(_, prop) {
+        if (prop === 'then') return undefined;
+        if (prop === Symbol.toPrimitive) return () => validHex(20);
+        if (prop === 'toJSON') return () => ({ _tracked: name });
+        if (prop === 'address') return validHex(20);
+        if (prop === 'chain') return { _tracked: `${name}.chain` };
+        const method = String(prop);
+        return (...args: unknown[]) => {
+          calls.push({ target: name, method, args: JSON.parse(JSON.stringify(args, replacer)) });
+          if (BIGINT_METHODS.has(method)) return Promise.resolve(1000000n);
+          if (HASH_METHODS.has(method)) return Promise.resolve(validHex(32));
+          if (RECEIPT_METHODS.has(method)) return Promise.resolve({ blockNumber: 1n });
+          if (SIMULATE_METHODS.has(method))
+            return Promise.resolve({ request: { _tracked: `${name}.${method}()` } });
+          return Promise.resolve(trackedObject(`${name}.${method}()`));
+        };
+      },
+    });
+  }
+
+  const fn = (name: string, returnValue: unknown = {}) =>
+    (...args: unknown[]) => {
+      calls.push({ target: name, method: 'call', args: JSON.parse(JSON.stringify(args, replacer)) });
+      return Promise.resolve(returnValue);
+    };
+
+  const fnSync = (name: string, returnValue?: unknown) =>
+    (...args: unknown[]) => {
+      calls.push({ target: name, method: 'call', args: JSON.parse(JSON.stringify(args, replacer)) });
+      return returnValue ?? validHex(32);
+    };
+
+  const clear = () => { calls.length = 0; hexCounter = 0; };
+  const snapshot = () => JSON.stringify(calls, replacer);
+
+  return { calls, trackedObject, fn, fnSync, clear, snapshot };
+});
 
 vi.mock('../viemTransforms', () => ({
   toPublicClient: (rpcUrl: string, chain: unknown) =>
-    createTrackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`),
+    mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`),
   findChain: (chainId: number) => ({ _tracked: 'Chain', id: chainId }),
-  toAccount: (pk: string) => createTrackedObject(`Account(${pk})`),
+  toAccount: (pk: string) => mocks.trackedObject(`Account(${pk})`),
   toWalletClient: (rpcUrl: string, pk: string, chain: unknown) =>
-    createTrackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`),
+    mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`),
 }));
-
-import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
-import { getValidators } from '../../getValidators';
-import {
-  setValidKeysetPrepareTransactionRequestSchema,
-  setValidKeysetPrepareTransactionRequestTransform,
-} from './setValidKeysetPrepareTransactionRequest';
-import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
-import { assertSchemaCoverage } from './schemaCoverage';
 
 // Prevent runScript from firing when importing example scripts.
 // Examples call runScript at module level, which reads process.argv and exits.
 vi.mock('../scriptUtils', () => ({ runScript: () => {} }));
 
-// The createRollup example's schema transform calls these SDK functions.
-// Mock them to return deterministic values based on their inputs.
+// Functions called inside schema transforms (not side effects, just
+// deterministic transforms that need to work during parse).
 vi.mock('../../createRollupPrepareDeploymentParamsConfig', () => ({
   createRollupPrepareDeploymentParamsConfig: (_client: unknown, params: unknown) => ({
     _mock: 'deploymentParamsConfig',
@@ -38,53 +77,40 @@ vi.mock('../../prepareChainConfig', () => ({
   prepareChainConfig: (params: unknown) => ({ _mock: 'chainConfig', params }),
 }));
 
-// Mock SDK functions called by example scripts. Each records into
-// sideEffects so assertSchemaCoverage can detect changes.
+// SDK functions called by example execute functions.
 vi.mock('../../createRollup', () => ({
-  createRollup: (...args: unknown[]) => {
-    sideEffects.push({ target: 'createRollup', args });
-    return Promise.resolve({ coreContracts: {} });
-  },
+  createRollup: mocks.fn('createRollup', { coreContracts: {} }),
 }));
 vi.mock('../../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
-  upgradeExecutorPrepareAddExecutorTransactionRequest: (...args: unknown[]) => {
-    sideEffects.push({ target: 'upgradeExecutorPrepareAddExecutorTransactionRequest', args });
-    return Promise.resolve({ _mock: 'addExecutorTxRequest' });
-  },
+  upgradeExecutorPrepareAddExecutorTransactionRequest: mocks.fn('addExecutor'),
 }));
 vi.mock('../../upgradeExecutorPrepareRemoveExecutorTransactionRequest', () => ({
-  upgradeExecutorPrepareRemoveExecutorTransactionRequest: (...args: unknown[]) => {
-    sideEffects.push({ target: 'upgradeExecutorPrepareRemoveExecutorTransactionRequest', args });
-    return Promise.resolve({ _mock: 'removeExecutorTxRequest' });
-  },
+  upgradeExecutorPrepareRemoveExecutorTransactionRequest: mocks.fn('removeExecutor'),
 }));
-// transferOwnership uses viem functions for encoding and signing.
-// Mock them to record calls and return deterministic values.
-// transferOwnership uses viem functions for encoding and signing.
-// Mocks preserve input identity so field mutations are visible in sideEffects.
+vi.mock('../../upgradeExecutorEncodeFunctionData', () => ({
+  UPGRADE_EXECUTOR_ROLE_EXECUTOR: '0x' + 'ab'.repeat(32),
+  upgradeExecutorEncodeFunctionData: mocks.fnSync('upgradeExecutorEncodeFunctionData'),
+}));
 vi.mock('viem', async (importOriginal) => {
   const original = await importOriginal<typeof import('viem')>();
   return {
     ...original,
-    encodeFunctionData: (...args: unknown[]) => {
-      sideEffects.push({ target: 'encodeFunctionData', args });
-      const bigintReplacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `${v}` : v);
-      return `0xencode_${JSON.stringify(args, bigintReplacer).slice(0, 40)}`;
-    },
+    encodeFunctionData: mocks.fnSync('encodeFunctionData'),
     createWalletClient: (opts: any) =>
-      createTrackedObject(`childWalletClient(${JSON.stringify(opts?.chain?.id ?? opts)})`),
+      mocks.trackedObject(`childWalletClient(${JSON.stringify(opts?.chain?.id ?? opts)})`),
     custom: () => ({}),
     defineChain: (def: any) => def,
   };
 });
-vi.mock('../../upgradeExecutorEncodeFunctionData', () => ({
-  UPGRADE_EXECUTOR_ROLE_EXECUTOR: '0x' + 'ab'.repeat(32),
-  upgradeExecutorEncodeFunctionData: (...args: unknown[]) => {
-    sideEffects.push({ target: 'upgradeExecutorEncodeFunctionData', args });
-    return '0xmockdata';
-  },
-}));
 
+import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
+import { getValidators } from '../../getValidators';
+import {
+  setValidKeysetPrepareTransactionRequestSchema,
+  setValidKeysetPrepareTransactionRequestTransform,
+} from './setValidKeysetPrepareTransactionRequest';
+import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
+import { assertSchemaCoverage } from './schemaCoverage';
 import {
   schema as createRollupExampleSchema,
   execute as createRollupExecute,
@@ -109,7 +135,12 @@ describe('schema coverage', () => {
   });
 
   it('createRollup example', async () => {
-    await assertSchemaCoverage(createRollupExampleSchema, createRollupExecute, createRollupExecute);
+    await assertSchemaCoverage(
+      createRollupExampleSchema,
+      createRollupExecute,
+      createRollupExecute,
+      mocks,
+    );
   });
 
   it('transferOwnership example', async () => {
@@ -117,6 +148,7 @@ describe('schema coverage', () => {
       transferOwnershipSchema,
       transferOwnershipExecute,
       transferOwnershipExecute,
+      mocks,
       {
         // nativeToken controls a conditional branch (ERC20 vs ETH). Both
         // generated values are non-zero, so we need one run with zeroAddress

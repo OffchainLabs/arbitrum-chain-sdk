@@ -1,5 +1,4 @@
 import { type ZodType } from 'zod';
-import { sideEffects } from './testTracker';
 
 type SchemaLeaf = { path: string[]; schema: ZodType };
 
@@ -172,17 +171,22 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
  * each leaf field, generates two inputs that differ only in that field and
  * asserts the outcome changes.
  *
- * When `execute` is provided, the full pipeline is tested: schema.parse +
- * execute, comparing what `sdkFunction` was called with. The sdkFunction must
- * be a vi.fn() mock.
+ * When `mocks` is provided, the full pipeline is tested: schema.parse +
+ * execute, comparing all recorded side effects in the registry.
  *
- * When `execute` is omitted, only the schema's parse output (including any
+ * When `mocks` is omitted, only the schema's parse output (including any
  * baked-in transform) is compared.
  */
+interface SideEffectTracker {
+  clear(): void;
+  snapshot(): string;
+}
+
 export async function assertSchemaCoverage(
   schema: ZodType,
   sdkFunction: Function,
   execute?: (parsed: any) => Promise<unknown>,
+  mocks?: SideEffectTracker,
   overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
 ): Promise<void> {
   const leaves = getSchemaLeaves(schema);
@@ -222,17 +226,17 @@ export async function assertSchemaCoverage(
 
     let isDead: boolean;
 
-    if (execute) {
-      // Full pipeline: parse + execute, compare all side effects
-      sideEffects.length = 0;
+    if (execute && mocks) {
+      // Full pipeline: parse + execute, compare all recorded side effects
+      mocks.clear();
       await execute(schema.parse(baseFixture));
-      const callsBase = JSON.stringify(sideEffects, replacer);
+      const snapshotBase = mocks.snapshot();
 
-      sideEffects.length = 0;
+      mocks.clear();
       await execute(schema.parse(mutatedFixture));
-      const callsMutated = JSON.stringify(sideEffects, replacer);
+      const snapshotMutated = mocks.snapshot();
 
-      isDead = callsBase === callsMutated;
+      isDead = snapshotBase === snapshotMutated;
     } else {
       // Transform-only: compare parse outputs
       const outputBase = schema.parse(baseFixture);
