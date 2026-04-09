@@ -167,15 +167,9 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
 }
 
 /**
- * Verifies that every field in a schema affects observable side effects. For
- * each leaf field, generates two inputs that differ only in that field and
- * asserts the outcome changes.
- *
- * When `mocks` is provided, the full pipeline is tested: schema.parse +
- * execute, comparing all recorded side effects in the registry.
- *
- * When `mocks` is omitted, only the schema's parse output (including any
- * baked-in transform) is compared.
+ * Verifies that every field in a schema affects observable side effects.
+ * For each leaf field, generates two inputs that differ only in that field,
+ * runs both through execute, and asserts the recorded side effects differ.
  */
 interface SideEffectTracker {
   clear(): void;
@@ -184,14 +178,12 @@ interface SideEffectTracker {
 
 export async function assertSchemaCoverage(
   schema: ZodType,
-  sdkFunction: Function,
-  execute?: (parsed: any) => Promise<unknown>,
-  mocks?: SideEffectTracker,
+  execute: (input: Record<string, unknown>) => unknown,
+  mocks: SideEffectTracker,
   overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
 ): Promise<void> {
   const leaves = getSchemaLeaves(schema);
 
-  // Generate two values for each leaf
   resetCounter();
   const valuesA = new Map<string, unknown>();
   const valuesB = new Map<string, unknown>();
@@ -205,46 +197,28 @@ export async function assertSchemaCoverage(
 
   for (const leaf of leaves) {
     const key = leaf.path.join('.');
-
-    // Skip literals -- they can't be mutated
     if (getDefType(leaf.schema) === 'literal') continue;
 
-    // Build base fixture (all fields use value A, then apply override)
     let baseFixture = buildFixture(leaves, valuesA);
     if (overrides?.[key]) {
       baseFixture = overrides[key](baseFixture);
     }
 
-    // Build mutated fixture: start from base (with override applied), then
-    // set the field under test to value B. The override sets up the right
-    // context; the mutation goes on top.
     let mutatedFixture = buildFixture(leaves, valuesA);
     if (overrides?.[key]) {
       mutatedFixture = overrides[key](mutatedFixture);
     }
     mutatedFixture = setNestedField(mutatedFixture, leaf.path, valuesB.get(key));
 
-    let isDead: boolean;
+    mocks.clear();
+    await execute(baseFixture);
+    const snapshotBase = mocks.snapshot();
 
-    if (execute && mocks) {
-      // Full pipeline: parse + execute, compare all recorded side effects
-      mocks.clear();
-      await execute(schema.parse(baseFixture));
-      const snapshotBase = mocks.snapshot();
+    mocks.clear();
+    await execute(mutatedFixture);
+    const snapshotMutated = mocks.snapshot();
 
-      mocks.clear();
-      await execute(schema.parse(mutatedFixture));
-      const snapshotMutated = mocks.snapshot();
-
-      isDead = snapshotBase === snapshotMutated;
-    } else {
-      // Transform-only: compare parse outputs
-      const outputBase = schema.parse(baseFixture);
-      const outputMutated = schema.parse(mutatedFixture);
-      isDead = JSON.stringify(outputBase, replacer) === JSON.stringify(outputMutated, replacer);
-    }
-
-    if (isDead) {
+    if (snapshotBase === snapshotMutated) {
       deadFields.push(key);
     }
   }
@@ -255,5 +229,3 @@ export async function assertSchemaCoverage(
     );
   }
 }
-
-const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);

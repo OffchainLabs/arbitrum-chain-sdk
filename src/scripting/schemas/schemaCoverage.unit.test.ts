@@ -77,7 +77,14 @@ vi.mock('../../prepareChainConfig', () => ({
   prepareChainConfig: (params: unknown) => ({ _mock: 'chainConfig', params }),
 }));
 
-// SDK functions called by example execute functions.
+// SDK functions -- each records into mocks so assertSchemaCoverage can
+// detect whether field mutations change what they receive.
+vi.mock('../../getValidators', () => ({
+  getValidators: mocks.fn('getValidators'),
+}));
+vi.mock('../../setValidKeysetPrepareTransactionRequest', () => ({
+  setValidKeysetPrepareTransactionRequest: mocks.fn('setValidKeysetPrepareTransactionRequest'),
+}));
 vi.mock('../../createRollup', () => ({
   createRollup: mocks.fn('createRollup', { coreContracts: {} }),
 }));
@@ -115,30 +122,48 @@ import {
   schema as createRollupExampleSchema,
   execute as createRollupExecute,
 } from '../examples/createRollup';
-import { schema as transferOwnershipSchema, execute as transferOwnershipExecute } from '../examples/transferOwnership';
+import {
+  schema as transferOwnershipSchema,
+  execute as transferOwnershipExecute,
+} from '../examples/transferOwnership';
+
+// Helpers that compose schema.parse + SDK function/execute into a single
+// function from raw input -> side effects, which is what assertSchemaCoverage
+// expects.
+const withTransform =
+  (schema: any, fn: Function) =>
+  (input: Record<string, unknown>) =>
+    fn(...schema.parse(input));
+
+const withExecute =
+  (schema: any, fn: Function) =>
+  (input: Record<string, unknown>) =>
+    fn(schema.parse(input));
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
     await assertSchemaCoverage(
       getValidatorsSchema.transform(getValidatorsTransform),
-      getValidators,
+      withTransform(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
+      mocks,
     );
   });
 
   it('setValidKeysetPrepareTransactionRequest', async () => {
+    const schema = setValidKeysetPrepareTransactionRequestSchema.transform(
+      setValidKeysetPrepareTransactionRequestTransform,
+    );
     await assertSchemaCoverage(
-      setValidKeysetPrepareTransactionRequestSchema.transform(
-        setValidKeysetPrepareTransactionRequestTransform,
-      ),
-      setValidKeysetPrepareTransactionRequest,
+      schema,
+      withTransform(schema, setValidKeysetPrepareTransactionRequest),
+      mocks,
     );
   });
 
   it('createRollup example', async () => {
     await assertSchemaCoverage(
       createRollupExampleSchema,
-      createRollupExecute,
-      createRollupExecute,
+      withExecute(createRollupExampleSchema, createRollupExecute),
       mocks,
     );
   });
@@ -146,14 +171,13 @@ describe('schema coverage', () => {
   it('transferOwnership example', async () => {
     await assertSchemaCoverage(
       transferOwnershipSchema,
-      transferOwnershipExecute,
-      transferOwnershipExecute,
+      withExecute(transferOwnershipSchema, transferOwnershipExecute),
       mocks,
       {
         // nativeToken controls a conditional branch (ERC20 vs ETH). Both
         // generated values are non-zero, so we need one run with zeroAddress
         // to exercise the branch difference.
-        nativeToken: (base) => ({
+        nativeToken: (base: Record<string, unknown>) => ({
           ...base,
           nativeToken: '0x0000000000000000000000000000000000000000',
         }),
