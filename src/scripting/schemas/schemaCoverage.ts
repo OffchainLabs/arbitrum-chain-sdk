@@ -1,4 +1,4 @@
-import { type ZodType } from 'zod';
+import { type ZodType, type z } from 'zod';
 
 type SchemaLeaf = { path: string[]; schema: ZodType };
 
@@ -176,11 +176,11 @@ interface SideEffectTracker {
   snapshot(): string;
 }
 
-export async function assertSchemaCoverage(
-  schema: ZodType,
+export async function assertSchemaCoverage<T extends ZodType>(
+  schema: T,
   execute: (...args: any[]) => unknown,
   mocks: SideEffectTracker,
-  overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
+  overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
 ): Promise<void> {
   const leaves = getSchemaLeaves(schema);
 
@@ -199,16 +199,20 @@ export async function assertSchemaCoverage(
     const key = leaf.path.join('.');
     if (getDefType(leaf.schema) === 'literal') continue;
 
-    let baseFixture = buildFixture(leaves, valuesA);
+    let baseFixture = buildFixture(leaves, valuesA) as z.input<T>;
     if (overrides?.[key]) {
       baseFixture = overrides[key](baseFixture);
     }
 
-    let mutatedFixture = buildFixture(leaves, valuesA);
+    let mutatedFixture = buildFixture(leaves, valuesA) as z.input<T>;
     if (overrides?.[key]) {
       mutatedFixture = overrides[key](mutatedFixture);
     }
-    mutatedFixture = setNestedField(mutatedFixture, leaf.path, valuesB.get(key));
+    mutatedFixture = setNestedField(
+      mutatedFixture as Record<string, unknown>,
+      leaf.path,
+      valuesB.get(key),
+    ) as z.input<T>;
 
     mocks.clear();
     const parsedBase = schema.parse(baseFixture) as any;

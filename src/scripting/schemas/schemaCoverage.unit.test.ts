@@ -155,7 +155,7 @@ describe('schema coverage', () => {
       // nativeToken controls a conditional branch (ERC20 vs ETH). Both
       // generated values are non-zero, so we need one run with zeroAddress
       // to exercise the branch difference.
-      nativeToken: (base: Record<string, unknown>) => ({
+      nativeToken: (base) => ({
         ...base,
         nativeToken: '0x0000000000000000000000000000000000000000',
       }),
