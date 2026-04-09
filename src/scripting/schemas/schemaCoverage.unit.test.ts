@@ -127,24 +127,12 @@ import {
   execute as transferOwnershipExecute,
 } from '../examples/transferOwnership';
 
-// Helpers that compose schema.parse + SDK function/execute into a single
-// function from raw input -> side effects, which is what assertSchemaCoverage
-// expects.
-const withTransform =
-  (schema: any, fn: Function) =>
-  (input: Record<string, unknown>) =>
-    fn(...schema.parse(input));
-
-const withExecute =
-  (schema: any, fn: Function) =>
-  (input: Record<string, unknown>) =>
-    fn(schema.parse(input));
-
 describe('schema coverage', () => {
   it('getValidators', async () => {
+    const schema = getValidatorsSchema.transform(getValidatorsTransform);
     await assertSchemaCoverage(
-      getValidatorsSchema.transform(getValidatorsTransform),
-      withTransform(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
+      schema,
+      (input) => getValidators(...schema.parse(input)),
       mocks,
     );
   });
@@ -155,7 +143,7 @@ describe('schema coverage', () => {
     );
     await assertSchemaCoverage(
       schema,
-      withTransform(schema, setValidKeysetPrepareTransactionRequest),
+      (input) => setValidKeysetPrepareTransactionRequest(...schema.parse(input)),
       mocks,
     );
   });
@@ -163,7 +151,7 @@ describe('schema coverage', () => {
   it('createRollup example', async () => {
     await assertSchemaCoverage(
       createRollupExampleSchema,
-      withExecute(createRollupExampleSchema, createRollupExecute),
+      (input) => createRollupExecute(createRollupExampleSchema.parse(input)),
       mocks,
     );
   });
@@ -171,7 +159,7 @@ describe('schema coverage', () => {
   it('transferOwnership example', async () => {
     await assertSchemaCoverage(
       transferOwnershipSchema,
-      withExecute(transferOwnershipSchema, transferOwnershipExecute),
+      (input) => transferOwnershipExecute(transferOwnershipSchema.parse(input)),
       mocks,
       {
         // nativeToken controls a conditional branch (ERC20 vs ETH). Both
