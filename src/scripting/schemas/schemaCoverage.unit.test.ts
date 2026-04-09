@@ -99,6 +99,37 @@ vi.mock('../../createRollupFetchCoreContracts', () => ({
 vi.mock('../../createRollupFetchTransactionHash', () => ({
   createRollupFetchTransactionHash: mocks.fn('createRollupFetchTransactionHash'),
 }));
+vi.mock('../../utils/erc20', () => ({
+  fetchAllowance: mocks.fn('fetchAllowance'),
+  fetchDecimals: mocks.fn('fetchDecimals'),
+}));
+vi.mock('../../upgradeExecutorFetchPrivilegedAccounts', () => ({
+  upgradeExecutorFetchPrivilegedAccounts: mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
+}));
+vi.mock('../../getBridgeUiConfig', () => ({
+  getBridgeUiConfig: mocks.fn('getBridgeUiConfig'),
+}));
+vi.mock('../../isTokenBridgeDeployed', () => ({
+  isTokenBridgeDeployed: mocks.fn('isTokenBridgeDeployed'),
+}));
+vi.mock('../../createRollupGetRetryablesFees', () => ({
+  createRollupGetRetryablesFees: mocks.fn('createRollupGetRetryablesFees'),
+}));
+vi.mock('../../createSafePrepareTransactionRequest', () => ({
+  createSafePrepareTransactionRequest: mocks.fn('createSafePrepareTransactionRequest'),
+}));
+vi.mock('../../createRollupEnoughCustomFeeTokenAllowance', () => ({
+  createRollupEnoughCustomFeeTokenAllowance: mocks.fn('createRollupEnoughCustomFeeTokenAllowance'),
+}));
+vi.mock('../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest', () => ({
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createRollupPrepareCustomFeeTokenApproval'),
+}));
+vi.mock('../../createTokenBridgeEnoughCustomFeeTokenAllowance', () => ({
+  createTokenBridgeEnoughCustomFeeTokenAllowance: mocks.fn('createTokenBridgeEnoughCustomFeeTokenAllowance'),
+}));
+vi.mock('../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', () => ({
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createTokenBridgePrepareCustomFeeTokenApproval'),
+}));
 vi.mock('../../createRollup', () => ({
   createRollup: mocks.fn('createRollup', { coreContracts: {} }),
 }));
@@ -168,6 +199,35 @@ import {
   createRollupFetchTransactionHashTransform,
 } from './createRollupFetchTransactionHash';
 import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
+import { fetchAllowanceSchema, fetchAllowanceTransform, fetchDecimalsSchema, fetchDecimalsTransform } from './erc20';
+import { fetchAllowance, fetchDecimals } from '../../utils/erc20';
+import {
+  upgradeExecutorFetchPrivilegedAccountsSchema,
+  upgradeExecutorFetchPrivilegedAccountsTransform,
+} from './upgradeExecutor';
+import { upgradeExecutorFetchPrivilegedAccounts } from '../../upgradeExecutorFetchPrivilegedAccounts';
+import { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './getBridgeUiConfig';
+import { getBridgeUiConfig } from '../../getBridgeUiConfig';
+import { isTokenBridgeDeployedSchema, isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
+import { isTokenBridgeDeployed } from '../../isTokenBridgeDeployed';
+import { createRollupGetRetryablesFeesSchema, createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
+import { createRollupGetRetryablesFees } from '../../createRollupGetRetryablesFees';
+import { createSafePrepareTransactionRequestSchema, createSafePrepareTransactionRequestTransform } from './createSafePrepareTransactionRequest';
+import { createSafePrepareTransactionRequest } from '../../createSafePrepareTransactionRequest';
+import {
+  createRollupEnoughCustomFeeTokenAllowanceSchema,
+  createRollupEnoughCustomFeeTokenAllowanceTransform,
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
+  createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+} from './customFeeToken';
+import { createRollupEnoughCustomFeeTokenAllowance } from '../../createRollupEnoughCustomFeeTokenAllowance';
+import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
+import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
+import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import { assertSchemaCoverage } from './schemaCoverage';
 import {
   schema as createRollupExampleSchema,
@@ -287,6 +347,106 @@ describe('schema coverage', () => {
     await assertSchemaCoverage(
       createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
       createRollupFetchTransactionHash,
+      mocks,
+    );
+  });
+
+  it('fetchDecimals', async () => {
+    await assertSchemaCoverage(
+      fetchDecimalsSchema.transform(fetchDecimalsTransform),
+      fetchDecimals,
+      mocks,
+    );
+  });
+
+  it('fetchAllowance', async () => {
+    await assertSchemaCoverage(
+      fetchAllowanceSchema.transform(fetchAllowanceTransform),
+      fetchAllowance,
+      mocks,
+    );
+  });
+
+  it('upgradeExecutorFetchPrivilegedAccounts', async () => {
+    await assertSchemaCoverage(
+      upgradeExecutorFetchPrivilegedAccountsSchema.transform(
+        upgradeExecutorFetchPrivilegedAccountsTransform,
+      ),
+      upgradeExecutorFetchPrivilegedAccounts,
+      mocks,
+    );
+  });
+
+  it('getBridgeUiConfig', async () => {
+    await assertSchemaCoverage(
+      getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform),
+      getBridgeUiConfig,
+      mocks,
+    );
+  });
+
+  it('isTokenBridgeDeployed', async () => {
+    await assertSchemaCoverage(
+      isTokenBridgeDeployedSchema.transform(isTokenBridgeDeployedTransform),
+      isTokenBridgeDeployed,
+      mocks,
+    );
+  });
+
+  it('createRollupGetRetryablesFees', async () => {
+    await assertSchemaCoverage(
+      createRollupGetRetryablesFeesSchema.transform(createRollupGetRetryablesFeesTransform),
+      createRollupGetRetryablesFees,
+      mocks,
+    );
+  });
+
+  it('createSafePrepareTransactionRequest', async () => {
+    await assertSchemaCoverage(
+      createSafePrepareTransactionRequestSchema.transform(
+        createSafePrepareTransactionRequestTransform,
+      ),
+      createSafePrepareTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('createRollupEnoughCustomFeeTokenAllowance', async () => {
+    await assertSchemaCoverage(
+      createRollupEnoughCustomFeeTokenAllowanceSchema.transform(
+        createRollupEnoughCustomFeeTokenAllowanceTransform,
+      ),
+      createRollupEnoughCustomFeeTokenAllowance,
+      mocks,
+    );
+  });
+
+  it('createRollupPrepareCustomFeeTokenApprovalTransactionRequest', async () => {
+    await assertSchemaCoverage(
+      createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
+        createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+      ),
+      createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('createTokenBridgeEnoughCustomFeeTokenAllowance', async () => {
+    await assertSchemaCoverage(
+      createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(
+        createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+      ),
+      createTokenBridgeEnoughCustomFeeTokenAllowance,
+      mocks,
+    );
+  });
+
+  it('createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', async () => {
+    await assertSchemaCoverage(
+      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
+        createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+      ),
+      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
       mocks,
     );
   });
