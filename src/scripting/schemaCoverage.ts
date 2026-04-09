@@ -69,7 +69,7 @@ export function generateValue(schema: ZodType): unknown {
 
 function generateForType(schema: ZodType, n: number): unknown {
   const def = getDef(schema);
-  if (!def) return `value_${n}`;
+  if (!def) throw new Error(`Cannot generate value: schema has no def`);
 
   switch (def.type) {
     case 'string':
@@ -113,7 +113,9 @@ function generateForType(schema: ZodType, n: number): unknown {
     case 'union':
       return generateForType(def.options[0], n);
     default:
-      return `value_${n}`;
+      throw new Error(
+        `Unsupported zod type "${def.type}" at counter ${n}. Add a case to generateForType.`,
+      );
   }
 }
 

@@ -1,5 +1,8 @@
 import { describe, it, vi } from 'vitest';
 
+// -- 1. Mock registry (vi.hoisted) ------------------------------------------
+// Defined first because vi.mock factories are hoisted above all imports and
+// need access to mocks.fn, mocks.fnSync, and mocks.trackedObject.
 const mocks = vi.hoisted(() => {
   // Inline the registry here so it's available to vi.mock factories
   // (vi.mock is hoisted above normal imports, so we can't import it)
@@ -52,6 +55,11 @@ const mocks = vi.hoisted(() => {
   return { calls, trackedObject, fn, fnSync, clear, snapshot };
 });
 
+// -- 2. Module mocks (vi.mock) -----------------------------------------------
+// Hoisted above imports. Order within this section doesn't matter.
+
+// Viem helpers return Proxy-based tracked objects that dynamically record
+// every method call into the shared sideEffects array.
 vi.mock('./viemTransforms', () => ({
   toPublicClient: (rpcUrl: string, chain: unknown) =>
     mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`),
@@ -76,8 +84,9 @@ vi.mock('../prepareChainConfig', () => ({
   prepareChainConfig: mocks.fnSync('prepareChainConfig', { _mock: 'chainConfig' }),
 }));
 
-// SDK functions -- each records into mocks so assertSchemaCoverage can
-// detect whether field mutations change what they receive.
+// SDK functions -- each records calls into the mock registry so
+// assertSchemaCoverage can detect whether field mutations change what
+// they receive.
 vi.mock('../getValidators', () => ({
   getValidators: mocks.fn('getValidators'),
 }));
@@ -183,6 +192,9 @@ vi.mock('viem', async (importOriginal) => {
     defineChain: (def: any) => def,
   };
 });
+
+// -- 3. Imports --------------------------------------------------------------
+// Run after mocks are applied, so these resolve to the mocked versions.
 
 import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
 import { getValidators } from '../getValidators';
@@ -302,6 +314,8 @@ import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
 } from './examples/transferOwnership';
+
+// -- 4. Tests ----------------------------------------------------------------
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
