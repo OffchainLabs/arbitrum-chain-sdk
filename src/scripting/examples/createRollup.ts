@@ -3,7 +3,7 @@ import { runScript } from '../scriptUtils';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
-import { toPublicClient, toAccount } from '../viemTransforms';
+import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { createRollup } from '../../createRollup';
@@ -17,7 +17,10 @@ export const schema = createRollupDefaultSchema
     }),
   })
   .transform((input) => {
-    const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
+    const parentChainPublicClient = toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    );
     const {
       config: { chainConfig: chainConfigParams, ...restConfig },
       ...params

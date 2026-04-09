@@ -13,24 +13,44 @@ vi.mock('../viemTransforms', () => ({
 }));
 
 import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
-import { getValidators } from '../../getValidators';
 import {
   setValidKeysetPrepareTransactionRequestSchema,
   setValidKeysetPrepareTransactionRequestTransform,
 } from './setValidKeysetPrepareTransactionRequest';
-import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
 import { assertSchemaCoverage } from './schemaCoverage';
+
+// Prevent runScript from firing when importing example scripts.
+// Examples call runScript at module level, which reads process.argv and exits.
+vi.mock('../scriptUtils', () => ({ runScript: () => {} }));
+
+// The createRollup example's schema transform calls these SDK functions.
+// Mock them to return deterministic values based on their inputs.
+vi.mock('../../createRollupPrepareDeploymentParamsConfig', () => ({
+  createRollupPrepareDeploymentParamsConfig: (_client: unknown, params: unknown) => ({
+    _mock: 'deploymentParamsConfig',
+    params,
+  }),
+}));
+vi.mock('../../prepareChainConfig', () => ({
+  prepareChainConfig: (params: unknown) => ({ _mock: 'chainConfig', params }),
+}));
+
+import { schema as createRollupExampleSchema } from '../examples/createRollup';
 
 describe('schema coverage', () => {
   it('getValidators', () => {
-    assertSchemaCoverage(getValidatorsSchema, getValidatorsTransform, getValidators);
+    assertSchemaCoverage(getValidatorsSchema.transform(getValidatorsTransform));
   });
 
   it('setValidKeysetPrepareTransactionRequest', () => {
     assertSchemaCoverage(
-      setValidKeysetPrepareTransactionRequestSchema,
-      setValidKeysetPrepareTransactionRequestTransform,
-      setValidKeysetPrepareTransactionRequest,
+      setValidKeysetPrepareTransactionRequestSchema.transform(
+        setValidKeysetPrepareTransactionRequestTransform,
+      ),
     );
+  });
+
+  it('createRollup example', () => {
+    assertSchemaCoverage(createRollupExampleSchema);
   });
 });

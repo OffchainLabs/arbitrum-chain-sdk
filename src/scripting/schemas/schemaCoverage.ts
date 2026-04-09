@@ -32,6 +32,9 @@ export function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLea
         getSchemaLeaves(child, [...path, key]),
       );
     }
+    case 'never':
+      // Can't generate values for never -- skip entirely
+      return [];
     case 'optional':
     case 'nullable':
     case 'default':
@@ -74,6 +77,12 @@ function generateForType(schema: ZodType, n: number): unknown {
       return Object.values(def.entries)[n % Object.values(def.entries).length];
     case 'object':
       return generateObject(schema, n);
+    case 'array':
+      return [generateForType(def.element, n)];
+    case 'tuple':
+      return (def.items as ZodType[]).map((item: ZodType, i: number) =>
+        generateForType(item, n + i),
+      );
     case 'optional':
     case 'nullable':
     case 'default':
@@ -157,10 +166,16 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
   return fixture;
 }
 
+/**
+ * Verifies that every field in a schema affects the parsed output. For each
+ * leaf field, generates two inputs that differ only in that field and asserts
+ * the schema's parse output (including any baked-in transform) changes.
+ *
+ * The schema should include its transform via `.transform()` so that
+ * `schema.parse()` produces the final SDK-ready params.
+ */
 export function assertSchemaCoverage(
   schema: ZodType,
-  transform: (input: any) => unknown,
-  _sdkFunction?: unknown,
   overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
 ): void {
   const leaves = getSchemaLeaves(schema);
@@ -200,13 +215,9 @@ export function assertSchemaCoverage(
       mutatedFixture = overrides[key](mutatedFixture);
     }
 
-    // Parse both through the schema
-    const parsedBase = schema.parse(baseFixture);
-    const parsedMutated = schema.parse(mutatedFixture);
-
-    // Run through the transform
-    const outputBase = transform(parsedBase);
-    const outputMutated = transform(parsedMutated);
+    // Parse both through the schema (including any baked-in transform)
+    const outputBase = schema.parse(baseFixture);
+    const outputMutated = schema.parse(mutatedFixture);
 
     // Compare -- if identical, the field is dead
     if (JSON.stringify(outputBase, replacer) === JSON.stringify(outputMutated, replacer)) {
