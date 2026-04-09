@@ -52,7 +52,7 @@ const mocks = vi.hoisted(() => {
   return { calls, trackedObject, fn, fnSync, clear, snapshot };
 });
 
-vi.mock('../viemTransforms', () => ({
+vi.mock('./viemTransforms', () => ({
   toPublicClient: (rpcUrl: string, chain: unknown) =>
     mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`),
   findChain: (chainId: number) => ({ _tracked: 'Chain', id: chainId }),
@@ -63,112 +63,112 @@ vi.mock('../viemTransforms', () => ({
 
 // Prevent runScript from firing when importing example scripts.
 // Examples call runScript at module level, which reads process.argv and exits.
-vi.mock('../scriptUtils', () => ({ runScript: () => {} }));
+vi.mock('./scriptUtils', () => ({ runScript: () => {} }));
 
 // Functions called inside schema transforms (not side effects, just
 // deterministic transforms that need to work during parse).
-vi.mock('../../createRollupPrepareDeploymentParamsConfig', () => ({
+vi.mock('../createRollupPrepareDeploymentParamsConfig', () => ({
   createRollupPrepareDeploymentParamsConfig: mocks.fnSync('createRollupPrepareDeploymentParamsConfig', {
     _mock: 'deploymentParamsConfig',
   }),
 }));
-vi.mock('../../prepareChainConfig', () => ({
+vi.mock('../prepareChainConfig', () => ({
   prepareChainConfig: mocks.fnSync('prepareChainConfig', { _mock: 'chainConfig' }),
 }));
 
 // SDK functions -- each records into mocks so assertSchemaCoverage can
 // detect whether field mutations change what they receive.
-vi.mock('../../getValidators', () => ({
+vi.mock('../getValidators', () => ({
   getValidators: mocks.fn('getValidators'),
 }));
-vi.mock('../../setValidKeysetPrepareTransactionRequest', () => ({
+vi.mock('../setValidKeysetPrepareTransactionRequest', () => ({
   setValidKeysetPrepareTransactionRequest: mocks.fn('setValidKeysetPrepareTransactionRequest'),
 }));
-vi.mock('../../getKeysets', () => ({ getKeysets: mocks.fn('getKeysets') }));
-vi.mock('../../getBatchPosters', () => ({ getBatchPosters: mocks.fn('getBatchPosters') }));
-vi.mock('../../isAnyTrust', () => ({ isAnyTrust: mocks.fn('isAnyTrust') }));
-vi.mock('../../prepareKeysetHash', () => ({ prepareKeysetHash: mocks.fn('prepareKeysetHash') }));
-vi.mock('../../prepareKeyset', () => ({ prepareKeyset: mocks.fn('prepareKeyset') }));
-vi.mock('../../setAnyTrustFastConfirmerPrepareTransactionRequest', () => ({
+vi.mock('../getKeysets', () => ({ getKeysets: mocks.fn('getKeysets') }));
+vi.mock('../getBatchPosters', () => ({ getBatchPosters: mocks.fn('getBatchPosters') }));
+vi.mock('../isAnyTrust', () => ({ isAnyTrust: mocks.fn('isAnyTrust') }));
+vi.mock('../prepareKeysetHash', () => ({ prepareKeysetHash: mocks.fn('prepareKeysetHash') }));
+vi.mock('../prepareKeyset', () => ({ prepareKeyset: mocks.fn('prepareKeyset') }));
+vi.mock('../setAnyTrustFastConfirmerPrepareTransactionRequest', () => ({
   setAnyTrustFastConfirmerPrepareTransactionRequest: mocks.fn('setAnyTrustFastConfirmer'),
 }));
-vi.mock('../../createRollupFetchCoreContracts', () => ({
+vi.mock('../createRollupFetchCoreContracts', () => ({
   createRollupFetchCoreContracts: mocks.fn('createRollupFetchCoreContracts'),
 }));
-vi.mock('../../createRollupFetchTransactionHash', () => ({
+vi.mock('../createRollupFetchTransactionHash', () => ({
   createRollupFetchTransactionHash: mocks.fn('createRollupFetchTransactionHash'),
 }));
-vi.mock('../../utils/erc20', () => ({
+vi.mock('../utils/erc20', () => ({
   fetchAllowance: mocks.fn('fetchAllowance'),
   fetchDecimals: mocks.fn('fetchDecimals'),
 }));
-vi.mock('../../upgradeExecutorFetchPrivilegedAccounts', () => ({
+vi.mock('../upgradeExecutorFetchPrivilegedAccounts', () => ({
   upgradeExecutorFetchPrivilegedAccounts: mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
 }));
-vi.mock('../../getBridgeUiConfig', () => ({
+vi.mock('../getBridgeUiConfig', () => ({
   getBridgeUiConfig: mocks.fn('getBridgeUiConfig'),
 }));
-vi.mock('../../isTokenBridgeDeployed', () => ({
+vi.mock('../isTokenBridgeDeployed', () => ({
   isTokenBridgeDeployed: mocks.fn('isTokenBridgeDeployed'),
 }));
-vi.mock('../../createRollupGetRetryablesFees', () => ({
+vi.mock('../createRollupGetRetryablesFees', () => ({
   createRollupGetRetryablesFees: mocks.fn('createRollupGetRetryablesFees'),
 }));
-vi.mock('../../createSafePrepareTransactionRequest', () => ({
+vi.mock('../createSafePrepareTransactionRequest', () => ({
   createSafePrepareTransactionRequest: mocks.fn('createSafePrepareTransactionRequest'),
 }));
-vi.mock('../../createRollupEnoughCustomFeeTokenAllowance', () => ({
+vi.mock('../createRollupEnoughCustomFeeTokenAllowance', () => ({
   createRollupEnoughCustomFeeTokenAllowance: mocks.fn('createRollupEnoughCustomFeeTokenAllowance'),
 }));
-vi.mock('../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest', () => ({
+vi.mock('../createRollupPrepareCustomFeeTokenApprovalTransactionRequest', () => ({
   createRollupPrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createRollupPrepareCustomFeeTokenApproval'),
 }));
-vi.mock('../../createTokenBridgeEnoughCustomFeeTokenAllowance', () => ({
+vi.mock('../createTokenBridgeEnoughCustomFeeTokenAllowance', () => ({
   createTokenBridgeEnoughCustomFeeTokenAllowance: mocks.fn('createTokenBridgeEnoughCustomFeeTokenAllowance'),
 }));
-vi.mock('../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', () => ({
+vi.mock('../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', () => ({
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createTokenBridgePrepareCustomFeeTokenApproval'),
 }));
-vi.mock('../../createRollupPrepareTransactionRequest', () => ({
+vi.mock('../createRollupPrepareTransactionRequest', () => ({
   createRollupPrepareTransactionRequest: mocks.fn('createRollupPrepareTransactionRequest'),
 }));
-vi.mock('../../createTokenBridge', () => ({
+vi.mock('../createTokenBridge', () => ({
   createTokenBridge: mocks.fn('createTokenBridge'),
 }));
-vi.mock('../../createTokenBridgePrepareTransactionRequest', () => ({
+vi.mock('../createTokenBridgePrepareTransactionRequest', () => ({
   createTokenBridgePrepareTransactionRequest: mocks.fn('createTokenBridgePrepareTransactionRequest'),
 }));
-vi.mock('../../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
+vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
   createTokenBridgePrepareSetWethGatewayTransactionRequest: mocks.fn('createTokenBridgePrepareSetWethGateway'),
 }));
-vi.mock('../../feeRouterDeployRewardDistributor', () => ({
+vi.mock('../feeRouterDeployRewardDistributor', () => ({
   feeRouterDeployRewardDistributor: mocks.fn('feeRouterDeployRewardDistributor'),
 }));
-vi.mock('../../feeRouterDeployChildToParentRewardRouter', () => ({
+vi.mock('../feeRouterDeployChildToParentRewardRouter', () => ({
   feeRouterDeployChildToParentRewardRouter: mocks.fn('feeRouterDeployChildToParentRewardRouter'),
 }));
-vi.mock('../../prepareNodeConfig', () => ({
+vi.mock('../prepareNodeConfig', () => ({
   prepareNodeConfig: mocks.fn('prepareNodeConfig'),
 }));
-vi.mock('../../getDefaultConfirmPeriodBlocks', () => ({
+vi.mock('../getDefaultConfirmPeriodBlocks', () => ({
   getDefaultConfirmPeriodBlocks: mocks.fn('getDefaultConfirmPeriodBlocks'),
 }));
-vi.mock('../../createRollup', () => ({
+vi.mock('../createRollup', () => ({
   createRollup: mocks.fn('createRollup', { coreContracts: {} }),
 }));
-vi.mock('../../setValidKeyset', () => ({
+vi.mock('../setValidKeyset', () => ({
   setValidKeyset: mocks.fn('setValidKeyset'),
 }));
-vi.mock('../../utils/generateChainId', () => ({
+vi.mock('../utils/generateChainId', () => ({
   generateChainId: () => 999999,
 }));
-vi.mock('../../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
+vi.mock('../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
   upgradeExecutorPrepareAddExecutorTransactionRequest: mocks.fn('addExecutor'),
 }));
-vi.mock('../../upgradeExecutorPrepareRemoveExecutorTransactionRequest', () => ({
+vi.mock('../upgradeExecutorPrepareRemoveExecutorTransactionRequest', () => ({
   upgradeExecutorPrepareRemoveExecutorTransactionRequest: mocks.fn('removeExecutor'),
 }));
-vi.mock('../../upgradeExecutorEncodeFunctionData', () => ({
+vi.mock('../upgradeExecutorEncodeFunctionData', () => ({
   UPGRADE_EXECUTOR_ROLE_EXECUTOR: '0x' + 'ab'.repeat(32),
   upgradeExecutorEncodeFunctionData: mocks.fnSync('upgradeExecutorEncodeFunctionData'),
 }));
@@ -184,59 +184,59 @@ vi.mock('viem', async (importOriginal) => {
   };
 });
 
-import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
-import { getValidators } from '../../getValidators';
-import { getKeysetsSchema, getKeysetsTransform } from './getKeysets';
-import { getKeysets } from '../../getKeysets';
-import { getBatchPostersSchema, getBatchPostersTransform } from './getBatchPosters';
-import { getBatchPosters } from '../../getBatchPosters';
-import { isAnyTrustSchema, isAnyTrustTransform } from './isAnyTrust';
-import { isAnyTrust } from '../../isAnyTrust';
-import { prepareKeysetHashSchema, prepareKeysetHashTransform } from './prepareKeysetHash';
-import { prepareKeysetHash } from '../../prepareKeysetHash';
-import { prepareKeysetSchema, prepareKeysetTransform } from './prepareKeyset';
-import { prepareKeyset } from '../../prepareKeyset';
-import { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './prepareChainConfig';
-import { prepareChainConfig } from '../../prepareChainConfig';
-import { setAnyTrustFastConfirmerSchema, setAnyTrustFastConfirmerTransform } from './setAnyTrustFastConfirmer';
-import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
+import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
+import { getValidators } from '../getValidators';
+import { getKeysetsSchema, getKeysetsTransform } from './schemas/getKeysets';
+import { getKeysets } from '../getKeysets';
+import { getBatchPostersSchema, getBatchPostersTransform } from './schemas/getBatchPosters';
+import { getBatchPosters } from '../getBatchPosters';
+import { isAnyTrustSchema, isAnyTrustTransform } from './schemas/isAnyTrust';
+import { isAnyTrust } from '../isAnyTrust';
+import { prepareKeysetHashSchema, prepareKeysetHashTransform } from './schemas/prepareKeysetHash';
+import { prepareKeysetHash } from '../prepareKeysetHash';
+import { prepareKeysetSchema, prepareKeysetTransform } from './schemas/prepareKeyset';
+import { prepareKeyset } from '../prepareKeyset';
+import { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './schemas/prepareChainConfig';
+import { prepareChainConfig } from '../prepareChainConfig';
+import { setAnyTrustFastConfirmerSchema, setAnyTrustFastConfirmerTransform } from './schemas/setAnyTrustFastConfirmer';
+import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../setAnyTrustFastConfirmerPrepareTransactionRequest';
 import {
   upgradeExecutorPrepareTransactionRequestSchema,
   upgradeExecutorPrepareTransactionRequestTransform,
-} from './upgradeExecutor';
-import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
-import { setValidKeysetSchema, setValidKeysetTransform } from './setValidKeyset';
-import { setValidKeyset } from '../../setValidKeyset';
+} from './schemas/upgradeExecutor';
+import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../upgradeExecutorPrepareAddExecutorTransactionRequest';
+import { setValidKeysetSchema, setValidKeysetTransform } from './schemas/setValidKeyset';
+import { setValidKeyset } from '../setValidKeyset';
 import {
   setValidKeysetPrepareTransactionRequestSchema,
   setValidKeysetPrepareTransactionRequestTransform,
-} from './setValidKeysetPrepareTransactionRequest';
-import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
+} from './schemas/setValidKeysetPrepareTransactionRequest';
+import { setValidKeysetPrepareTransactionRequest } from '../setValidKeysetPrepareTransactionRequest';
 import {
   createRollupFetchCoreContractsSchema,
   createRollupFetchCoreContractsTransform,
-} from './createRollupFetchCoreContracts';
-import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContracts';
+} from './schemas/createRollupFetchCoreContracts';
+import { createRollupFetchCoreContracts } from '../createRollupFetchCoreContracts';
 import {
   createRollupFetchTransactionHashSchema,
   createRollupFetchTransactionHashTransform,
-} from './createRollupFetchTransactionHash';
-import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
-import { fetchAllowanceSchema, fetchAllowanceTransform, fetchDecimalsSchema, fetchDecimalsTransform } from './erc20';
-import { fetchAllowance, fetchDecimals } from '../../utils/erc20';
+} from './schemas/createRollupFetchTransactionHash';
+import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
+import { fetchAllowanceSchema, fetchAllowanceTransform, fetchDecimalsSchema, fetchDecimalsTransform } from './schemas/erc20';
+import { fetchAllowance, fetchDecimals } from '../utils/erc20';
 import {
   upgradeExecutorFetchPrivilegedAccountsSchema,
   upgradeExecutorFetchPrivilegedAccountsTransform,
-} from './upgradeExecutor';
-import { upgradeExecutorFetchPrivilegedAccounts } from '../../upgradeExecutorFetchPrivilegedAccounts';
-import { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './getBridgeUiConfig';
-import { getBridgeUiConfig } from '../../getBridgeUiConfig';
-import { isTokenBridgeDeployedSchema, isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
-import { isTokenBridgeDeployed } from '../../isTokenBridgeDeployed';
-import { createRollupGetRetryablesFeesSchema, createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
-import { createRollupGetRetryablesFees } from '../../createRollupGetRetryablesFees';
-import { createSafePrepareTransactionRequestSchema, createSafePrepareTransactionRequestTransform } from './createSafePrepareTransactionRequest';
-import { createSafePrepareTransactionRequest } from '../../createSafePrepareTransactionRequest';
+} from './schemas/upgradeExecutor';
+import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
+import { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './schemas/getBridgeUiConfig';
+import { getBridgeUiConfig } from '../getBridgeUiConfig';
+import { isTokenBridgeDeployedSchema, isTokenBridgeDeployedTransform } from './schemas/isTokenBridgeDeployed';
+import { isTokenBridgeDeployed } from '../isTokenBridgeDeployed';
+import { createRollupGetRetryablesFeesSchema, createRollupGetRetryablesFeesTransform } from './schemas/createRollupGetRetryablesFees';
+import { createRollupGetRetryablesFees } from '../createRollupGetRetryablesFees';
+import { createSafePrepareTransactionRequestSchema, createSafePrepareTransactionRequestTransform } from './schemas/createSafePrepareTransactionRequest';
+import { createSafePrepareTransactionRequest } from '../createSafePrepareTransactionRequest';
 import {
   createRollupEnoughCustomFeeTokenAllowanceSchema,
   createRollupEnoughCustomFeeTokenAllowanceTransform,
@@ -246,62 +246,62 @@ import {
   createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
-} from './customFeeToken';
-import { createRollupEnoughCustomFeeTokenAllowance } from '../../createRollupEnoughCustomFeeTokenAllowance';
-import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
-import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
-import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
+} from './schemas/customFeeToken';
+import { createRollupEnoughCustomFeeTokenAllowance } from '../createRollupEnoughCustomFeeTokenAllowance';
+import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
+import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../createTokenBridgeEnoughCustomFeeTokenAllowance';
+import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import {
   createRollupPrepareTransactionRequestDefaultSchema,
   createRollupPrepareTransactionRequestTransform,
-} from './createRollupPrepareTransactionRequest';
-import { createRollupPrepareTransactionRequest } from '../../createRollupPrepareTransactionRequest';
-import { createRollupSchema, createRollupTransform } from './createRollup';
-import { createRollup as createRollupFn } from '../../createRollup';
-import { createTokenBridgeSchema, createTokenBridgeTransform } from './createTokenBridge';
-import { createTokenBridge } from '../../createTokenBridge';
+} from './schemas/createRollupPrepareTransactionRequest';
+import { createRollupPrepareTransactionRequest } from '../createRollupPrepareTransactionRequest';
+import { createRollupSchema, createRollupTransform } from './schemas/createRollup';
+import { createRollup as createRollupFn } from '../createRollup';
+import { createTokenBridgeSchema, createTokenBridgeTransform } from './schemas/createTokenBridge';
+import { createTokenBridge } from '../createTokenBridge';
 import {
   createTokenBridgePrepareTransactionRequestSchema,
   createTokenBridgePrepareTransactionRequestTransform,
-} from './createTokenBridgePrepareTransactionRequest';
-import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
+} from './schemas/createTokenBridgePrepareTransactionRequest';
+import { createTokenBridgePrepareTransactionRequest } from '../createTokenBridgePrepareTransactionRequest';
 import {
   createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
   createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
-} from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
-import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
+} from './schemas/createTokenBridgePrepareSetWethGatewayTransactionRequest';
+import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
   prepareDeploymentParamsConfigV21Schema,
   prepareDeploymentParamsConfigV21Transform,
   prepareDeploymentParamsConfigV32Schema,
   prepareDeploymentParamsConfigV32Transform,
-} from './createRollupPrepareDeploymentParamsConfig';
-import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
+} from './schemas/createRollupPrepareDeploymentParamsConfig';
+import { createRollupPrepareDeploymentParamsConfig } from '../createRollupPrepareDeploymentParamsConfig';
 import {
   feeRouterDeployRewardDistributorSchema,
   feeRouterDeployRewardDistributorTransform,
   feeRouterDeployChildToParentRewardRouterSchema,
   feeRouterDeployChildToParentRewardRouterTransform,
-} from './feeRouter';
-import { feeRouterDeployRewardDistributor } from '../../feeRouterDeployRewardDistributor';
-import { feeRouterDeployChildToParentRewardRouter } from '../../feeRouterDeployChildToParentRewardRouter';
-import { prepareNodeConfigSchema, prepareNodeConfigTransform } from './prepareNodeConfig';
-import { prepareNodeConfig } from '../../prepareNodeConfig';
-import { getDefaultsSchema, getDefaultsTransform } from './getDefaults';
-import { getDefaultConfirmPeriodBlocks } from '../../getDefaultConfirmPeriodBlocks';
+} from './schemas/feeRouter';
+import { feeRouterDeployRewardDistributor } from '../feeRouterDeployRewardDistributor';
+import { feeRouterDeployChildToParentRewardRouter } from '../feeRouterDeployChildToParentRewardRouter';
+import { prepareNodeConfigSchema, prepareNodeConfigTransform } from './schemas/prepareNodeConfig';
+import { prepareNodeConfig } from '../prepareNodeConfig';
+import { getDefaultsSchema, getDefaultsTransform } from './schemas/getDefaults';
+import { getDefaultConfirmPeriodBlocks } from '../getDefaultConfirmPeriodBlocks';
 import { assertSchemaCoverage } from './schemaCoverage';
 import {
   schema as createRollupExampleSchema,
   execute as createRollupExecute,
-} from '../examples/createRollup';
+} from './examples/createRollup';
 import {
   schema as deployNewChainSchema,
   execute as deployNewChainExecute,
-} from '../examples/deployNewChain';
+} from './examples/deployNewChain';
 import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
-} from '../examples/transferOwnership';
+} from './examples/transferOwnership';
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
