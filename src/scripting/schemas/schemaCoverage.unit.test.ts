@@ -171,9 +171,9 @@ describe('schema coverage', () => {
           config: {
             ...base.params.config,
             chainConfig: {
-              ...base.params.config.chainConfig,
+              chainId: 99999,
               arbitrum: {
-                ...base.params.config.chainConfig?.arbitrum,
+                InitialChainOwner: '0x' + '1'.repeat(40),
                 DataAvailabilityCommittee: true,
               },
             },
