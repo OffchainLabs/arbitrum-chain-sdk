@@ -74,7 +74,7 @@ vi.mock('../../createRollupPrepareDeploymentParamsConfig', () => ({
   }),
 }));
 vi.mock('../../prepareChainConfig', () => ({
-  prepareChainConfig: (params: unknown) => ({ _mock: 'chainConfig', params }),
+  prepareChainConfig: mocks.fnSync('prepareChainConfig', { _mock: 'chainConfig' }),
 }));
 
 // SDK functions -- each records into mocks so assertSchemaCoverage can
@@ -84,6 +84,20 @@ vi.mock('../../getValidators', () => ({
 }));
 vi.mock('../../setValidKeysetPrepareTransactionRequest', () => ({
   setValidKeysetPrepareTransactionRequest: mocks.fn('setValidKeysetPrepareTransactionRequest'),
+}));
+vi.mock('../../getKeysets', () => ({ getKeysets: mocks.fn('getKeysets') }));
+vi.mock('../../getBatchPosters', () => ({ getBatchPosters: mocks.fn('getBatchPosters') }));
+vi.mock('../../isAnyTrust', () => ({ isAnyTrust: mocks.fn('isAnyTrust') }));
+vi.mock('../../prepareKeysetHash', () => ({ prepareKeysetHash: mocks.fn('prepareKeysetHash') }));
+vi.mock('../../prepareKeyset', () => ({ prepareKeyset: mocks.fn('prepareKeyset') }));
+vi.mock('../../setAnyTrustFastConfirmerPrepareTransactionRequest', () => ({
+  setAnyTrustFastConfirmerPrepareTransactionRequest: mocks.fn('setAnyTrustFastConfirmer'),
+}));
+vi.mock('../../createRollupFetchCoreContracts', () => ({
+  createRollupFetchCoreContracts: mocks.fn('createRollupFetchCoreContracts'),
+}));
+vi.mock('../../createRollupFetchTransactionHash', () => ({
+  createRollupFetchTransactionHash: mocks.fn('createRollupFetchTransactionHash'),
 }));
 vi.mock('../../createRollup', () => ({
   createRollup: mocks.fn('createRollup', { coreContracts: {} }),
@@ -118,11 +132,42 @@ vi.mock('viem', async (importOriginal) => {
 
 import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
 import { getValidators } from '../../getValidators';
+import { getKeysetsSchema, getKeysetsTransform } from './getKeysets';
+import { getKeysets } from '../../getKeysets';
+import { getBatchPostersSchema, getBatchPostersTransform } from './getBatchPosters';
+import { getBatchPosters } from '../../getBatchPosters';
+import { isAnyTrustSchema, isAnyTrustTransform } from './isAnyTrust';
+import { isAnyTrust } from '../../isAnyTrust';
+import { prepareKeysetHashSchema, prepareKeysetHashTransform } from './prepareKeysetHash';
+import { prepareKeysetHash } from '../../prepareKeysetHash';
+import { prepareKeysetSchema, prepareKeysetTransform } from './prepareKeyset';
+import { prepareKeyset } from '../../prepareKeyset';
+import { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './prepareChainConfig';
+import { prepareChainConfig } from '../../prepareChainConfig';
+import { setAnyTrustFastConfirmerSchema, setAnyTrustFastConfirmerTransform } from './setAnyTrustFastConfirmer';
+import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
+import {
+  upgradeExecutorPrepareTransactionRequestSchema,
+  upgradeExecutorPrepareTransactionRequestTransform,
+} from './upgradeExecutor';
+import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
+import { setValidKeysetSchema, setValidKeysetTransform } from './setValidKeyset';
+import { setValidKeyset } from '../../setValidKeyset';
 import {
   setValidKeysetPrepareTransactionRequestSchema,
   setValidKeysetPrepareTransactionRequestTransform,
 } from './setValidKeysetPrepareTransactionRequest';
 import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
+import {
+  createRollupFetchCoreContractsSchema,
+  createRollupFetchCoreContractsTransform,
+} from './createRollupFetchCoreContracts';
+import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContracts';
+import {
+  createRollupFetchTransactionHashSchema,
+  createRollupFetchTransactionHashTransform,
+} from './createRollupFetchTransactionHash';
+import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
 import { assertSchemaCoverage } from './schemaCoverage';
 import {
   schema as createRollupExampleSchema,
@@ -152,6 +197,96 @@ describe('schema coverage', () => {
         setValidKeysetPrepareTransactionRequestTransform,
       ),
       setValidKeysetPrepareTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('getKeysets', async () => {
+    await assertSchemaCoverage(
+      getKeysetsSchema.transform(getKeysetsTransform),
+      getKeysets,
+      mocks,
+    );
+  });
+
+  it('getBatchPosters', async () => {
+    await assertSchemaCoverage(
+      getBatchPostersSchema.transform(getBatchPostersTransform),
+      getBatchPosters,
+      mocks,
+    );
+  });
+
+  it('isAnyTrust', async () => {
+    await assertSchemaCoverage(
+      isAnyTrustSchema.transform(isAnyTrustTransform),
+      isAnyTrust,
+      mocks,
+    );
+  });
+
+  it('prepareKeysetHash', async () => {
+    await assertSchemaCoverage(
+      prepareKeysetHashSchema.transform(prepareKeysetHashTransform),
+      prepareKeysetHash,
+      mocks,
+    );
+  });
+
+  it('prepareKeyset', async () => {
+    await assertSchemaCoverage(
+      prepareKeysetSchema.transform(prepareKeysetTransform),
+      prepareKeyset,
+      mocks,
+    );
+  });
+
+  it('prepareChainConfig', async () => {
+    await assertSchemaCoverage(
+      prepareChainConfigParamsSchema.transform(prepareChainConfigTransform),
+      prepareChainConfig,
+      mocks,
+    );
+  });
+
+  it('setAnyTrustFastConfirmer', async () => {
+    await assertSchemaCoverage(
+      setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform),
+      setAnyTrustFastConfirmerPrepareTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('upgradeExecutorPrepareTransactionRequest', async () => {
+    await assertSchemaCoverage(
+      upgradeExecutorPrepareTransactionRequestSchema.transform(
+        upgradeExecutorPrepareTransactionRequestTransform,
+      ),
+      upgradeExecutorPrepareAddExecutorTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('setValidKeyset', async () => {
+    await assertSchemaCoverage(
+      setValidKeysetSchema.transform(setValidKeysetTransform),
+      setValidKeyset,
+      mocks,
+    );
+  });
+
+  it('createRollupFetchCoreContracts', async () => {
+    await assertSchemaCoverage(
+      createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsTransform),
+      createRollupFetchCoreContracts,
+      mocks,
+    );
+  });
+
+  it('createRollupFetchTransactionHash', async () => {
+    await assertSchemaCoverage(
+      createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
+      createRollupFetchTransactionHash,
       mocks,
     );
   });
