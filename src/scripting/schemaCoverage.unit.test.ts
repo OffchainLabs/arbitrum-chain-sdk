@@ -1,11 +1,11 @@
 import { describe, it, vi } from 'vitest';
 
 // -- 1. Mock registry (vi.hoisted) ------------------------------------------
-// Defined first because vi.mock factories are hoisted above all imports and
-// need access to mocks.fn, mocks.fnSync, and mocks.trackedObject.
+// vi.mock factories are hoisted above all imports, so the registry must be
+// created via vi.hoisted to be available in factory functions.
+// createMockRegistry is inlined here rather than imported because vi.hoisted
+// cannot resolve .ts imports. The canonical implementation lives in testing.ts.
 const mocks = vi.hoisted(() => {
-  // Inline the registry here so it's available to vi.mock factories
-  // (vi.mock is hoisted above normal imports, so we can't import it)
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
   const BIGINT_METHODS = new Set(['getGasPrice', 'readContract', 'calculateRetryableSubmissionFee']);
   const HASH_METHODS = new Set(['sendRawTransaction', 'writeContract', 'signTransaction']);
