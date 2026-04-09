@@ -161,6 +161,7 @@ jobs:
     name: Test (Integration) - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
