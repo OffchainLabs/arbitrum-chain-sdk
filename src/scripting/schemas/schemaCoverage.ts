@@ -178,7 +178,7 @@ interface SideEffectTracker {
 
 export async function assertSchemaCoverage(
   schema: ZodType,
-  execute: (input: Record<string, unknown>) => unknown,
+  execute: (...args: any[]) => unknown,
   mocks: SideEffectTracker,
   overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
 ): Promise<void> {
@@ -211,11 +211,13 @@ export async function assertSchemaCoverage(
     mutatedFixture = setNestedField(mutatedFixture, leaf.path, valuesB.get(key));
 
     mocks.clear();
-    await execute(baseFixture);
+    const parsedBase = schema.parse(baseFixture) as any;
+    await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
     const snapshotBase = mocks.snapshot();
 
     mocks.clear();
-    await execute(mutatedFixture);
+    const parsedMutated = schema.parse(mutatedFixture) as any;
+    await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
     const snapshotMutated = mocks.snapshot();
 
     if (snapshotBase === snapshotMutated) {

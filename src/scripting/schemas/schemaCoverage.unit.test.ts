@@ -129,47 +129,36 @@ import {
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
-    const schema = getValidatorsSchema.transform(getValidatorsTransform);
     await assertSchemaCoverage(
-      schema,
-      (input) => getValidators(...schema.parse(input)),
+      getValidatorsSchema.transform(getValidatorsTransform),
+      getValidators,
       mocks,
     );
   });
 
   it('setValidKeysetPrepareTransactionRequest', async () => {
-    const schema = setValidKeysetPrepareTransactionRequestSchema.transform(
-      setValidKeysetPrepareTransactionRequestTransform,
-    );
     await assertSchemaCoverage(
-      schema,
-      (input) => setValidKeysetPrepareTransactionRequest(...schema.parse(input)),
+      setValidKeysetPrepareTransactionRequestSchema.transform(
+        setValidKeysetPrepareTransactionRequestTransform,
+      ),
+      setValidKeysetPrepareTransactionRequest,
       mocks,
     );
   });
 
   it('createRollup example', async () => {
-    await assertSchemaCoverage(
-      createRollupExampleSchema,
-      (input) => createRollupExecute(createRollupExampleSchema.parse(input)),
-      mocks,
-    );
+    await assertSchemaCoverage(createRollupExampleSchema, createRollupExecute, mocks);
   });
 
   it('transferOwnership example', async () => {
-    await assertSchemaCoverage(
-      transferOwnershipSchema,
-      (input) => transferOwnershipExecute(transferOwnershipSchema.parse(input)),
-      mocks,
-      {
-        // nativeToken controls a conditional branch (ERC20 vs ETH). Both
-        // generated values are non-zero, so we need one run with zeroAddress
-        // to exercise the branch difference.
-        nativeToken: (base: Record<string, unknown>) => ({
-          ...base,
-          nativeToken: '0x0000000000000000000000000000000000000000',
-        }),
-      },
-    );
+    await assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute, mocks, {
+      // nativeToken controls a conditional branch (ERC20 vs ETH). Both
+      // generated values are non-zero, so we need one run with zeroAddress
+      // to exercise the branch difference.
+      nativeToken: (base: Record<string, unknown>) => ({
+        ...base,
+        nativeToken: '0x0000000000000000000000000000000000000000',
+      }),
+    });
   });
 });
