@@ -176,6 +176,7 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
  */
 export function assertSchemaCoverage(
   schema: ZodType,
+  sdkFunction: Function,
   overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
 ): void {
   const leaves = getSchemaLeaves(schema);

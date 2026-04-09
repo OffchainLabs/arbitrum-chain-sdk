@@ -13,10 +13,13 @@ vi.mock('../viemTransforms', () => ({
 }));
 
 import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
+import { getValidators } from '../../getValidators';
 import {
   setValidKeysetPrepareTransactionRequestSchema,
   setValidKeysetPrepareTransactionRequestTransform,
 } from './setValidKeysetPrepareTransactionRequest';
+import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
+import { createRollup } from '../../createRollup';
 import { assertSchemaCoverage } from './schemaCoverage';
 
 // Prevent runScript from firing when importing example scripts.
@@ -39,7 +42,10 @@ import { schema as createRollupExampleSchema } from '../examples/createRollup';
 
 describe('schema coverage', () => {
   it('getValidators', () => {
-    assertSchemaCoverage(getValidatorsSchema.transform(getValidatorsTransform));
+    assertSchemaCoverage(
+      getValidatorsSchema.transform(getValidatorsTransform),
+      getValidators,
+    );
   });
 
   it('setValidKeysetPrepareTransactionRequest', () => {
@@ -47,10 +53,11 @@ describe('schema coverage', () => {
       setValidKeysetPrepareTransactionRequestSchema.transform(
         setValidKeysetPrepareTransactionRequestTransform,
       ),
+      setValidKeysetPrepareTransactionRequest,
     );
   });
 
   it('createRollup example', () => {
-    assertSchemaCoverage(createRollupExampleSchema);
+    assertSchemaCoverage(createRollupExampleSchema, createRollup);
   });
 });
