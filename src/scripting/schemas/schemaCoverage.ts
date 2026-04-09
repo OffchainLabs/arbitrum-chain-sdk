@@ -21,6 +21,12 @@ function getBag(schema: ZodType): any {
   return (schema as any)._zod?.bag;
 }
 
+function stripOptional(schema: ZodType): ZodType {
+  const def = getDef(schema);
+  if (def?.type === 'optional' || def?.type === 'nullable') return def.innerType;
+  return schema;
+}
+
 export function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLeaf[] {
   const def = getDef(schema);
   if (!def) return [{ path, schema }];
@@ -35,17 +41,22 @@ export function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLea
     case 'never':
     case 'optional':
     case 'nullable':
-      // Can't mutate never; optional/nullable fields are tested via overrides
+      // Can't mutate these; optional/nullable tested via overrides
       return [];
+    case 'nonoptional':
+      return getSchemaLeaves(stripOptional(def.innerType), path);
     case 'default':
     case 'prefault':
-    case 'nonoptional':
     case 'readonly':
     case 'catch':
       return getSchemaLeaves(def.innerType, path);
     case 'pipe':
       // For pipes (string -> transform), walk the input side
       return getSchemaLeaves(def.in, path);
+    case 'union':
+      // Walk the first option -- callers should test each variant separately
+      // if variants have different fields
+      return getSchemaLeaves(def.options[0], path);
     default:
       return [{ path, schema }];
   }
@@ -69,6 +80,8 @@ function generateForType(schema: ZodType, n: number): unknown {
       return n + 1;
     case 'boolean':
       return n % 2 === 0;
+    case 'null':
+      return null;
     case 'bigint':
       return BigInt(n + 1);
     case 'literal':
@@ -86,14 +99,19 @@ function generateForType(schema: ZodType, n: number): unknown {
     case 'optional':
     case 'nullable':
       return undefined;
+    case 'nonoptional':
+      // .required() wraps optional -> nonoptional. Strip the inner optional
+      // to reach the actual value type.
+      return generateForType(stripOptional(def.innerType), n);
     case 'default':
     case 'prefault':
-    case 'nonoptional':
     case 'readonly':
     case 'catch':
       return generateForType(def.innerType, n);
     case 'pipe':
       return generateForType(def.in, n);
+    case 'union':
+      return generateForType(def.options[0], n);
     default:
       return `value_${n}`;
   }
@@ -198,7 +216,8 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
   for (const leaf of leaves) {
     const key = leaf.path.join('.');
-    if (getDefType(leaf.schema) === 'literal') continue;
+    const leafType = getDefType(leaf.schema);
+    if (leafType === 'literal' || leafType === 'null') continue;
 
     let baseFixture = buildFixture(leaves, valuesA) as z.input<T>;
     if (overrides?.[key]) {

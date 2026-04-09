@@ -68,9 +68,8 @@ vi.mock('../scriptUtils', () => ({ runScript: () => {} }));
 // Functions called inside schema transforms (not side effects, just
 // deterministic transforms that need to work during parse).
 vi.mock('../../createRollupPrepareDeploymentParamsConfig', () => ({
-  createRollupPrepareDeploymentParamsConfig: (_client: unknown, params: unknown) => ({
+  createRollupPrepareDeploymentParamsConfig: mocks.fnSync('createRollupPrepareDeploymentParamsConfig', {
     _mock: 'deploymentParamsConfig',
-    params,
   }),
 }));
 vi.mock('../../prepareChainConfig', () => ({
@@ -129,6 +128,30 @@ vi.mock('../../createTokenBridgeEnoughCustomFeeTokenAllowance', () => ({
 }));
 vi.mock('../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', () => ({
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createTokenBridgePrepareCustomFeeTokenApproval'),
+}));
+vi.mock('../../createRollupPrepareTransactionRequest', () => ({
+  createRollupPrepareTransactionRequest: mocks.fn('createRollupPrepareTransactionRequest'),
+}));
+vi.mock('../../createTokenBridge', () => ({
+  createTokenBridge: mocks.fn('createTokenBridge'),
+}));
+vi.mock('../../createTokenBridgePrepareTransactionRequest', () => ({
+  createTokenBridgePrepareTransactionRequest: mocks.fn('createTokenBridgePrepareTransactionRequest'),
+}));
+vi.mock('../../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
+  createTokenBridgePrepareSetWethGatewayTransactionRequest: mocks.fn('createTokenBridgePrepareSetWethGateway'),
+}));
+vi.mock('../../feeRouterDeployRewardDistributor', () => ({
+  feeRouterDeployRewardDistributor: mocks.fn('feeRouterDeployRewardDistributor'),
+}));
+vi.mock('../../feeRouterDeployChildToParentRewardRouter', () => ({
+  feeRouterDeployChildToParentRewardRouter: mocks.fn('feeRouterDeployChildToParentRewardRouter'),
+}));
+vi.mock('../../prepareNodeConfig', () => ({
+  prepareNodeConfig: mocks.fn('prepareNodeConfig'),
+}));
+vi.mock('../../getDefaultConfirmPeriodBlocks', () => ({
+  getDefaultConfirmPeriodBlocks: mocks.fn('getDefaultConfirmPeriodBlocks'),
 }));
 vi.mock('../../createRollup', () => ({
   createRollup: mocks.fn('createRollup', { coreContracts: {} }),
@@ -228,6 +251,44 @@ import { createRollupEnoughCustomFeeTokenAllowance } from '../../createRollupEno
 import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
+import {
+  createRollupPrepareTransactionRequestDefaultSchema,
+  createRollupPrepareTransactionRequestTransform,
+} from './createRollupPrepareTransactionRequest';
+import { createRollupPrepareTransactionRequest } from '../../createRollupPrepareTransactionRequest';
+import { createRollupSchema, createRollupTransform } from './createRollup';
+import { createRollup as createRollupFn } from '../../createRollup';
+import { createTokenBridgeSchema, createTokenBridgeTransform } from './createTokenBridge';
+import { createTokenBridge } from '../../createTokenBridge';
+import {
+  createTokenBridgePrepareTransactionRequestSchema,
+  createTokenBridgePrepareTransactionRequestTransform,
+} from './createTokenBridgePrepareTransactionRequest';
+import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
+import {
+  createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
+  createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
+} from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
+import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
+import {
+  prepareDeploymentParamsConfigV21Schema,
+  prepareDeploymentParamsConfigV21Transform,
+  prepareDeploymentParamsConfigV32Schema,
+  prepareDeploymentParamsConfigV32Transform,
+} from './createRollupPrepareDeploymentParamsConfig';
+import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
+import {
+  feeRouterDeployRewardDistributorSchema,
+  feeRouterDeployRewardDistributorTransform,
+  feeRouterDeployChildToParentRewardRouterSchema,
+  feeRouterDeployChildToParentRewardRouterTransform,
+} from './feeRouter';
+import { feeRouterDeployRewardDistributor } from '../../feeRouterDeployRewardDistributor';
+import { feeRouterDeployChildToParentRewardRouter } from '../../feeRouterDeployChildToParentRewardRouter';
+import { prepareNodeConfigSchema, prepareNodeConfigTransform } from './prepareNodeConfig';
+import { prepareNodeConfig } from '../../prepareNodeConfig';
+import { getDefaultsSchema, getDefaultsTransform } from './getDefaults';
+import { getDefaultConfirmPeriodBlocks } from '../../getDefaultConfirmPeriodBlocks';
 import { assertSchemaCoverage } from './schemaCoverage';
 import {
   schema as createRollupExampleSchema,
@@ -447,6 +508,102 @@ describe('schema coverage', () => {
         createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
       ),
       createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('createRollupPrepareTransactionRequest (default)', async () => {
+    await assertSchemaCoverage(
+      createRollupPrepareTransactionRequestDefaultSchema.transform(
+        createRollupPrepareTransactionRequestTransform,
+      ),
+      createRollupPrepareTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('createRollup (default)', async () => {
+    await assertSchemaCoverage(
+      createRollupSchema.transform(createRollupTransform),
+      createRollupFn,
+      mocks,
+    );
+  });
+
+  it('createTokenBridge', async () => {
+    await assertSchemaCoverage(
+      createTokenBridgeSchema.transform(createTokenBridgeTransform),
+      createTokenBridge,
+      mocks,
+    );
+  });
+
+  it('createTokenBridgePrepareTransactionRequest', async () => {
+    await assertSchemaCoverage(
+      createTokenBridgePrepareTransactionRequestSchema.transform(
+        createTokenBridgePrepareTransactionRequestTransform,
+      ),
+      createTokenBridgePrepareTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('createTokenBridgePrepareSetWethGatewayTransactionRequest', async () => {
+    await assertSchemaCoverage(
+      createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(
+        createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
+      ),
+      createTokenBridgePrepareSetWethGatewayTransactionRequest,
+      mocks,
+    );
+  });
+
+  it('prepareDeploymentParamsConfigV21', async () => {
+    await assertSchemaCoverage(
+      prepareDeploymentParamsConfigV21Schema.transform(prepareDeploymentParamsConfigV21Transform),
+      createRollupPrepareDeploymentParamsConfig,
+      mocks,
+    );
+  });
+
+  it('prepareDeploymentParamsConfigV32', async () => {
+    await assertSchemaCoverage(
+      prepareDeploymentParamsConfigV32Schema.transform(prepareDeploymentParamsConfigV32Transform),
+      createRollupPrepareDeploymentParamsConfig,
+      mocks,
+    );
+  });
+
+  it('prepareNodeConfig', async () => {
+    await assertSchemaCoverage(
+      prepareNodeConfigSchema.transform(prepareNodeConfigTransform),
+      prepareNodeConfig,
+      mocks,
+    );
+  });
+
+  it('feeRouterDeployRewardDistributor', async () => {
+    await assertSchemaCoverage(
+      feeRouterDeployRewardDistributorSchema.transform(feeRouterDeployRewardDistributorTransform),
+      feeRouterDeployRewardDistributor,
+      mocks,
+    );
+  });
+
+  it('feeRouterDeployChildToParentRewardRouter', async () => {
+    await assertSchemaCoverage(
+      feeRouterDeployChildToParentRewardRouterSchema.transform(
+        feeRouterDeployChildToParentRewardRouterTransform,
+      ),
+      feeRouterDeployChildToParentRewardRouter,
+      mocks,
+    );
+  });
+
+  it('getDefaults (parentChainId variant)', async () => {
+    await assertSchemaCoverage(
+      getDefaultsSchema.transform(getDefaultsTransform),
+      getDefaultConfirmPeriodBlocks,
       mocks,
     );
   });
