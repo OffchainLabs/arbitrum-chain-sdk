@@ -19,7 +19,6 @@ import {
   setValidKeysetPrepareTransactionRequestTransform,
 } from './setValidKeysetPrepareTransactionRequest';
 import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
-import { createRollup } from '../../createRollup';
 import { assertSchemaCoverage } from './schemaCoverage';
 
 // Prevent runScript from firing when importing example scripts.
@@ -38,19 +37,28 @@ vi.mock('../../prepareChainConfig', () => ({
   prepareChainConfig: (params: unknown) => ({ _mock: 'chainConfig', params }),
 }));
 
-import { schema as createRollupExampleSchema } from '../examples/createRollup';
+// Mock SDK functions called by example scripts so execute can run
+vi.mock('../../createRollup', () => ({
+  createRollup: vi.fn().mockResolvedValue({ coreContracts: {} }),
+}));
+
+import { createRollup } from '../../createRollup';
+import {
+  schema as createRollupExampleSchema,
+  execute as createRollupExecute,
+} from '../examples/createRollup';
 import { schema as transferOwnershipSchema, execute as transferOwnershipExecute } from '../examples/transferOwnership';
 
 describe('schema coverage', () => {
-  it('getValidators', () => {
-    assertSchemaCoverage(
+  it('getValidators', async () => {
+    await assertSchemaCoverage(
       getValidatorsSchema.transform(getValidatorsTransform),
       getValidators,
     );
   });
 
-  it('setValidKeysetPrepareTransactionRequest', () => {
-    assertSchemaCoverage(
+  it('setValidKeysetPrepareTransactionRequest', async () => {
+    await assertSchemaCoverage(
       setValidKeysetPrepareTransactionRequestSchema.transform(
         setValidKeysetPrepareTransactionRequestTransform,
       ),
@@ -58,11 +66,11 @@ describe('schema coverage', () => {
     );
   });
 
-  it('createRollup example', () => {
-    assertSchemaCoverage(createRollupExampleSchema, createRollup);
+  it('createRollup example', async () => {
+    await assertSchemaCoverage(createRollupExampleSchema, createRollup, createRollupExecute);
   });
 
-  it('transferOwnership example', () => {
-    assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute);
+  it('transferOwnership example', async () => {
+    await assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute);
   });
 });

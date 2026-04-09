@@ -166,19 +166,30 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
   return fixture;
 }
 
+// Minimal mock interface -- matches vitest's Mock without importing vitest
+interface MockFn extends Function {
+  mockClear(): void;
+  mock: { calls: unknown[][] };
+}
+
 /**
- * Verifies that every field in a schema affects the parsed output. For each
- * leaf field, generates two inputs that differ only in that field and asserts
- * the schema's parse output (including any baked-in transform) changes.
+ * Verifies that every field in a schema affects observable side effects. For
+ * each leaf field, generates two inputs that differ only in that field and
+ * asserts the outcome changes.
  *
- * The schema should include its transform via `.transform()` so that
- * `schema.parse()` produces the final SDK-ready params.
+ * When `execute` is provided, the full pipeline is tested: schema.parse +
+ * execute, comparing what `sdkFunction` was called with. The sdkFunction must
+ * be a vi.fn() mock.
+ *
+ * When `execute` is omitted, only the schema's parse output (including any
+ * baked-in transform) is compared.
  */
-export function assertSchemaCoverage(
+export async function assertSchemaCoverage(
   schema: ZodType,
   sdkFunction: Function,
+  execute?: (parsed: any) => Promise<unknown>,
   overrides?: Record<string, (base: Record<string, unknown>) => Record<string, unknown>>,
-): void {
+): Promise<void> {
   const leaves = getSchemaLeaves(schema);
 
   // Generate two values for each leaf
@@ -201,8 +212,6 @@ export function assertSchemaCoverage(
 
     // Build base fixture (all fields use value A)
     let baseFixture = buildFixture(leaves, valuesA);
-
-    // Apply override if one exists
     if (overrides?.[key]) {
       baseFixture = overrides[key](baseFixture);
     }
@@ -211,17 +220,33 @@ export function assertSchemaCoverage(
     const mutatedValues = new Map(valuesA);
     mutatedValues.set(key, valuesB.get(key));
     let mutatedFixture = buildFixture(leaves, mutatedValues);
-
     if (overrides?.[key]) {
       mutatedFixture = overrides[key](mutatedFixture);
     }
 
-    // Parse both through the schema (including any baked-in transform)
-    const outputBase = schema.parse(baseFixture);
-    const outputMutated = schema.parse(mutatedFixture);
+    let isDead: boolean;
 
-    // Compare -- if identical, the field is dead
-    if (JSON.stringify(outputBase, replacer) === JSON.stringify(outputMutated, replacer)) {
+    if (execute) {
+      // Full pipeline: parse + execute, compare SDK function call args
+      const mock = sdkFunction as MockFn;
+
+      mock.mockClear();
+      await execute(schema.parse(baseFixture));
+      const callsBase = JSON.stringify(mock.mock.calls, replacer);
+
+      mock.mockClear();
+      await execute(schema.parse(mutatedFixture));
+      const callsMutated = JSON.stringify(mock.mock.calls, replacer);
+
+      isDead = callsBase === callsMutated;
+    } else {
+      // Transform-only: compare parse outputs
+      const outputBase = schema.parse(baseFixture);
+      const outputMutated = schema.parse(mutatedFixture);
+      isDead = JSON.stringify(outputBase, replacer) === JSON.stringify(outputMutated, replacer);
+    }
+
+    if (isDead) {
       deadFields.push(key);
     }
   }
