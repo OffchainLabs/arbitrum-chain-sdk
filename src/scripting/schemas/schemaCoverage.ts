@@ -1,4 +1,5 @@
 import { type ZodType } from 'zod';
+import { sideEffects } from './testTracker';
 
 type SchemaLeaf = { path: string[]; schema: ZodType };
 
@@ -166,12 +167,6 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
   return fixture;
 }
 
-// Minimal mock interface -- matches vitest's Mock without importing vitest
-interface MockFn extends Function {
-  mockClear(): void;
-  mock: { calls: unknown[][] };
-}
-
 /**
  * Verifies that every field in a schema affects observable side effects. For
  * each leaf field, generates two inputs that differ only in that field and
@@ -210,33 +205,32 @@ export async function assertSchemaCoverage(
     // Skip literals -- they can't be mutated
     if (getDefType(leaf.schema) === 'literal') continue;
 
-    // Build base fixture (all fields use value A)
+    // Build base fixture (all fields use value A, then apply override)
     let baseFixture = buildFixture(leaves, valuesA);
     if (overrides?.[key]) {
       baseFixture = overrides[key](baseFixture);
     }
 
-    // Build mutated fixture (field under test uses value B, everything else value A)
-    const mutatedValues = new Map(valuesA);
-    mutatedValues.set(key, valuesB.get(key));
-    let mutatedFixture = buildFixture(leaves, mutatedValues);
+    // Build mutated fixture: start from base (with override applied), then
+    // set the field under test to value B. The override sets up the right
+    // context; the mutation goes on top.
+    let mutatedFixture = buildFixture(leaves, valuesA);
     if (overrides?.[key]) {
       mutatedFixture = overrides[key](mutatedFixture);
     }
+    mutatedFixture = setNestedField(mutatedFixture, leaf.path, valuesB.get(key));
 
     let isDead: boolean;
 
     if (execute) {
-      // Full pipeline: parse + execute, compare SDK function call args
-      const mock = sdkFunction as MockFn;
-
-      mock.mockClear();
+      // Full pipeline: parse + execute, compare all side effects
+      sideEffects.length = 0;
       await execute(schema.parse(baseFixture));
-      const callsBase = JSON.stringify(mock.mock.calls, replacer);
+      const callsBase = JSON.stringify(sideEffects, replacer);
 
-      mock.mockClear();
+      sideEffects.length = 0;
       await execute(schema.parse(mutatedFixture));
-      const callsMutated = JSON.stringify(mock.mock.calls, replacer);
+      const callsMutated = JSON.stringify(sideEffects, replacer);
 
       isDead = callsBase === callsMutated;
     } else {
