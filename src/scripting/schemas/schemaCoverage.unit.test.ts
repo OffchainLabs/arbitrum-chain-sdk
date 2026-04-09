@@ -14,12 +14,23 @@ vi.mock('../viemTransforms', () => ({
 
 import { getValidatorsSchema, getValidatorsTransform } from './getValidators';
 import { getValidators } from '../../getValidators';
+import {
+  setValidKeysetPrepareTransactionRequestSchema,
+  setValidKeysetPrepareTransactionRequestTransform,
+} from './setValidKeysetPrepareTransactionRequest';
+import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
 import { assertSchemaCoverage } from './schemaCoverage';
 
 describe('schema coverage', () => {
-  describe('getValidators', () => {
-    it('all schema fields affect transform output', () => {
-      assertSchemaCoverage(getValidatorsSchema, getValidatorsTransform, getValidators);
-    });
+  it('getValidators', () => {
+    assertSchemaCoverage(getValidatorsSchema, getValidatorsTransform, getValidators);
+  });
+
+  it('setValidKeysetPrepareTransactionRequest', () => {
+    assertSchemaCoverage(
+      setValidKeysetPrepareTransactionRequestSchema,
+      setValidKeysetPrepareTransactionRequestTransform,
+      setValidKeysetPrepareTransactionRequest,
+    );
   });
 });
