@@ -2,6 +2,8 @@ import { runScript } from '../scriptUtils';
 import { getValidatorsSchema, getValidatorsTransform } from '../schemas';
 import { getValidators } from '../../getValidators';
 
-const schema = getValidatorsSchema.transform(getValidatorsTransform);
+export const schema = getValidatorsSchema.transform(getValidatorsTransform);
 
-runScript(schema, async (args) => getValidators(...args));
+export const execute = async (args: Parameters<typeof getValidators>) => getValidators(...args);
+
+runScript(schema, execute);

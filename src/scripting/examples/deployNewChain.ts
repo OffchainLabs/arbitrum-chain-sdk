@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { runScript } from '../scriptUtils';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
@@ -11,7 +12,7 @@ import { zeroAddress } from 'viem';
 import { setValidKeyset } from '../../setValidKeyset';
 import { generateChainId } from '../../utils/generateChainId';
 
-const schema = createRollupDefaultSchema
+export const schema = createRollupDefaultSchema
   .extend({
     params: createRollupDefaultSchema.shape.params.extend({
       config: paramsV3Dot2Schema.extend({
@@ -59,7 +60,7 @@ const schema = createRollupDefaultSchema
     };
   });
 
-runScript(schema, async (input) => {
+export const execute = async (input: z.output<typeof schema>) => {
   const { keyset, walletClient, ...createRollupArgs } = input;
   const result = await createRollup(createRollupArgs);
   const coreContracts = result.coreContracts;
@@ -74,4 +75,6 @@ runScript(schema, async (input) => {
   }
 
   return coreContracts;
-});
+};
+
+runScript(schema, execute);

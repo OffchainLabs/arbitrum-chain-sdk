@@ -164,7 +164,7 @@ async function sendL2Message(
   return txHash;
 }
 
-const schema = z
+export const schema = z
   .object({
     rpcUrl: z.url(),
     chainId: z.number(),
@@ -187,7 +187,7 @@ const schema = z
     newOwnerAddress,
   }));
 
-runScript(schema, async (input) => {
+export const execute = async (input: z.output<typeof schema>) => {
   const {
     publicClient,
     account,
@@ -277,4 +277,6 @@ runScript(schema, async (input) => {
     step5TxHash,
     step6TxHash,
   };
-});
+};
+
+runScript(schema, execute);
