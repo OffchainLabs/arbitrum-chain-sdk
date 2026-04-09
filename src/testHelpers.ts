@@ -90,7 +90,47 @@ type TestnodeInformation = {
   l3UpgradeExecutor: Address;
   l3Rollup: `0x${string}`;
   l3NativeToken: `0x${string}`;
+  l2RollupCreator: Address;
 };
+
+/**
+ * Discover the RollupCreator address by querying the parent chain for the
+ * RollupCreated event that deployed the given rollup. Falls back to zeroAddress.
+ */
+function discoverRollupCreatorAddress(
+  parentRpcUrl: string,
+  rollupAddress: Address,
+  deployedAtBlock: number,
+): Address {
+  try {
+    // v3.2: RollupCreated(address,address,address,address,address,address,address,address,address,address,address)
+    // v2.1: RollupCreated(address,address,address,address,address,address,address,address,address,address,address,address)
+    const topics = [
+      '0xd9bfd3bb3012f0caa103d1ba172692464d2de5c7b75877ce255c72147086a79d',
+      '0x481277de518d1f364b196166b90219b996fba76138a3dc84e7fe02540eb1cbdb',
+    ];
+    const rollupTopic = '0x000000000000000000000000' + rollupAddress.slice(2).toLowerCase();
+    const fromBlock = '0x' + Math.max(0, deployedAtBlock - 1).toString(16);
+    const toBlock = '0x' + (deployedAtBlock + 1).toString(16);
+    for (const eventTopic of topics) {
+      const body = JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'eth_getLogs',
+        params: [{ fromBlock, toBlock, topics: [eventTopic, rollupTopic] }],
+      });
+      const result = execSync(
+        `curl -sf -X POST -H "Content-Type: application/json" -d '${body}' "${parentRpcUrl}"`,
+        { timeout: 10000 },
+      ).toString();
+      const parsed = JSON.parse(result);
+      if (parsed.result?.length > 0) return parsed.result[0].address as Address;
+    }
+  } catch {
+    // empty on purpose
+  }
+  return zeroAddress;
+}
 
 function getInformationFromConfigDir(configDir: string): TestnodeInformation {
   const deploymentJson = JSON.parse(readFileSync(join(configDir, 'deployment.json'), 'utf-8'));
@@ -100,6 +140,20 @@ function getInformationFromConfigDir(configDir: string): TestnodeInformation {
 
   const batchPosterKey = sequencerConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
   const l3BatchPosterKey = l3NodeConfig.node['batch-poster']['parent-chain-wallet']['private-key'];
+
+  // Read rollup-creator from config if available, otherwise discover from the chain
+  let l2RollupCreator: Address = l3DeploymentJson['rollup-creator'] ?? zeroAddress;
+  if (
+    l2RollupCreator === zeroAddress &&
+    l3DeploymentJson['rollup'] &&
+    l3DeploymentJson['deployed-at'] != null
+  ) {
+    l2RollupCreator = discoverRollupCreatorAddress(
+      'http://127.0.0.1:8547',
+      l3DeploymentJson['rollup'],
+      l3DeploymentJson['deployed-at'],
+    );
+  }
 
   return {
     bridge: deploymentJson['bridge'],
@@ -112,6 +166,7 @@ function getInformationFromConfigDir(configDir: string): TestnodeInformation {
     l3NativeToken: l3DeploymentJson['native-token'],
     l3BatchPoster: privateKeyToAccount(`0x${l3BatchPosterKey}`).address,
     l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
+    l2RollupCreator,
   };
 }
 
@@ -157,6 +212,7 @@ export function getInformationFromTestnode(): TestnodeInformation {
         l3NativeToken: l3DeploymentJson['native-token'],
         l3BatchPoster: l3SequencerConfig.node['batch-poster']['parent-chain-wallet'].account,
         l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
+        l2RollupCreator: l3DeploymentJson['rollup-creator'] ?? zeroAddress,
       };
     } catch {
       // empty on purpose
@@ -175,6 +231,7 @@ export async function createRollupHelper<
   nativeToken = zeroAddress,
   client,
   rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv() as TRollupCreatorVersion,
+  rollupCreatorAddressOverride,
 }: {
   deployer: PrivateKeyAccountWithPrivateKey;
   batchPosters: Address[];
@@ -182,6 +239,7 @@ export async function createRollupHelper<
   nativeToken: Address;
   client: PublicClient;
   rollupCreatorVersion?: TRollupCreatorVersion;
+  rollupCreatorAddressOverride?: Address;
 }) {
   const chainId = generateChainId();
 
@@ -213,6 +271,7 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v2.1',
+          rollupCreatorAddressOverride,
         })
       : await createRollup({
           params: {
@@ -224,6 +283,7 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v3.2',
+          rollupCreatorAddressOverride,
         });
 
   // create test rollup with ETH as gas token
