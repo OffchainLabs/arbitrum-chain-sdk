@@ -33,10 +33,10 @@ export function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLea
       );
     }
     case 'never':
-      // Can't generate values for never -- skip entirely
-      return [];
     case 'optional':
     case 'nullable':
+      // Can't mutate never; optional/nullable fields are tested via overrides
+      return [];
     case 'default':
     case 'prefault':
     case 'nonoptional':
@@ -85,6 +85,7 @@ function generateForType(schema: ZodType, n: number): unknown {
       );
     case 'optional':
     case 'nullable':
+      return undefined;
     case 'default':
     case 'prefault':
     case 'nonoptional':

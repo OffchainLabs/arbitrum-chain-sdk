@@ -88,6 +88,12 @@ vi.mock('../../setValidKeysetPrepareTransactionRequest', () => ({
 vi.mock('../../createRollup', () => ({
   createRollup: mocks.fn('createRollup', { coreContracts: {} }),
 }));
+vi.mock('../../setValidKeyset', () => ({
+  setValidKeyset: mocks.fn('setValidKeyset'),
+}));
+vi.mock('../../utils/generateChainId', () => ({
+  generateChainId: () => 999999,
+}));
 vi.mock('../../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
   upgradeExecutorPrepareAddExecutorTransactionRequest: mocks.fn('addExecutor'),
 }));
@@ -123,6 +129,10 @@ import {
   execute as createRollupExecute,
 } from '../examples/createRollup';
 import {
+  schema as deployNewChainSchema,
+  execute as deployNewChainExecute,
+} from '../examples/deployNewChain';
+import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
 } from '../examples/transferOwnership';
@@ -148,6 +158,29 @@ describe('schema coverage', () => {
 
   it('createRollup example', async () => {
     await assertSchemaCoverage(createRollupExampleSchema, createRollupExecute, mocks);
+  });
+
+  it('deployNewChain example', async () => {
+    await assertSchemaCoverage(deployNewChainSchema, deployNewChainExecute, mocks, {
+      // keyset only matters when DataAvailabilityCommittee is true (enforced
+      // by superRefine). Override sets AnyTrust context so keyset is testable.
+      'params.keyset': (base) => ({
+        ...base,
+        params: {
+          ...base.params,
+          config: {
+            ...base.params.config,
+            chainConfig: {
+              ...base.params.config.chainConfig,
+              arbitrum: {
+                ...base.params.config.chainConfig?.arbitrum,
+                DataAvailabilityCommittee: true,
+              },
+            },
+          },
+        },
+      }),
+    });
   });
 
   it('transferOwnership example', async () => {
