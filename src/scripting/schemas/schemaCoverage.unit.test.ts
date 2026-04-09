@@ -39,6 +39,7 @@ vi.mock('../../prepareChainConfig', () => ({
 }));
 
 import { schema as createRollupExampleSchema } from '../examples/createRollup';
+import { schema as transferOwnershipSchema, execute as transferOwnershipExecute } from '../examples/transferOwnership';
 
 describe('schema coverage', () => {
   it('getValidators', () => {
@@ -59,5 +60,9 @@ describe('schema coverage', () => {
 
   it('createRollup example', () => {
     assertSchemaCoverage(createRollupExampleSchema, createRollup);
+  });
+
+  it('transferOwnership example', () => {
+    assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute);
   });
 });
