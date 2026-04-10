@@ -11,6 +11,7 @@ import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridge
 import {
   createTokenBridgeDefaultMaxGasPrice,
   createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
 } from './constants';
 import { calculateRetryableSubmissionFee } from './calculateRetryableSubmissionFee';
 
@@ -188,13 +189,15 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
         })
       : createTokenBridgeDefaultMaxGasPrice;
 
-  const maxSubmissionCost =
-    retryableGasOverrides && retryableGasOverrides.maxSubmissionCost
-      ? applyPercentIncrease({
-          base: retryableGasOverrides.maxSubmissionCost.base ?? maxSubmissionCostEstimate,
-          percentIncrease: retryableGasOverrides.maxSubmissionCost.percentIncrease,
-        })
-      : maxSubmissionCostEstimate;
+  const maxSubmissionCost = retryableGasOverrides?.maxSubmissionCost
+    ? applyPercentIncrease({
+        base: retryableGasOverrides.maxSubmissionCost.base ?? maxSubmissionCostEstimate,
+        percentIncrease: retryableGasOverrides.maxSubmissionCost.percentIncrease,
+      })
+    : applyPercentIncrease({
+        base: maxSubmissionCostEstimate,
+        percentIncrease: defaultSubmissionFeePercentIncrease,
+      });
 
   const deposit = gasLimit * maxFeePerGas + maxSubmissionCost;
 
@@ -216,7 +219,10 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
     to: rollupCoreContracts.upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
-      args: [tokenBridgeContracts.parentChainContracts.router, setGatewaysCalldata],
+      args: [
+        tokenBridgeContracts.parentChainContracts.router, // target
+        setGatewaysCalldata, // targetCallData
+      ],
     }),
     value: deposit,
     account,

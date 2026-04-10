@@ -181,6 +181,7 @@ import {
   createTokenBridgeDefaultMaxGasPrice,
   createTokenBridgeDefaultMaxGasForContracts,
   createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
 } from './constants';
 import { CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
@@ -354,6 +355,7 @@ export {
   createTokenBridgeDefaultMaxGasPrice,
   createTokenBridgeDefaultMaxGasForContracts,
   createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
   CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams,
   //
   fetchAllowance,

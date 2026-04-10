@@ -15,6 +15,9 @@ export const createTokenBridgeDefaultRetryablesFees = parseEther('0.02');
  */
 export const createTokenBridgeDefaultMaxGasPrice = parseGwei('0.2');
 
+// Matches DEFAULT_SUBMISSION_FEE_PERCENT_INCREASE in @arbitrum/sdk's ParentToChildMessageGasEstimator
+export const defaultSubmissionFeePercentIncrease = 300n;
+
 // ~30% headroom over observed gas usage for token bridge retryables
 export const createTokenBridgeDefaultMaxGasForContracts = 20_000_000n;
 export const createTokenBridgeDefaultGasLimitForWethGateway = 100_000n;

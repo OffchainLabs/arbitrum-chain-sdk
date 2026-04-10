@@ -15,6 +15,7 @@ import { getTokenBridgeCreatorAddress } from './utils/getTokenBridgeCreatorAddre
 import {
   createTokenBridgeDefaultMaxGasPrice,
   createTokenBridgeDefaultMaxGasForContracts,
+  defaultSubmissionFeePercentIncrease,
 } from './constants';
 import {
   getFactoryDeploymentDataSize,
@@ -74,7 +75,10 @@ export async function createTokenBridgePrepareTransactionRequest<
     args: [inbox],
   });
   if (router !== zeroAddress) {
-    throw new Error(`Token bridge contracts for Rollup ${params.rollup} are already deployed`);
+    throw new Error(
+      `Token bridge deployment for Rollup ${params.rollup} was already initiated on the parent chain. ` +
+        `If the bridge is not functional, the L2 retryable tickets may need to be manually redeemed.`,
+    );
   }
 
   const maxGasForFactoryEstimate = await parentChainPublicClient.readContract({
@@ -99,15 +103,16 @@ export async function createTokenBridgePrepareTransactionRequest<
   ]);
 
   //// apply gas overrides
-  const maxSubmissionCostForFactory =
-    retryableGasOverrides && retryableGasOverrides.maxSubmissionCostForFactory
-      ? applyPercentIncrease({
-          base:
-            retryableGasOverrides.maxSubmissionCostForFactory.base ??
-            submissionCostForFactoryEstimate,
-          percentIncrease: retryableGasOverrides.maxSubmissionCostForFactory.percentIncrease,
-        })
-      : submissionCostForFactoryEstimate;
+  const maxSubmissionCostForFactory = retryableGasOverrides?.maxSubmissionCostForFactory
+    ? applyPercentIncrease({
+        base:
+          retryableGasOverrides.maxSubmissionCostForFactory.base ?? submissionCostForFactoryEstimate,
+        percentIncrease: retryableGasOverrides.maxSubmissionCostForFactory.percentIncrease,
+      })
+    : applyPercentIncrease({
+        base: submissionCostForFactoryEstimate,
+        percentIncrease: defaultSubmissionFeePercentIncrease,
+      });
 
   const maxGasForFactory =
     retryableGasOverrides && retryableGasOverrides.maxGasForFactory
@@ -117,15 +122,17 @@ export async function createTokenBridgePrepareTransactionRequest<
         })
       : maxGasForFactoryEstimate;
 
-  const maxSubmissionCostForContracts =
-    retryableGasOverrides && retryableGasOverrides.maxSubmissionCostForContracts
-      ? applyPercentIncrease({
-          base:
-            retryableGasOverrides.maxSubmissionCostForContracts.base ??
-            submissionCostForContractsEstimate,
-          percentIncrease: retryableGasOverrides.maxSubmissionCostForContracts.percentIncrease,
-        })
-      : submissionCostForContractsEstimate;
+  const maxSubmissionCostForContracts = retryableGasOverrides?.maxSubmissionCostForContracts
+    ? applyPercentIncrease({
+        base:
+          retryableGasOverrides.maxSubmissionCostForContracts.base ??
+          submissionCostForContractsEstimate,
+        percentIncrease: retryableGasOverrides.maxSubmissionCostForContracts.percentIncrease,
+      })
+    : applyPercentIncrease({
+        base: submissionCostForContractsEstimate,
+        percentIncrease: defaultSubmissionFeePercentIncrease,
+      });
 
   const maxGasForContracts =
     retryableGasOverrides && retryableGasOverrides.maxGasForContracts
