@@ -13,9 +13,15 @@ import { prepareKeysetHashSchema, prepareKeysetHashTransform } from './schemas/p
 import { prepareKeysetHash } from '../prepareKeysetHash';
 import { prepareKeysetSchema, prepareKeysetTransform } from './schemas/prepareKeyset';
 import { prepareKeyset } from '../prepareKeyset';
-import { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './schemas/prepareChainConfig';
+import {
+  prepareChainConfigParamsSchema,
+  prepareChainConfigTransform,
+} from './schemas/prepareChainConfig';
 import { prepareChainConfig } from '../prepareChainConfig';
-import { setAnyTrustFastConfirmerSchema, setAnyTrustFastConfirmerTransform } from './schemas/setAnyTrustFastConfirmer';
+import {
+  setAnyTrustFastConfirmerSchema,
+  setAnyTrustFastConfirmerTransform,
+} from './schemas/setAnyTrustFastConfirmer';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../setAnyTrustFastConfirmerPrepareTransactionRequest';
 import {
   upgradeExecutorPrepareTransactionRequestSchema,
@@ -39,7 +45,12 @@ import {
   createRollupFetchTransactionHashTransform,
 } from './schemas/createRollupFetchTransactionHash';
 import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
-import { fetchAllowanceSchema, fetchAllowanceTransform, fetchDecimalsSchema, fetchDecimalsTransform } from './schemas/erc20';
+import {
+  fetchAllowanceSchema,
+  fetchAllowanceTransform,
+  fetchDecimalsSchema,
+  fetchDecimalsTransform,
+} from './schemas/erc20';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
 import {
   upgradeExecutorFetchPrivilegedAccountsSchema,
@@ -48,11 +59,20 @@ import {
 import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
 import { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './schemas/getBridgeUiConfig';
 import { getBridgeUiConfig } from '../getBridgeUiConfig';
-import { isTokenBridgeDeployedSchema, isTokenBridgeDeployedTransform } from './schemas/isTokenBridgeDeployed';
+import {
+  isTokenBridgeDeployedSchema,
+  isTokenBridgeDeployedTransform,
+} from './schemas/isTokenBridgeDeployed';
 import { isTokenBridgeDeployed } from '../isTokenBridgeDeployed';
-import { createRollupGetRetryablesFeesSchema, createRollupGetRetryablesFeesTransform } from './schemas/createRollupGetRetryablesFees';
+import {
+  createRollupGetRetryablesFeesSchema,
+  createRollupGetRetryablesFeesTransform,
+} from './schemas/createRollupGetRetryablesFees';
 import { createRollupGetRetryablesFees } from '../createRollupGetRetryablesFees';
-import { createSafePrepareTransactionRequestSchema, createSafePrepareTransactionRequestTransform } from './schemas/createSafePrepareTransactionRequest';
+import {
+  createSafePrepareTransactionRequestSchema,
+  createSafePrepareTransactionRequestTransform,
+} from './schemas/createSafePrepareTransactionRequest';
 import { createSafePrepareTransactionRequest } from '../createSafePrepareTransactionRequest';
 import {
   createRollupEnoughCustomFeeTokenAllowanceSchema,
@@ -128,13 +148,20 @@ import {
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
-    await assertSchemaCoverage(getValidatorsSchema.transform(getValidatorsTransform), getValidators, mocks);
+    await assertSchemaCoverage(
+      getValidatorsSchema.transform(getValidatorsTransform),
+      getValidators,
+      mocks,
+    );
   });
 
   it('setValidKeysetPrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      setValidKeysetPrepareTransactionRequestSchema.transform(setValidKeysetPrepareTransactionRequestTransform),
-      setValidKeysetPrepareTransactionRequest, mocks,
+      setValidKeysetPrepareTransactionRequestSchema.transform(
+        setValidKeysetPrepareTransactionRequestTransform,
+      ),
+      setValidKeysetPrepareTransactionRequest,
+      mocks,
     );
   });
 
@@ -143,7 +170,11 @@ describe('schema coverage', () => {
   });
 
   it('getBatchPosters', async () => {
-    await assertSchemaCoverage(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters, mocks);
+    await assertSchemaCoverage(
+      getBatchPostersSchema.transform(getBatchPostersTransform),
+      getBatchPosters,
+      mocks,
+    );
   });
 
   it('isAnyTrust', async () => {
@@ -151,92 +182,138 @@ describe('schema coverage', () => {
   });
 
   it('prepareKeysetHash', async () => {
-    await assertSchemaCoverage(prepareKeysetHashSchema.transform(prepareKeysetHashTransform), prepareKeysetHash, mocks);
+    await assertSchemaCoverage(
+      prepareKeysetHashSchema.transform(prepareKeysetHashTransform),
+      prepareKeysetHash,
+      mocks,
+    );
   });
 
   it('prepareKeyset', async () => {
-    await assertSchemaCoverage(prepareKeysetSchema.transform(prepareKeysetTransform), prepareKeyset, mocks);
+    await assertSchemaCoverage(
+      prepareKeysetSchema.transform(prepareKeysetTransform),
+      prepareKeyset,
+      mocks,
+    );
   });
 
   it('prepareChainConfig', async () => {
-    await assertSchemaCoverage(prepareChainConfigParamsSchema.transform(prepareChainConfigTransform), prepareChainConfig, mocks);
+    await assertSchemaCoverage(
+      prepareChainConfigParamsSchema.transform(prepareChainConfigTransform),
+      prepareChainConfig,
+      mocks,
+    );
   });
 
   it('setAnyTrustFastConfirmer', async () => {
     await assertSchemaCoverage(
       setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform),
-      setAnyTrustFastConfirmerPrepareTransactionRequest, mocks,
+      setAnyTrustFastConfirmerPrepareTransactionRequest,
+      mocks,
     );
   });
 
   it('upgradeExecutorPrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      upgradeExecutorPrepareTransactionRequestSchema.transform(upgradeExecutorPrepareTransactionRequestTransform),
-      upgradeExecutorPrepareAddExecutorTransactionRequest, mocks,
+      upgradeExecutorPrepareTransactionRequestSchema.transform(
+        upgradeExecutorPrepareTransactionRequestTransform,
+      ),
+      upgradeExecutorPrepareAddExecutorTransactionRequest,
+      mocks,
     );
   });
 
   it('setValidKeyset', async () => {
-    await assertSchemaCoverage(setValidKeysetSchema.transform(setValidKeysetTransform), setValidKeyset, mocks);
+    await assertSchemaCoverage(
+      setValidKeysetSchema.transform(setValidKeysetTransform),
+      setValidKeyset,
+      mocks,
+    );
   });
 
   it('createRollupFetchCoreContracts', async () => {
     await assertSchemaCoverage(
       createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsTransform),
-      createRollupFetchCoreContracts, mocks,
+      createRollupFetchCoreContracts,
+      mocks,
     );
   });
 
   it('createRollupFetchTransactionHash', async () => {
     await assertSchemaCoverage(
       createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
-      createRollupFetchTransactionHash, mocks,
+      createRollupFetchTransactionHash,
+      mocks,
     );
   });
 
   it('fetchDecimals', async () => {
-    await assertSchemaCoverage(fetchDecimalsSchema.transform(fetchDecimalsTransform), fetchDecimals, mocks);
+    await assertSchemaCoverage(
+      fetchDecimalsSchema.transform(fetchDecimalsTransform),
+      fetchDecimals,
+      mocks,
+    );
   });
 
   it('fetchAllowance', async () => {
-    await assertSchemaCoverage(fetchAllowanceSchema.transform(fetchAllowanceTransform), fetchAllowance, mocks);
+    await assertSchemaCoverage(
+      fetchAllowanceSchema.transform(fetchAllowanceTransform),
+      fetchAllowance,
+      mocks,
+    );
   });
 
   it('upgradeExecutorFetchPrivilegedAccounts', async () => {
     await assertSchemaCoverage(
-      upgradeExecutorFetchPrivilegedAccountsSchema.transform(upgradeExecutorFetchPrivilegedAccountsTransform),
-      upgradeExecutorFetchPrivilegedAccounts, mocks,
+      upgradeExecutorFetchPrivilegedAccountsSchema.transform(
+        upgradeExecutorFetchPrivilegedAccountsTransform,
+      ),
+      upgradeExecutorFetchPrivilegedAccounts,
+      mocks,
     );
   });
 
   it('getBridgeUiConfig', async () => {
-    await assertSchemaCoverage(getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform), getBridgeUiConfig, mocks);
+    await assertSchemaCoverage(
+      getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform),
+      getBridgeUiConfig,
+      mocks,
+    );
   });
 
   it('isTokenBridgeDeployed', async () => {
     await assertSchemaCoverage(
-      isTokenBridgeDeployedSchema.transform(isTokenBridgeDeployedTransform), isTokenBridgeDeployed, mocks,
+      isTokenBridgeDeployedSchema.transform(isTokenBridgeDeployedTransform),
+      isTokenBridgeDeployed,
+      mocks,
     );
   });
 
   it('createRollupGetRetryablesFees', async () => {
     await assertSchemaCoverage(
       createRollupGetRetryablesFeesSchema.transform(createRollupGetRetryablesFeesTransform),
-      createRollupGetRetryablesFees, mocks,
+      createRollupGetRetryablesFees,
+      mocks,
     );
   });
 
   it('createSafePrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      createSafePrepareTransactionRequestSchema.transform(createSafePrepareTransactionRequestTransform),
-      createSafePrepareTransactionRequest, mocks,
+      createSafePrepareTransactionRequestSchema.transform(
+        createSafePrepareTransactionRequestTransform,
+      ),
+      createSafePrepareTransactionRequest,
+      mocks,
     );
   });
 
   it('createRollupEnoughCustomFeeTokenAllowance', async () => {
     await assertSchemaCoverage(
-      createRollupEnoughCustomFeeTokenAllowanceSchema.transform(createRollupEnoughCustomFeeTokenAllowanceTransform),
-      createRollupEnoughCustomFeeTokenAllowance, mocks,
+      createRollupEnoughCustomFeeTokenAllowanceSchema.transform(
+        createRollupEnoughCustomFeeTokenAllowanceTransform,
+      ),
+      createRollupEnoughCustomFeeTokenAllowance,
+      mocks,
     );
   });
 
@@ -245,14 +322,18 @@ describe('schema coverage', () => {
       createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
         createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
       ),
-      createRollupPrepareCustomFeeTokenApprovalTransactionRequest, mocks,
+      createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
+      mocks,
     );
   });
 
   it('createTokenBridgeEnoughCustomFeeTokenAllowance', async () => {
     await assertSchemaCoverage(
-      createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(createTokenBridgeEnoughCustomFeeTokenAllowanceTransform),
-      createTokenBridgeEnoughCustomFeeTokenAllowance, mocks,
+      createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(
+        createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+      ),
+      createTokenBridgeEnoughCustomFeeTokenAllowance,
+      mocks,
     );
   });
 
@@ -261,51 +342,80 @@ describe('schema coverage', () => {
       createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
         createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
       ),
-      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest, mocks,
+      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
+      mocks,
     );
   });
 
   it('createRollupPrepareTransactionRequest (default)', async () => {
     await assertSchemaCoverage(
-      createRollupPrepareTransactionRequestDefaultSchema.transform(createRollupPrepareTransactionRequestTransform),
-      createRollupPrepareTransactionRequest, mocks,
+      createRollupPrepareTransactionRequestDefaultSchema.transform(
+        createRollupPrepareTransactionRequestTransform,
+      ),
+      createRollupPrepareTransactionRequest,
+      mocks,
     );
   });
 
   it('createRollupPrepareTransactionRequest (v2.1)', async () => {
     await assertSchemaCoverage(
-      createRollupPrepareTransactionRequestV21Schema.transform(createRollupPrepareTransactionRequestTransform),
-      createRollupPrepareTransactionRequest, mocks,
+      createRollupPrepareTransactionRequestV21Schema.transform(
+        createRollupPrepareTransactionRequestTransform,
+      ),
+      createRollupPrepareTransactionRequest,
+      mocks,
     );
   });
 
   it('createRollupPrepareTransactionRequest (v3.2)', async () => {
     await assertSchemaCoverage(
-      createRollupPrepareTransactionRequestV32Schema.transform(createRollupPrepareTransactionRequestTransform),
-      createRollupPrepareTransactionRequest, mocks,
+      createRollupPrepareTransactionRequestV32Schema.transform(
+        createRollupPrepareTransactionRequestTransform,
+      ),
+      createRollupPrepareTransactionRequest,
+      mocks,
     );
   });
 
   it('createRollup (default)', async () => {
-    await assertSchemaCoverage(createRollupDefaultSchema.transform(createRollupTransform), createRollupFn, mocks);
+    await assertSchemaCoverage(
+      createRollupDefaultSchema.transform(createRollupTransform),
+      createRollupFn,
+      mocks,
+    );
   });
 
   it('createRollup (v2.1)', async () => {
-    await assertSchemaCoverage(createRollupV21Schema.transform(createRollupTransform), createRollupFn, mocks);
+    await assertSchemaCoverage(
+      createRollupV21Schema.transform(createRollupTransform),
+      createRollupFn,
+      mocks,
+    );
   });
 
   it('createRollup (v3.2)', async () => {
-    await assertSchemaCoverage(createRollupV32Schema.transform(createRollupTransform), createRollupFn, mocks);
+    await assertSchemaCoverage(
+      createRollupV32Schema.transform(createRollupTransform),
+      createRollupFn,
+      mocks,
+    );
   });
 
   it('createTokenBridge', async () => {
-    await assertSchemaCoverage(createTokenBridgeSchema.transform(createTokenBridgeTransform), createTokenBridge, mocks);
+    await assertSchemaCoverage(
+      createTokenBridgeSchema.transform(createTokenBridgeTransform),
+      createTokenBridge,
+      mocks,
+    );
   });
 
   it('createTokenBridgePrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      createTokenBridgePrepareTransactionRequestSchema.transform(createTokenBridgePrepareTransactionRequestTransform),
-      createTokenBridgePrepareTransactionRequest, mocks,
+      createTokenBridgePrepareTransactionRequestSchema.transform(
+        createTokenBridgePrepareTransactionRequestTransform,
+      ),
+      createTokenBridgePrepareTransactionRequest,
+      mocks,
     );
   });
 
@@ -314,44 +424,59 @@ describe('schema coverage', () => {
       createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(
         createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
       ),
-      createTokenBridgePrepareSetWethGatewayTransactionRequest, mocks,
+      createTokenBridgePrepareSetWethGatewayTransactionRequest,
+      mocks,
     );
   });
 
   it('prepareDeploymentParamsConfigV21', async () => {
     await assertSchemaCoverage(
       prepareDeploymentParamsConfigV21Schema.transform(prepareDeploymentParamsConfigV21Transform),
-      createRollupPrepareDeploymentParamsConfig, mocks,
+      createRollupPrepareDeploymentParamsConfig,
+      mocks,
     );
   });
 
   it('prepareDeploymentParamsConfigV32', async () => {
     await assertSchemaCoverage(
       prepareDeploymentParamsConfigV32Schema.transform(prepareDeploymentParamsConfigV32Transform),
-      createRollupPrepareDeploymentParamsConfig, mocks,
+      createRollupPrepareDeploymentParamsConfig,
+      mocks,
     );
   });
 
   it('prepareNodeConfig', async () => {
-    await assertSchemaCoverage(prepareNodeConfigSchema.transform(prepareNodeConfigTransform), prepareNodeConfig, mocks);
+    await assertSchemaCoverage(
+      prepareNodeConfigSchema.transform(prepareNodeConfigTransform),
+      prepareNodeConfig,
+      mocks,
+    );
   });
 
   it('feeRouterDeployRewardDistributor', async () => {
     await assertSchemaCoverage(
       feeRouterDeployRewardDistributorSchema.transform(feeRouterDeployRewardDistributorTransform),
-      feeRouterDeployRewardDistributor, mocks,
+      feeRouterDeployRewardDistributor,
+      mocks,
     );
   });
 
   it('feeRouterDeployChildToParentRewardRouter', async () => {
     await assertSchemaCoverage(
-      feeRouterDeployChildToParentRewardRouterSchema.transform(feeRouterDeployChildToParentRewardRouterTransform),
-      feeRouterDeployChildToParentRewardRouter, mocks,
+      feeRouterDeployChildToParentRewardRouterSchema.transform(
+        feeRouterDeployChildToParentRewardRouterTransform,
+      ),
+      feeRouterDeployChildToParentRewardRouter,
+      mocks,
     );
   });
 
   it('getDefaults (parentChainId variant)', async () => {
-    await assertSchemaCoverage(getDefaultsSchema.transform(getDefaultsTransform), getDefaultConfirmPeriodBlocks, mocks);
+    await assertSchemaCoverage(
+      getDefaultsSchema.transform(getDefaultsTransform),
+      getDefaultConfirmPeriodBlocks,
+      mocks,
+    );
   });
 
   it('createRollup example', async () => {

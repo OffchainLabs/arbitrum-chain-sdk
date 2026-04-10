@@ -34,6 +34,7 @@
 //     'optionalField': (base) => ({ ...base, optionalField: 'some valid value' }),
 //   });
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
 import { type ZodType, type z } from 'zod';
 
@@ -41,7 +42,11 @@ import { type ZodType, type z } from 'zod';
 
 const _mocks = vi.hoisted(() => {
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
-  const BIGINT_METHODS = new Set(['getGasPrice', 'readContract', 'calculateRetryableSubmissionFee']);
+  const BIGINT_METHODS = new Set([
+    'getGasPrice',
+    'readContract',
+    'calculateRetryableSubmissionFee',
+  ]);
   const HASH_METHODS = new Set(['sendRawTransaction', 'writeContract', 'signTransaction']);
   const RECEIPT_METHODS = new Set(['waitForTransactionReceipt']);
   const SIMULATE_METHODS = new Set(['simulateContract']);
@@ -71,19 +76,32 @@ const _mocks = vi.hoisted(() => {
     });
   }
 
-  const fn = (name: string, returnValue: unknown = {}) =>
+  const fn =
+    (name: string, returnValue: unknown = {}) =>
     (...args: unknown[]) => {
-      calls.push({ target: name, method: 'call', args: JSON.parse(JSON.stringify(args, replacer)) });
+      calls.push({
+        target: name,
+        method: 'call',
+        args: JSON.parse(JSON.stringify(args, replacer)),
+      });
       return Promise.resolve(returnValue);
     };
 
-  const fnSync = (name: string, returnValue?: unknown) =>
+  const fnSync =
+    (name: string, returnValue?: unknown) =>
     (...args: unknown[]) => {
-      calls.push({ target: name, method: 'call', args: JSON.parse(JSON.stringify(args, replacer)) });
+      calls.push({
+        target: name,
+        method: 'call',
+        args: JSON.parse(JSON.stringify(args, replacer)),
+      });
       return returnValue ?? validHex(32);
     };
 
-  const clear = () => { calls.length = 0; hexCounter = 0; };
+  const clear = () => {
+    calls.length = 0;
+    hexCounter = 0;
+  };
   const snapshot = () => JSON.stringify(calls, replacer);
 
   return { calls, trackedObject, fn, fnSync, clear, snapshot };
@@ -108,9 +126,12 @@ vi.mock('./scriptUtils', () => ({ runScript: () => {} }));
 
 // Functions called inside schema transforms
 vi.mock('../createRollupPrepareDeploymentParamsConfig', () => ({
-  createRollupPrepareDeploymentParamsConfig: _mocks.fnSync('createRollupPrepareDeploymentParamsConfig', {
-    _mock: 'deploymentParamsConfig',
-  }),
+  createRollupPrepareDeploymentParamsConfig: _mocks.fnSync(
+    'createRollupPrepareDeploymentParamsConfig',
+    {
+      _mock: 'deploymentParamsConfig',
+    },
+  ),
 }));
 vi.mock('../prepareChainConfig', () => ({
   prepareChainConfig: _mocks.fnSync('prepareChainConfig', { _mock: 'chainConfig' }),
@@ -143,7 +164,9 @@ vi.mock('../upgradeExecutorFetchPrivilegedAccounts', () => ({
   upgradeExecutorFetchPrivilegedAccounts: _mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
 }));
 vi.mock('../getBridgeUiConfig', () => ({ getBridgeUiConfig: _mocks.fn('getBridgeUiConfig') }));
-vi.mock('../isTokenBridgeDeployed', () => ({ isTokenBridgeDeployed: _mocks.fn('isTokenBridgeDeployed') }));
+vi.mock('../isTokenBridgeDeployed', () => ({
+  isTokenBridgeDeployed: _mocks.fn('isTokenBridgeDeployed'),
+}));
 vi.mock('../createRollupGetRetryablesFees', () => ({
   createRollupGetRetryablesFees: _mocks.fn('createRollupGetRetryablesFees'),
 }));
@@ -154,23 +177,33 @@ vi.mock('../createRollupEnoughCustomFeeTokenAllowance', () => ({
   createRollupEnoughCustomFeeTokenAllowance: _mocks.fn('createRollupEnoughCustomFeeTokenAllowance'),
 }));
 vi.mock('../createRollupPrepareCustomFeeTokenApprovalTransactionRequest', () => ({
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequest: _mocks.fn('createRollupPrepareCustomFeeTokenApproval'),
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequest: _mocks.fn(
+    'createRollupPrepareCustomFeeTokenApproval',
+  ),
 }));
 vi.mock('../createTokenBridgeEnoughCustomFeeTokenAllowance', () => ({
-  createTokenBridgeEnoughCustomFeeTokenAllowance: _mocks.fn('createTokenBridgeEnoughCustomFeeTokenAllowance'),
+  createTokenBridgeEnoughCustomFeeTokenAllowance: _mocks.fn(
+    'createTokenBridgeEnoughCustomFeeTokenAllowance',
+  ),
 }));
 vi.mock('../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', () => ({
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: _mocks.fn('createTokenBridgePrepareCustomFeeTokenApproval'),
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: _mocks.fn(
+    'createTokenBridgePrepareCustomFeeTokenApproval',
+  ),
 }));
 vi.mock('../createRollupPrepareTransactionRequest', () => ({
   createRollupPrepareTransactionRequest: _mocks.fn('createRollupPrepareTransactionRequest'),
 }));
 vi.mock('../createTokenBridge', () => ({ createTokenBridge: _mocks.fn('createTokenBridge') }));
 vi.mock('../createTokenBridgePrepareTransactionRequest', () => ({
-  createTokenBridgePrepareTransactionRequest: _mocks.fn('createTokenBridgePrepareTransactionRequest'),
+  createTokenBridgePrepareTransactionRequest: _mocks.fn(
+    'createTokenBridgePrepareTransactionRequest',
+  ),
 }));
 vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
-  createTokenBridgePrepareSetWethGatewayTransactionRequest: _mocks.fn('createTokenBridgePrepareSetWethGateway'),
+  createTokenBridgePrepareSetWethGatewayTransactionRequest: _mocks.fn(
+    'createTokenBridgePrepareSetWethGateway',
+  ),
 }));
 vi.mock('../feeRouterDeployRewardDistributor', () => ({
   feeRouterDeployRewardDistributor: _mocks.fn('feeRouterDeployRewardDistributor'),
@@ -186,7 +219,9 @@ vi.mock('../createRollup', () => ({
   createRollup: _mocks.fn('createRollup', { coreContracts: {} }),
 }));
 vi.mock('../setValidKeyset', () => ({ setValidKeyset: _mocks.fn('setValidKeyset') }));
-vi.mock('../utils/generateChainId', () => ({ generateChainId: _mocks.fnSync('generateChainId', 999999) }));
+vi.mock('../utils/generateChainId', () => ({
+  generateChainId: _mocks.fnSync('generateChainId', 999999),
+}));
 vi.mock('../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
   upgradeExecutorPrepareAddExecutorTransactionRequest: _mocks.fn('addExecutor'),
 }));
@@ -348,7 +383,11 @@ function generateObject(schema: ZodType, baseN: number): Record<string, unknown>
   return result;
 }
 
-function setNestedField(obj: Record<string, unknown>, path: string[], value: unknown): Record<string, unknown> {
+function setNestedField(
+  obj: Record<string, unknown>,
+  path: string[],
+  value: unknown,
+): Record<string, unknown> {
   if (path.length === 0) return obj;
   if (path.length === 1) return { ...obj, [path[0]]: value };
   const [head, ...rest] = path;
@@ -388,7 +427,7 @@ export async function assertSchemaCoverage<T extends ZodType>(
   if (testableLeaves.length === 0) {
     throw new Error(
       'assertSchemaCoverage found 0 testable fields. ' +
-      'The schema may be empty or getSchemaLeaves may not support a type it uses.',
+        'The schema may be empty or getSchemaLeaves may not support a type it uses.',
     );
   }
 
@@ -415,7 +454,9 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
     let mutated = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
     mutated = setNestedField(
-      mutated as Record<string, unknown>, leaf.path, valuesB.get(key),
+      mutated as Record<string, unknown>,
+      leaf.path,
+      valuesB.get(key),
     ) as z.input<T>;
 
     registry.clear();
