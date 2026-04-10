@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { mocks, assertSchemaCoverage } from './testing';
+import { mocks, assertSchemaCoverage } from './schemaCoverage';
 
 import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
 import { getValidators } from '../getValidators';
