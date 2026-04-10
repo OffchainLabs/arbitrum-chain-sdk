@@ -70,10 +70,17 @@ import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../createTokenBr
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import {
   createRollupPrepareTransactionRequestDefaultSchema,
+  createRollupPrepareTransactionRequestV21Schema,
+  createRollupPrepareTransactionRequestV32Schema,
   createRollupPrepareTransactionRequestTransform,
 } from './schemas/createRollupPrepareTransactionRequest';
 import { createRollupPrepareTransactionRequest } from '../createRollupPrepareTransactionRequest';
-import { createRollupSchema, createRollupTransform } from './schemas/createRollup';
+import {
+  createRollupDefaultSchema,
+  createRollupV21Schema,
+  createRollupV32Schema,
+  createRollupTransform,
+} from './schemas/createRollup';
 import { createRollup as createRollupFn } from '../createRollup';
 import { createTokenBridgeSchema, createTokenBridgeTransform } from './schemas/createTokenBridge';
 import { createTokenBridge } from '../createTokenBridge';
@@ -265,8 +272,30 @@ describe('schema coverage', () => {
     );
   });
 
+  it('createRollupPrepareTransactionRequest (v2.1)', async () => {
+    await assertSchemaCoverage(
+      createRollupPrepareTransactionRequestV21Schema.transform(createRollupPrepareTransactionRequestTransform),
+      createRollupPrepareTransactionRequest, mocks,
+    );
+  });
+
+  it('createRollupPrepareTransactionRequest (v3.2)', async () => {
+    await assertSchemaCoverage(
+      createRollupPrepareTransactionRequestV32Schema.transform(createRollupPrepareTransactionRequestTransform),
+      createRollupPrepareTransactionRequest, mocks,
+    );
+  });
+
   it('createRollup (default)', async () => {
-    await assertSchemaCoverage(createRollupSchema.transform(createRollupTransform), createRollupFn, mocks);
+    await assertSchemaCoverage(createRollupDefaultSchema.transform(createRollupTransform), createRollupFn, mocks);
+  });
+
+  it('createRollup (v2.1)', async () => {
+    await assertSchemaCoverage(createRollupV21Schema.transform(createRollupTransform), createRollupFn, mocks);
+  });
+
+  it('createRollup (v3.2)', async () => {
+    await assertSchemaCoverage(createRollupV32Schema.transform(createRollupTransform), createRollupFn, mocks);
   });
 
   it('createTokenBridge', async () => {
