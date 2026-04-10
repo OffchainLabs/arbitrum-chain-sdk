@@ -342,9 +342,12 @@ function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Recor
 }
 
 /**
- * Verifies that every field in a schema affects observable side effects.
- * For each leaf field, generates two inputs that differ only in that field,
- * runs both through execute, and asserts the recorded side effects differ.
+ * Checks that every field in a schema is actually used. If a field can be
+ * changed without affecting what the SDK function receives, it's dead --
+ * the user is providing a value that doesn't matter.
+ *
+ * Works by generating two inputs that differ in one field at a time,
+ * running both through the pipeline, and failing if the outputs match.
  */
 export async function assertSchemaCoverage<T extends ZodType>(
   schema: T,
