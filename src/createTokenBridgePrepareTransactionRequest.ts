@@ -106,7 +106,8 @@ export async function createTokenBridgePrepareTransactionRequest<
   const maxSubmissionCostForFactory = retryableGasOverrides?.maxSubmissionCostForFactory
     ? applyPercentIncrease({
         base:
-          retryableGasOverrides.maxSubmissionCostForFactory.base ?? submissionCostForFactoryEstimate,
+          retryableGasOverrides.maxSubmissionCostForFactory.base ??
+          submissionCostForFactoryEstimate,
         percentIncrease: retryableGasOverrides.maxSubmissionCostForFactory.percentIncrease,
       })
     : applyPercentIncrease({
