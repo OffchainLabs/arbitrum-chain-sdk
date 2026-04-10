@@ -9,6 +9,21 @@
 //   it('some', async () => {
 //     await assertSchemaCoverage(someSchema.transform(someTransform), someFunction, mocks);
 //   });
+//
+// To mock additional SDK functions (e.g. for a new script that calls a
+// function not already mocked below), add a vi.mock in your test file
+// using mocks.fn() or mocks.fnSync() from the shared registry:
+//
+//   import { vi } from 'vitest';
+//   import { mocks, assertSchemaCoverage } from './schemaCoverage';
+//
+//   vi.mock('../myNewFunction', () => ({
+//     myNewFunction: mocks.fn('myNewFunction'),
+//   }));
+//
+// mocks.fn(name, returnValue?)    -- async mock, returns Promise.resolve(returnValue)
+// mocks.fnSync(name, returnValue?) -- sync mock, returns returnValue (or a valid hex string)
+// mocks.trackedObject(name)       -- Proxy that records all method calls
 
 import { vi } from 'vitest';
 import { type ZodType, type z } from 'zod';
