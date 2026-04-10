@@ -1,200 +1,5 @@
-import { describe, it, vi } from 'vitest';
-
-// -- 1. Mock registry (vi.hoisted) ------------------------------------------
-// vi.mock factories are hoisted above all imports, so the registry must be
-// created via vi.hoisted to be available in factory functions.
-// createMockRegistry is inlined here rather than imported because vi.hoisted
-// cannot resolve .ts imports. The canonical implementation lives in testing.ts.
-const mocks = vi.hoisted(() => {
-  const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
-  const BIGINT_METHODS = new Set(['getGasPrice', 'readContract', 'calculateRetryableSubmissionFee']);
-  const HASH_METHODS = new Set(['sendRawTransaction', 'writeContract', 'signTransaction']);
-  const RECEIPT_METHODS = new Set(['waitForTransactionReceipt']);
-  const SIMULATE_METHODS = new Set(['simulateContract']);
-  let hexCounter = 0;
-  const validHex = (bytes: number) => '0x' + (++hexCounter).toString(16).padStart(bytes * 2, '0');
-  const calls: unknown[] = [];
-
-  function trackedObject(name: string): any {
-    return new Proxy(Object.create(null), {
-      get(_, prop) {
-        if (prop === 'then') return undefined;
-        if (prop === Symbol.toPrimitive) return () => validHex(20);
-        if (prop === 'toJSON') return () => ({ _tracked: name });
-        if (prop === 'address') return validHex(20);
-        if (prop === 'chain') return { _tracked: `${name}.chain` };
-        const method = String(prop);
-        return (...args: unknown[]) => {
-          calls.push({ target: name, method, args: JSON.parse(JSON.stringify(args, replacer)) });
-          if (BIGINT_METHODS.has(method)) return Promise.resolve(1000000n);
-          if (HASH_METHODS.has(method)) return Promise.resolve(validHex(32));
-          if (RECEIPT_METHODS.has(method)) return Promise.resolve({ blockNumber: 1n });
-          if (SIMULATE_METHODS.has(method))
-            return Promise.resolve({ request: { _tracked: `${name}.${method}()` } });
-          return Promise.resolve(trackedObject(`${name}.${method}()`));
-        };
-      },
-    });
-  }
-
-  const fn = (name: string, returnValue: unknown = {}) =>
-    (...args: unknown[]) => {
-      calls.push({ target: name, method: 'call', args: JSON.parse(JSON.stringify(args, replacer)) });
-      return Promise.resolve(returnValue);
-    };
-
-  const fnSync = (name: string, returnValue?: unknown) =>
-    (...args: unknown[]) => {
-      calls.push({ target: name, method: 'call', args: JSON.parse(JSON.stringify(args, replacer)) });
-      return returnValue ?? validHex(32);
-    };
-
-  const clear = () => { calls.length = 0; hexCounter = 0; };
-  const snapshot = () => JSON.stringify(calls, replacer);
-
-  return { calls, trackedObject, fn, fnSync, clear, snapshot };
-});
-
-// -- 2. Module mocks (vi.mock) -----------------------------------------------
-// Hoisted above imports. Order within this section doesn't matter.
-
-// Viem helpers return Proxy-based tracked objects that dynamically record
-// every method call into the shared sideEffects array.
-vi.mock('./viemTransforms', () => ({
-  toPublicClient: (rpcUrl: string, chain: unknown) =>
-    mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`),
-  findChain: (chainId: number) => ({ _tracked: 'Chain', id: chainId }),
-  toAccount: (pk: string) => mocks.trackedObject(`Account(${pk})`),
-  toWalletClient: (rpcUrl: string, pk: string, chain: unknown) =>
-    mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`),
-}));
-
-// Prevent runScript from firing when importing example scripts.
-// Examples call runScript at module level, which reads process.argv and exits.
-vi.mock('./scriptUtils', () => ({ runScript: () => {} }));
-
-// Functions called inside schema transforms (not side effects, just
-// deterministic transforms that need to work during parse).
-vi.mock('../createRollupPrepareDeploymentParamsConfig', () => ({
-  createRollupPrepareDeploymentParamsConfig: mocks.fnSync('createRollupPrepareDeploymentParamsConfig', {
-    _mock: 'deploymentParamsConfig',
-  }),
-}));
-vi.mock('../prepareChainConfig', () => ({
-  prepareChainConfig: mocks.fnSync('prepareChainConfig', { _mock: 'chainConfig' }),
-}));
-
-// SDK functions -- each records calls into the mock registry so
-// assertSchemaCoverage can detect whether field mutations change what
-// they receive.
-vi.mock('../getValidators', () => ({
-  getValidators: mocks.fn('getValidators'),
-}));
-vi.mock('../setValidKeysetPrepareTransactionRequest', () => ({
-  setValidKeysetPrepareTransactionRequest: mocks.fn('setValidKeysetPrepareTransactionRequest'),
-}));
-vi.mock('../getKeysets', () => ({ getKeysets: mocks.fn('getKeysets') }));
-vi.mock('../getBatchPosters', () => ({ getBatchPosters: mocks.fn('getBatchPosters') }));
-vi.mock('../isAnyTrust', () => ({ isAnyTrust: mocks.fn('isAnyTrust') }));
-vi.mock('../prepareKeysetHash', () => ({ prepareKeysetHash: mocks.fn('prepareKeysetHash') }));
-vi.mock('../prepareKeyset', () => ({ prepareKeyset: mocks.fn('prepareKeyset') }));
-vi.mock('../setAnyTrustFastConfirmerPrepareTransactionRequest', () => ({
-  setAnyTrustFastConfirmerPrepareTransactionRequest: mocks.fn('setAnyTrustFastConfirmer'),
-}));
-vi.mock('../createRollupFetchCoreContracts', () => ({
-  createRollupFetchCoreContracts: mocks.fn('createRollupFetchCoreContracts'),
-}));
-vi.mock('../createRollupFetchTransactionHash', () => ({
-  createRollupFetchTransactionHash: mocks.fn('createRollupFetchTransactionHash'),
-}));
-vi.mock('../utils/erc20', () => ({
-  fetchAllowance: mocks.fn('fetchAllowance'),
-  fetchDecimals: mocks.fn('fetchDecimals'),
-}));
-vi.mock('../upgradeExecutorFetchPrivilegedAccounts', () => ({
-  upgradeExecutorFetchPrivilegedAccounts: mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
-}));
-vi.mock('../getBridgeUiConfig', () => ({
-  getBridgeUiConfig: mocks.fn('getBridgeUiConfig'),
-}));
-vi.mock('../isTokenBridgeDeployed', () => ({
-  isTokenBridgeDeployed: mocks.fn('isTokenBridgeDeployed'),
-}));
-vi.mock('../createRollupGetRetryablesFees', () => ({
-  createRollupGetRetryablesFees: mocks.fn('createRollupGetRetryablesFees'),
-}));
-vi.mock('../createSafePrepareTransactionRequest', () => ({
-  createSafePrepareTransactionRequest: mocks.fn('createSafePrepareTransactionRequest'),
-}));
-vi.mock('../createRollupEnoughCustomFeeTokenAllowance', () => ({
-  createRollupEnoughCustomFeeTokenAllowance: mocks.fn('createRollupEnoughCustomFeeTokenAllowance'),
-}));
-vi.mock('../createRollupPrepareCustomFeeTokenApprovalTransactionRequest', () => ({
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createRollupPrepareCustomFeeTokenApproval'),
-}));
-vi.mock('../createTokenBridgeEnoughCustomFeeTokenAllowance', () => ({
-  createTokenBridgeEnoughCustomFeeTokenAllowance: mocks.fn('createTokenBridgeEnoughCustomFeeTokenAllowance'),
-}));
-vi.mock('../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', () => ({
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: mocks.fn('createTokenBridgePrepareCustomFeeTokenApproval'),
-}));
-vi.mock('../createRollupPrepareTransactionRequest', () => ({
-  createRollupPrepareTransactionRequest: mocks.fn('createRollupPrepareTransactionRequest'),
-}));
-vi.mock('../createTokenBridge', () => ({
-  createTokenBridge: mocks.fn('createTokenBridge'),
-}));
-vi.mock('../createTokenBridgePrepareTransactionRequest', () => ({
-  createTokenBridgePrepareTransactionRequest: mocks.fn('createTokenBridgePrepareTransactionRequest'),
-}));
-vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
-  createTokenBridgePrepareSetWethGatewayTransactionRequest: mocks.fn('createTokenBridgePrepareSetWethGateway'),
-}));
-vi.mock('../feeRouterDeployRewardDistributor', () => ({
-  feeRouterDeployRewardDistributor: mocks.fn('feeRouterDeployRewardDistributor'),
-}));
-vi.mock('../feeRouterDeployChildToParentRewardRouter', () => ({
-  feeRouterDeployChildToParentRewardRouter: mocks.fn('feeRouterDeployChildToParentRewardRouter'),
-}));
-vi.mock('../prepareNodeConfig', () => ({
-  prepareNodeConfig: mocks.fn('prepareNodeConfig'),
-}));
-vi.mock('../getDefaultConfirmPeriodBlocks', () => ({
-  getDefaultConfirmPeriodBlocks: mocks.fn('getDefaultConfirmPeriodBlocks'),
-}));
-vi.mock('../createRollup', () => ({
-  createRollup: mocks.fn('createRollup', { coreContracts: {} }),
-}));
-vi.mock('../setValidKeyset', () => ({
-  setValidKeyset: mocks.fn('setValidKeyset'),
-}));
-vi.mock('../utils/generateChainId', () => ({
-  generateChainId: () => 999999,
-}));
-vi.mock('../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
-  upgradeExecutorPrepareAddExecutorTransactionRequest: mocks.fn('addExecutor'),
-}));
-vi.mock('../upgradeExecutorPrepareRemoveExecutorTransactionRequest', () => ({
-  upgradeExecutorPrepareRemoveExecutorTransactionRequest: mocks.fn('removeExecutor'),
-}));
-vi.mock('../upgradeExecutorEncodeFunctionData', () => ({
-  UPGRADE_EXECUTOR_ROLE_EXECUTOR: '0x' + 'ab'.repeat(32),
-  upgradeExecutorEncodeFunctionData: mocks.fnSync('upgradeExecutorEncodeFunctionData'),
-}));
-vi.mock('viem', async (importOriginal) => {
-  const original = await importOriginal<typeof import('viem')>();
-  return {
-    ...original,
-    encodeFunctionData: mocks.fnSync('encodeFunctionData'),
-    createWalletClient: (opts: any) =>
-      mocks.trackedObject(`childWalletClient(${JSON.stringify(opts?.chain?.id ?? opts)})`),
-    custom: () => ({}),
-    defineChain: (def: any) => def,
-  };
-});
-
-// -- 3. Imports --------------------------------------------------------------
-// Run after mocks are applied, so these resolve to the mocked versions.
+import { describe, it } from 'vitest';
+import { mocks, assertSchemaCoverage } from './testing';
 
 import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
 import { getValidators } from '../getValidators';
@@ -301,7 +106,6 @@ import { prepareNodeConfigSchema, prepareNodeConfigTransform } from './schemas/p
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { getDefaultsSchema, getDefaultsTransform } from './schemas/getDefaults';
 import { getDefaultConfirmPeriodBlocks } from '../getDefaultConfirmPeriodBlocks';
-import { assertSchemaCoverage } from './schemaCoverage';
 import {
   schema as createRollupExampleSchema,
   execute as createRollupExecute,
@@ -315,184 +119,117 @@ import {
   execute as transferOwnershipExecute,
 } from './examples/transferOwnership';
 
-// -- 4. Tests ----------------------------------------------------------------
-
 describe('schema coverage', () => {
   it('getValidators', async () => {
-    await assertSchemaCoverage(
-      getValidatorsSchema.transform(getValidatorsTransform),
-      getValidators,
-      mocks,
-    );
+    await assertSchemaCoverage(getValidatorsSchema.transform(getValidatorsTransform), getValidators, mocks);
   });
 
   it('setValidKeysetPrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      setValidKeysetPrepareTransactionRequestSchema.transform(
-        setValidKeysetPrepareTransactionRequestTransform,
-      ),
-      setValidKeysetPrepareTransactionRequest,
-      mocks,
+      setValidKeysetPrepareTransactionRequestSchema.transform(setValidKeysetPrepareTransactionRequestTransform),
+      setValidKeysetPrepareTransactionRequest, mocks,
     );
   });
 
   it('getKeysets', async () => {
-    await assertSchemaCoverage(
-      getKeysetsSchema.transform(getKeysetsTransform),
-      getKeysets,
-      mocks,
-    );
+    await assertSchemaCoverage(getKeysetsSchema.transform(getKeysetsTransform), getKeysets, mocks);
   });
 
   it('getBatchPosters', async () => {
-    await assertSchemaCoverage(
-      getBatchPostersSchema.transform(getBatchPostersTransform),
-      getBatchPosters,
-      mocks,
-    );
+    await assertSchemaCoverage(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters, mocks);
   });
 
   it('isAnyTrust', async () => {
-    await assertSchemaCoverage(
-      isAnyTrustSchema.transform(isAnyTrustTransform),
-      isAnyTrust,
-      mocks,
-    );
+    await assertSchemaCoverage(isAnyTrustSchema.transform(isAnyTrustTransform), isAnyTrust, mocks);
   });
 
   it('prepareKeysetHash', async () => {
-    await assertSchemaCoverage(
-      prepareKeysetHashSchema.transform(prepareKeysetHashTransform),
-      prepareKeysetHash,
-      mocks,
-    );
+    await assertSchemaCoverage(prepareKeysetHashSchema.transform(prepareKeysetHashTransform), prepareKeysetHash, mocks);
   });
 
   it('prepareKeyset', async () => {
-    await assertSchemaCoverage(
-      prepareKeysetSchema.transform(prepareKeysetTransform),
-      prepareKeyset,
-      mocks,
-    );
+    await assertSchemaCoverage(prepareKeysetSchema.transform(prepareKeysetTransform), prepareKeyset, mocks);
   });
 
   it('prepareChainConfig', async () => {
-    await assertSchemaCoverage(
-      prepareChainConfigParamsSchema.transform(prepareChainConfigTransform),
-      prepareChainConfig,
-      mocks,
-    );
+    await assertSchemaCoverage(prepareChainConfigParamsSchema.transform(prepareChainConfigTransform), prepareChainConfig, mocks);
   });
 
   it('setAnyTrustFastConfirmer', async () => {
     await assertSchemaCoverage(
       setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform),
-      setAnyTrustFastConfirmerPrepareTransactionRequest,
-      mocks,
+      setAnyTrustFastConfirmerPrepareTransactionRequest, mocks,
     );
   });
 
   it('upgradeExecutorPrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      upgradeExecutorPrepareTransactionRequestSchema.transform(
-        upgradeExecutorPrepareTransactionRequestTransform,
-      ),
-      upgradeExecutorPrepareAddExecutorTransactionRequest,
-      mocks,
+      upgradeExecutorPrepareTransactionRequestSchema.transform(upgradeExecutorPrepareTransactionRequestTransform),
+      upgradeExecutorPrepareAddExecutorTransactionRequest, mocks,
     );
   });
 
   it('setValidKeyset', async () => {
-    await assertSchemaCoverage(
-      setValidKeysetSchema.transform(setValidKeysetTransform),
-      setValidKeyset,
-      mocks,
-    );
+    await assertSchemaCoverage(setValidKeysetSchema.transform(setValidKeysetTransform), setValidKeyset, mocks);
   });
 
   it('createRollupFetchCoreContracts', async () => {
     await assertSchemaCoverage(
       createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsTransform),
-      createRollupFetchCoreContracts,
-      mocks,
+      createRollupFetchCoreContracts, mocks,
     );
   });
 
   it('createRollupFetchTransactionHash', async () => {
     await assertSchemaCoverage(
       createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
-      createRollupFetchTransactionHash,
-      mocks,
+      createRollupFetchTransactionHash, mocks,
     );
   });
 
   it('fetchDecimals', async () => {
-    await assertSchemaCoverage(
-      fetchDecimalsSchema.transform(fetchDecimalsTransform),
-      fetchDecimals,
-      mocks,
-    );
+    await assertSchemaCoverage(fetchDecimalsSchema.transform(fetchDecimalsTransform), fetchDecimals, mocks);
   });
 
   it('fetchAllowance', async () => {
-    await assertSchemaCoverage(
-      fetchAllowanceSchema.transform(fetchAllowanceTransform),
-      fetchAllowance,
-      mocks,
-    );
+    await assertSchemaCoverage(fetchAllowanceSchema.transform(fetchAllowanceTransform), fetchAllowance, mocks);
   });
 
   it('upgradeExecutorFetchPrivilegedAccounts', async () => {
     await assertSchemaCoverage(
-      upgradeExecutorFetchPrivilegedAccountsSchema.transform(
-        upgradeExecutorFetchPrivilegedAccountsTransform,
-      ),
-      upgradeExecutorFetchPrivilegedAccounts,
-      mocks,
+      upgradeExecutorFetchPrivilegedAccountsSchema.transform(upgradeExecutorFetchPrivilegedAccountsTransform),
+      upgradeExecutorFetchPrivilegedAccounts, mocks,
     );
   });
 
   it('getBridgeUiConfig', async () => {
-    await assertSchemaCoverage(
-      getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform),
-      getBridgeUiConfig,
-      mocks,
-    );
+    await assertSchemaCoverage(getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform), getBridgeUiConfig, mocks);
   });
 
   it('isTokenBridgeDeployed', async () => {
     await assertSchemaCoverage(
-      isTokenBridgeDeployedSchema.transform(isTokenBridgeDeployedTransform),
-      isTokenBridgeDeployed,
-      mocks,
+      isTokenBridgeDeployedSchema.transform(isTokenBridgeDeployedTransform), isTokenBridgeDeployed, mocks,
     );
   });
 
   it('createRollupGetRetryablesFees', async () => {
     await assertSchemaCoverage(
       createRollupGetRetryablesFeesSchema.transform(createRollupGetRetryablesFeesTransform),
-      createRollupGetRetryablesFees,
-      mocks,
+      createRollupGetRetryablesFees, mocks,
     );
   });
 
   it('createSafePrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      createSafePrepareTransactionRequestSchema.transform(
-        createSafePrepareTransactionRequestTransform,
-      ),
-      createSafePrepareTransactionRequest,
-      mocks,
+      createSafePrepareTransactionRequestSchema.transform(createSafePrepareTransactionRequestTransform),
+      createSafePrepareTransactionRequest, mocks,
     );
   });
 
   it('createRollupEnoughCustomFeeTokenAllowance', async () => {
     await assertSchemaCoverage(
-      createRollupEnoughCustomFeeTokenAllowanceSchema.transform(
-        createRollupEnoughCustomFeeTokenAllowanceTransform,
-      ),
-      createRollupEnoughCustomFeeTokenAllowance,
-      mocks,
+      createRollupEnoughCustomFeeTokenAllowanceSchema.transform(createRollupEnoughCustomFeeTokenAllowanceTransform),
+      createRollupEnoughCustomFeeTokenAllowance, mocks,
     );
   });
 
@@ -501,18 +238,14 @@ describe('schema coverage', () => {
       createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
         createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
       ),
-      createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
-      mocks,
+      createRollupPrepareCustomFeeTokenApprovalTransactionRequest, mocks,
     );
   });
 
   it('createTokenBridgeEnoughCustomFeeTokenAllowance', async () => {
     await assertSchemaCoverage(
-      createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(
-        createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
-      ),
-      createTokenBridgeEnoughCustomFeeTokenAllowance,
-      mocks,
+      createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(createTokenBridgeEnoughCustomFeeTokenAllowanceTransform),
+      createTokenBridgeEnoughCustomFeeTokenAllowance, mocks,
     );
   });
 
@@ -521,44 +254,29 @@ describe('schema coverage', () => {
       createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
         createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
       ),
-      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
-      mocks,
+      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest, mocks,
     );
   });
 
   it('createRollupPrepareTransactionRequest (default)', async () => {
     await assertSchemaCoverage(
-      createRollupPrepareTransactionRequestDefaultSchema.transform(
-        createRollupPrepareTransactionRequestTransform,
-      ),
-      createRollupPrepareTransactionRequest,
-      mocks,
+      createRollupPrepareTransactionRequestDefaultSchema.transform(createRollupPrepareTransactionRequestTransform),
+      createRollupPrepareTransactionRequest, mocks,
     );
   });
 
   it('createRollup (default)', async () => {
-    await assertSchemaCoverage(
-      createRollupSchema.transform(createRollupTransform),
-      createRollupFn,
-      mocks,
-    );
+    await assertSchemaCoverage(createRollupSchema.transform(createRollupTransform), createRollupFn, mocks);
   });
 
   it('createTokenBridge', async () => {
-    await assertSchemaCoverage(
-      createTokenBridgeSchema.transform(createTokenBridgeTransform),
-      createTokenBridge,
-      mocks,
-    );
+    await assertSchemaCoverage(createTokenBridgeSchema.transform(createTokenBridgeTransform), createTokenBridge, mocks);
   });
 
   it('createTokenBridgePrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
-      createTokenBridgePrepareTransactionRequestSchema.transform(
-        createTokenBridgePrepareTransactionRequestTransform,
-      ),
-      createTokenBridgePrepareTransactionRequest,
-      mocks,
+      createTokenBridgePrepareTransactionRequestSchema.transform(createTokenBridgePrepareTransactionRequestTransform),
+      createTokenBridgePrepareTransactionRequest, mocks,
     );
   });
 
@@ -567,59 +285,44 @@ describe('schema coverage', () => {
       createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(
         createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
       ),
-      createTokenBridgePrepareSetWethGatewayTransactionRequest,
-      mocks,
+      createTokenBridgePrepareSetWethGatewayTransactionRequest, mocks,
     );
   });
 
   it('prepareDeploymentParamsConfigV21', async () => {
     await assertSchemaCoverage(
       prepareDeploymentParamsConfigV21Schema.transform(prepareDeploymentParamsConfigV21Transform),
-      createRollupPrepareDeploymentParamsConfig,
-      mocks,
+      createRollupPrepareDeploymentParamsConfig, mocks,
     );
   });
 
   it('prepareDeploymentParamsConfigV32', async () => {
     await assertSchemaCoverage(
       prepareDeploymentParamsConfigV32Schema.transform(prepareDeploymentParamsConfigV32Transform),
-      createRollupPrepareDeploymentParamsConfig,
-      mocks,
+      createRollupPrepareDeploymentParamsConfig, mocks,
     );
   });
 
   it('prepareNodeConfig', async () => {
-    await assertSchemaCoverage(
-      prepareNodeConfigSchema.transform(prepareNodeConfigTransform),
-      prepareNodeConfig,
-      mocks,
-    );
+    await assertSchemaCoverage(prepareNodeConfigSchema.transform(prepareNodeConfigTransform), prepareNodeConfig, mocks);
   });
 
   it('feeRouterDeployRewardDistributor', async () => {
     await assertSchemaCoverage(
       feeRouterDeployRewardDistributorSchema.transform(feeRouterDeployRewardDistributorTransform),
-      feeRouterDeployRewardDistributor,
-      mocks,
+      feeRouterDeployRewardDistributor, mocks,
     );
   });
 
   it('feeRouterDeployChildToParentRewardRouter', async () => {
     await assertSchemaCoverage(
-      feeRouterDeployChildToParentRewardRouterSchema.transform(
-        feeRouterDeployChildToParentRewardRouterTransform,
-      ),
-      feeRouterDeployChildToParentRewardRouter,
-      mocks,
+      feeRouterDeployChildToParentRewardRouterSchema.transform(feeRouterDeployChildToParentRewardRouterTransform),
+      feeRouterDeployChildToParentRewardRouter, mocks,
     );
   });
 
   it('getDefaults (parentChainId variant)', async () => {
-    await assertSchemaCoverage(
-      getDefaultsSchema.transform(getDefaultsTransform),
-      getDefaultConfirmPeriodBlocks,
-      mocks,
-    );
+    await assertSchemaCoverage(getDefaultsSchema.transform(getDefaultsTransform), getDefaultConfirmPeriodBlocks, mocks);
   });
 
   it('createRollup example', async () => {
@@ -628,8 +331,6 @@ describe('schema coverage', () => {
 
   it('deployNewChain example', async () => {
     await assertSchemaCoverage(deployNewChainSchema, deployNewChainExecute, mocks, {
-      // keyset only matters when DataAvailabilityCommittee is true (enforced
-      // by superRefine). Override sets AnyTrust context so keyset is testable.
       'params.keyset': (base) => ({
         ...base,
         params: {
@@ -651,9 +352,6 @@ describe('schema coverage', () => {
 
   it('transferOwnership example', async () => {
     await assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute, mocks, {
-      // nativeToken controls a conditional branch (ERC20 vs ETH). Both
-      // generated values are non-zero, so we need one run with zeroAddress
-      // to exercise the branch difference.
       nativeToken: (base) => ({
         ...base,
         nativeToken: '0x0000000000000000000000000000000000000000',
