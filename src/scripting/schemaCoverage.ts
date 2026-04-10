@@ -24,6 +24,15 @@
 // mocks.fn(name, returnValue?)    -- async mock, returns Promise.resolve(returnValue)
 // mocks.fnSync(name, returnValue?) -- sync mock, returns returnValue (or a valid hex string)
 // mocks.trackedObject(name)       -- Proxy that records all method calls
+//
+// Note: optional/nullable fields are excluded from automatic testing because
+// they can't be given two distinct non-undefined values without knowing the
+// context (e.g. a refine may reject them). Use the overrides parameter to
+// test optional fields that matter:
+//
+//   await assertSchemaCoverage(schema, execute, mocks, {
+//     'optionalField': (base) => ({ ...base, optionalField: 'some valid value' }),
+//   });
 
 import { vi } from 'vitest';
 import { type ZodType, type z } from 'zod';
@@ -82,8 +91,9 @@ const _mocks = vi.hoisted(() => {
 export const mocks = _mocks;
 
 // -- Module mocks ------------------------------------------------------------
-// vi.mock is statically analyzed and hoisted in any file that imports this
-// module, so these take effect before imports in the consuming test file.
+// vi.mock calls are processed by vitest's module transform regardless of
+// which file they appear in, so these mocks are active when the consuming
+// test file's imports resolve.
 
 vi.mock('./viemTransforms', () => ({
   toPublicClient: (rpcUrl: string, chain: unknown) =>
@@ -176,7 +186,7 @@ vi.mock('../createRollup', () => ({
   createRollup: _mocks.fn('createRollup', { coreContracts: {} }),
 }));
 vi.mock('../setValidKeyset', () => ({ setValidKeyset: _mocks.fn('setValidKeyset') }));
-vi.mock('../utils/generateChainId', () => ({ generateChainId: () => 999999 }));
+vi.mock('../utils/generateChainId', () => ({ generateChainId: _mocks.fnSync('generateChainId', 999999) }));
 vi.mock('../upgradeExecutorPrepareAddExecutorTransactionRequest', () => ({
   upgradeExecutorPrepareAddExecutorTransactionRequest: _mocks.fn('addExecutor'),
 }));
@@ -371,6 +381,16 @@ export async function assertSchemaCoverage<T extends ZodType>(
   overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
 ): Promise<void> {
   const leaves = getSchemaLeaves(schema);
+  const testableLeaves = leaves.filter((l) => {
+    const t = getDefType(l.schema);
+    return t !== 'literal' && t !== 'null';
+  });
+  if (testableLeaves.length === 0) {
+    throw new Error(
+      'assertSchemaCoverage found 0 testable fields. ' +
+      'The schema may be empty or getSchemaLeaves may not support a type it uses.',
+    );
+  }
 
   resetCounter();
   const valuesA = new Map<string, unknown>();

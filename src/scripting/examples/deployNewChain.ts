@@ -58,7 +58,11 @@ export const schema = createRollupDefaultSchema
       params: { config, ...params },
       account: toAccount(input.privateKey),
       parentChainPublicClient,
-      walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
+      walletClient: toWalletClient(
+      input.parentChainRpcUrl,
+      input.privateKey,
+      findChain(input.parentChainId),
+    ),
       keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
     };
   });
