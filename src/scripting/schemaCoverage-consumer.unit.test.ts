@@ -6,35 +6,37 @@ import { z } from 'zod';
 import { mocks, assertSchemaCoverage } from './testing';
 
 // Consumer adds a mock for their own SDK function that isn't in testing.ts.
-// This works because vi.mock is hoisted per-file and mocks is already
-// available via the hoisted export from testing.ts.
-vi.mock('../sequencerInboxReadContract', () => ({
-  sequencerInboxReadContract: mocks.fn('sequencerInboxReadContract', { maxTimeVariation: {} }),
+vi.mock('../createRollupGetCallValue', () => ({
+  createRollupGetCallValue: mocks.fn('createRollupGetCallValue', 0n),
 }));
 
 import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
 import { getValidators } from '../getValidators';
 import { addressSchema } from './schemas/common';
-import { sequencerInboxReadContract } from '../sequencerInboxReadContract';
+import { createRollupGetCallValue } from '../createRollupGetCallValue';
 import { toPublicClient, findChain } from './viemTransforms';
 
-// A custom schema + transform that a consumer might write for their script
-const customSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  sequencerInbox: addressSchema,
-});
+const customSchema = z
+  .strictObject({
+    rpcUrl: z.url(),
+    chainId: z.number(),
+    account: addressSchema,
+    nativeToken: addressSchema,
+    deployFactoriesToL2: z.boolean(),
+  })
+  .transform((input) => ({
+    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
+    params: {
+      account: input.account,
+      nativeToken: input.nativeToken,
+      deployFactoriesToL2: input.deployFactoriesToL2,
+    },
+  }));
 
-const customTransform = (input: z.output<typeof customSchema>) => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  { sequencerInbox: input.sequencerInbox },
-] as const;
-
-const customExecute = async (...args: ReturnType<typeof customTransform>) =>
-  sequencerInboxReadContract(...args);
+const customExecute = (input: z.output<typeof customSchema>) =>
+  createRollupGetCallValue(input.publicClient, input.params);
 
 describe('consumer schema coverage', () => {
-  // Test an existing schema from the SDK -- shared mocks handle everything
   it('getValidators (from shared mocks)', async () => {
     await assertSchemaCoverage(
       getValidatorsSchema.transform(getValidatorsTransform),
@@ -43,12 +45,7 @@ describe('consumer schema coverage', () => {
     );
   });
 
-  // Test a custom schema with a consumer-defined mock
   it('custom schema with consumer mock', async () => {
-    await assertSchemaCoverage(
-      customSchema.transform(customTransform),
-      customExecute,
-      mocks,
-    );
+    await assertSchemaCoverage(customSchema, customExecute, mocks);
   });
 });

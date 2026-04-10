@@ -12,8 +12,7 @@
 //   });
 
 import { vi } from 'vitest';
-
-export { assertSchemaCoverage } from './schemaCoverage';
+import { type ZodType, type z } from 'zod';
 
 // -- Mock registry -----------------------------------------------------------
 
@@ -185,3 +184,218 @@ vi.mock('viem', async (importOriginal) => {
     defineChain: (def: any) => def,
   };
 });
+
+// -- Schema coverage utility -------------------------------------------------
+
+type SchemaLeaf = { path: string[]; schema: ZodType };
+
+let counter = 0;
+
+function resetCounter(): void {
+  counter = 0;
+}
+
+function getDefType(schema: ZodType): string {
+  return (schema as any)._zod?.def?.type ?? 'unknown';
+}
+
+function getDef(schema: ZodType): any {
+  return (schema as any)._zod?.def;
+}
+
+function getBag(schema: ZodType): any {
+  return (schema as any)._zod?.bag;
+}
+
+function stripOptional(schema: ZodType): ZodType {
+  const def = getDef(schema);
+  if (def?.type === 'optional' || def?.type === 'nullable') return def.innerType;
+  return schema;
+}
+
+export function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLeaf[] {
+  const def = getDef(schema);
+  if (!def) return [{ path, schema }];
+
+  switch (def.type) {
+    case 'object': {
+      const shape = def.shape as Record<string, ZodType>;
+      return Object.entries(shape).flatMap(([key, child]) =>
+        getSchemaLeaves(child, [...path, key]),
+      );
+    }
+    case 'never':
+    case 'optional':
+    case 'nullable':
+      return [];
+    case 'nonoptional':
+      return getSchemaLeaves(stripOptional(def.innerType), path);
+    case 'default':
+    case 'prefault':
+    case 'readonly':
+    case 'catch':
+      return getSchemaLeaves(def.innerType, path);
+    case 'pipe':
+      return getSchemaLeaves(def.in, path);
+    case 'union':
+      return getSchemaLeaves(def.options[0], path);
+    default:
+      return [{ path, schema }];
+  }
+}
+
+function generateValue(schema: ZodType): unknown {
+  return generateForType(schema, counter++);
+}
+
+function generateForType(schema: ZodType, n: number): unknown {
+  const def = getDef(schema);
+  if (!def) throw new Error(`Cannot generate value: schema has no def`);
+
+  switch (def.type) {
+    case 'string':
+      return generateString(schema, n);
+    case 'number':
+      return n + 1;
+    case 'int':
+      return n + 1;
+    case 'boolean':
+      return n % 2 === 0;
+    case 'null':
+      return null;
+    case 'bigint':
+      return BigInt(n + 1);
+    case 'literal':
+      return def.values[0];
+    case 'enum':
+      return Object.values(def.entries)[n % Object.values(def.entries).length];
+    case 'object':
+      return generateObject(schema, n);
+    case 'array':
+      return [generateForType(def.element, n)];
+    case 'tuple':
+      return (def.items as ZodType[]).map((item: ZodType, i: number) =>
+        generateForType(item, n + i),
+      );
+    case 'optional':
+    case 'nullable':
+      return undefined;
+    case 'nonoptional':
+      return generateForType(stripOptional(def.innerType), n);
+    case 'default':
+    case 'prefault':
+    case 'readonly':
+    case 'catch':
+      return generateForType(def.innerType, n);
+    case 'pipe':
+      return generateForType(def.in, n);
+    case 'union':
+      return generateForType(def.options[0], n);
+    default:
+      throw new Error(
+        `Unsupported zod type "${def.type}" at counter ${n}. Add a case to generateForType.`,
+      );
+  }
+}
+
+function generateString(schema: ZodType, n: number): string {
+  const bag = getBag(schema);
+  if (bag?.format === 'url') return `http://host-${n}.test`;
+  const patterns = bag?.patterns as Set<RegExp> | undefined;
+  if (patterns) {
+    for (const pattern of patterns) {
+      const src = pattern.source;
+      if (src.includes('[0-9a-fA-F]{40}')) return `0x${(n + 1).toString(16).padStart(40, '0')}`;
+      if (src.includes('[0-9a-fA-F]{64}')) return `0x${(n + 1).toString(16).padStart(64, '0')}`;
+      if (src.includes('[0-9a-fA-F]')) return `0x${(n + 1).toString(16)}`;
+      if (src.includes('-?\\d+')) return String(n + 100);
+    }
+  }
+  return `string_${n}`;
+}
+
+function generateObject(schema: ZodType, baseN: number): Record<string, unknown> {
+  const shape = getDef(schema).shape as Record<string, ZodType>;
+  const result: Record<string, unknown> = {};
+  let i = baseN;
+  for (const [key, child] of Object.entries(shape)) {
+    result[key] = generateForType(child, i++);
+  }
+  return result;
+}
+
+function setNestedField(obj: Record<string, unknown>, path: string[], value: unknown): Record<string, unknown> {
+  if (path.length === 0) return obj;
+  if (path.length === 1) return { ...obj, [path[0]]: value };
+  const [head, ...rest] = path;
+  return {
+    ...obj,
+    [head]: setNestedField((obj[head] as Record<string, unknown>) ?? {}, rest, value),
+  };
+}
+
+function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Record<string, unknown> {
+  let fixture: Record<string, unknown> = {};
+  for (const leaf of leaves) {
+    fixture = setNestedField(fixture, leaf.path, values.get(leaf.path.join('.')));
+  }
+  return fixture;
+}
+
+/**
+ * Verifies that every field in a schema affects observable side effects.
+ * For each leaf field, generates two inputs that differ only in that field,
+ * runs both through execute, and asserts the recorded side effects differ.
+ */
+export async function assertSchemaCoverage<T extends ZodType>(
+  schema: T,
+  execute: (...args: any[]) => unknown,
+  registry: typeof _mocks,
+  overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
+): Promise<void> {
+  const leaves = getSchemaLeaves(schema);
+
+  resetCounter();
+  const valuesA = new Map<string, unknown>();
+  const valuesB = new Map<string, unknown>();
+  for (const leaf of leaves) {
+    const key = leaf.path.join('.');
+    valuesA.set(key, generateValue(leaf.schema));
+    valuesB.set(key, generateValue(leaf.schema));
+  }
+
+  const deadFields: string[] = [];
+
+  for (const leaf of leaves) {
+    const key = leaf.path.join('.');
+    const leafType = getDefType(leaf.schema);
+    if (leafType === 'literal' || leafType === 'null') continue;
+
+    let baseFixture = buildFixture(leaves, valuesA) as z.input<T>;
+    if (overrides?.[key]) baseFixture = overrides[key](baseFixture);
+
+    let mutatedFixture = buildFixture(leaves, valuesA) as z.input<T>;
+    if (overrides?.[key]) mutatedFixture = overrides[key](mutatedFixture);
+    mutatedFixture = setNestedField(
+      mutatedFixture as Record<string, unknown>, leaf.path, valuesB.get(key),
+    ) as z.input<T>;
+
+    registry.clear();
+    const parsedBase = schema.parse(baseFixture) as any;
+    await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
+    const snapshotBase = registry.snapshot();
+
+    registry.clear();
+    const parsedMutated = schema.parse(mutatedFixture) as any;
+    await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
+    const snapshotMutated = registry.snapshot();
+
+    if (snapshotBase === snapshotMutated) deadFields.push(key);
+  }
+
+  if (deadFields.length > 0) {
+    throw new Error(
+      `Dead schema fields detected (no effect on transform output):\n  ${deadFields.join('\n  ')}`,
+    );
+  }
+}
