@@ -2,8 +2,7 @@
 // sets up all mocks needed to test schema transforms and example scripts.
 //
 // Usage:
-//   import { mocks } from './testing';
-//   import { assertSchemaCoverage } from './schemaCoverage';
+//   import { mocks, assertSchemaCoverage } from './schemaCoverage';
 //   import { someSchema, someTransform } from './schemas/some';
 //   import { someFunction } from '../someFunction';
 //
@@ -213,7 +212,7 @@ function stripOptional(schema: ZodType): ZodType {
   return schema;
 }
 
-export function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLeaf[] {
+function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLeaf[] {
   const def = getDef(schema);
   if (!def) return [{ path, schema }];
 
@@ -358,35 +357,36 @@ export async function assertSchemaCoverage<T extends ZodType>(
   resetCounter();
   const valuesA = new Map<string, unknown>();
   const valuesB = new Map<string, unknown>();
+  const keys = new Map<SchemaLeaf, string>();
   for (const leaf of leaves) {
     const key = leaf.path.join('.');
+    keys.set(leaf, key);
     valuesA.set(key, generateValue(leaf.schema));
     valuesB.set(key, generateValue(leaf.schema));
   }
 
+  const baseFixture = buildFixture(leaves, valuesA) as z.input<T>;
   const deadFields: string[] = [];
 
   for (const leaf of leaves) {
-    const key = leaf.path.join('.');
+    const key = keys.get(leaf)!;
     const leafType = getDefType(leaf.schema);
     if (leafType === 'literal' || leafType === 'null') continue;
 
-    let baseFixture = buildFixture(leaves, valuesA) as z.input<T>;
-    if (overrides?.[key]) baseFixture = overrides[key](baseFixture);
+    const base = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
 
-    let mutatedFixture = buildFixture(leaves, valuesA) as z.input<T>;
-    if (overrides?.[key]) mutatedFixture = overrides[key](mutatedFixture);
-    mutatedFixture = setNestedField(
-      mutatedFixture as Record<string, unknown>, leaf.path, valuesB.get(key),
+    let mutated = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
+    mutated = setNestedField(
+      mutated as Record<string, unknown>, leaf.path, valuesB.get(key),
     ) as z.input<T>;
 
     registry.clear();
-    const parsedBase = schema.parse(baseFixture) as any;
+    const parsedBase = schema.parse(base) as any;
     await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
     const snapshotBase = registry.snapshot();
 
     registry.clear();
-    const parsedMutated = schema.parse(mutatedFixture) as any;
+    const parsedMutated = schema.parse(mutated) as any;
     await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
     const snapshotMutated = registry.snapshot();
 
