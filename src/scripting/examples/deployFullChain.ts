@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zeroAddress } from 'viem';
+import { parseAbi, zeroAddress } from 'viem';
 import { runScript } from '../scriptUtils';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import {
@@ -14,7 +14,9 @@ import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
+import { getArbOSVersion } from '../../utils/getArbOSVersion';
 import { generateChainId } from '../../utils/generateChainId';
+import { ChainConfig } from '../../types/ChainConfig';
 import { execute as deployNewChainExecute } from './deployNewChain';
 import { execute as createTokenBridgeExecute } from './createTokenBridge';
 import { execute as transferOwnershipExecute } from './transferOwnership';
@@ -29,6 +31,7 @@ export const schema = createRollupDefaultSchema
       nativeToken: addressSchema.default(zeroAddress),
       keyset: hexSchema.optional(),
     }),
+    chainName: z.string(),
     // createTokenBridge options
     gasOverrides: gasLimitSchema.optional(),
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
@@ -61,15 +64,7 @@ export const schema = createRollupDefaultSchema
       ...restParams
     } = input.params;
 
-    const owner = restConfig.owner;
-    const childChainId = Number(restConfig.chainId);
-
-    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
     const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
-    const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
-      ...restConfig,
-      chainConfig,
-    });
 
     const DEFAULT_KEYSET: `0x${string}` =
       '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
@@ -82,18 +77,20 @@ export const schema = createRollupDefaultSchema
     );
 
     return {
-      deployParams: { config, ...restParams },
+      rawConfig: restConfig,
+      chainConfigParams,
+      restParams,
+      keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
       account,
       parentChainPublicClient,
+      parentChainId: input.parentChainId,
       walletClient,
-      keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
-      owner,
+      chainName: input.chainName,
       gasOverrides: input.gasOverrides,
       retryableGasOverrides: input.retryableGasOverrides,
       tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
       newOwnerAddress: input.newOwnerAddress,
       childUpgradeExecutorAddress: input.childUpgradeExecutorAddress,
-      childChainId,
       maxGasPrice: input.maxGasPrice,
       refundAddress: input.refundAddress ?? input.newOwnerAddress,
     };
@@ -101,35 +98,47 @@ export const schema = createRollupDefaultSchema
 
 export const execute = async (input: z.output<typeof schema>) => {
   const {
-    deployParams,
+    rawConfig,
+    chainConfigParams,
+    restParams,
+    keyset,
     account,
     parentChainPublicClient,
+    parentChainId,
     walletClient,
-    keyset,
-    owner,
+    chainName,
     gasOverrides,
     retryableGasOverrides,
     tokenBridgeCreatorAddressOverride,
     newOwnerAddress,
     childUpgradeExecutorAddress,
-    childChainId,
     maxGasPrice,
     refundAddress,
   } = input;
 
+  const chainConfig: ChainConfig | undefined = chainConfigParams
+    ? prepareChainConfig(chainConfigParams)
+    : undefined;
+  const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
+    ...rawConfig,
+    chainConfig,
+  });
+
+  // Step 1: Deploy the chain
   const coreContracts = await deployNewChainExecute({
-    params: deployParams,
+    params: { config, ...restParams },
     account,
     parentChainPublicClient,
     walletClient,
     keyset,
   });
 
+  // Step 2: Create token bridge
   const tokenBridgeContracts = await createTokenBridgeExecute({
     createTokenBridgeParams: {
       params: {
         rollup: coreContracts.rollup,
-        rollupOwner: owner,
+        rollupOwner: rawConfig.owner,
       },
       parentChainPublicClient,
       account: account.address,
@@ -138,16 +147,17 @@ export const execute = async (input: z.output<typeof schema>) => {
       tokenBridgeCreatorAddressOverride,
     },
     signer: account,
-    nativeToken: deployParams.nativeToken,
+    nativeToken: restParams.nativeToken,
   });
 
-  const ownershipResult = await transferOwnershipExecute({
+  // Step 3: Transfer ownership
+  await transferOwnershipExecute({
     upgradeExecutorAddress: coreContracts.upgradeExecutor,
     newOwnerAddress,
     inboxAddress: coreContracts.inbox,
     childUpgradeExecutorAddress,
-    childChainId,
-    nativeToken: deployParams.nativeToken,
+    childChainId: Number(rawConfig.chainId),
+    nativeToken: restParams.nativeToken,
     maxGasPrice,
     publicClient: parentChainPublicClient,
     account,
@@ -155,10 +165,34 @@ export const execute = async (input: z.output<typeof schema>) => {
     refundAddress,
   });
 
+  // Build getChainDeploymentInfo-shaped output
+  const [stakeToken, parentChainIsArbitrum] = await Promise.all([
+    parentChainPublicClient.readContract({
+      address: coreContracts.rollup,
+      abi: parseAbi(['function stakeToken() view returns (address)']),
+      functionName: 'stakeToken',
+    }),
+    getArbOSVersion(parentChainPublicClient)
+      .then(() => true)
+      .catch(() => false),
+  ]);
+
   return {
-    coreContracts,
+    chainId: chainConfig?.chainId ?? 0,
+    parentChainId,
+    parentChainIsArbitrum,
+    chainName,
+    chainConfig,
+    rollup: {
+      rollup: coreContracts.rollup,
+      bridge: coreContracts.bridge,
+      inbox: coreContracts.inbox,
+      sequencerInbox: coreContracts.sequencerInbox,
+      validatorWalletCreator: coreContracts.validatorWalletCreator,
+      stakeToken,
+      deployedAtBlockNumber: coreContracts.deployedAtBlockNumber,
+    },
     tokenBridgeContracts,
-    ...ownershipResult,
   };
 };
 

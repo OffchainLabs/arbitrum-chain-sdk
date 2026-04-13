@@ -428,7 +428,7 @@ export async function assertSchemaCoverage<T extends ZodType>(
   schema: T,
   execute: (...args: any[]) => unknown,
   registry: typeof _mocks,
-  overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
+  overrides?: Record<string, ((base: z.input<T>) => z.input<T>) | null>,
 ): Promise<void> {
   const leaves = getSchemaLeaves(schema);
   const testableLeaves = leaves.filter((l) => {
@@ -460,10 +460,12 @@ export async function assertSchemaCoverage<T extends ZodType>(
     const key = keys.get(leaf)!;
     const leafType = getDefType(leaf.schema);
     if (leafType === 'literal' || leafType === 'null') continue;
+    if (overrides?.[key] === null) continue;
 
-    const base = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
+    const override = overrides?.[key];
+    const base = override ? override(baseFixture) : baseFixture;
 
-    let mutated = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
+    let mutated = override ? override(baseFixture) : baseFixture;
     mutated = setNestedField(
       mutated as Record<string, unknown>,
       leaf.path,
