@@ -6,7 +6,6 @@ import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../
 export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema = z.strictObject({
   parentChainRpcUrl: z.url(),
   parentChainId: z.number(),
-  orbitChainRpcUrl: z.url(),
   account: addressSchema,
   rollup: addressSchema,
   rollupDeploymentBlockNumber: bigintSchema.optional(),
@@ -24,7 +23,6 @@ export const createTokenBridgePrepareSetWethGatewayTransactionRequestTransform =
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
     ),
-    orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     account: input.account,
     retryableGasOverrides: input.retryableGasOverrides,
     tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
