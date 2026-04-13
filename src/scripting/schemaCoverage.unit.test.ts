@@ -149,6 +149,10 @@ import {
   schema as createTokenBridgeExampleSchema,
   execute as createTokenBridgeExampleExecute,
 } from './examples/createTokenBridge';
+import {
+  schema as deployFullChainSchema,
+  execute as deployFullChainExecute,
+} from './examples/deployFullChain';
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
@@ -527,6 +531,27 @@ describe('schema coverage', () => {
       nativeToken: (base) => ({
         ...base,
         nativeToken: '0x0000000000000000000000000000000000000000',
+      }),
+    });
+  });
+
+  it('deployFullChain example', async () => {
+    await assertSchemaCoverage(deployFullChainSchema, deployFullChainExecute, mocks, {
+      'params.keyset': (base) => ({
+        ...base,
+        params: {
+          ...base.params,
+          config: {
+            ...base.params.config,
+            chainConfig: {
+              chainId: 99999,
+              arbitrum: {
+                InitialChainOwner: '0x' + '1'.repeat(40),
+                DataAvailabilityCommittee: true,
+              },
+            },
+          },
+        },
       }),
     });
   });
