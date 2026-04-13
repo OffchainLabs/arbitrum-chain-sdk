@@ -14,6 +14,8 @@ import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from './crea
 import { createTokenBridge } from './createTokenBridge';
 import { TokenBridgeContracts } from './types/TokenBridgeContracts';
 import { scaleFrom18DecimalsToNativeTokenDecimals } from './utils/decimals';
+import { registerNewNetwork } from './utils/registerNewNetwork';
+import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
 const l2RollupOwner = testnodeAccounts.l2RollupOwner;
@@ -117,7 +119,6 @@ describe('createTokenBridge utils function', () => {
         rollupOwner: l2RollupOwner.address,
       },
       parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
       account: l2RollupOwner.address,
       gasOverrides: {
         gasLimit: {
@@ -152,6 +153,13 @@ describe('createTokenBridge utils function', () => {
     );
     expect(txReceipt.status).toEqual('success');
 
+    // register the network with @arbitrum/sdk (needed for waitForRetryables)
+    await registerNewNetwork(
+      publicClientToProvider(nitroTestnodeL1Client),
+      publicClientToProvider(nitroTestnodeL2Client),
+      testnodeInformation.rollup,
+    );
+
     // checking retryables execution
     const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
       orbitPublicClient: nitroTestnodeL2Client,
@@ -170,7 +178,6 @@ describe('createTokenBridge utils function', () => {
     const setWethGatewayTxRequest = await createTokenBridgePrepareSetWethGatewayTransactionRequest({
       rollup: testnodeInformation.rollup,
       parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
       account: l2RollupOwner.address,
       retryableGasOverrides: {
         gasLimit: {
@@ -270,7 +277,6 @@ describe('createTokenBridge utils function', () => {
         rollupOwner: l3RollupOwner.address,
       },
       parentChainPublicClient: nitroTestnodeL2Client,
-      orbitChainPublicClient: nitroTestnodeL3Client,
       account: l3RollupOwner.address,
       gasOverrides: {
         gasLimit: {
@@ -304,6 +310,13 @@ describe('createTokenBridge utils function', () => {
       await nitroTestnodeL2Client.waitForTransactionReceipt({ hash: txHash }),
     );
     expect(txReceipt.status).toEqual('success');
+
+    // register the network with @arbitrum/sdk (needed for waitForRetryables)
+    await registerNewNetwork(
+      publicClientToProvider(nitroTestnodeL2Client),
+      publicClientToProvider(nitroTestnodeL3Client),
+      testnodeInformation.l3Rollup,
+    );
 
     // checking retryables execution
     const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({

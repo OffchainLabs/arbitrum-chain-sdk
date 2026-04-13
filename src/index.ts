@@ -178,7 +178,12 @@ import {
 import {
   createRollupDefaultRetryablesFees,
   createTokenBridgeDefaultRetryablesFees,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
 } from './constants';
+import { CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
   CreateRollupGetRetryablesFeesParams,
   createRollupGetRetryablesFees,
@@ -347,6 +352,11 @@ export {
   CreateRollupGetRetryablesFeesParams,
   //
   createTokenBridgeDefaultRetryablesFees,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
+  CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams,
   //
   fetchAllowance,
   FetchAllowanceProps,
