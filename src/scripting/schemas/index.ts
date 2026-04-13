@@ -38,10 +38,6 @@ export {
   feeRouterDeployChildToParentRewardRouterTransform,
 } from './feeRouter';
 export { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './getBridgeUiConfig';
-export {
-  getChainDeploymentInfoSchema,
-  getChainDeploymentInfoTransform,
-} from './getChainDeploymentInfo';
 export { isAnyTrustSchema, isAnyTrustTransform } from './isAnyTrust';
 export {
   createRollupFetchTransactionHashSchema,

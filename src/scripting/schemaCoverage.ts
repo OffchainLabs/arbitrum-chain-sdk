@@ -156,6 +156,20 @@ vi.mock('../createRollupFetchCoreContracts', () => ({
 vi.mock('../createRollupFetchTransactionHash', () => ({
   createRollupFetchTransactionHash: _mocks.fn('createRollupFetchTransactionHash'),
 }));
+vi.mock('../createRollupPrepareTransaction', () => ({
+  createRollupPrepareTransaction: _mocks.fnSync('createRollupPrepareTransaction', {
+    getInputs: () => [{ config: { chainConfig: '{"chainId":99999}' } }],
+  }),
+}));
+vi.mock('../createRollupPrepareTransactionReceipt', () => ({
+  createRollupPrepareTransactionReceipt: _mocks.fnSync(
+    'createRollupPrepareTransactionReceipt',
+    _mocks.trackedObject('createRollupTransactionReceipt'),
+  ),
+}));
+vi.mock('../utils/getArbOSVersion', () => ({
+  getArbOSVersion: _mocks.fn('getArbOSVersion'),
+}));
 vi.mock('../utils/erc20', () => ({
   fetchAllowance: _mocks.fn('fetchAllowance'),
   fetchDecimals: _mocks.fn('fetchDecimals'),
@@ -164,9 +178,6 @@ vi.mock('../upgradeExecutorFetchPrivilegedAccounts', () => ({
   upgradeExecutorFetchPrivilegedAccounts: _mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
 }));
 vi.mock('../getBridgeUiConfig', () => ({ getBridgeUiConfig: _mocks.fn('getBridgeUiConfig') }));
-vi.mock('../getChainDeploymentInfo', () => ({
-  getChainDeploymentInfo: _mocks.fn('getChainDeploymentInfo'),
-}));
 vi.mock('../isTokenBridgeDeployed', () => ({
   isTokenBridgeDeployed: _mocks.fn('isTokenBridgeDeployed'),
 }));

@@ -14,7 +14,6 @@ import { prepareNodeConfig } from '../../prepareNodeConfig';
 import { feeRouterDeployRewardDistributor } from '../../feeRouterDeployRewardDistributor';
 import { feeRouterDeployChildToParentRewardRouter } from '../../feeRouterDeployChildToParentRewardRouter';
 import { getBridgeUiConfig } from '../../getBridgeUiConfig';
-import { getChainDeploymentInfo } from '../../getChainDeploymentInfo';
 import { isAnyTrust } from '../../isAnyTrust';
 import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
 import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContracts';
@@ -64,7 +63,6 @@ import {
   feeRouterDeployChildToParentRewardRouterTransform,
 } from './feeRouter';
 import { getBridgeUiConfigTransform } from './getBridgeUiConfig';
-import { getChainDeploymentInfoTransform } from './getChainDeploymentInfo';
 import { isAnyTrustTransform } from './isAnyTrust';
 import { createRollupFetchTransactionHashTransform } from './createRollupFetchTransactionHash';
 import { createRollupFetchCoreContractsTransform } from './createRollupFetchCoreContracts';
@@ -302,11 +300,6 @@ it('feeRouterDeployChildToParentRewardRouterTransform output matches feeRouterDe
 it('getBridgeUiConfigTransform output matches getBridgeUiConfig params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof getBridgeUiConfigTransform>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof getBridgeUiConfig>>
-  >());
-
-it('getChainDeploymentInfoTransform output matches getChainDeploymentInfo params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getChainDeploymentInfoTransform>>>().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof getChainDeploymentInfo>>
   >());
 
 it('isAnyTrustTransform output matches isAnyTrust params', () =>
