@@ -164,6 +164,9 @@ vi.mock('../upgradeExecutorFetchPrivilegedAccounts', () => ({
   upgradeExecutorFetchPrivilegedAccounts: _mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
 }));
 vi.mock('../getBridgeUiConfig', () => ({ getBridgeUiConfig: _mocks.fn('getBridgeUiConfig') }));
+vi.mock('../getChainDeploymentInfo', () => ({
+  getChainDeploymentInfo: _mocks.fn('getChainDeploymentInfo'),
+}));
 vi.mock('../isTokenBridgeDeployed', () => ({
   isTokenBridgeDeployed: _mocks.fn('isTokenBridgeDeployed'),
 }));

@@ -60,6 +60,11 @@ import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchP
 import { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './schemas/getBridgeUiConfig';
 import { getBridgeUiConfig } from '../getBridgeUiConfig';
 import {
+  getChainDeploymentInfoSchema,
+  getChainDeploymentInfoTransform,
+} from './schemas/getChainDeploymentInfo';
+import { getChainDeploymentInfo } from '../getChainDeploymentInfo';
+import {
   isTokenBridgeDeployedSchema,
   isTokenBridgeDeployedTransform,
 } from './schemas/isTokenBridgeDeployed';
@@ -149,6 +154,10 @@ import {
   schema as createTokenBridgeExampleSchema,
   execute as createTokenBridgeExampleExecute,
 } from './examples/createTokenBridge';
+import {
+  schema as getChainDeploymentInfoExampleSchema,
+  execute as getChainDeploymentInfoExampleExecute,
+} from './examples/getChainDeploymentInfo';
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
@@ -281,6 +290,14 @@ describe('schema coverage', () => {
     await assertSchemaCoverage(
       getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform),
       getBridgeUiConfig,
+      mocks,
+    );
+  });
+
+  it('getChainDeploymentInfo', async () => {
+    await assertSchemaCoverage(
+      getChainDeploymentInfoSchema.transform(getChainDeploymentInfoTransform),
+      getChainDeploymentInfo,
       mocks,
     );
   });
@@ -529,5 +546,13 @@ describe('schema coverage', () => {
         nativeToken: '0x0000000000000000000000000000000000000000',
       }),
     });
+  });
+
+  it('getChainDeploymentInfo example', async () => {
+    await assertSchemaCoverage(
+      getChainDeploymentInfoExampleSchema,
+      getChainDeploymentInfoExampleExecute,
+      mocks,
+    );
   });
 });
