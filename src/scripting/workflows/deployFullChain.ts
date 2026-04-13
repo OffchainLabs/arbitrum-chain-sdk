@@ -21,9 +21,12 @@ import {
   execute as transferOwnershipExecute,
 } from './transferOwnership';
 
-export const inputSchema = createRollupDefaultSchema.omit({ params: true }).extend({
+const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSchema.shape;
+
+export const inputSchema = z.object({
+  ...baseFields,
   chainName: z.string(),
-  createRollupParams: createRollupDefaultSchema.shape.params.extend({
+  createRollupParams: createRollupBaseParams.extend({
     config: paramsV3Dot2Schema.extend({
       chainId: bigintSchema.prefault(() => String(generateChainId())),
       chainConfig: prepareChainConfigParamsSchema.optional(),
