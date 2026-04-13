@@ -553,8 +553,6 @@ describe('schema coverage', () => {
           },
         },
       }),
-      // chainName only affects the return value, not any mock calls
-      chainName: null,
     });
   });
 });

@@ -428,8 +428,9 @@ export async function assertSchemaCoverage<T extends ZodType>(
   schema: T,
   execute: (...args: any[]) => unknown,
   registry: typeof _mocks,
-  overrides?: Record<string, ((base: z.input<T>) => z.input<T>) | null>,
+  overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
 ): Promise<void> {
+  const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
   const leaves = getSchemaLeaves(schema);
   const testableLeaves = leaves.filter((l) => {
     const t = getDefType(l.schema);
@@ -460,12 +461,10 @@ export async function assertSchemaCoverage<T extends ZodType>(
     const key = keys.get(leaf)!;
     const leafType = getDefType(leaf.schema);
     if (leafType === 'literal' || leafType === 'null') continue;
-    if (overrides?.[key] === null) continue;
 
-    const override = overrides?.[key];
-    const base = override ? override(baseFixture) : baseFixture;
+    const base = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
 
-    let mutated = override ? override(baseFixture) : baseFixture;
+    let mutated = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
     mutated = setNestedField(
       mutated as Record<string, unknown>,
       leaf.path,
@@ -474,13 +473,13 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
     registry.clear();
     const parsedBase = schema.parse(base) as any;
-    await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
-    const snapshotBase = registry.snapshot();
+    const resultBase = await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
+    const snapshotBase = registry.snapshot() + JSON.stringify(resultBase, replacer);
 
     registry.clear();
     const parsedMutated = schema.parse(mutated) as any;
-    await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
-    const snapshotMutated = registry.snapshot();
+    const resultMutated = await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
+    const snapshotMutated = registry.snapshot() + JSON.stringify(resultMutated, replacer);
 
     if (snapshotBase === snapshotMutated) deadFields.push(key);
   }
