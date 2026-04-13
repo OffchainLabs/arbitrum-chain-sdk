@@ -6,7 +6,6 @@ import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBri
 export const createTokenBridgePrepareTransactionRequestSchema = z.strictObject({
   parentChainRpcUrl: z.url(),
   parentChainId: z.number(),
-  orbitChainRpcUrl: z.url(),
   account: addressSchema,
   params: z.object({
     rollup: addressSchema,
@@ -26,7 +25,6 @@ export const createTokenBridgePrepareTransactionRequestTransform = (
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
     ),
-    orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
     account: input.account,
     gasOverrides: input.gasOverrides,
     retryableGasOverrides: input.retryableGasOverrides,
