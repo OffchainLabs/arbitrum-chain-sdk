@@ -54,13 +54,6 @@ export function cmd<TSchema extends ZodType<readonly unknown[]>>(
   };
 }
 
-export function workflow<TSchema extends ZodType>(
-  input: TSchema,
-  run: (input: z.output<TSchema>) => unknown,
-) {
-  return { input, run: (parsed: unknown) => run(parsed as z.output<TSchema>) };
-}
-
 export function runCli(
   cliName: string,
   commands: Record<string, { input: ZodType; run: (parsed: unknown) => unknown }>,

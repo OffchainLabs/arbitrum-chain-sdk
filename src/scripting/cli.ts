@@ -111,10 +111,27 @@ import { getDefaultMinimumAssertionPeriod } from '../getDefaultMinimumAssertionP
 import { getDefaultValidatorAfkBlocks } from '../getDefaultValidatorAfkBlocks';
 import { getDefaultSequencerInboxMaxTimeVariation } from '../getDefaultSequencerInboxMaxTimeVariation';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
-import { workflows } from './workflows';
+
+import {
+  schema as deployNewChainSchema,
+  execute as deployNewChain,
+} from './workflows/deployNewChain';
+import {
+  schema as createTokenBridgeAndWethGatewaySchema,
+  execute as createTokenBridgeAndWethGateway,
+} from './workflows/createTokenBridgeAndWethGateway';
+import {
+  schema as transferOwnershipSchema,
+  execute as transferOwnership,
+} from './workflows/transferOwnership';
+import {
+  schema as deployFullChainSchema,
+  execute as deployFullChain,
+} from './workflows/deployFullChain';
+
+const toTuple = <T>(input: T) => [input] as const;
 
 runCli('chain-sdk', {
-  ...workflows,
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),
@@ -277,4 +294,12 @@ runCli('chain-sdk', {
     getDefaultsSchema.transform(getDefaultsTransform),
     getDefaultSequencerInboxMaxTimeVariation,
   ),
+
+  deployNewChain: cmd(deployNewChainSchema.transform(toTuple), deployNewChain),
+  createTokenBridgeAndWethGateway: cmd(
+    createTokenBridgeAndWethGatewaySchema.transform(toTuple),
+    createTokenBridgeAndWethGateway,
+  ),
+  transferOwnership: cmd(transferOwnershipSchema.transform(toTuple), transferOwnership),
+  deployFullChain: cmd(deployFullChainSchema.transform(toTuple), deployFullChain),
 });
