@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { runScript } from '../scriptUtils';
-import { createTokenBridgePrepareTransactionRequestSchema, createTokenBridgePrepareTransactionRequestTransform } from '../schemas/createTokenBridgePrepareTransactionRequest';
+import {
+  createTokenBridgePrepareTransactionRequestSchema,
+  createTokenBridgePrepareTransactionRequestTransform,
+} from '../schemas/createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from '../../createTokenBridgePrepareTransactionReceipt';
 import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from '../../createTokenBridgePrepareSetWethGatewayTransactionReceipt';
@@ -48,7 +51,9 @@ export const execute = async (input: z.output<typeof schema>) => {
     }
   }
 
-  const transactionRequest = await createTokenBridgePrepareTransactionRequest(createTokenBridgeParams);
+  const transactionRequest = await createTokenBridgePrepareTransactionRequest(
+    createTokenBridgeParams,
+  );
 
   const txHash = await parentChainPublicClient.sendRawTransaction({
     serializedTransaction: await deployer.signTransaction(transactionRequest),
