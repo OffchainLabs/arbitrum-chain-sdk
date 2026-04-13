@@ -14,16 +14,16 @@ import { zeroAddress } from 'viem';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-export const schema = createTokenBridgePrepareTransactionRequestSchema
-  .extend({
-    privateKey: privateKeySchema,
-    nativeToken: addressSchema.default(zeroAddress),
-  })
-  .transform((input) => ({
-    createTokenBridgeParams: createTokenBridgePrepareTransactionRequestTransform(input)[0],
-    signer: toAccount(input.privateKey),
-    nativeToken: input.nativeToken,
-  }));
+export const inputSchema = createTokenBridgePrepareTransactionRequestSchema.extend({
+  privateKey: privateKeySchema,
+  nativeToken: addressSchema.default(zeroAddress),
+});
+
+export const schema = inputSchema.transform((input) => ({
+  createTokenBridgeParams: createTokenBridgePrepareTransactionRequestTransform(input)[0],
+  signer: toAccount(input.privateKey),
+  nativeToken: input.nativeToken,
+}));
 
 export const execute = async (input: z.output<typeof schema>) => {
   const deployer = input.signer;

@@ -164,28 +164,30 @@ async function sendL2Message(
   return txHash;
 }
 
-export const schema = z
-  .object({
-    rpcUrl: z.url(),
-    chainId: z.number(),
-    privateKey: privateKeySchema,
-    upgradeExecutorAddress: addressSchema,
-    newOwnerAddress: addressSchema,
-    inboxAddress: addressSchema,
-    childUpgradeExecutorAddress: addressSchema,
-    childChainId: z.number(),
-    nativeToken: addressSchema.default(zeroAddress),
-    maxGasPrice: bigintSchema,
-    refundAddress: addressSchema.optional(),
-  })
-  .transform(({ rpcUrl, chainId, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
+export const inputSchema = z.object({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  privateKey: privateKeySchema,
+  upgradeExecutorAddress: addressSchema,
+  newOwnerAddress: addressSchema,
+  inboxAddress: addressSchema,
+  childUpgradeExecutorAddress: addressSchema,
+  childChainId: z.number(),
+  nativeToken: addressSchema.default(zeroAddress),
+  maxGasPrice: bigintSchema,
+  refundAddress: addressSchema.optional(),
+});
+
+export const schema = inputSchema.transform(
+  ({ rpcUrl, chainId, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
     ...rest,
     publicClient: toPublicClient(rpcUrl, findChain(chainId)),
     account: toAccount(privateKey),
     walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)),
     refundAddress: refundAddress ?? newOwnerAddress,
     newOwnerAddress,
-  }));
+  }),
+);
 
 export const execute = async (input: z.output<typeof schema>) => {
   const {

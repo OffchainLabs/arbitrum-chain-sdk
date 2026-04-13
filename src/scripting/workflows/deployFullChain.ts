@@ -2,13 +2,7 @@ import { z } from 'zod';
 import { parseAbi, zeroAddress } from 'viem';
 
 import { createRollupDefaultSchema } from '../schemas/createRollup';
-import {
-  hexSchema,
-  bigintSchema,
-  addressSchema,
-  gasLimitSchema,
-  tokenBridgeRetryableGasOverridesSchema,
-} from '../schemas/common';
+import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
@@ -18,30 +12,36 @@ import { getArbOSVersion } from '../../utils/getArbOSVersion';
 import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { execute as deployNewChainExecute } from './deployNewChain';
-import { execute as createTokenBridgeExecute } from './createTokenBridgeAndWethGateway';
-import { execute as transferOwnershipExecute } from './transferOwnership';
+import {
+  inputSchema as createTokenBridgeInputSchema,
+  execute as createTokenBridgeExecute,
+} from './createTokenBridgeAndWethGateway';
+import {
+  inputSchema as transferOwnershipInputSchema,
+  execute as transferOwnershipExecute,
+} from './transferOwnership';
 
-export const schema = createRollupDefaultSchema
-  .extend({
-    params: createRollupDefaultSchema.shape.params.extend({
-      config: paramsV3Dot2Schema.extend({
-        chainId: bigintSchema.prefault(() => String(generateChainId())),
-        chainConfig: prepareChainConfigParamsSchema.optional(),
-      }),
-      nativeToken: addressSchema.default(zeroAddress),
-      keyset: hexSchema.optional(),
+export const inputSchema = createRollupDefaultSchema.extend({
+  params: createRollupDefaultSchema.shape.params.extend({
+    config: paramsV3Dot2Schema.extend({
+      chainId: bigintSchema.prefault(() => String(generateChainId())),
+      chainConfig: prepareChainConfigParamsSchema.optional(),
     }),
-    chainName: z.string(),
-    // createTokenBridge options
-    gasOverrides: gasLimitSchema.optional(),
-    retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
-    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-    // transferOwnership fields
-    newOwnerAddress: addressSchema,
-    childUpgradeExecutorAddress: addressSchema,
-    maxGasPrice: bigintSchema,
-    refundAddress: addressSchema.optional(),
-  })
+    nativeToken: addressSchema.default(zeroAddress),
+    keyset: hexSchema.optional(),
+  }),
+  chainName: z.string(),
+  gasOverrides: createTokenBridgeInputSchema.shape.gasOverrides,
+  retryableGasOverrides: createTokenBridgeInputSchema.shape.retryableGasOverrides,
+  tokenBridgeCreatorAddressOverride:
+    createTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
+  newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
+  childUpgradeExecutorAddress: transferOwnershipInputSchema.shape.childUpgradeExecutorAddress,
+  maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
+  refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+});
+
+export const schema = inputSchema
   .superRefine((data, ctx) => {
     const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
