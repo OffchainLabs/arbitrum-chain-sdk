@@ -83,4 +83,3 @@ export const execute = async (input: z.output<typeof schema>) => {
 
   return coreContracts;
 };
-
