@@ -205,6 +205,14 @@ vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
     'createTokenBridgePrepareSetWethGateway',
   ),
 }));
+vi.mock('../createTokenBridgePrepareTransactionReceipt', () => ({
+  createTokenBridgePrepareTransactionReceipt: () =>
+    _mocks.trackedObject('tokenBridgeTransactionReceipt'),
+}));
+vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionReceipt', () => ({
+  createTokenBridgePrepareSetWethGatewayTransactionReceipt: () =>
+    _mocks.trackedObject('setWethGatewayTransactionReceipt'),
+}));
 vi.mock('../feeRouterDeployRewardDistributor', () => ({
   feeRouterDeployRewardDistributor: _mocks.fn('feeRouterDeployRewardDistributor'),
 }));

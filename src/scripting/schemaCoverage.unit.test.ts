@@ -145,6 +145,10 @@ import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
 } from './examples/transferOwnership';
+import {
+  schema as createTokenBridgeExampleSchema,
+  execute as createTokenBridgeExampleExecute,
+} from './examples/createTokenBridge';
 
 describe('schema coverage', () => {
   it('getValidators', async () => {
@@ -502,6 +506,20 @@ describe('schema coverage', () => {
         },
       }),
     });
+  });
+
+  it('createTokenBridge example', async () => {
+    await assertSchemaCoverage(
+      createTokenBridgeExampleSchema,
+      createTokenBridgeExampleExecute,
+      mocks,
+      {
+        nativeToken: (base) => ({
+          ...base,
+          nativeToken: '0x0000000000000000000000000000000000000000',
+        }),
+      },
+    );
   });
 
   it('transferOwnership example', async () => {

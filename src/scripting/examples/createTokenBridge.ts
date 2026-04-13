@@ -2,25 +2,27 @@ import { z } from 'zod';
 import { runScript } from '../scriptUtils';
 import { createTokenBridgePrepareTransactionRequestSchema, createTokenBridgePrepareTransactionRequestTransform } from '../schemas/createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
-import { privateKeyToAccount } from 'viem/accounts';
-import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest, createTokenBridgePrepareSetWethGatewayTransactionReceipt, createTokenBridgePrepareTransactionReceipt } from '../..';
-import { addressSchema } from '../schemas';
+import { createTokenBridgePrepareTransactionReceipt } from '../../createTokenBridgePrepareTransactionReceipt';
+import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from '../../createTokenBridgePrepareSetWethGatewayTransactionReceipt';
+import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
+import { addressSchema, privateKeySchema } from '../schemas';
+import { toAccount } from '../viemTransforms';
 import { zeroAddress } from 'viem';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-const schema = createTokenBridgePrepareTransactionRequestSchema
+export const schema = createTokenBridgePrepareTransactionRequestSchema
   .extend({
-    privateKey: z.string().startsWith('0x'),
+    privateKey: privateKeySchema,
     nativeToken: addressSchema.default(zeroAddress),
   })
   .transform((input) => ({
     createTokenBridgeParams: createTokenBridgePrepareTransactionRequestTransform(input)[0],
-    signer: privateKeyToAccount(input.privateKey as `0x${string}`),
+    signer: toAccount(input.privateKey),
     nativeToken: input.nativeToken,
   }));
 
-runScript(schema, async (input) => {
+export const execute = async (input: z.output<typeof schema>) => {
   const deployer = input.signer;
   const nativeToken = input.nativeToken;
   const createTokenBridgeParams = input.createTokenBridgeParams;
@@ -80,4 +82,6 @@ runScript(schema, async (input) => {
   }
 
   return tokenBridgeContracts;
-});
+};
+
+runScript(schema, execute);
