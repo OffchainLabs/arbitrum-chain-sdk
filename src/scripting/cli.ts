@@ -111,8 +111,10 @@ import { getDefaultMinimumAssertionPeriod } from '../getDefaultMinimumAssertionP
 import { getDefaultValidatorAfkBlocks } from '../getDefaultValidatorAfkBlocks';
 import { getDefaultSequencerInboxMaxTimeVariation } from '../getDefaultSequencerInboxMaxTimeVariation';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
+import { workflows } from './workflows';
 
 runCli('chain-sdk', {
+  ...workflows,
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),

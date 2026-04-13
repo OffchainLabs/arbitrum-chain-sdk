@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { runScript } from '../scriptUtils';
+
 import {
   createTokenBridgePrepareTransactionRequestSchema,
   createTokenBridgePrepareTransactionRequestTransform,
@@ -88,5 +88,3 @@ export const execute = async (input: z.output<typeof schema>) => {
 
   return tokenBridgeContracts;
 };
-
-runScript(schema, execute);

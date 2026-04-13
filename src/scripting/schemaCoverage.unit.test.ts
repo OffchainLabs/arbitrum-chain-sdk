@@ -140,19 +140,19 @@ import {
 import {
   schema as deployNewChainSchema,
   execute as deployNewChainExecute,
-} from './examples/deployNewChain';
+} from './workflows/deployNewChain';
 import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
-} from './examples/transferOwnership';
+} from './workflows/transferOwnership';
 import {
   schema as createTokenBridgeExampleSchema,
   execute as createTokenBridgeExampleExecute,
-} from './examples/createTokenBridge';
+} from './workflows/createTokenBridgeAndWethGateway';
 import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
-} from './examples/deployFullChain';
+} from './workflows/deployFullChain';
 
 describe('schema coverage', () => {
   it('getValidators', async () => {

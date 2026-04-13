@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { parseAbi, zeroAddress } from 'viem';
-import { runScript } from '../scriptUtils';
+
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import {
   hexSchema,
@@ -18,7 +18,7 @@ import { getArbOSVersion } from '../../utils/getArbOSVersion';
 import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { execute as deployNewChainExecute } from './deployNewChain';
-import { execute as createTokenBridgeExecute } from './createTokenBridge';
+import { execute as createTokenBridgeExecute } from './createTokenBridgeAndWethGateway';
 import { execute as transferOwnershipExecute } from './transferOwnership';
 
 export const schema = createRollupDefaultSchema
@@ -197,5 +197,3 @@ export const execute = async (input: z.output<typeof schema>) => {
     tokenBridgeContracts,
   };
 };
-
-runScript(schema, execute);

@@ -9,7 +9,7 @@ import {
   toHex,
   zeroAddress,
 } from 'viem';
-import { runScript } from '../scriptUtils';
+
 import { addressSchema, bigintSchema, privateKeySchema } from '../schemas/common';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
@@ -278,5 +278,3 @@ export const execute = async (input: z.output<typeof schema>) => {
     step6TxHash,
   };
 };
-
-runScript(schema, execute);
