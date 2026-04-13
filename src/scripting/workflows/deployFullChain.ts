@@ -21,8 +21,9 @@ import {
   execute as transferOwnershipExecute,
 } from './transferOwnership';
 
-export const inputSchema = createRollupDefaultSchema.extend({
-  params: createRollupDefaultSchema.shape.params.extend({
+export const inputSchema = createRollupDefaultSchema.omit({ params: true }).extend({
+  chainName: z.string(),
+  createRollupParams: createRollupDefaultSchema.shape.params.extend({
     config: paramsV3Dot2Schema.extend({
       chainId: bigintSchema.prefault(() => String(generateChainId())),
       chainConfig: prepareChainConfigParamsSchema.optional(),
@@ -30,24 +31,30 @@ export const inputSchema = createRollupDefaultSchema.extend({
     nativeToken: addressSchema.default(zeroAddress),
     keyset: hexSchema.optional(),
   }),
-  chainName: z.string(),
-  gasOverrides: createTokenBridgeInputSchema.shape.gasOverrides,
-  retryableGasOverrides: createTokenBridgeInputSchema.shape.retryableGasOverrides,
-  tokenBridgeCreatorAddressOverride:
-    createTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
-  newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
-  childUpgradeExecutorAddress: transferOwnershipInputSchema.shape.childUpgradeExecutorAddress,
-  maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
-  refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+  tokenBridgeParams: z
+    .object({
+      gasOverrides: createTokenBridgeInputSchema.shape.gasOverrides,
+      retryableGasOverrides: createTokenBridgeInputSchema.shape.retryableGasOverrides,
+      tokenBridgeCreatorAddressOverride:
+        createTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
+    })
+    .default({}),
+  ownershipTransferParams: z.object({
+    newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
+    childUpgradeExecutorAddress: transferOwnershipInputSchema.shape.childUpgradeExecutorAddress,
+    maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
+    refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+  }),
 });
 
 export const schema = inputSchema
   .superRefine((data, ctx) => {
-    const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
-    if (data.params.keyset && !isAnytrust) {
+    const isAnytrust =
+      data.createRollupParams.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
+    if (data.createRollupParams.keyset && !isAnytrust) {
       ctx.addIssue({
         code: 'custom',
-        path: ['params', 'keyset'],
+        path: ['createRollupParams', 'keyset'],
         message:
           'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
       });
@@ -62,7 +69,7 @@ export const schema = inputSchema
       config: { chainConfig: chainConfigParams, ...restConfig },
       keyset,
       ...restParams
-    } = input.params;
+    } = input.createRollupParams;
 
     const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
 
@@ -86,13 +93,15 @@ export const schema = inputSchema
       parentChainId: input.parentChainId,
       walletClient,
       chainName: input.chainName,
-      gasOverrides: input.gasOverrides,
-      retryableGasOverrides: input.retryableGasOverrides,
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-      newOwnerAddress: input.newOwnerAddress,
-      childUpgradeExecutorAddress: input.childUpgradeExecutorAddress,
-      maxGasPrice: input.maxGasPrice,
-      refundAddress: input.refundAddress ?? input.newOwnerAddress,
+      gasOverrides: input.tokenBridgeParams.gasOverrides,
+      retryableGasOverrides: input.tokenBridgeParams.retryableGasOverrides,
+      tokenBridgeCreatorAddressOverride: input.tokenBridgeParams.tokenBridgeCreatorAddressOverride,
+      newOwnerAddress: input.ownershipTransferParams.newOwnerAddress,
+      childUpgradeExecutorAddress: input.ownershipTransferParams.childUpgradeExecutorAddress,
+      maxGasPrice: input.ownershipTransferParams.maxGasPrice,
+      refundAddress:
+        input.ownershipTransferParams.refundAddress ??
+        input.ownershipTransferParams.newOwnerAddress,
     };
   });
 

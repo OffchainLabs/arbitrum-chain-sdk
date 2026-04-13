@@ -537,12 +537,12 @@ describe('schema coverage', () => {
 
   it('deployFullChain example', async () => {
     await assertSchemaCoverage(deployFullChainSchema, deployFullChainExecute, mocks, {
-      'params.keyset': (base) => ({
+      'createRollupParams.keyset': (base) => ({
         ...base,
-        params: {
-          ...base.params,
+        createRollupParams: {
+          ...base.createRollupParams,
           config: {
-            ...base.params.config,
+            ...base.createRollupParams.config,
             chainConfig: {
               chainId: 99999,
               arbitrum: {
