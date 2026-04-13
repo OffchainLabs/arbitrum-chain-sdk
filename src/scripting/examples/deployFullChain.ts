@@ -178,19 +178,21 @@ export const execute = async (input: z.output<typeof schema>) => {
   ]);
 
   return {
-    chainId: chainConfig?.chainId ?? 0,
-    parentChainId,
-    parentChainIsArbitrum,
-    chainName,
-    chainConfig,
-    rollup: {
-      rollup: coreContracts.rollup,
-      bridge: coreContracts.bridge,
-      inbox: coreContracts.inbox,
-      sequencerInbox: coreContracts.sequencerInbox,
-      validatorWalletCreator: coreContracts.validatorWalletCreator,
-      stakeToken,
-      deployedAtBlockNumber: coreContracts.deployedAtBlockNumber,
+    chainInfo: {
+      chainId: chainConfig?.chainId ?? 0,
+      parentChainId,
+      parentChainIsArbitrum,
+      chainName,
+      chainConfig,
+      rollup: {
+        rollup: coreContracts.rollup,
+        bridge: coreContracts.bridge,
+        inbox: coreContracts.inbox,
+        sequencerInbox: coreContracts.sequencerInbox,
+        validatorWalletCreator: coreContracts.validatorWalletCreator,
+        stakeToken,
+        deployedAtBlockNumber: coreContracts.deployedAtBlockNumber,
+      },
     },
     tokenBridgeContracts,
   };
