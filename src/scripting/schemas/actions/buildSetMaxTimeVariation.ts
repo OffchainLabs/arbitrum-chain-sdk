@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { toPublicClient, toAccount, findChain } from '../../viemTransforms';
-import { addressSchema, privateKeySchema, sequencerInboxMaxTimeVariationSchema } from '../common';
+import { toPublicClient, findChain } from '../../viemTransforms';
+import { addressSchema, sequencerInboxMaxTimeVariationSchema } from '../common';
 import { buildSetMaxTimeVariation } from '../../../actions/buildSetMaxTimeVariation';
 
 export const buildSetMaxTimeVariationSchema = z.strictObject({
   rpcUrl: z.url(),
   chainId: z.number(),
-  privateKey: privateKeySchema,
+  account: addressSchema,
   upgradeExecutor: addressSchema.optional(),
   sequencerInbox: addressSchema,
   ...sequencerInboxMaxTimeVariationSchema.shape,
@@ -17,7 +17,7 @@ export const buildSetMaxTimeVariationTransform = (
 ): Parameters<typeof buildSetMaxTimeVariation> => [
   toPublicClient(input.rpcUrl, findChain(input.chainId)),
   {
-    account: toAccount(input.privateKey).address,
+    account: input.account,
     upgradeExecutor: input.upgradeExecutor ?? false,
     sequencerInbox: input.sequencerInbox,
     params: {
