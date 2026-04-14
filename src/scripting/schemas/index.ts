@@ -101,6 +101,22 @@ export {
   prepareDeploymentParamsConfigV32Transform,
 } from './createRollupPrepareDeploymentParamsConfig';
 export {
+  createRollupPrepareDeploymentParamsConfigDefaultsSchema,
+  createRollupPrepareDeploymentParamsConfigDefaultsTransform,
+} from './createRollupPrepareDeploymentParamsConfigDefaults';
+export {
+  parentChainIsArbitrumSchema,
+  parentChainIsArbitrumTransform,
+} from './parentChainIsArbitrum';
+export {
+  getConsensusReleaseByVersionSchema,
+  getConsensusReleaseByVersionTransform,
+  getConsensusReleaseByWasmModuleRootSchema,
+  getConsensusReleaseByWasmModuleRootTransform,
+  isKnownWasmModuleRootSchema,
+  isKnownWasmModuleRootTransform,
+} from './wasmModuleRoot';
+export {
   buildSetIsBatchPosterSchema,
   buildSetIsBatchPosterTransform,
   buildSetValidKeysetSchema,

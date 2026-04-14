@@ -93,6 +93,18 @@ import { getDefaultsTransform } from './getDefaults';
 import { createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
 import { fetchAllowanceTransform, fetchDecimalsTransform } from './erc20';
 import { coreContractsSchema, chainConfigSchema } from './common';
+import { parentChainIsArbitrumTransform } from './parentChainIsArbitrum';
+import { parentChainIsArbitrum } from '../../parentChainIsArbitrum';
+import {
+  getConsensusReleaseByVersion,
+  getConsensusReleaseByWasmModuleRoot,
+  isKnownWasmModuleRoot,
+} from '../../wasmModuleRoot';
+import {
+  getConsensusReleaseByVersionTransform,
+  getConsensusReleaseByWasmModuleRootTransform,
+  isKnownWasmModuleRootTransform,
+} from './wasmModuleRoot';
 import {
   buildSetIsBatchPosterTransform,
   buildSetValidKeysetTransform,
@@ -495,4 +507,24 @@ it('isValidKeysetHashTransform output matches isValidKeysetHash params', () =>
 it('getMaxTimeVariationTransform output matches getMaxTimeVariation params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof getMaxTimeVariationTransform>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof getMaxTimeVariation>>
+  >());
+
+it('parentChainIsArbitrumTransform output matches parentChainIsArbitrum params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof parentChainIsArbitrumTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof parentChainIsArbitrum>>
+  >());
+
+it('getConsensusReleaseByVersionTransform output matches getConsensusReleaseByVersion params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof getConsensusReleaseByVersionTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getConsensusReleaseByVersion>>>());
+
+it('getConsensusReleaseByWasmModuleRootTransform output matches getConsensusReleaseByWasmModuleRoot params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof getConsensusReleaseByWasmModuleRootTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getConsensusReleaseByWasmModuleRoot>>>());
+
+it('isKnownWasmModuleRootTransform output matches isKnownWasmModuleRoot params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof isKnownWasmModuleRootTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isKnownWasmModuleRoot>>
   >());
