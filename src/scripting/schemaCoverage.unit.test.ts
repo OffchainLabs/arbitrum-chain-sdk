@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import { mocks, assertSchemaCoverage } from './schemaCoverage';
 
 import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
@@ -134,13 +134,27 @@ import { prepareNodeConfig } from '../prepareNodeConfig';
 import { getDefaultsSchema, getDefaultsTransform } from './schemas/getDefaults';
 import { getDefaultConfirmPeriodBlocks } from '../getDefaultConfirmPeriodBlocks';
 import {
+  buildSetAllowListSchema,
+  buildSetAllowListTransform,
+  buildSetAllowListEnabledSchema,
+  buildSetAllowListEnabledTransform,
   isAllowListEnabledSchema,
   isAllowListEnabledTransform,
   isAllowedSchema,
   isAllowedTransform,
 } from './schemas/actions';
+import { buildSetAllowList } from '../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../actions/buildSetAllowListEnabled';
 import { isAllowListEnabled } from '../actions/isAllowListEnabled';
 import { isAllowed } from '../actions/isAllowed';
+
+vi.mock('../types/ParentChain', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../types/ParentChain')>();
+  return {
+    ...original,
+    validateParentChain: () => ({ chainId: 1, isCustom: false }),
+  };
+});
 
 import {
   schema as createRollupExampleSchema,
@@ -522,12 +536,21 @@ describe('schema coverage', () => {
     });
   });
 
-  // buildSetAllowList and buildSetAllowListEnabled are not covered here.
-  // The build* action transforms extract toAccount(pk).address, which the
-  // mock collapses to a fixed hex -- the coverage framework can't detect
-  // the privateKey -> account mapping. This affects all build* actions,
-  // not just these. The type tests in schemas.type.test.ts verify the
-  // transform types are correct.
+  it('buildSetAllowList', async () => {
+    await assertSchemaCoverage(
+      buildSetAllowListSchema.transform(buildSetAllowListTransform),
+      buildSetAllowList,
+      mocks,
+    );
+  });
+
+  it('buildSetAllowListEnabled', async () => {
+    await assertSchemaCoverage(
+      buildSetAllowListEnabledSchema.transform(buildSetAllowListEnabledTransform),
+      buildSetAllowListEnabled,
+      mocks,
+    );
+  });
 
   it('isAllowListEnabled', async () => {
     await assertSchemaCoverage(

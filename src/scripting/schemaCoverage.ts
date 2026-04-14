@@ -54,13 +54,29 @@ const _mocks = vi.hoisted(() => {
   const validHex = (bytes: number) => '0x' + (++hexCounter).toString(16).padStart(bytes * 2, '0');
   const calls: unknown[] = [];
 
+  // Deterministic hex derived from a string, so the same name always
+  // produces the same address. This lets the coverage framework detect
+  // that changing an input (e.g. privateKey) flows through to a
+  // different .address value on the resulting tracked object.
+  function deterministicHex(seed: string, bytes: number): `0x${string}` {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (hash * 31 + seed.charCodeAt(i)) | 0;
+    }
+    return ('0x' +
+      Math.abs(hash)
+        .toString(16)
+        .padStart(bytes * 2, '0')
+        .slice(0, bytes * 2)) as `0x${string}`;
+  }
+
   function trackedObject(name: string): any {
     return new Proxy(Object.create(null), {
       get(_, prop) {
         if (prop === 'then') return undefined;
         if (prop === Symbol.toPrimitive) return () => validHex(20);
         if (prop === 'toJSON') return () => ({ _tracked: name });
-        if (prop === 'address') return validHex(20);
+        if (prop === 'address') return deterministicHex(name, 20);
         if (prop === 'chain') return { _tracked: `${name}.chain` };
         const method = String(prop);
         return (...args: unknown[]) => {
