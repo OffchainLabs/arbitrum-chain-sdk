@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { toPublicClient, toAccount, findChain } from '../../viemTransforms';
-import { addressSchema, bigintSchema, privateKeySchema, gasOptionsSchema } from '../common';
+import { toPublicClient, findChain } from '../../viemTransforms';
+import { addressSchema, bigintSchema, gasOptionsSchema } from '../common';
 import { buildScheduleArbOSUpgrade } from '../../../actions/buildScheduleArbOSUpgrade';
 
 export const buildScheduleArbOSUpgradeSchema = z.strictObject({
   rpcUrl: z.url(),
   chainId: z.number(),
-  privateKey: privateKeySchema,
+  account: addressSchema,
   upgradeExecutor: addressSchema.optional(),
   newVersion: bigintSchema,
   timestamp: bigintSchema,
@@ -22,7 +22,7 @@ export const buildScheduleArbOSUpgradeTransform = (
 ): Parameters<typeof buildScheduleArbOSUpgrade> => [
   toPublicClient(input.rpcUrl, findChain(input.chainId)),
   {
-    account: toAccount(input.privateKey).address,
+    account: input.account,
     upgradeExecutor: input.upgradeExecutor ?? false,
     args: [input.newVersion, input.timestamp],
     ...(input.gasOverrides && { gasOverrides: input.gasOverrides }),
