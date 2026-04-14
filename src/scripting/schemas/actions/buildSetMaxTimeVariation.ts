@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { toPublicClient, toAccount, findChain } from '../../viemTransforms';
-import {
-  addressSchema,
-  privateKeySchema,
-  sequencerInboxMaxTimeVariationSchema,
-} from '../common';
+import { addressSchema, privateKeySchema, sequencerInboxMaxTimeVariationSchema } from '../common';
 import { buildSetMaxTimeVariation } from '../../../actions/buildSetMaxTimeVariation';
 
 export const buildSetMaxTimeVariationSchema = z.strictObject({

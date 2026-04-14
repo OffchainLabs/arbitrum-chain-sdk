@@ -2,10 +2,7 @@ export {
   buildSetIsBatchPosterSchema,
   buildSetIsBatchPosterTransform,
 } from './buildSetIsBatchPoster';
-export {
-  buildSetValidKeysetSchema,
-  buildSetValidKeysetTransform,
-} from './buildSetValidKeyset';
+export { buildSetValidKeysetSchema, buildSetValidKeysetTransform } from './buildSetValidKeyset';
 export {
   buildInvalidateKeysetHashSchema,
   buildInvalidateKeysetHashTransform,

@@ -485,9 +485,9 @@ it('buildInvalidateKeysetHashTransform output matches buildInvalidateKeysetHash 
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildInvalidateKeysetHash>>>());
 
 it('buildSetMaxTimeVariationTransform output matches buildSetMaxTimeVariation params', () =>
-  expectTypeOf<
-    DeepNormalize<ReturnType<typeof buildSetMaxTimeVariationTransform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildSetMaxTimeVariation>>>());
+  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetMaxTimeVariationTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetMaxTimeVariation>>
+  >());
 
 it('buildScheduleArbOSUpgradeTransform output matches buildScheduleArbOSUpgrade params', () =>
   expectTypeOf<
