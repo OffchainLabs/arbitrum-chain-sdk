@@ -1,5 +1,5 @@
 import { Chain, PublicClient, ReadContractReturnType, Transport } from 'viem';
-import { absInboxABI } from '../contracts/AbsInbox';
+import { inboxABI } from '../contracts/Inbox';
 import { ActionParameters } from '../types/Actions';
 
 export type IsAllowListEnabledParameters<Curried extends boolean = false> = ActionParameters<
@@ -9,7 +9,7 @@ export type IsAllowListEnabledParameters<Curried extends boolean = false> = Acti
 >;
 
 export type IsAllowListEnabledReturnType = ReadContractReturnType<
-  typeof absInboxABI,
+  typeof inboxABI,
   'allowListEnabled'
 >;
 
@@ -18,7 +18,7 @@ export async function isAllowListEnabled<TChain extends Chain | undefined>(
   { inbox }: IsAllowListEnabledParameters,
 ): Promise<IsAllowListEnabledReturnType> {
   return client.readContract({
-    abi: absInboxABI,
+    abi: inboxABI,
     functionName: 'allowListEnabled',
     address: inbox,
   });

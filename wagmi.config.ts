@@ -181,6 +181,34 @@ const contracts: ContractConfig[] = [
     address: '0x68FF3d308F3a9Bc321c499eeE85c897D4B351f64',
   },
   {
+    name: 'Inbox',
+    version: '1.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xb2df7e9658eceb2c94567ad537a34892e093ce06f3d4234a9899b4315167cb71
+    address: '0x8071cf82cd661569065331cb50ac6883f07acb14',
+  },
+  {
+    name: 'Inbox',
+    version: '2.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x72d481d03556fb831b505cf7d9695bd7da96fce2c4a282868be0384d580e6902
+    address: '0x7d9f32d56a8c5e2fb0ed34f0f4c947063f8dcc32',
+  },
+  {
+    name: 'Inbox',
+    version: '3.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x20c5ef96d3d30c252ce9e6b76b25ffcbb44dfc2564d9e17179ecceef09272ee2
+    address: '0x19cbaa10cc559d40555028442e142cb0f18f1604',
+  },
+  {
+    name: 'Inbox',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x2529cdc3ce14e6881ae03f144b7a05a68b0e97d4',
+  },
+  {
     name: 'ArbOwner',
     address: '0x0000000000000000000000000000000000000070',
   },

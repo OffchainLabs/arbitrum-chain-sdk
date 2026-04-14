@@ -1,5 +1,5 @@
 import { Chain, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
-import { absInboxABI } from '../contracts/AbsInbox';
+import { inboxABI } from '../contracts/Inbox';
 import {
   ActionParameters,
   PrepareTransactionRequestReturnTypeWithChainId,
@@ -33,7 +33,7 @@ export async function buildSetAllowListEnabled<TChain extends Chain | undefined>
       to: inboxAddress,
       upgradeExecutor,
       args: [params.enabled],
-      abi: absInboxABI,
+      abi: inboxABI,
       functionName: 'setAllowListEnabled',
     }),
   } satisfies PrepareTransactionRequestParameters);
