@@ -41,6 +41,15 @@ import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRol
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 
+import { buildSetIsBatchPoster } from '../../actions/buildSetIsBatchPoster';
+import { buildSetValidKeyset } from '../../actions/buildSetValidKeyset';
+import { buildInvalidateKeysetHash } from '../../actions/buildInvalidateKeysetHash';
+import { buildSetMaxTimeVariation } from '../../actions/buildSetMaxTimeVariation';
+import { buildScheduleArbOSUpgrade } from '../../actions/buildScheduleArbOSUpgrade';
+import { isBatchPoster } from '../../actions/isBatchPoster';
+import { isValidKeysetHash } from '../../actions/isValidKeysetHash';
+import { getMaxTimeVariation } from '../../actions/getMaxTimeVariation';
+
 import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
 import { createTokenBridgeTransform } from './createTokenBridge';
@@ -84,6 +93,16 @@ import { getDefaultsTransform } from './getDefaults';
 import { createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
 import { fetchAllowanceTransform, fetchDecimalsTransform } from './erc20';
 import { coreContractsSchema, chainConfigSchema } from './common';
+import {
+  buildSetIsBatchPosterTransform,
+  buildSetValidKeysetTransform,
+  buildInvalidateKeysetHashTransform,
+  buildSetMaxTimeVariationTransform,
+  buildScheduleArbOSUpgradeTransform,
+  isBatchPosterTransform,
+  isValidKeysetHashTransform,
+  getMaxTimeVariationTransform,
+} from './actions';
 
 // DeepNormalize<T>
 //
@@ -436,4 +455,44 @@ it('fetchAllowanceTransform output matches fetchAllowance params', () =>
 it('fetchDecimalsTransform output matches fetchDecimals params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof fetchDecimalsTransform>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof fetchDecimals>>
+  >());
+
+it('buildSetIsBatchPosterTransform output matches buildSetIsBatchPoster params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetIsBatchPosterTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetIsBatchPoster>>
+  >());
+
+it('buildSetValidKeysetTransform output matches buildSetValidKeyset params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetValidKeysetTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetValidKeyset>>
+  >());
+
+it('buildInvalidateKeysetHashTransform output matches buildInvalidateKeysetHash params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof buildInvalidateKeysetHashTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildInvalidateKeysetHash>>>());
+
+it('buildSetMaxTimeVariationTransform output matches buildSetMaxTimeVariation params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof buildSetMaxTimeVariationTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildSetMaxTimeVariation>>>());
+
+it('buildScheduleArbOSUpgradeTransform output matches buildScheduleArbOSUpgrade params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof buildScheduleArbOSUpgradeTransform>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildScheduleArbOSUpgrade>>>());
+
+it('isBatchPosterTransform output matches isBatchPoster params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof isBatchPosterTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isBatchPoster>>
+  >());
+
+it('isValidKeysetHashTransform output matches isValidKeysetHash params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof isValidKeysetHashTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isValidKeysetHash>>
+  >());
+
+it('getMaxTimeVariationTransform output matches getMaxTimeVariation params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof getMaxTimeVariationTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getMaxTimeVariation>>
   >());
