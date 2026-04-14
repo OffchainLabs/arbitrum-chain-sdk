@@ -71,6 +71,32 @@ import {
   fetchAllowanceTransform,
   fetchDecimalsSchema,
   fetchDecimalsTransform,
+  buildSetIsBatchPosterSchema,
+  buildSetIsBatchPosterTransform,
+  buildSetValidKeysetSchema,
+  buildSetValidKeysetTransform,
+  buildInvalidateKeysetHashSchema,
+  buildInvalidateKeysetHashTransform,
+  buildSetMaxTimeVariationSchema,
+  buildSetMaxTimeVariationTransform,
+  buildScheduleArbOSUpgradeSchema,
+  buildScheduleArbOSUpgradeTransform,
+  isBatchPosterSchema,
+  isBatchPosterTransform,
+  isValidKeysetHashSchema,
+  isValidKeysetHashTransform,
+  getMaxTimeVariationSchema,
+  getMaxTimeVariationTransform,
+  createRollupPrepareDeploymentParamsConfigDefaultsSchema,
+  createRollupPrepareDeploymentParamsConfigDefaultsTransform,
+  parentChainIsArbitrumSchema,
+  parentChainIsArbitrumTransform,
+  getConsensusReleaseByVersionSchema,
+  getConsensusReleaseByVersionTransform,
+  getConsensusReleaseByWasmModuleRootSchema,
+  getConsensusReleaseByWasmModuleRootTransform,
+  isKnownWasmModuleRootSchema,
+  isKnownWasmModuleRootTransform,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -111,6 +137,21 @@ import { getDefaultMinimumAssertionPeriod } from '../getDefaultMinimumAssertionP
 import { getDefaultValidatorAfkBlocks } from '../getDefaultValidatorAfkBlocks';
 import { getDefaultSequencerInboxMaxTimeVariation } from '../getDefaultSequencerInboxMaxTimeVariation';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
+import { buildSetIsBatchPoster } from '../actions/buildSetIsBatchPoster';
+import { buildSetValidKeyset } from '../actions/buildSetValidKeyset';
+import { buildInvalidateKeysetHash } from '../actions/buildInvalidateKeysetHash';
+import { buildSetMaxTimeVariation } from '../actions/buildSetMaxTimeVariation';
+import { buildScheduleArbOSUpgrade } from '../actions/buildScheduleArbOSUpgrade';
+import { isBatchPoster } from '../actions/isBatchPoster';
+import { isValidKeysetHash } from '../actions/isValidKeysetHash';
+import { getMaxTimeVariation } from '../actions/getMaxTimeVariation';
+import { createRollupPrepareDeploymentParamsConfigDefaults } from '../createRollupPrepareDeploymentParamsConfigDefaults';
+import { parentChainIsArbitrum } from '../parentChainIsArbitrum';
+import {
+  getConsensusReleaseByVersion,
+  getConsensusReleaseByWasmModuleRoot,
+  isKnownWasmModuleRoot,
+} from '../wasmModuleRoot';
 
 import {
   schema as deployNewChainSchema,
@@ -302,4 +343,61 @@ runCli('chain-sdk', {
   ),
   transferOwnership: cmd(transferOwnershipSchema.transform(toTuple), transferOwnership),
   deployFullChain: cmd(deployFullChainSchema.transform(toTuple), deployFullChain),
+
+  buildSetIsBatchPoster: cmd(
+    buildSetIsBatchPosterSchema.transform(buildSetIsBatchPosterTransform),
+    buildSetIsBatchPoster,
+  ),
+  buildSetValidKeyset: cmd(
+    buildSetValidKeysetSchema.transform(buildSetValidKeysetTransform),
+    buildSetValidKeyset,
+  ),
+  buildInvalidateKeysetHash: cmd(
+    buildInvalidateKeysetHashSchema.transform(buildInvalidateKeysetHashTransform),
+    buildInvalidateKeysetHash,
+  ),
+  buildSetMaxTimeVariation: cmd(
+    buildSetMaxTimeVariationSchema.transform(buildSetMaxTimeVariationTransform),
+    buildSetMaxTimeVariation,
+  ),
+  buildScheduleArbOSUpgrade: cmd(
+    buildScheduleArbOSUpgradeSchema.transform(buildScheduleArbOSUpgradeTransform),
+    buildScheduleArbOSUpgrade,
+  ),
+  isBatchPoster: cmd(isBatchPosterSchema.transform(isBatchPosterTransform), isBatchPoster),
+  isValidKeysetHash: cmd(
+    isValidKeysetHashSchema.transform(isValidKeysetHashTransform),
+    isValidKeysetHash,
+  ),
+  getMaxTimeVariation: cmd(
+    getMaxTimeVariationSchema.transform(getMaxTimeVariationTransform),
+    getMaxTimeVariation,
+  ),
+
+  createRollupPrepareDeploymentParamsConfigDefaults: cmd(
+    createRollupPrepareDeploymentParamsConfigDefaultsSchema.transform(
+      createRollupPrepareDeploymentParamsConfigDefaultsTransform,
+    ),
+    createRollupPrepareDeploymentParamsConfigDefaults as (
+      version?: 'v2.1' | 'v3.2',
+    ) => ReturnType<typeof createRollupPrepareDeploymentParamsConfigDefaults>,
+  ),
+  parentChainIsArbitrum: cmd(
+    parentChainIsArbitrumSchema.transform(parentChainIsArbitrumTransform),
+    parentChainIsArbitrum,
+  ),
+  getConsensusReleaseByVersion: cmd(
+    getConsensusReleaseByVersionSchema.transform(getConsensusReleaseByVersionTransform),
+    getConsensusReleaseByVersion,
+  ),
+  getConsensusReleaseByWasmModuleRoot: cmd(
+    getConsensusReleaseByWasmModuleRootSchema.transform(
+      getConsensusReleaseByWasmModuleRootTransform,
+    ),
+    getConsensusReleaseByWasmModuleRoot,
+  ),
+  isKnownWasmModuleRoot: cmd(
+    isKnownWasmModuleRootSchema.transform(isKnownWasmModuleRootTransform),
+    isKnownWasmModuleRoot,
+  ),
 });
