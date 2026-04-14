@@ -97,6 +97,14 @@ import {
   getConsensusReleaseByWasmModuleRootTransform,
   isKnownWasmModuleRootSchema,
   isKnownWasmModuleRootTransform,
+  buildSetAllowListSchema,
+  buildSetAllowListTransform,
+  buildSetAllowListEnabledSchema,
+  buildSetAllowListEnabledTransform,
+  isAllowListEnabledSchema,
+  isAllowListEnabledTransform,
+  isAllowedSchema,
+  isAllowedTransform,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -152,6 +160,10 @@ import {
   getConsensusReleaseByWasmModuleRoot,
   isKnownWasmModuleRoot,
 } from '../wasmModuleRoot';
+import { buildSetAllowList } from '../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../actions/buildSetAllowListEnabled';
+import { isAllowListEnabled } from '../actions/isAllowListEnabled';
+import { isAllowed } from '../actions/isAllowed';
 
 runCli('chain-sdk', {
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
@@ -373,4 +385,18 @@ runCli('chain-sdk', {
     isKnownWasmModuleRootSchema.transform(isKnownWasmModuleRootTransform),
     isKnownWasmModuleRoot,
   ),
+
+  buildSetAllowList: cmd(
+    buildSetAllowListSchema.transform(buildSetAllowListTransform),
+    buildSetAllowList,
+  ),
+  buildSetAllowListEnabled: cmd(
+    buildSetAllowListEnabledSchema.transform(buildSetAllowListEnabledTransform),
+    buildSetAllowListEnabled,
+  ),
+  isAllowListEnabled: cmd(
+    isAllowListEnabledSchema.transform(isAllowListEnabledTransform),
+    isAllowListEnabled,
+  ),
+  isAllowed: cmd(isAllowedSchema.transform(isAllowedTransform), isAllowed),
 });

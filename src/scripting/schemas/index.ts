@@ -133,4 +133,12 @@ export {
   isValidKeysetHashTransform,
   getMaxTimeVariationSchema,
   getMaxTimeVariationTransform,
+  buildSetAllowListSchema,
+  buildSetAllowListTransform,
+  buildSetAllowListEnabledSchema,
+  buildSetAllowListEnabledTransform,
+  isAllowListEnabledSchema,
+  isAllowListEnabledTransform,
+  isAllowedSchema,
+  isAllowedTransform,
 } from './actions';

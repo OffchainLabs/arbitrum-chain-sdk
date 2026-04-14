@@ -6,12 +6,13 @@ import {
 import { GetFunctionName } from './types/utils';
 import { sequencerInboxABI } from './contracts/SequencerInbox';
 import { arbOwnerABI } from './contracts/ArbOwner';
+import { absInboxABI } from './contracts/AbsInbox';
 import {
   upgradeExecutorEncodeFunctionData,
   UpgradeExecutorFunctionName,
 } from './upgradeExecutorEncodeFunctionData';
 
-type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI;
+type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI | typeof absInboxABI;
 type FunctionName<TAbi extends ABIs> = GetFunctionName<TAbi>;
 
 type EncodeFunctionDataParameters<

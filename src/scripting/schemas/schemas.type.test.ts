@@ -93,6 +93,16 @@ import { getDefaultsTransform } from './getDefaults';
 import { createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
 import { fetchAllowanceTransform, fetchDecimalsTransform } from './erc20';
 import { coreContractsSchema, chainConfigSchema } from './common';
+import { buildSetAllowList } from '../../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../../actions/buildSetAllowListEnabled';
+import { isAllowListEnabled } from '../../actions/isAllowListEnabled';
+import { isAllowed } from '../../actions/isAllowed';
+import {
+  buildSetAllowListTransform,
+  buildSetAllowListEnabledTransform,
+  isAllowListEnabledTransform,
+  isAllowedTransform,
+} from './actions';
 import { parentChainIsArbitrumTransform } from './parentChainIsArbitrum';
 import { parentChainIsArbitrum } from '../../parentChainIsArbitrum';
 import {
@@ -527,4 +537,24 @@ it('getConsensusReleaseByWasmModuleRootTransform output matches getConsensusRele
 it('isKnownWasmModuleRootTransform output matches isKnownWasmModuleRoot params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof isKnownWasmModuleRootTransform>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof isKnownWasmModuleRoot>>
+  >());
+
+it('buildSetAllowListTransform output matches buildSetAllowList params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetAllowListTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetAllowList>>
+  >());
+
+it('buildSetAllowListEnabledTransform output matches buildSetAllowListEnabled params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetAllowListEnabledTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetAllowListEnabled>>
+  >());
+
+it('isAllowListEnabledTransform output matches isAllowListEnabled params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof isAllowListEnabledTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isAllowListEnabled>>
+  >());
+
+it('isAllowedTransform output matches isAllowed params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof isAllowedTransform>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isAllowed>>
   >());

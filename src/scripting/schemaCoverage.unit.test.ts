@@ -134,6 +134,15 @@ import { prepareNodeConfig } from '../prepareNodeConfig';
 import { getDefaultsSchema, getDefaultsTransform } from './schemas/getDefaults';
 import { getDefaultConfirmPeriodBlocks } from '../getDefaultConfirmPeriodBlocks';
 import {
+  isAllowListEnabledSchema,
+  isAllowListEnabledTransform,
+  isAllowedSchema,
+  isAllowedTransform,
+} from './schemas/actions';
+import { isAllowListEnabled } from '../actions/isAllowListEnabled';
+import { isAllowed } from '../actions/isAllowed';
+
+import {
   schema as createRollupExampleSchema,
   execute as createRollupExecute,
 } from './examples/createRollup';
@@ -511,5 +520,24 @@ describe('schema coverage', () => {
         nativeToken: '0x0000000000000000000000000000000000000000',
       }),
     });
+  });
+
+  // buildSetAllowList and buildSetAllowListEnabled are not covered here.
+  // The build* action transforms extract toAccount(pk).address, which the
+  // mock collapses to a fixed hex -- the coverage framework can't detect
+  // the privateKey -> account mapping. This affects all build* actions,
+  // not just these. The type tests in schemas.type.test.ts verify the
+  // transform types are correct.
+
+  it('isAllowListEnabled', async () => {
+    await assertSchemaCoverage(
+      isAllowListEnabledSchema.transform(isAllowListEnabledTransform),
+      isAllowListEnabled,
+      mocks,
+    );
+  });
+
+  it('isAllowed', async () => {
+    await assertSchemaCoverage(isAllowedSchema.transform(isAllowedTransform), isAllowed, mocks);
   });
 });

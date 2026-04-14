@@ -18,3 +18,10 @@ export {
 export { isBatchPosterSchema, isBatchPosterTransform } from './isBatchPoster';
 export { isValidKeysetHashSchema, isValidKeysetHashTransform } from './isValidKeysetHash';
 export { getMaxTimeVariationSchema, getMaxTimeVariationTransform } from './getMaxTimeVariation';
+export { buildSetAllowListSchema, buildSetAllowListTransform } from './buildSetAllowList';
+export {
+  buildSetAllowListEnabledSchema,
+  buildSetAllowListEnabledTransform,
+} from './buildSetAllowListEnabled';
+export { isAllowListEnabledSchema, isAllowListEnabledTransform } from './isAllowListEnabled';
+export { isAllowedSchema, isAllowedTransform } from './isAllowed';
