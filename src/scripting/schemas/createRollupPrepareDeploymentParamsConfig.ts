@@ -51,15 +51,13 @@ export const paramsV2Dot1Schema = z.object({
   sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema.optional(),
 });
 
-const commonFieldsSchema = parentChainPublicClientSchema;
+export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSchema
+  .extend(paramsV2Dot1Schema.shape)
+  .strict();
 
-export const prepareDeploymentParamsConfigV21Schema = z.strictObject(
-  commonFieldsSchema.extend(paramsV2Dot1Schema.shape).shape,
-);
-
-export const prepareDeploymentParamsConfigV32Schema = z.strictObject(
-  commonFieldsSchema.extend(paramsV3Dot2Schema.shape).shape,
-);
+export const prepareDeploymentParamsConfigV32Schema = parentChainPublicClientSchema
+  .extend(paramsV3Dot2Schema.shape)
+  .strict();
 
 export const prepareDeploymentParamsConfigV21Transform = (
   input: z.output<typeof prepareDeploymentParamsConfigV21Schema>,
