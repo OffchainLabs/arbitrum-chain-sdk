@@ -1,21 +1,19 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema, bigintSchema, gasOptionsSchema } from '../common';
+import { bigintSchema, gasOptionsSchema, actionWriteBaseSchema } from '../common';
 import { buildScheduleArbOSUpgrade } from '../../../actions/buildScheduleArbOSUpgrade';
 
-export const buildScheduleArbOSUpgradeSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-  newVersion: bigintSchema,
-  timestamp: bigintSchema,
-  gasOverrides: z
-    .object({
-      gasLimit: gasOptionsSchema.optional(),
-    })
-    .optional(),
-});
+export const buildScheduleArbOSUpgradeSchema = actionWriteBaseSchema
+  .extend({
+    newVersion: bigintSchema,
+    timestamp: bigintSchema,
+    gasOverrides: z
+      .object({
+        gasLimit: gasOptionsSchema.optional(),
+      })
+      .optional(),
+  })
+  .strict();
 
 export const buildScheduleArbOSUpgradeTransform = (
   input: z.output<typeof buildScheduleArbOSUpgradeSchema>,

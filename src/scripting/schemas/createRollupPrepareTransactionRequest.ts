@@ -1,13 +1,11 @@
 import { z } from 'zod';
 import { Chain } from 'viem';
-import { toPublicClient, findChain } from '../viemTransforms';
+import { withPublicClient } from '../viemTransforms';
 import { CreateRollupPrepareTransactionRequestParams } from '../../createRollupPrepareTransactionRequest';
-import { addressSchema, bigintSchema, gasLimitSchema } from './common';
+import { addressSchema, bigintSchema, gasLimitSchema, publicClientSchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
-const commonFieldsSchema = z.object({
-  rpcUrl: z.url(),
-  chainId: z.number(),
+const commonFieldsSchema = publicClientSchema.extend({
   account: addressSchema,
   value: bigintSchema.optional(),
   gasOverrides: gasLimitSchema.optional(),
@@ -53,22 +51,19 @@ type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
 const transformV21 = (
   input: z.output<typeof createRollupPrepareTransactionRequestV21Schema>,
 ): Params<'v2.1'> => {
-  const { rpcUrl, chainId, ...rest } = input;
-  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+  return [withPublicClient(input)];
 };
 
 const transformV32 = (
   input: z.output<typeof createRollupPrepareTransactionRequestV32Schema>,
 ): Params<'v3.2'> => {
-  const { rpcUrl, chainId, ...rest } = input;
-  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+  return [withPublicClient(input)];
 };
 
 const transformDefault = (
   input: z.output<typeof createRollupPrepareTransactionRequestDefaultSchema>,
 ): Params<undefined> => {
-  const { rpcUrl, chainId, ...rest } = input;
-  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+  return [withPublicClient(input)];
 };
 
 export const createRollupPrepareTransactionRequestTransform = (

@@ -1,16 +1,18 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema, sequencerInboxMaxTimeVariationSchema } from '../common';
+import {
+  addressSchema,
+  sequencerInboxMaxTimeVariationSchema,
+  actionWriteBaseSchema,
+} from '../common';
 import { buildSetMaxTimeVariation } from '../../../actions/buildSetMaxTimeVariation';
 
-export const buildSetMaxTimeVariationSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-  sequencerInbox: addressSchema,
-  ...sequencerInboxMaxTimeVariationSchema.shape,
-});
+export const buildSetMaxTimeVariationSchema = actionWriteBaseSchema
+  .extend({
+    sequencerInbox: addressSchema,
+    ...sequencerInboxMaxTimeVariationSchema.shape,
+  })
+  .strict();
 
 export const buildSetMaxTimeVariationTransform = (
   input: z.output<typeof buildSetMaxTimeVariationSchema>,

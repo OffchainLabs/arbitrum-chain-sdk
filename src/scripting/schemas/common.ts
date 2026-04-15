@@ -10,6 +10,21 @@ export const addressSchema = z
   .regex(/^0x[0-9a-fA-F]{40}$/, 'Invalid Ethereum address')
   .transform((val) => val as `0x${string}`);
 
+export const publicClientSchema = z.object({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+});
+
+export const parentChainPublicClientSchema = z.object({
+  parentChainRpcUrl: z.url(),
+  parentChainId: z.number(),
+});
+
+export const actionWriteBaseSchema = publicClientSchema.extend({
+  account: addressSchema,
+  upgradeExecutor: addressSchema.optional(),
+});
+
 export const privateKeySchema = z
   .string()
   .regex(/^0x[0-9a-fA-F]{64}$/, 'Invalid private key')

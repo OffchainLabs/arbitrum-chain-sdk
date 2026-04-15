@@ -1,16 +1,16 @@
 import { z } from 'zod';
 import { toPublicClient, toAccount, findChain } from '../viemTransforms';
-import { addressSchema, privateKeySchema } from './common';
+import { addressSchema, privateKeySchema, publicClientSchema } from './common';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
 
-export const setAnyTrustFastConfirmerSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  privateKey: privateKeySchema,
-  rollup: addressSchema,
-  upgradeExecutor: addressSchema,
-  fastConfirmer: addressSchema,
-});
+export const setAnyTrustFastConfirmerSchema = publicClientSchema
+  .extend({
+    privateKey: privateKeySchema,
+    rollup: addressSchema,
+    upgradeExecutor: addressSchema,
+    fastConfirmer: addressSchema,
+  })
+  .strict();
 
 export const setAnyTrustFastConfirmerTransform = (
   input: z.output<typeof setAnyTrustFastConfirmerSchema>,

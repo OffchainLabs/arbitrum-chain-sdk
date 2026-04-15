@@ -3,6 +3,7 @@ import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import {
   addressSchema,
   bigintSchema,
+  parentChainPublicClientSchema,
   privateKeySchema,
   gasLimitSchema,
   tokenBridgeRetryableGasOverridesSchema,
@@ -10,20 +11,20 @@ import {
 } from './common';
 import { createTokenBridge } from '../../createTokenBridge';
 
-export const createTokenBridgeSchema = z.strictObject({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-  orbitChainRpcUrl: z.url(),
-  privateKey: privateKeySchema,
-  rollupOwner: addressSchema,
-  rollupAddress: addressSchema,
-  rollupDeploymentBlockNumber: bigintSchema.optional(),
-  nativeTokenAddress: addressSchema.optional(),
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-  gasOverrides: gasLimitSchema.optional(),
-  retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
-  setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
-});
+export const createTokenBridgeSchema = parentChainPublicClientSchema
+  .extend({
+    orbitChainRpcUrl: z.url(),
+    privateKey: privateKeySchema,
+    rollupOwner: addressSchema,
+    rollupAddress: addressSchema,
+    rollupDeploymentBlockNumber: bigintSchema.optional(),
+    nativeTokenAddress: addressSchema.optional(),
+    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+    gasOverrides: gasLimitSchema.optional(),
+    retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
+    setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
+  })
+  .strict();
 
 export const createTokenBridgeTransform = (
   input: z.output<typeof createTokenBridgeSchema>,

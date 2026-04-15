@@ -1,14 +1,14 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema, bigintSchema } from './common';
+import { addressSchema, bigintSchema, publicClientSchema } from './common';
 import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContracts';
 
-export const createRollupFetchCoreContractsSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  rollup: addressSchema,
-  rollupDeploymentBlockNumber: bigintSchema.optional(),
-});
+export const createRollupFetchCoreContractsSchema = publicClientSchema
+  .extend({
+    rollup: addressSchema,
+    rollupDeploymentBlockNumber: bigintSchema.optional(),
+  })
+  .strict();
 
 export const createRollupFetchCoreContractsTransform = (
   input: z.output<typeof createRollupFetchCoreContractsSchema>,
