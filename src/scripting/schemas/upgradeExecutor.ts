@@ -1,29 +1,29 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema } from './common';
+import { toPublicClient, findChain, withPublicClient } from '../viemTransforms';
+import { addressSchema, publicClientSchema } from './common';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../../upgradeExecutorFetchPrivilegedAccounts';
 
-export const upgradeExecutorPrepareTransactionRequestSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutorAddress: addressSchema,
-  executorAccountAddress: addressSchema,
-});
+export const upgradeExecutorPrepareTransactionRequestSchema = publicClientSchema
+  .extend({
+    account: addressSchema,
+    upgradeExecutorAddress: addressSchema,
+    executorAccountAddress: addressSchema,
+  })
+  .strict();
 
 export const upgradeExecutorPrepareTransactionRequestTransform = (
   input: z.output<typeof upgradeExecutorPrepareTransactionRequestSchema>,
 ): Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest> => {
-  const { rpcUrl, chainId, ...rest } = input;
-  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+  return [withPublicClient(input)];
 };
 
-export const upgradeExecutorFetchPrivilegedAccountsSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number().optional(),
-  upgradeExecutorAddress: addressSchema,
-});
+export const upgradeExecutorFetchPrivilegedAccountsSchema = publicClientSchema
+  .extend({
+    chainId: z.number().optional(),
+    upgradeExecutorAddress: addressSchema,
+  })
+  .strict();
 
 export const upgradeExecutorFetchPrivilegedAccountsTransform = (
   input: z.output<typeof upgradeExecutorFetchPrivilegedAccountsSchema>,

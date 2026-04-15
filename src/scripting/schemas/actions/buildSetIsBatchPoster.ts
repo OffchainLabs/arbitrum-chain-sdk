@@ -1,17 +1,15 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema } from '../common';
+import { addressSchema, actionWriteBaseSchema } from '../common';
 import { buildSetIsBatchPoster } from '../../../actions/buildSetIsBatchPoster';
 
-export const buildSetIsBatchPosterSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-  sequencerInbox: addressSchema,
-  batchPoster: addressSchema,
-  enable: z.boolean(),
-});
+export const buildSetIsBatchPosterSchema = actionWriteBaseSchema
+  .extend({
+    sequencerInbox: addressSchema,
+    batchPoster: addressSchema,
+    enable: z.boolean(),
+  })
+  .strict();
 
 export const buildSetIsBatchPosterTransform = (
   input: z.output<typeof buildSetIsBatchPosterSchema>,

@@ -1,17 +1,23 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema, bigintSchema, setWethGatewayGasOverridesSchema } from './common';
+import {
+  addressSchema,
+  bigintSchema,
+  parentChainPublicClientSchema,
+  setWethGatewayGasOverridesSchema,
+} from './common';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema = z.strictObject({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-  account: addressSchema,
-  rollup: addressSchema,
-  rollupDeploymentBlockNumber: bigintSchema.optional(),
-  retryableGasOverrides: setWethGatewayGasOverridesSchema.optional(),
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
+export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema =
+  parentChainPublicClientSchema
+    .extend({
+      account: addressSchema,
+      rollup: addressSchema,
+      rollupDeploymentBlockNumber: bigintSchema.optional(),
+      retryableGasOverrides: setWethGatewayGasOverridesSchema.optional(),
+      tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+    })
+    .strict();
 
 export const createTokenBridgePrepareSetWethGatewayTransactionRequestTransform = (
   input: z.output<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestSchema>,

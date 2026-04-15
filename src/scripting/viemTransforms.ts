@@ -20,6 +20,11 @@ export function toPublicClient<TChain extends Chain | undefined = undefined>(
   return createPublicClient({ chain, transport: http(rpcUrl) });
 }
 
+export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(input: T) {
+  const { rpcUrl, chainId, ...rest } = input;
+  return { publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest };
+}
+
 export function toAccount(privateKey: string) {
   return privateKeyToAccount(sanitizePrivateKey(privateKey));
 }

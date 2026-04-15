@@ -4,6 +4,7 @@ import {
   addressSchema,
   hexSchema,
   bigintSchema,
+  parentChainPublicClientSchema,
   sequencerInboxMaxTimeVariationSchema,
   bufferConfigSchema,
   assertionStateSchema,
@@ -50,10 +51,7 @@ export const paramsV2Dot1Schema = z.object({
   sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema.optional(),
 });
 
-const commonFieldsSchema = z.object({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-});
+const commonFieldsSchema = parentChainPublicClientSchema;
 
 export const prepareDeploymentParamsConfigV21Schema = z.strictObject(
   commonFieldsSchema.extend(paramsV2Dot1Schema.shape).shape,

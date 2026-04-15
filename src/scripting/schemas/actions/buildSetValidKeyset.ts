@@ -1,16 +1,14 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema, hexSchema } from '../common';
+import { addressSchema, hexSchema, actionWriteBaseSchema } from '../common';
 import { buildSetValidKeyset } from '../../../actions/buildSetValidKeyset';
 
-export const buildSetValidKeysetSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-  sequencerInbox: addressSchema,
-  keyset: hexSchema,
-});
+export const buildSetValidKeysetSchema = actionWriteBaseSchema
+  .extend({
+    sequencerInbox: addressSchema,
+    keyset: hexSchema,
+  })
+  .strict();
 
 export const buildSetValidKeysetTransform = (
   input: z.output<typeof buildSetValidKeysetSchema>,

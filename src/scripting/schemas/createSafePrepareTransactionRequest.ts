@@ -1,16 +1,16 @@
 import { z } from 'zod';
 import { toPublicClient, toAccount, findChain } from '../viemTransforms';
-import { addressSchema, bigintSchema, privateKeySchema } from './common';
+import { addressSchema, bigintSchema, privateKeySchema, publicClientSchema } from './common';
 import { createSafePrepareTransactionRequest } from '../../createSafePrepareTransactionRequest';
 
-export const createSafePrepareTransactionRequestSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  privateKey: privateKeySchema,
-  owners: z.array(addressSchema),
-  threshold: z.number(),
-  saltNonce: bigintSchema.optional(),
-});
+export const createSafePrepareTransactionRequestSchema = publicClientSchema
+  .extend({
+    privateKey: privateKeySchema,
+    owners: z.array(addressSchema),
+    threshold: z.number(),
+    saltNonce: bigintSchema.optional(),
+  })
+  .strict();
 
 export const createSafePrepareTransactionRequestTransform = (
   input: z.output<typeof createSafePrepareTransactionRequestSchema>,

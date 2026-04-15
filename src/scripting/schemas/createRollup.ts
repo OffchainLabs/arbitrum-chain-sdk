@@ -2,12 +2,10 @@ import { z } from 'zod';
 import { Chain } from 'viem';
 import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import { CreateRollupFunctionParams } from '../../createRollup';
-import { privateKeySchema } from './common';
+import { parentChainPublicClientSchema, privateKeySchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
-const commonFieldsSchema = z.object({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
+const commonFieldsSchema = parentChainPublicClientSchema.extend({
   privateKey: privateKeySchema,
 });
 

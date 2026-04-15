@@ -1,20 +1,25 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema, gasLimitSchema, tokenBridgeRetryableGasOverridesSchema } from './common';
+import {
+  addressSchema,
+  gasLimitSchema,
+  parentChainPublicClientSchema,
+  tokenBridgeRetryableGasOverridesSchema,
+} from './common';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 
-export const createTokenBridgePrepareTransactionRequestSchema = z.strictObject({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-  account: addressSchema,
-  params: z.object({
-    rollup: addressSchema,
-    rollupOwner: addressSchema,
-  }),
-  gasOverrides: gasLimitSchema.optional(),
-  retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
+export const createTokenBridgePrepareTransactionRequestSchema = parentChainPublicClientSchema
+  .extend({
+    account: addressSchema,
+    params: z.object({
+      rollup: addressSchema,
+      rollupOwner: addressSchema,
+    }),
+    gasOverrides: gasLimitSchema.optional(),
+    retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
+    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+  })
+  .strict();
 
 export const createTokenBridgePrepareTransactionRequestTransform = (
   input: z.output<typeof createTokenBridgePrepareTransactionRequestSchema>,

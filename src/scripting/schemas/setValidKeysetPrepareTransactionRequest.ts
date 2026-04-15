@@ -1,22 +1,21 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema, hexSchema, coreContractsSchema } from './common';
+import { withPublicClient } from '../viemTransforms';
+import { addressSchema, hexSchema, coreContractsSchema, publicClientSchema } from './common';
 import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
 
-export const setValidKeysetPrepareTransactionRequestSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  coreContracts: coreContractsSchema.pick({
-    upgradeExecutor: true,
-    sequencerInbox: true,
-  }),
-  keyset: hexSchema,
-});
+export const setValidKeysetPrepareTransactionRequestSchema = publicClientSchema
+  .extend({
+    account: addressSchema,
+    coreContracts: coreContractsSchema.pick({
+      upgradeExecutor: true,
+      sequencerInbox: true,
+    }),
+    keyset: hexSchema,
+  })
+  .strict();
 
 export const setValidKeysetPrepareTransactionRequestTransform = (
   input: z.output<typeof setValidKeysetPrepareTransactionRequestSchema>,
 ): Parameters<typeof setValidKeysetPrepareTransactionRequest> => {
-  const { rpcUrl, chainId, ...rest } = input;
-  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+  return [withPublicClient(input)];
 };

@@ -1,15 +1,15 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema } from './common';
+import { addressSchema, parentChainPublicClientSchema } from './common';
 import { isTokenBridgeDeployed } from '../../isTokenBridgeDeployed';
 
-export const isTokenBridgeDeployedSchema = z.strictObject({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-  orbitChainRpcUrl: z.url(),
-  rollup: addressSchema,
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
+export const isTokenBridgeDeployedSchema = parentChainPublicClientSchema
+  .extend({
+    orbitChainRpcUrl: z.url(),
+    rollup: addressSchema,
+    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+  })
+  .strict();
 
 export const isTokenBridgeDeployedTransform = (
   input: z.output<typeof isTokenBridgeDeployedSchema>,

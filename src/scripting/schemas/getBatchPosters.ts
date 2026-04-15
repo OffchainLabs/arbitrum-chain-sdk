@@ -1,14 +1,14 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema } from './common';
+import { addressSchema, publicClientSchema } from './common';
 import { getBatchPosters } from '../../getBatchPosters';
 
-export const getBatchPostersSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  rollup: addressSchema,
-  sequencerInbox: addressSchema,
-});
+export const getBatchPostersSchema = publicClientSchema
+  .extend({
+    rollup: addressSchema,
+    sequencerInbox: addressSchema,
+  })
+  .strict();
 
 export const getBatchPostersTransform = (
   input: z.output<typeof getBatchPostersSchema>,

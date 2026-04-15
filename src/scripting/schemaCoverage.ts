@@ -113,14 +113,22 @@ export const mocks = _mocks;
 // which file they appear in, so these mocks are active when the consuming
 // test file's imports resolve.
 
-vi.mock('./viemTransforms', () => ({
-  toPublicClient: (rpcUrl: string, chain: unknown) =>
-    _mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`),
-  findChain: (chainId: number) => ({ _tracked: 'Chain', id: chainId }),
-  toAccount: (pk: string) => _mocks.trackedObject(`Account(${pk})`),
-  toWalletClient: (rpcUrl: string, pk: string, chain: unknown) =>
-    _mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`),
-}));
+vi.mock('./viemTransforms', () => {
+  const toPublicClient = (rpcUrl: string, chain: unknown) =>
+    _mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`);
+  const findChain = (chainId: number) => ({ _tracked: 'Chain', id: chainId });
+  return {
+    toPublicClient,
+    findChain,
+    withPublicClient: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
+      const { rpcUrl, chainId, ...rest } = input;
+      return { publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest };
+    },
+    toAccount: (pk: string) => _mocks.trackedObject(`Account(${pk})`),
+    toWalletClient: (rpcUrl: string, pk: string, chain: unknown) =>
+      _mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`),
+  };
+});
 
 vi.mock('./scriptUtils', () => ({ runScript: () => {} }));
 

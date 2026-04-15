@@ -1,16 +1,16 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
-import { hexSchema } from './common';
+import { hexSchema, parentChainPublicClientSchema } from './common';
 import { getBridgeUiConfig } from '../../getBridgeUiConfig';
 
-export const getBridgeUiConfigSchema = z.strictObject({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-  deploymentTxHash: hexSchema,
-  chainName: z.string().optional(),
-  rpcUrl: z.url().optional(),
-  explorerUrl: z.url().optional(),
-});
+export const getBridgeUiConfigSchema = parentChainPublicClientSchema
+  .extend({
+    deploymentTxHash: hexSchema,
+    chainName: z.string().optional(),
+    rpcUrl: z.url().optional(),
+    explorerUrl: z.url().optional(),
+  })
+  .strict();
 
 export const getBridgeUiConfigTransform = (
   input: z.output<typeof getBridgeUiConfigSchema>,
