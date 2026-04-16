@@ -203,4 +203,48 @@ describe('runDockerCommand', () => {
       'Docker image "offchainlabs/chain-actions" was pulled successfully.',
     );
   });
+
+  it('inserts additional docker run arguments before the image name', async () => {
+    execFileMock
+      .mockImplementationOnce((_file, _args, _options, callback) => {
+        callback(null, '[]', '');
+        return {} as never;
+      })
+      .mockImplementationOnce((_file, _args, _options, callback) => {
+        callback(null, 'ok', '');
+        return {} as never;
+      });
+
+    const result = await runDockerCommand({
+      image: 'offchainlabs/chain-actions',
+      dockerRunArgs: ['--add-host', 'host.docker.internal:host-gateway'],
+      command: ['orbit:contracts:version'],
+    });
+
+    expect(execFileMock).toHaveBeenNthCalledWith(
+      2,
+      'docker',
+      [
+        'run',
+        '--rm',
+        '--add-host',
+        'host.docker.internal:host-gateway',
+        'offchainlabs/chain-actions',
+        'orbit:contracts:version',
+      ],
+      expect.objectContaining({
+        env: process.env,
+      }),
+      expect.any(Function),
+    );
+    expect(result.argv).toEqual([
+      'docker',
+      'run',
+      '--rm',
+      '--add-host',
+      'host.docker.internal:host-gateway',
+      'offchainlabs/chain-actions',
+      'orbit:contracts:version',
+    ]);
+  });
 });
