@@ -1,5 +1,7 @@
+import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain, encodeFunctionData, parseAbi } from 'viem';
 
+import { addressSchema } from './schemas/primitives';
 import { isCustomFeeTokenChain } from './utils/isCustomFeeTokenChain';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { createTokenBridgeFetchTokenBridgeContracts } from './createTokenBridgeFetchTokenBridgeContracts';
@@ -102,6 +104,12 @@ const parentChainGatewayRouterAbi = [
   },
 ];
 
+export const createTokenBridgePrepareSetWethGatewayTransactionRequestParams = z.object({
+  rollup: addressSchema,
+  account: addressSchema,
+  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+});
+
 export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
   TOrbitChain extends Chain | undefined,
@@ -114,6 +122,11 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   retryableGasOverrides,
   tokenBridgeCreatorAddressOverride,
 }: CreateTokenBridgePrepareRegisterWethGatewayTransactionRequestParams<TParentChain, TOrbitChain>) {
+  createTokenBridgePrepareSetWethGatewayTransactionRequestParams.parse({
+    rollup,
+    account,
+    tokenBridgeCreatorAddressOverride,
+  });
   const { chainId } = validateParentChain(parentChainPublicClient);
 
   // Ensure that networks are registered

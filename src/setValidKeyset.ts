@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { PublicClient, Transport, Chain, WalletClient } from 'viem';
+import { coreContractsSchema, hexSchema } from './schemas/primitives';
 
 import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
 import { validateParentChain } from './types/ParentChain';
@@ -12,12 +14,18 @@ export type SetValidKeysetParams<TChain extends Chain | undefined> = {
   walletClient: WalletClient;
 };
 
+export const setValidKeysetParams = z.object({
+  coreContracts: coreContractsSchema.pick({ upgradeExecutor: true, sequencerInbox: true }),
+  keyset: hexSchema,
+});
+
 export async function setValidKeyset<TChain extends Chain | undefined>({
   coreContracts,
   keyset,
   publicClient,
   walletClient,
 }: SetValidKeysetParams<TChain>) {
+  setValidKeysetParams.parse({ coreContracts, keyset });
   validateParentChain(publicClient);
   const account = walletClient.account?.address;
 

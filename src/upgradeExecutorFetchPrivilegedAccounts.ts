@@ -1,5 +1,7 @@
+import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain } from 'viem';
 import { AbiEvent } from 'abitype';
+import { addressSchema } from './schemas/primitives';
 import { UpgradeExecutorRole } from './upgradeExecutorEncodeFunctionData';
 
 /**
@@ -89,10 +91,15 @@ const RoleRevokedEventAbi = {
  *   publicClient,
  * });
  */
+export const upgradeExecutorFetchPrivilegedAccountsParams = z.object({
+  upgradeExecutorAddress: addressSchema,
+});
+
 export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chain | undefined>({
   upgradeExecutorAddress,
   publicClient,
 }: UpgradeExecutorFetchPrivilegedAccountsParams<TChain>) {
+  upgradeExecutorFetchPrivilegedAccountsParams.parse({ upgradeExecutorAddress });
   // 0. Initialize result object
   const upgradeExecutorPrivilegedAccounts: UpgradeExecutorPrivilegedAccounts = {};
 

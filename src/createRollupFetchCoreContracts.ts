@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { Address, PublicClient, Chain, Transport } from 'viem';
+import { addressSchema } from './schemas/primitives';
 
 import { CoreContracts } from './types/CoreContracts';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
@@ -19,11 +21,16 @@ export type CreateRollupFetchCoreContractsParams<TChain extends Chain | undefine
   publicClient: PublicClient<Transport, TChain>;
 };
 
+export const createRollupFetchCoreContractsParams = z.object({
+  rollup: addressSchema,
+});
+
 export async function createRollupFetchCoreContracts<TChain extends Chain | undefined>({
   rollup,
   rollupDeploymentBlockNumber,
   publicClient,
 }: CreateRollupFetchCoreContractsParams<TChain>): Promise<CoreContracts> {
+  createRollupFetchCoreContractsParams.parse({ rollup });
   // getting core contract addresses
   const transactionHash = await createRollupFetchTransactionHash({
     rollup,

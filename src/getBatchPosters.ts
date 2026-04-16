@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   Address,
   Chain,
@@ -8,6 +9,7 @@ import {
   getAbiItem,
   getFunctionSelector,
 } from 'viem';
+import { addressSchema } from './schemas/primitives';
 
 import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator/v3.2';
 import { rollupCreatorABI as rollupCreatorV3Dot1ABI } from './contracts/RollupCreator/v3.1';
@@ -116,10 +118,16 @@ export type GetBatchPostersReturnType = {
  *   // batch posters list is not guaranteed to be accurate
  * }
  */
+export const getBatchPostersParams = z.object({
+  rollup: addressSchema,
+  sequencerInbox: addressSchema,
+});
+
 export async function getBatchPosters<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
   { rollup, sequencerInbox }: GetBatchPostersParams,
 ): Promise<GetBatchPostersReturnType> {
+  getBatchPostersParams.parse({ rollup, sequencerInbox });
   let blockNumber: bigint;
   let createRollupTransactionHash: Address | null = null;
   try {

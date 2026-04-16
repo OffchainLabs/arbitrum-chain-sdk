@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { NodeConfig } from './types/NodeConfig.generated';
+import { chainConfigSchema, coreContractsSchema } from './schemas/primitives';
 import {
   NodeConfigChainInfoJson,
   NodeConfigDataAvailabilityRpcAggregatorBackendsJson,
@@ -46,6 +48,20 @@ function getDisableBlobReader(parentChainId: ParentChainId): boolean {
   return false;
 }
 
+export const prepareNodeConfigParams = z.object({
+  chainName: z.string(),
+  chainConfig: chainConfigSchema,
+  coreContracts: coreContractsSchema,
+  batchPosterPrivateKey: z.string(),
+  validatorPrivateKey: z.string(),
+  stakeToken: z.string(),
+  parentChainId: z.number(),
+  parentChainIsArbitrum: z.boolean().optional(),
+  parentChainRpcUrl: z.string(),
+  parentChainBeaconRpcUrl: z.string().optional(),
+  dasServerUrl: z.string().optional(),
+});
+
 export function prepareNodeConfig({
   chainName,
   chainConfig,
@@ -59,6 +75,19 @@ export function prepareNodeConfig({
   parentChainBeaconRpcUrl,
   dasServerUrl,
 }: PrepareNodeConfigParams): NodeConfig {
+  prepareNodeConfigParams.parse({
+    chainName,
+    chainConfig,
+    coreContracts,
+    batchPosterPrivateKey,
+    validatorPrivateKey,
+    stakeToken,
+    parentChainId,
+    parentChainIsArbitrum: parentChainIsArbitrumParam,
+    parentChainRpcUrl,
+    parentChainBeaconRpcUrl,
+    dasServerUrl,
+  });
   // For L2 Orbit chains settling to Ethereum mainnet or testnet, a parentChainBeaconRpcUrl is enforced
   if (getParentChainLayer(parentChainId) === 1 && !parentChainBeaconRpcUrl) {
     throw new Error(`"parentChainBeaconRpcUrl" is required for L2 Orbit chains.`);

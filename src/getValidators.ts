@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   Address,
   Chain,
@@ -8,6 +9,7 @@ import {
   getAbiItem,
   getFunctionSelector,
 } from 'viem';
+import { addressSchema } from './schemas/primitives';
 
 import { rollupCreatorABI as rollupCreatorV2Dot1ABI } from './contracts/RollupCreator/v2.1';
 import { rollupCreatorABI as rollupCreatorV1Dot1ABI } from './contracts/RollupCreator/v1.1';
@@ -214,10 +216,13 @@ async function getValidatorsPreV3Dot1<TChain extends Chain>(
  *   // Validators list is not guaranteed to be accurate
  * }
  */
+export const getValidatorsParams = z.object({ rollup: addressSchema });
+
 export async function getValidators<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
   { rollup }: GetValidatorsParams,
 ): Promise<GetValidatorsReturnType> {
+  getValidatorsParams.parse({ rollup });
   let blockNumber: bigint;
   try {
     const createRollupTransactionHash = await createRollupFetchTransactionHash({

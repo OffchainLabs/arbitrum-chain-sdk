@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   Address,
   Chain,
@@ -8,6 +9,7 @@ import {
   pad,
   parseAbi,
 } from 'viem';
+import { addressSchema } from './schemas/primitives';
 
 import arbChildToParentRewardRouter from '@offchainlabs/fund-distribution-contracts/out/ArbChildToParentRewardRouter.sol/ArbChildToParentRewardRouter.json';
 import opChildToParentRewardRouter from '@offchainlabs/fund-distribution-contracts/out/OpChildToParentRewardRouter.sol/OpChildToParentRewardRouter.json';
@@ -87,6 +89,13 @@ const oneAddress = getAddress(
  *   childToParentRewardRouterDeploymentTransactionReceipt.contractAddress as `0x${string}`,
  * );
  */
+export const feeRouterDeployChildToParentRewardRouterParams = z.object({
+  parentChainTargetAddress: addressSchema,
+  rollup: addressSchema.optional(),
+  parentChainTokenAddress: addressSchema.optional(),
+  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+});
+
 export async function feeRouterDeployChildToParentRewardRouter<TChain extends Chain | undefined>({
   parentChainPublicClient,
   orbitChainWalletClient,
@@ -96,6 +105,12 @@ export async function feeRouterDeployChildToParentRewardRouter<TChain extends Ch
   parentChainTokenAddress,
   tokenBridgeCreatorAddressOverride,
 }: FeeRouterDeployChildToParentRewardRouterParams<TChain>) {
+  feeRouterDeployChildToParentRewardRouterParams.parse({
+    parentChainTargetAddress,
+    rollup,
+    parentChainTokenAddress,
+    tokenBridgeCreatorAddressOverride,
+  });
   validateParentChain(parentChainPublicClient);
 
   const constructorArguments = {

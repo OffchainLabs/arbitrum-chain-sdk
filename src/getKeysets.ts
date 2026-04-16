@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { Address, Chain, Hex, PublicClient, Transport, getAbiItem } from 'viem';
+import { addressSchema } from './schemas/primitives';
 
 import { sequencerInboxABI } from './contracts/SequencerInbox';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
@@ -33,10 +35,13 @@ export type GetKeysetsReturnType = {
  * });
  *
  */
+export const getKeysetsParams = z.object({ sequencerInbox: addressSchema });
+
 export async function getKeysets<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
   { sequencerInbox }: GetKeysetsParams,
 ): Promise<GetKeysetsReturnType> {
+  getKeysetsParams.parse({ sequencerInbox });
   let blockNumber: bigint;
   let createRollupTransactionHash: Address | null = null;
   const rollup = await publicClient.readContract({

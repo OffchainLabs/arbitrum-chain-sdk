@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { Address, Chain, PublicClient, Transport, decodeFunctionData, getAbiItem } from 'viem';
+import { addressSchema } from './schemas/primitives';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
 import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator/v3.2';
@@ -15,6 +17,8 @@ function parseConfig(config: { chainConfig: string }): boolean {
   return JSON.parse(config.chainConfig).arbitrum.DataAvailabilityCommittee;
 }
 
+export const isAnyTrustParams = z.object({ rollup: addressSchema });
+
 export async function isAnyTrust<TChain extends Chain>({
   rollup,
   publicClient,
@@ -22,6 +26,7 @@ export async function isAnyTrust<TChain extends Chain>({
   rollup: Address;
   publicClient: PublicClient<Transport, TChain>;
 }) {
+  isAnyTrustParams.parse({ rollup });
   const createRollupTransactionHash = await createRollupFetchTransactionHash({
     rollup,
     publicClient,

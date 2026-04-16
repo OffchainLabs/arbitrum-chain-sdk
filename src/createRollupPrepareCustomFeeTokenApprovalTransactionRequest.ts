@@ -1,5 +1,7 @@
+import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain } from 'viem';
 
+import { addressSchema } from './schemas/primitives';
 import { approvePrepareTransactionRequest, fetchDecimals } from './utils/erc20';
 import { validateParentChain } from './types/ParentChain';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
@@ -22,6 +24,12 @@ export type CreateRollupPrepareCustomFeeTokenApprovalTransactionRequestParams<
   rollupCreatorVersion?: RollupCreatorSupportedVersion;
 }>;
 
+export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestParams = z.object({
+  nativeToken: addressSchema,
+  account: addressSchema,
+  rollupCreatorAddressOverride: addressSchema.optional(),
+});
+
 export async function createRollupPrepareCustomFeeTokenApprovalTransactionRequest<
   TChain extends Chain | undefined,
 >({
@@ -33,6 +41,11 @@ export async function createRollupPrepareCustomFeeTokenApprovalTransactionReques
   rollupCreatorAddressOverride,
   rollupCreatorVersion = 'v3.2',
 }: CreateRollupPrepareCustomFeeTokenApprovalTransactionRequestParams<TChain>) {
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequestParams.parse({
+    nativeToken,
+    account,
+    rollupCreatorAddressOverride,
+  });
   const { chainId } = validateParentChain(publicClient);
 
   const fees = await createRollupGetRetryablesFeesWithDefaults(

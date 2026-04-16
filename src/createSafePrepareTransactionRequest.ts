@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   Address,
   Chain,
@@ -7,6 +8,7 @@ import {
   encodeFunctionData,
   PrepareTransactionRequestParameters,
 } from 'viem';
+import { addressSchema } from './schemas/primitives';
 import {
   DEFAULT_SAFE_VERSION,
   SafeAccountConfig,
@@ -98,6 +100,11 @@ export type CreateSafePrepareTransactionRequestParams<TChain extends Chain | und
  *
  * @returns Promise<{@link TransactionRequest}> - the transaction to sign and send to the blockchain.
  */
+export const createSafePrepareTransactionRequestParams = z.object({
+  owners: z.array(addressSchema),
+  threshold: z.number(),
+});
+
 export async function createSafePrepareTransactionRequest<TChain extends Chain | undefined>({
   publicClient,
   account,
@@ -105,6 +112,7 @@ export async function createSafePrepareTransactionRequest<TChain extends Chain |
   threshold,
   saltNonce,
 }: CreateSafePrepareTransactionRequestParams<TChain>) {
+  createSafePrepareTransactionRequestParams.parse({ owners, threshold });
   const chainId = validateChain(publicClient);
 
   // set and validate Safe configuration

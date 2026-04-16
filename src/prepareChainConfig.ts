@@ -1,4 +1,6 @@
+import { z } from 'zod';
 import { ExcludeSome, Prettify, RequireSome } from './types/utils';
+import { prepareChainConfigArbitrumParamsSchema } from './schemas/primitives';
 import { ChainConfig, ChainConfigArbitrumParams } from './types/ChainConfig';
 import { prepareChainConfigSortKeys } from './prepareChainConfigSortKeys';
 
@@ -48,7 +50,13 @@ export type PrepareChainConfigArbitrumParams = RequireSome<
   'InitialChainOwner'
 >;
 
+export const prepareChainConfigParams = z.object({
+  chainId: z.number(),
+  arbitrum: prepareChainConfigArbitrumParamsSchema,
+});
+
 export function prepareChainConfig(params: PrepareChainConfigParams): ChainConfig {
+  prepareChainConfigParams.parse(params);
   return prepareChainConfigSortKeys({
     ...defaults,
     chainId: params.chainId,

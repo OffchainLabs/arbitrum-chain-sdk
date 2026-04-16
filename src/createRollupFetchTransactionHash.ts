@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import {
   Address,
   PublicClient,
@@ -10,6 +11,7 @@ import {
   Hex,
 } from 'viem';
 import { AbiEvent } from 'abitype';
+import { addressSchema } from './schemas/primitives';
 
 import { getLogsWithBatching } from './utils/getLogsWithBatching';
 import { getEarliestRollupCreatorDeploymentBlockNumber } from './utils/getEarliestRollupCreatorDeploymentBlockNumber';
@@ -110,11 +112,16 @@ export async function getRollupInitializedEvents<TChain extends Chain | undefine
   return rollupInitializedEvents;
 }
 
+export const createRollupFetchTransactionHashParams = z.object({
+  rollup: addressSchema,
+});
+
 export async function createRollupFetchTransactionHash<TChain extends Chain | undefined>({
   rollup,
   publicClient,
   fromBlock,
 }: CreateRollupFetchTransactionHashParams<TChain>) {
+  createRollupFetchTransactionHashParams.parse({ rollup });
   let rollupQuery: Address | undefined = rollup;
   let transactionHash: Hex | undefined = undefined;
 
