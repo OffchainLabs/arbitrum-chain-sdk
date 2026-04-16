@@ -157,10 +157,7 @@ runCli('chain-sdk', {
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),
-  isAnyTrust: cmd(
-    isAnyTrustSchema.transform((input) => [isAnyTrustResolver(input)] as const),
-    isAnyTrust,
-  ),
+  isAnyTrust: cmd(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust),
   createRollupFetchTransactionHash: cmd(
     createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
     createRollupFetchTransactionHash,

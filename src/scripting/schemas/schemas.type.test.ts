@@ -336,7 +336,7 @@ it('getBridgeUiConfigTransform output matches getBridgeUiConfig params', () =>
 it('isAnyTrustResolver output matches isAnyTrust params', () =>
   expectTypeOf<
     DeepNormalize<ReturnType<typeof isAnyTrustResolver<z.output<typeof isAnyTrustSchema>>>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof isAnyTrust>[0]>>());
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof isAnyTrust>>>());
 
 it('createRollupFetchTransactionHashTransform output matches createRollupFetchTransactionHash params', () =>
   expectTypeOf<

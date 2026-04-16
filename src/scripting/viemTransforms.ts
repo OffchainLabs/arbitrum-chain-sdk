@@ -20,9 +20,15 @@ export function toPublicClient<TChain extends Chain | undefined = undefined>(
   return createPublicClient({ chain, transport: http(rpcUrl) });
 }
 
-export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(input: T) {
+type WithPublicClient<T> = [Omit<T, 'rpcUrl' | 'chainId'> & {
+  publicClient: ReturnType<typeof toPublicClient<Chain>>;
+}];
+
+export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(
+  input: T,
+): WithPublicClient<T> {
   const { rpcUrl, chainId, ...rest } = input;
-  return { publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest };
+  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }] as WithPublicClient<T>;
 }
 
 export function toAccount(privateKey: string) {

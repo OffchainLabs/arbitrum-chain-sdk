@@ -179,7 +179,7 @@ describe('schema coverage', () => {
 
   it('isAnyTrust', async () => {
     await assertSchemaCoverage(
-      isAnyTrustSchema.transform((input) => [isAnyTrustResolver(input)] as const),
+      isAnyTrustSchema.transform(isAnyTrustResolver),
       isAnyTrust,
       mocks,
     );
