@@ -161,27 +161,26 @@ jobs:
     name: Test (Integration) - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            version: v0.2.2
-            nitro-contracts-version: v3.2
+            nitro-contracts-branch: v3.2.0
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
             decimals: 18
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            version: v0.2.2
-            nitro-contracts-version: v3.2
+            nitro-contracts-branch: v3.2.0
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
             decimals: 6
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            version: v0.2.2
-            nitro-contracts-version: v2.1
+            nitro-contracts-branch: v2.1.3
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
             decimals: 18
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            version: v0.2.2
-            nitro-contracts-version: v2.1
+            nitro-contracts-branch: v2.1.3
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
             decimals: 6
 
     steps:
@@ -206,13 +205,11 @@ jobs:
           cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Set up the local node
-        uses: OffchainLabs/arbitrum-testnode@v0.2.2
+        uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
         with:
-          version: ${{ matrix.config.version }}
-          l3-node: true
-          fee-token-decimals: ${{ matrix.config.decimals }}
-          nitro-contracts-version: ${{ matrix.config.nitro-contracts-version }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          nitro-testnode-ref: release
+          nitro-contracts-branch: ${{ matrix.config.nitro-contracts-branch }}
+          args: ${{ matrix.config.args }}
 
       - name: Copy .env
         run: cp ./.env.example ./.env
@@ -222,5 +219,6 @@ jobs:
 
       - name: Test
         run: |
-          INTEGRATION_TEST_DECIMALS=${{ matrix.config.decimals }} \
+          INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
+          INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
           pnpm test:integration

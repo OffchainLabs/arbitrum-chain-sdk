@@ -16,8 +16,7 @@ import { buildDisableBatchPoster, buildEnableBatchPoster } from './buildSetIsBat
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { buildInvalidateKeysetHash } from './buildInvalidateKeysetHash';
 
-const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor, l2RollupCreator } =
-  getInformationFromTestnode();
+const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor } = getInformationFromTestnode();
 const { l3TokenBridgeDeployer, deployer, l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 
 const client = createPublicClient({
@@ -162,7 +161,6 @@ describe('keyset management', () => {
       validators,
       nativeToken: zeroAddress,
       client,
-      rollupCreatorAddressOverride: l2RollupCreator,
     });
 
     const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;
