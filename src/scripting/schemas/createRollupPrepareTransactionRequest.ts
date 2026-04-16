@@ -48,38 +48,38 @@ type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
   >,
 ];
 
-const transformV21 = (
+const resolveV21 = (
   input: z.output<typeof createRollupPrepareTransactionRequestV21Schema>,
 ): Params<'v2.1'> => {
-  return [withPublicClient(input)];
+  return withPublicClient(input);
 };
 
-const transformV32 = (
+const resolveV32 = (
   input: z.output<typeof createRollupPrepareTransactionRequestV32Schema>,
 ): Params<'v3.2'> => {
-  return [withPublicClient(input)];
+  return withPublicClient(input);
 };
 
-const transformDefault = (
+const resolveDefault = (
   input: z.output<typeof createRollupPrepareTransactionRequestDefaultSchema>,
 ): Params<undefined> => {
-  return [withPublicClient(input)];
+  return withPublicClient(input);
 };
 
-export const createRollupPrepareTransactionRequestTransform = (
+export const createRollupPrepareTransactionRequestResolver = (
   input: z.output<typeof createRollupPrepareTransactionRequestSchema>,
 ): [CreateRollupPrepareTransactionRequestParams<Chain | undefined>] => {
   if (input.rollupCreatorVersion === 'v2.1')
-    return transformV21(input as z.output<typeof createRollupPrepareTransactionRequestV21Schema>);
+    return resolveV21(input as z.output<typeof createRollupPrepareTransactionRequestV21Schema>);
   if (input.rollupCreatorVersion === 'v3.2')
-    return transformV32(input as z.output<typeof createRollupPrepareTransactionRequestV32Schema>);
-  return transformDefault(
+    return resolveV32(input as z.output<typeof createRollupPrepareTransactionRequestV32Schema>);
+  return resolveDefault(
     input as z.output<typeof createRollupPrepareTransactionRequestDefaultSchema>,
   );
 };
 
 export const createRollupPrepareTransactionRequestTransformedSchema = z.union([
-  createRollupPrepareTransactionRequestV21Schema.transform(transformV21),
-  createRollupPrepareTransactionRequestV32Schema.transform(transformV32),
-  createRollupPrepareTransactionRequestDefaultSchema.transform(transformDefault),
+  createRollupPrepareTransactionRequestV21Schema.transform(resolveV21),
+  createRollupPrepareTransactionRequestV32Schema.transform(resolveV32),
+  createRollupPrepareTransactionRequestDefaultSchema.transform(resolveDefault),
 ]);

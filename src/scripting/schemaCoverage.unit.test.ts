@@ -7,7 +7,7 @@ import { getKeysetsSchema, getKeysetsTransform } from './schemas/getKeysets';
 import { getKeysets } from '../getKeysets';
 import { getBatchPostersSchema, getBatchPostersTransform } from './schemas/getBatchPosters';
 import { getBatchPosters } from '../getBatchPosters';
-import { isAnyTrustSchema, isAnyTrustTransform } from './schemas/isAnyTrust';
+import { isAnyTrustSchema, isAnyTrustResolver } from './schemas/isAnyTrust';
 import { isAnyTrust } from '../isAnyTrust';
 import { prepareKeysetHashSchema, prepareKeysetHashTransform } from './schemas/prepareKeysetHash';
 import { prepareKeysetHash } from '../prepareKeysetHash';
@@ -25,24 +25,24 @@ import {
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../setAnyTrustFastConfirmerPrepareTransactionRequest';
 import {
   upgradeExecutorPrepareTransactionRequestSchema,
-  upgradeExecutorPrepareTransactionRequestTransform,
+  upgradeExecutorPrepareTransactionRequestResolver,
 } from './schemas/upgradeExecutor';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { setValidKeysetSchema, setValidKeysetTransform } from './schemas/setValidKeyset';
 import { setValidKeyset } from '../setValidKeyset';
 import {
   setValidKeysetPrepareTransactionRequestSchema,
-  setValidKeysetPrepareTransactionRequestTransform,
+  setValidKeysetPrepareTransactionRequestResolver,
 } from './schemas/setValidKeysetPrepareTransactionRequest';
 import { setValidKeysetPrepareTransactionRequest } from '../setValidKeysetPrepareTransactionRequest';
 import {
   createRollupFetchCoreContractsSchema,
-  createRollupFetchCoreContractsTransform,
+  createRollupFetchCoreContractsResolver,
 } from './schemas/createRollupFetchCoreContracts';
 import { createRollupFetchCoreContracts } from '../createRollupFetchCoreContracts';
 import {
   createRollupFetchTransactionHashSchema,
-  createRollupFetchTransactionHashTransform,
+  createRollupFetchTransactionHashResolver,
 } from './schemas/createRollupFetchTransactionHash';
 import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
 import {
@@ -76,13 +76,13 @@ import {
 import { createSafePrepareTransactionRequest } from '../createSafePrepareTransactionRequest';
 import {
   createRollupEnoughCustomFeeTokenAllowanceSchema,
-  createRollupEnoughCustomFeeTokenAllowanceTransform,
+  createRollupEnoughCustomFeeTokenAllowanceResolver,
   createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
   createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
-  createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+  createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
 } from './schemas/customFeeToken';
 import { createRollupEnoughCustomFeeTokenAllowance } from '../createRollupEnoughCustomFeeTokenAllowance';
 import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
@@ -92,7 +92,7 @@ import {
   createRollupPrepareTransactionRequestDefaultSchema,
   createRollupPrepareTransactionRequestV21Schema,
   createRollupPrepareTransactionRequestV32Schema,
-  createRollupPrepareTransactionRequestTransform,
+  createRollupPrepareTransactionRequestResolver,
 } from './schemas/createRollupPrepareTransactionRequest';
 import { createRollupPrepareTransactionRequest } from '../createRollupPrepareTransactionRequest';
 import {
@@ -158,7 +158,7 @@ describe('schema coverage', () => {
   it('setValidKeysetPrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
       setValidKeysetPrepareTransactionRequestSchema.transform(
-        setValidKeysetPrepareTransactionRequestTransform,
+        setValidKeysetPrepareTransactionRequestResolver,
       ),
       setValidKeysetPrepareTransactionRequest,
       mocks,
@@ -178,7 +178,7 @@ describe('schema coverage', () => {
   });
 
   it('isAnyTrust', async () => {
-    await assertSchemaCoverage(isAnyTrustSchema.transform(isAnyTrustTransform), isAnyTrust, mocks);
+    await assertSchemaCoverage(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust, mocks);
   });
 
   it('prepareKeysetHash', async () => {
@@ -216,7 +216,7 @@ describe('schema coverage', () => {
   it('upgradeExecutorPrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
       upgradeExecutorPrepareTransactionRequestSchema.transform(
-        upgradeExecutorPrepareTransactionRequestTransform,
+        upgradeExecutorPrepareTransactionRequestResolver,
       ),
       upgradeExecutorPrepareAddExecutorTransactionRequest,
       mocks,
@@ -233,7 +233,7 @@ describe('schema coverage', () => {
 
   it('createRollupFetchCoreContracts', async () => {
     await assertSchemaCoverage(
-      createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsTransform),
+      createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsResolver),
       createRollupFetchCoreContracts,
       mocks,
     );
@@ -241,7 +241,7 @@ describe('schema coverage', () => {
 
   it('createRollupFetchTransactionHash', async () => {
     await assertSchemaCoverage(
-      createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
+      createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashResolver),
       createRollupFetchTransactionHash,
       mocks,
     );
@@ -310,7 +310,7 @@ describe('schema coverage', () => {
   it('createRollupEnoughCustomFeeTokenAllowance', async () => {
     await assertSchemaCoverage(
       createRollupEnoughCustomFeeTokenAllowanceSchema.transform(
-        createRollupEnoughCustomFeeTokenAllowanceTransform,
+        createRollupEnoughCustomFeeTokenAllowanceResolver,
       ),
       createRollupEnoughCustomFeeTokenAllowance,
       mocks,
@@ -320,7 +320,7 @@ describe('schema coverage', () => {
   it('createRollupPrepareCustomFeeTokenApprovalTransactionRequest', async () => {
     await assertSchemaCoverage(
       createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
-        createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+        createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
       ),
       createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
       mocks,
@@ -330,7 +330,7 @@ describe('schema coverage', () => {
   it('createTokenBridgeEnoughCustomFeeTokenAllowance', async () => {
     await assertSchemaCoverage(
       createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(
-        createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+        createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
       ),
       createTokenBridgeEnoughCustomFeeTokenAllowance,
       mocks,
@@ -340,7 +340,7 @@ describe('schema coverage', () => {
   it('createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest', async () => {
     await assertSchemaCoverage(
       createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
-        createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+        createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
       ),
       createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
       mocks,
@@ -350,7 +350,7 @@ describe('schema coverage', () => {
   it('createRollupPrepareTransactionRequest (default)', async () => {
     await assertSchemaCoverage(
       createRollupPrepareTransactionRequestDefaultSchema.transform(
-        createRollupPrepareTransactionRequestTransform,
+        createRollupPrepareTransactionRequestResolver,
       ),
       createRollupPrepareTransactionRequest,
       mocks,
@@ -360,7 +360,7 @@ describe('schema coverage', () => {
   it('createRollupPrepareTransactionRequest (v2.1)', async () => {
     await assertSchemaCoverage(
       createRollupPrepareTransactionRequestV21Schema.transform(
-        createRollupPrepareTransactionRequestTransform,
+        createRollupPrepareTransactionRequestResolver,
       ),
       createRollupPrepareTransactionRequest,
       mocks,
@@ -370,7 +370,7 @@ describe('schema coverage', () => {
   it('createRollupPrepareTransactionRequest (v3.2)', async () => {
     await assertSchemaCoverage(
       createRollupPrepareTransactionRequestV32Schema.transform(
-        createRollupPrepareTransactionRequestTransform,
+        createRollupPrepareTransactionRequestResolver,
       ),
       createRollupPrepareTransactionRequest,
       mocks,

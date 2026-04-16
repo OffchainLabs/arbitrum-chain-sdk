@@ -8,11 +8,11 @@ import {
   getKeysetsSchema,
   getKeysetsTransform,
   isAnyTrustSchema,
-  isAnyTrustTransform,
+  isAnyTrustResolver,
   createRollupFetchTransactionHashSchema,
-  createRollupFetchTransactionHashTransform,
+  createRollupFetchTransactionHashResolver,
   createRollupFetchCoreContractsSchema,
-  createRollupFetchCoreContractsTransform,
+  createRollupFetchCoreContractsResolver,
   isTokenBridgeDeployedSchema,
   isTokenBridgeDeployedTransform,
   getBridgeUiConfigSchema,
@@ -32,21 +32,21 @@ import {
   createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
   createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
   setValidKeysetPrepareTransactionRequestSchema,
-  setValidKeysetPrepareTransactionRequestTransform,
+  setValidKeysetPrepareTransactionRequestResolver,
   createRollupPrepareTransactionRequestSchema,
-  createRollupPrepareTransactionRequestTransform,
+  createRollupPrepareTransactionRequestResolver,
   createSafePrepareTransactionRequestSchema,
   createSafePrepareTransactionRequestTransform,
   upgradeExecutorPrepareTransactionRequestSchema,
-  upgradeExecutorPrepareTransactionRequestTransform,
+  upgradeExecutorPrepareTransactionRequestResolver,
   createRollupEnoughCustomFeeTokenAllowanceSchema,
-  createRollupEnoughCustomFeeTokenAllowanceTransform,
+  createRollupEnoughCustomFeeTokenAllowanceResolver,
   createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
   createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
-  createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+  createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
   feeRouterDeployRewardDistributorSchema,
   feeRouterDeployRewardDistributorTransform,
   feeRouterDeployChildToParentRewardRouterSchema,
@@ -157,13 +157,13 @@ runCli('chain-sdk', {
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),
-  isAnyTrust: cmd(isAnyTrustSchema.transform(isAnyTrustTransform), isAnyTrust),
+  isAnyTrust: cmd(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust),
   createRollupFetchTransactionHash: cmd(
-    createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashTransform),
+    createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashResolver),
     createRollupFetchTransactionHash,
   ),
   createRollupFetchCoreContracts: cmd(
-    createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsTransform),
+    createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsResolver),
     createRollupFetchCoreContracts,
   ),
   isTokenBridgeDeployed: cmd(
@@ -207,13 +207,13 @@ runCli('chain-sdk', {
   ),
   setValidKeysetPrepareTransactionRequest: cmd(
     setValidKeysetPrepareTransactionRequestSchema.transform(
-      setValidKeysetPrepareTransactionRequestTransform,
+      setValidKeysetPrepareTransactionRequestResolver,
     ),
     setValidKeysetPrepareTransactionRequest,
   ),
   createRollupPrepareTransactionRequest: cmd(
     createRollupPrepareTransactionRequestSchema.transform(
-      createRollupPrepareTransactionRequestTransform,
+      createRollupPrepareTransactionRequestResolver,
     ),
     createRollupPrepareTransactionRequest,
   ),
@@ -225,37 +225,37 @@ runCli('chain-sdk', {
   ),
   upgradeExecutorPrepareAddExecutor: cmd(
     upgradeExecutorPrepareTransactionRequestSchema.transform(
-      upgradeExecutorPrepareTransactionRequestTransform,
+      upgradeExecutorPrepareTransactionRequestResolver,
     ),
     upgradeExecutorPrepareAddExecutorTransactionRequest,
   ),
   upgradeExecutorPrepareRemoveExecutor: cmd(
     upgradeExecutorPrepareTransactionRequestSchema.transform(
-      upgradeExecutorPrepareTransactionRequestTransform,
+      upgradeExecutorPrepareTransactionRequestResolver,
     ),
     upgradeExecutorPrepareRemoveExecutorTransactionRequest,
   ),
   createRollupEnoughCustomFeeTokenAllowance: cmd(
     createRollupEnoughCustomFeeTokenAllowanceSchema.transform(
-      createRollupEnoughCustomFeeTokenAllowanceTransform,
+      createRollupEnoughCustomFeeTokenAllowanceResolver,
     ),
     createRollupEnoughCustomFeeTokenAllowance,
   ),
   createRollupPrepareCustomFeeTokenApprovalTransactionRequest: cmd(
     createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
-      createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+      createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
     ),
     createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
   ),
   createTokenBridgeEnoughCustomFeeTokenAllowance: cmd(
     createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(
-      createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+      createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
     ),
     createTokenBridgeEnoughCustomFeeTokenAllowance,
   ),
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: cmd(
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
-      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
     ),
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
   ),

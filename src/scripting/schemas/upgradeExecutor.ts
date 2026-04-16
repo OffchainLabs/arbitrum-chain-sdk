@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import { toPublicClient, findChain, withPublicClient } from '../viemTransforms';
 import { addressSchema, publicClientSchema } from './common';
-import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../../upgradeExecutorFetchPrivilegedAccounts';
 
 export const upgradeExecutorPrepareTransactionRequestSchema = publicClientSchema
@@ -12,11 +11,7 @@ export const upgradeExecutorPrepareTransactionRequestSchema = publicClientSchema
   })
   .strict();
 
-export const upgradeExecutorPrepareTransactionRequestTransform = (
-  input: z.output<typeof upgradeExecutorPrepareTransactionRequestSchema>,
-): Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest> => {
-  return [withPublicClient(input)];
-};
+export const upgradeExecutorPrepareTransactionRequestResolver = withPublicClient;
 
 export const upgradeExecutorFetchPrivilegedAccountsSchema = publicClientSchema
   .extend({

@@ -6,10 +6,6 @@ import {
   publicClientSchema,
   rollupCreatorVersionSchema,
 } from './common';
-import { createRollupEnoughCustomFeeTokenAllowance } from '../../createRollupEnoughCustomFeeTokenAllowance';
-import { createRollupPrepareCustomFeeTokenApprovalTransactionRequest } from '../../createRollupPrepareCustomFeeTokenApprovalTransactionRequest';
-import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
-import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 
 const createRollupCustomFeeTokenBaseSchema = publicClientSchema.extend({
   nativeToken: addressSchema,
@@ -23,11 +19,7 @@ export const createRollupEnoughCustomFeeTokenAllowanceSchema = z.strictObject(
   createRollupCustomFeeTokenBaseSchema.shape,
 );
 
-export const createRollupEnoughCustomFeeTokenAllowanceTransform = (
-  input: z.output<typeof createRollupEnoughCustomFeeTokenAllowanceSchema>,
-): Parameters<typeof createRollupEnoughCustomFeeTokenAllowance> => {
-  return [withPublicClient(input)];
-};
+export const createRollupEnoughCustomFeeTokenAllowanceResolver = withPublicClient;
 
 export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema = z.strictObject(
   createRollupCustomFeeTokenBaseSchema.extend({
@@ -35,11 +27,7 @@ export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema =
   }).shape,
 );
 
-export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform = (
-  input: z.output<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema>,
-): Parameters<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequest> => {
-  return [withPublicClient(input)];
-};
+export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver = withPublicClient;
 
 const createTokenBridgeCustomFeeTokenBaseSchema = publicClientSchema.extend({
   nativeToken: addressSchema,
@@ -51,11 +39,7 @@ export const createTokenBridgeEnoughCustomFeeTokenAllowanceSchema = z.strictObje
   createTokenBridgeCustomFeeTokenBaseSchema.shape,
 );
 
-export const createTokenBridgeEnoughCustomFeeTokenAllowanceTransform = (
-  input: z.output<typeof createTokenBridgeEnoughCustomFeeTokenAllowanceSchema>,
-): Parameters<typeof createTokenBridgeEnoughCustomFeeTokenAllowance> => {
-  return [withPublicClient(input)];
-};
+export const createTokenBridgeEnoughCustomFeeTokenAllowanceResolver = withPublicClient;
 
 export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema =
   z.strictObject(
@@ -64,8 +48,5 @@ export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSch
     }).shape,
   );
 
-export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform = (
-  input: z.output<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema>,
-): Parameters<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest> => {
-  return [withPublicClient(input)];
-};
+export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver =
+  withPublicClient;

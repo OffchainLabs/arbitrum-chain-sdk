@@ -16,7 +16,7 @@ export {
 export { prepareChainConfigParamsSchema, prepareChainConfigTransform } from './prepareChainConfig';
 export {
   upgradeExecutorPrepareTransactionRequestSchema,
-  upgradeExecutorPrepareTransactionRequestTransform,
+  upgradeExecutorPrepareTransactionRequestResolver,
   upgradeExecutorFetchPrivilegedAccountsSchema,
   upgradeExecutorFetchPrivilegedAccountsTransform,
 } from './upgradeExecutor';
@@ -38,14 +38,14 @@ export {
   feeRouterDeployChildToParentRewardRouterTransform,
 } from './feeRouter';
 export { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './getBridgeUiConfig';
-export { isAnyTrustSchema, isAnyTrustTransform } from './isAnyTrust';
+export { isAnyTrustSchema, isAnyTrustResolver } from './isAnyTrust';
 export {
   createRollupFetchTransactionHashSchema,
-  createRollupFetchTransactionHashTransform,
+  createRollupFetchTransactionHashResolver,
 } from './createRollupFetchTransactionHash';
 export {
   createRollupFetchCoreContractsSchema,
-  createRollupFetchCoreContractsTransform,
+  createRollupFetchCoreContractsResolver,
 } from './createRollupFetchCoreContracts';
 export {
   isTokenBridgeDeployedSchema,
@@ -61,11 +61,11 @@ export {
 } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 export {
   setValidKeysetPrepareTransactionRequestSchema,
-  setValidKeysetPrepareTransactionRequestTransform,
+  setValidKeysetPrepareTransactionRequestResolver,
 } from './setValidKeysetPrepareTransactionRequest';
 export {
   createRollupPrepareTransactionRequestSchema,
-  createRollupPrepareTransactionRequestTransform,
+  createRollupPrepareTransactionRequestResolver,
 } from './createRollupPrepareTransactionRequest';
 export {
   createSafePrepareTransactionRequestSchema,
@@ -73,13 +73,13 @@ export {
 } from './createSafePrepareTransactionRequest';
 export {
   createRollupEnoughCustomFeeTokenAllowanceSchema,
-  createRollupEnoughCustomFeeTokenAllowanceTransform,
+  createRollupEnoughCustomFeeTokenAllowanceResolver,
   createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
   createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
-  createTokenBridgeEnoughCustomFeeTokenAllowanceTransform,
+  createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestTransform,
+  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
 } from './customFeeToken';
 export { prepareKeysetSchema, prepareKeysetTransform } from './prepareKeyset';
 export { prepareKeysetHashSchema, prepareKeysetHashTransform } from './prepareKeysetHash';
