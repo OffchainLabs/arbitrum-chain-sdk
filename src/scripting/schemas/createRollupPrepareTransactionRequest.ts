@@ -49,6 +49,3 @@ export const createRollupPrepareTransactionRequestSchema = z.union([
     (input): Params<undefined> => withPublicClient(input),
   ),
 ]);
-
-export const createRollupPrepareTransactionRequestTransformedSchema =
-  createRollupPrepareTransactionRequestSchema;

@@ -50,7 +50,7 @@ import { isBatchPoster } from '../../actions/isBatchPoster';
 import { isValidKeysetHash } from '../../actions/isValidKeysetHash';
 import { getMaxTimeVariation } from '../../actions/getMaxTimeVariation';
 
-import { createRollupTransformedSchema } from './createRollup';
+import { createRollupSchema } from './createRollup';
 import { setValidKeysetSchema } from './setValidKeyset';
 import { createTokenBridgeSchema } from './createTokenBridge';
 import { getKeysetsSchema } from './getKeysets';
@@ -79,7 +79,7 @@ import { isTokenBridgeDeployedSchema } from './isTokenBridgeDeployed';
 import { createTokenBridgePrepareTransactionRequestSchema } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequestSchema } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { setValidKeysetPrepareTransactionRequestSchema } from './setValidKeysetPrepareTransactionRequest';
-import { createRollupPrepareTransactionRequestTransformedSchema } from './createRollupPrepareTransactionRequest';
+import { createRollupPrepareTransactionRequestSchema } from './createRollupPrepareTransactionRequest';
 import { createSafePrepareTransactionRequestSchema } from './createSafePrepareTransactionRequest';
 import {
   createRollupEnoughCustomFeeTokenAllowanceSchema,
@@ -223,8 +223,8 @@ type DeepNormalize<T> = T extends any
   ? { -readonly [K in keyof T]-?: NormalizeField<T, K> }
   : never;
 
-it('createRollupTransformedSchema output matches createRollup params', () => {
-  type SchemaOutput = z.output<typeof createRollupTransformedSchema>;
+it('createRollupSchema output matches createRollup params', () => {
+  type SchemaOutput = z.output<typeof createRollupSchema>;
   type FunctionParam = Parameters<typeof createRollup>[0];
 
   type SO_v21 = DeepNormalize<
@@ -376,8 +376,8 @@ it('setValidKeysetPrepareTransactionRequestSchema output matches setValidKeysetP
     DeepNormalize<z.output<typeof setValidKeysetPrepareTransactionRequestSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof setValidKeysetPrepareTransactionRequest>>>());
 
-it('createRollupPrepareTransactionRequestTransformedSchema output matches createRollupPrepareTransactionRequest params', () => {
-  type SchemaOutput = z.output<typeof createRollupPrepareTransactionRequestTransformedSchema>;
+it('createRollupPrepareTransactionRequestSchema output matches createRollupPrepareTransactionRequest params', () => {
+  type SchemaOutput = z.output<typeof createRollupPrepareTransactionRequestSchema>;
   type FunctionParam = Parameters<typeof createRollupPrepareTransactionRequest>[0];
 
   type SO_v21 = DeepNormalize<

@@ -46,5 +46,3 @@ export const createRollupSchema = z.union([
     (input): Params<undefined> => withParentChainSign(input),
   ),
 ]);
-
-export const createRollupTransformedSchema = createRollupSchema;
