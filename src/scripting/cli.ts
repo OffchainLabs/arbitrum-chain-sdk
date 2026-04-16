@@ -2,7 +2,7 @@ import { runCli, cmd } from './scriptUtils';
 
 import {
   getValidatorsSchema,
-  getValidatorsTransform,
+  getValidatorsResolver,
   getBatchPostersSchema,
   getBatchPostersTransform,
   getKeysetsSchema,
@@ -154,7 +154,7 @@ import {
 } from '../wasmModuleRoot';
 
 runCli('chain-sdk', {
-  getValidators: cmd(getValidatorsSchema.transform(getValidatorsTransform), getValidators),
+  getValidators: cmd(getValidatorsSchema.transform(getValidatorsResolver), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),
   isAnyTrust: cmd(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust),

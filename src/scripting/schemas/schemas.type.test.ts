@@ -54,7 +54,7 @@ import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
 import { createTokenBridgeResolver } from './createTokenBridge';
 import { getKeysetsTransform } from './getKeysets';
-import { getValidatorsTransform } from './getValidators';
+import { getValidatorsSchema, getValidatorsResolver } from './getValidators';
 import { getBatchPostersTransform } from './getBatchPosters';
 import {
   prepareDeploymentParamsConfigV32Transform,
@@ -302,10 +302,10 @@ it('upgradeExecutorPrepareTransactionRequestResolver output matches upgradeExecu
   >();
 });
 
-it('getValidatorsTransform output matches getValidators params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getValidatorsTransform>>>().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof getValidators>>
-  >());
+it('getValidatorsResolver output matches getValidators params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof getValidatorsResolver<z.output<typeof getValidatorsSchema>>>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getValidators>>>());
 
 it('getBatchPostersTransform output matches getBatchPosters params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof getBatchPostersTransform>>>().toEqualTypeOf<

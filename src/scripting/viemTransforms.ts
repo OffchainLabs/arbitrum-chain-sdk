@@ -129,6 +129,23 @@ export function withParentReadChildSign<
   ] as WithParentReadChildSign<T>;
 }
 
+// -- Combinator --
+// Wraps a resolver so its output is split into positional args:
+// [{ publicClient, ...rest }] → [publicClient, { ...rest }]
+// Used for SDK functions that take (publicClient, params) instead of ({ publicClient, ...params }).
+
+type WithPublicClientPositional<T> = [
+  ReturnType<typeof toPublicClient<Chain>>,
+  Omit<T, 'rpcUrl' | 'chainId'>,
+];
+
+export function withPublicClientPositional<T extends { rpcUrl: string; chainId: number }>(
+  input: T,
+): WithPublicClientPositional<T> {
+  const { rpcUrl, chainId, ...rest } = input;
+  return [toPublicClient(rpcUrl, findChain(chainId)), rest] as WithPublicClientPositional<T>;
+}
+
 export function toAccount(privateKey: string) {
   return privateKeyToAccount(sanitizePrivateKey(privateKey));
 }

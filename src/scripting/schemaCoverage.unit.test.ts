@@ -1,7 +1,7 @@
 import { describe, it } from 'vitest';
 import { mocks, assertSchemaCoverage } from './schemaCoverage';
 
-import { getValidatorsSchema, getValidatorsTransform } from './schemas/getValidators';
+import { getValidatorsSchema, getValidatorsResolver } from './schemas/getValidators';
 import { getValidators } from '../getValidators';
 import { getKeysetsSchema, getKeysetsTransform } from './schemas/getKeysets';
 import { getKeysets } from '../getKeysets';
@@ -149,7 +149,7 @@ import {
 describe('schema coverage', () => {
   it('getValidators', async () => {
     await assertSchemaCoverage(
-      getValidatorsSchema.transform(getValidatorsTransform),
+      getValidatorsSchema.transform(getValidatorsResolver),
       getValidators,
       mocks,
     );
