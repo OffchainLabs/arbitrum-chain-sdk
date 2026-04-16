@@ -40,7 +40,7 @@ it('toWalletClient creates a WalletClient from an RPC URL and private key', () =
   expect(client.transport).toBeDefined();
 });
 
-// Arbitrum One chainId for resolver tests
+// Arbitrum One chainId for connection transform tests
 const arbChainId = 42161;
 
 it('withPublicClient strips rpcUrl/chainId and adds publicClient', () => {

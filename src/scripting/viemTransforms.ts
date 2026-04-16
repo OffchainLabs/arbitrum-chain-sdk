@@ -20,10 +20,9 @@ export function toPublicClient<TChain extends Chain | undefined = undefined>(
   return createPublicClient({ chain, transport: http(rpcUrl) });
 }
 
-// -- Resolver types --
-// Each resolver strips connection fields from the input and replaces them
-// with resolved viem objects. The typed tuple return lets callers pass the
-// result directly to schema.transform() for use with cmd().
+// -- Connection transform types --
+// Each transform strips connection fields from the input and replaces them
+// with resolved viem objects. Used directly in schema.transform() chains.
 
 type WithPublicClient<T> = [
   Omit<T, 'rpcUrl' | 'chainId'> & { publicClient: ReturnType<typeof toPublicClient<Chain>> },
@@ -66,7 +65,7 @@ type WithParentReadChildSign<T> = [
   },
 ];
 
-// -- Resolvers --
+// -- Connection transforms --
 
 export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(
   input: T,
@@ -143,7 +142,7 @@ export function withParentReadChildSign<
 }
 
 // -- Combinator --
-// Wraps a resolver so its output is split into positional args:
+// Positional variant that splits the output into separate args:
 // [{ publicClient, ...rest }] → [publicClient, { ...rest }]
 // Used for SDK functions that take (publicClient, params) instead of ({ publicClient, ...params }).
 
