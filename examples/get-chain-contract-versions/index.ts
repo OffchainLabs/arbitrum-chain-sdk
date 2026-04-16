@@ -1,11 +1,9 @@
 import { config } from 'dotenv';
 import { getOrbitChainContractVersions } from '@arbitrum/chain-sdk';
-import { isAddress, Address } from 'viem';
+import { isAddress, Address, createPublicClient, http } from 'viem';
 
 config();
 
-const orbitActionsImage = process.env.ORBIT_ACTIONS_IMAGE ?? 'offchainlabs/chain-actions';
-const network = process.env.NETWORK ?? 'arb1';
 const inboxAddress = process.env.INBOX_ADDRESS;
 const parentChainRpc = process.env.PARENT_CHAIN_RPC;
 
@@ -17,15 +15,18 @@ if (!parentChainRpc || parentChainRpc === '') {
   throw new Error('Please provide the "PARENT_CHAIN_RPC" environment variable');
 }
 
+const parentChainRpcUrl = parentChainRpc;
+
 async function main() {
   console.log('Getting Orbit chain contract versions...');
+  const parentChainPublicClient = createPublicClient({
+    transport: http(parentChainRpcUrl),
+  });
+  const parentChainId = await parentChainPublicClient.getChainId();
   const result = await getOrbitChainContractVersions({
-    image: orbitActionsImage,
     inboxAddress: inboxAddress as Address,
-    network,
-    env: {
-      PARENT_CHAIN_RPC: parentChainRpc,
-    },
+    networkOrChainId: parentChainId,
+    parentChainRpc: parentChainRpcUrl,
   });
 
   console.log(result);

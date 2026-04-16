@@ -3,6 +3,7 @@ import { execFile } from 'node:child_process';
 export type RunDockerCommandParameters = {
   image: string;
   command?: string[];
+  dockerRunArgs?: string[];
   entrypoint?: string;
   env?: Record<string, string | undefined>;
 };
@@ -85,6 +86,7 @@ export async function runDockerCommand(
     'docker',
     'run',
     '--rm',
+    ...(params.dockerRunArgs ?? []),
     ...envEntries.flatMap(([name]) => ['--env', name]),
     ...(params.entrypoint ? ['--entrypoint', params.entrypoint] : []),
     params.image,
