@@ -17,4 +17,4 @@ export {
 } from './buildScheduleArbOSUpgrade';
 export { isBatchPosterSchema, isBatchPosterTransform } from './isBatchPoster';
 export { isValidKeysetHashSchema, isValidKeysetHashTransform } from './isValidKeysetHash';
-export { getMaxTimeVariationSchema, getMaxTimeVariationTransform } from './getMaxTimeVariation';
+export { getMaxTimeVariationSchema, getMaxTimeVariationResolver } from './getMaxTimeVariation';

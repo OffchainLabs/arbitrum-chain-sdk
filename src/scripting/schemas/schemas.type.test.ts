@@ -121,7 +121,8 @@ import {
   buildScheduleArbOSUpgradeTransform,
   isBatchPosterTransform,
   isValidKeysetHashTransform,
-  getMaxTimeVariationTransform,
+  getMaxTimeVariationSchema,
+  getMaxTimeVariationResolver,
 } from './actions';
 
 // DeepNormalize<T>
@@ -546,10 +547,12 @@ it('isValidKeysetHashTransform output matches isValidKeysetHash params', () =>
     DeepNormalize<Parameters<typeof isValidKeysetHash>>
   >());
 
-it('getMaxTimeVariationTransform output matches getMaxTimeVariation params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getMaxTimeVariationTransform>>>().toEqualTypeOf<
+it('getMaxTimeVariationResolver output matches getMaxTimeVariation params', () => {
+  const transformed = getMaxTimeVariationSchema.transform(getMaxTimeVariationResolver);
+  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof getMaxTimeVariation>>
-  >());
+  >();
+});
 
 it('parentChainIsArbitrumTransform output matches parentChainIsArbitrum params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof parentChainIsArbitrumTransform>>>().toEqualTypeOf<

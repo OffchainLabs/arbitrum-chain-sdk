@@ -5,7 +5,6 @@ import {
   sequencerInboxMaxTimeVariationSchema,
   actionWriteBaseSchema,
 } from '../common';
-import { buildSetMaxTimeVariation } from '../../../actions/buildSetMaxTimeVariation';
 
 export const buildSetMaxTimeVariationSchema = actionWriteBaseSchema
   .extend({
@@ -16,17 +15,10 @@ export const buildSetMaxTimeVariationSchema = actionWriteBaseSchema
 
 export const buildSetMaxTimeVariationTransform = (
   input: z.output<typeof buildSetMaxTimeVariationSchema>,
-): Parameters<typeof buildSetMaxTimeVariation> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    account: input.account,
-    upgradeExecutor: input.upgradeExecutor ?? false,
-    sequencerInbox: input.sequencerInbox,
-    params: {
-      delayBlocks: input.delayBlocks,
-      futureBlocks: input.futureBlocks,
-      delaySeconds: input.delaySeconds,
-      futureSeconds: input.futureSeconds,
-    },
-  },
-];
+) => {
+  const { rpcUrl, chainId, delayBlocks, futureBlocks, delaySeconds, futureSeconds, ...rest } = input;
+  return [
+    toPublicClient(rpcUrl, findChain(chainId)),
+    { ...rest, params: { delayBlocks, futureBlocks, delaySeconds, futureSeconds } },
+  ] as const;
+};

@@ -1,19 +1,10 @@
-import { z } from 'zod';
-import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema } from '../common';
-import { getMaxTimeVariation } from '../../../actions/getMaxTimeVariation';
+import { withPublicClientPositional } from '../../viemTransforms';
+import { addressSchema, publicClientSchema } from '../common';
 
-export const getMaxTimeVariationSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  sequencerInbox: addressSchema,
-});
+export const getMaxTimeVariationSchema = publicClientSchema
+  .extend({
+    sequencerInbox: addressSchema,
+  })
+  .strict();
 
-export const getMaxTimeVariationTransform = (
-  input: z.output<typeof getMaxTimeVariationSchema>,
-): Parameters<typeof getMaxTimeVariation> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    sequencerInbox: input.sequencerInbox,
-  },
-];
+export const getMaxTimeVariationResolver = withPublicClientPositional;

@@ -86,7 +86,7 @@ import {
   isValidKeysetHashSchema,
   isValidKeysetHashTransform,
   getMaxTimeVariationSchema,
-  getMaxTimeVariationTransform,
+  getMaxTimeVariationResolver,
   createRollupPrepareDeploymentParamsConfigDefaultsSchema,
   createRollupPrepareDeploymentParamsConfigDefaultsTransform,
   parentChainIsArbitrumSchema,
@@ -343,7 +343,7 @@ runCli('chain-sdk', {
     isValidKeysetHash,
   ),
   getMaxTimeVariation: cmd(
-    getMaxTimeVariationSchema.transform(getMaxTimeVariationTransform),
+    getMaxTimeVariationSchema.transform(getMaxTimeVariationResolver),
     getMaxTimeVariation,
   ),
 

@@ -132,5 +132,5 @@ export {
   isValidKeysetHashSchema,
   isValidKeysetHashTransform,
   getMaxTimeVariationSchema,
-  getMaxTimeVariationTransform,
+  getMaxTimeVariationResolver,
 } from './actions';
