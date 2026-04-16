@@ -1,0 +1,17 @@
+{
+  "name": "@arbitrum/orbit-cli",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "orbit": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "@arbitrum/chain-sdk": "workspace:*",
+    "incur": "^0.4.1"
+  }
+}

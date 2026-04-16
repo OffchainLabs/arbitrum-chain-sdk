@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import { Address, Chain } from 'viem';
-import { addressSchema, coreContractsSchema, hexSchema } from './schemas/primitives';
 
 import { validateParentChain } from './types/ParentChain';
 import { SetValidKeysetParams } from './setValidKeyset';
@@ -14,19 +12,12 @@ export type SetValidKeysetPrepareTransactionRequestParams<TChain extends Chain |
   account: Address;
 };
 
-export const setValidKeysetPrepareTransactionRequestParams = z.object({
-  coreContracts: coreContractsSchema.pick({ upgradeExecutor: true, sequencerInbox: true }),
-  keyset: hexSchema,
-  account: addressSchema,
-});
-
 export async function setValidKeysetPrepareTransactionRequest<TChain extends Chain | undefined>({
   coreContracts,
   keyset,
   account,
   publicClient,
 }: SetValidKeysetPrepareTransactionRequestParams<TChain>) {
-  setValidKeysetPrepareTransactionRequestParams.parse({ coreContracts, keyset, account });
   const { chainId } = validateParentChain(publicClient);
 
   // @ts-expect-error -- todo: fix viem type issue

@@ -1,7 +1,5 @@
-import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain, encodeFunctionData } from 'viem';
 
-import { addressSchema } from './schemas/primitives';
 import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';
 import { validateParentChain } from './types/ParentChain';
 import { createTokenBridgeGetInputs } from './createTokenBridge-ethers';
@@ -39,12 +37,6 @@ export type CreateTokenBridgePrepareTransactionRequestParams<
   }>
 >;
 
-export const createTokenBridgePrepareTransactionRequestParams = z.object({
-  params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
-  account: addressSchema,
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
-
 export async function createTokenBridgePrepareTransactionRequest<
   TParentChain extends Chain | undefined,
   TOrbitChain extends Chain | undefined,
@@ -57,11 +49,6 @@ export async function createTokenBridgePrepareTransactionRequest<
   retryableGasOverrides,
   tokenBridgeCreatorAddressOverride,
 }: CreateTokenBridgePrepareTransactionRequestParams<TParentChain, TOrbitChain>) {
-  createTokenBridgePrepareTransactionRequestParams.parse({
-    params,
-    account,
-    tokenBridgeCreatorAddressOverride,
-  });
   const { chainId } = validateParentChain(parentChainPublicClient);
 
   const isTokenBridgeAlreadyDeployed = await isTokenBridgeDeployed({

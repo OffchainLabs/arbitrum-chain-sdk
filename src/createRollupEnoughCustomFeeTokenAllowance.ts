@@ -1,7 +1,5 @@
-import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain } from 'viem';
 
-import { addressSchema } from './schemas/primitives';
 import { fetchAllowance, fetchDecimals } from './utils/erc20';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 
@@ -21,12 +19,6 @@ export type CreateRollupEnoughCustomFeeTokenAllowanceParams<TChain extends Chain
     rollupCreatorVersion?: RollupCreatorSupportedVersion;
   }>;
 
-export const createRollupEnoughCustomFeeTokenAllowanceParams = z.object({
-  nativeToken: addressSchema,
-  account: addressSchema,
-  rollupCreatorAddressOverride: addressSchema.optional(),
-});
-
 export async function createRollupEnoughCustomFeeTokenAllowance<TChain extends Chain | undefined>({
   nativeToken,
   maxFeePerGasForRetryables,
@@ -35,11 +27,6 @@ export async function createRollupEnoughCustomFeeTokenAllowance<TChain extends C
   rollupCreatorAddressOverride,
   rollupCreatorVersion = 'v3.2',
 }: CreateRollupEnoughCustomFeeTokenAllowanceParams<TChain>) {
-  createRollupEnoughCustomFeeTokenAllowanceParams.parse({
-    nativeToken,
-    account,
-    rollupCreatorAddressOverride,
-  });
   const allowance = await fetchAllowance({
     address: nativeToken,
     owner: account,

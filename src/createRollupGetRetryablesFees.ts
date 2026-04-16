@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import {
   Chain,
   PublicClient,
@@ -10,7 +9,6 @@ import {
   decodeFunctionResult,
   parseEther,
 } from 'viem';
-import { addressSchema } from './schemas/primitives';
 
 import { rollupCreatorABI } from './contracts/RollupCreator/v3.2';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
@@ -165,17 +163,11 @@ export type CreateRollupGetRetryablesFeesParams = {
  *
  * @returns Estimated fees.
  */
-export const createRollupGetRetryablesFeesParams = z.object({
-  account: addressSchema,
-  nativeToken: addressSchema.optional(),
-});
-
 export async function createRollupGetRetryablesFees<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
   rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
-  createRollupGetRetryablesFeesParams.parse({ account, nativeToken });
   const deployHelperAddress = await publicClient.readContract({
     abi: rollupCreatorABI,
     address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),

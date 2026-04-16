@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 function uint64ToBigEndian(value: number): Uint8Array {
   const buffer = new ArrayBuffer(8);
   const view = new DataView(buffer);
@@ -18,13 +16,7 @@ function uint16ToBigEndian(value: number): Uint8Array {
   return new Uint8Array(buffer);
 }
 
-export const prepareKeysetParams = z.object({
-  publicKeys: z.array(z.string()),
-  assumedHonest: z.number(),
-});
-
 export function prepareKeyset(publicKeys: string[], assumedHonest: number): `0x${string}` {
-  prepareKeysetParams.parse({ publicKeys, assumedHonest });
   const numberOfMembers = publicKeys.length;
   const membersBuffer: Uint8Array[] = [];
 

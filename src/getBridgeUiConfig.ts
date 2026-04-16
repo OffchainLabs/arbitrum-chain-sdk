@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import { createPublicClient, PublicClient, Chain, Transport, http } from 'viem';
-import { hexSchema } from './schemas/primitives';
 
 import { ChainConfig } from './types/ChainConfig';
 import { BridgeUiConfig } from './types/BridgeUiConfig';
@@ -58,19 +56,11 @@ export type GetBridgeUiConfigFunctionParams<TChain extends Chain> = {
  *   parentChainPublicClient,
  * });
  */
-export const getBridgeUiConfigParams = z.object({
-  deploymentTxHash: hexSchema,
-  chainName: z.string().optional(),
-  rpcUrl: z.string().optional(),
-  explorerUrl: z.string().optional(),
-});
-
 export async function getBridgeUiConfig<TChain extends Chain>({
   params,
   parentChainPublicClient: providedClient,
 }: GetBridgeUiConfigFunctionParams<TChain>): Promise<BridgeUiConfig> {
   const { parentChain, deploymentTxHash, chainName, rpcUrl, explorerUrl } = params;
-  getBridgeUiConfigParams.parse({ deploymentTxHash, chainName, rpcUrl, explorerUrl });
 
   // Create a new public client if not provided
   const parentChainPublicClient: PublicClient<Transport, TChain> =

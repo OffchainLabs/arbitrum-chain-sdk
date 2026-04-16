@@ -1,7 +1,5 @@
-import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain } from 'viem';
 
-import { addressSchema } from './schemas/primitives';
 import { fetchAllowance, fetchDecimals } from './utils/erc20';
 import { createTokenBridgeDefaultRetryablesFees } from './constants';
 
@@ -19,12 +17,6 @@ export type CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams<TChain extends 
     }>
   >;
 
-export const createTokenBridgeEnoughCustomFeeTokenAllowanceParams = z.object({
-  nativeToken: addressSchema,
-  owner: addressSchema,
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
-
 export async function createTokenBridgeEnoughCustomFeeTokenAllowance<
   TChain extends Chain | undefined,
 >({
@@ -33,11 +25,6 @@ export async function createTokenBridgeEnoughCustomFeeTokenAllowance<
   publicClient,
   tokenBridgeCreatorAddressOverride,
 }: CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams<TChain>) {
-  createTokenBridgeEnoughCustomFeeTokenAllowanceParams.parse({
-    nativeToken,
-    owner,
-    tokenBridgeCreatorAddressOverride,
-  });
   const allowance = await fetchAllowance({
     address: nativeToken,
     owner,

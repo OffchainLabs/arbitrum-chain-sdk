@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import { Address, WalletClient } from 'viem';
-import { addressSchema } from './schemas/primitives';
 
 import rewardDistributor from '@offchainlabs/fund-distribution-contracts/out/RewardDistributor.sol/RewardDistributor.json';
 
@@ -63,19 +61,10 @@ export type FeeRouterDeployRewardDistributorParams = {
  *   rewardDistributorDeploymentTransactionReceipt.contractAddress as `0x${string}`,
  * );
  */
-const rewardDistributorRecipientParamsSchema = z.object({
-  account: addressSchema,
-});
-
-export const feeRouterDeployRewardDistributorParams = z.object({
-  recipients: z.array(rewardDistributorRecipientParamsSchema),
-});
-
 export async function feeRouterDeployRewardDistributor({
   orbitChainWalletClient,
   recipients,
 }: FeeRouterDeployRewardDistributorParams) {
-  feeRouterDeployRewardDistributorParams.parse({ recipients });
   const transactionHash = await orbitChainWalletClient.deployContract({
     abi: rewardDistributor.abi,
     account: orbitChainWalletClient.account!,

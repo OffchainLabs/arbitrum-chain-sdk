@@ -1,7 +1,5 @@
-import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain, encodeFunctionData } from 'viem';
 
-import { addressSchema } from './schemas/primitives';
 import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
 import {
   UPGRADE_EXECUTOR_ROLE_EXECUTOR,
@@ -42,12 +40,6 @@ export type UpgradeExecutorPrepareAddExecutorTransactionRequestParams<
  *   publicClient,
  * });
  */
-export const upgradeExecutorPrepareAddExecutorTransactionRequestParams = z.object({
-  account: addressSchema,
-  upgradeExecutorAddress: addressSchema,
-  executorAccountAddress: addressSchema,
-});
-
 export async function upgradeExecutorPrepareAddExecutorTransactionRequest<
   TChain extends Chain | undefined,
 >({
@@ -56,11 +48,6 @@ export async function upgradeExecutorPrepareAddExecutorTransactionRequest<
   executorAccountAddress,
   publicClient,
 }: UpgradeExecutorPrepareAddExecutorTransactionRequestParams<TChain>) {
-  upgradeExecutorPrepareAddExecutorTransactionRequestParams.parse({
-    account,
-    upgradeExecutorAddress,
-    executorAccountAddress,
-  });
   const chainId = assertChainId(publicClient);
 
   // 0. Verify that the account doesn't have the EXECUTOR role already

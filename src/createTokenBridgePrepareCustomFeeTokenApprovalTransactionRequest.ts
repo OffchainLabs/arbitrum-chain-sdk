@@ -1,7 +1,5 @@
-import { z } from 'zod';
 import { Address, PublicClient, Transport, Chain } from 'viem';
 
-import { addressSchema } from './schemas/primitives';
 import { approvePrepareTransactionRequest, fetchDecimals } from './utils/erc20';
 
 import { Prettify } from './types/utils';
@@ -22,12 +20,6 @@ export type CreateTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestPara
   }>
 >;
 
-export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestParams = z.object({
-  nativeToken: addressSchema,
-  owner: addressSchema,
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
-
 export async function createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest<
   TChain extends Chain | undefined,
 >({
@@ -37,11 +29,6 @@ export async function createTokenBridgePrepareCustomFeeTokenApprovalTransactionR
   publicClient,
   tokenBridgeCreatorAddressOverride,
 }: CreateTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestParams<TChain>) {
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestParams.parse({
-    nativeToken,
-    owner,
-    tokenBridgeCreatorAddressOverride,
-  });
   const { chainId } = validateParentChain(publicClient);
 
   const decimals = await fetchDecimals({

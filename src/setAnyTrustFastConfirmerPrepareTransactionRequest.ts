@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import {
   Address,
   Chain,
@@ -8,7 +7,6 @@ import {
   encodeFunctionData,
   parseAbi,
 } from 'viem';
-import { addressSchema } from './schemas/primitives';
 import { validateChain } from './utils/validateChain';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 
@@ -39,12 +37,6 @@ export type SetAnyTrustFastConfirmerPrepareTransactionRequestParams<
  *
  * @returns Promise<{@link TransactionRequest}> - the transaction to sign and send to the blockchain.
  */
-export const setAnyTrustFastConfirmerPrepareTransactionRequestParams = z.object({
-  rollup: addressSchema,
-  upgradeExecutor: addressSchema,
-  fastConfirmer: addressSchema,
-});
-
 export async function setAnyTrustFastConfirmerPrepareTransactionRequest<
   TChain extends Chain | undefined,
 >({
@@ -54,11 +46,6 @@ export async function setAnyTrustFastConfirmerPrepareTransactionRequest<
   upgradeExecutor,
   fastConfirmer,
 }: SetAnyTrustFastConfirmerPrepareTransactionRequestParams<TChain>) {
-  setAnyTrustFastConfirmerPrepareTransactionRequestParams.parse({
-    rollup,
-    upgradeExecutor,
-    fastConfirmer,
-  });
   const chainId = validateChain(publicClient);
 
   // prepare the rollup transaction calldata

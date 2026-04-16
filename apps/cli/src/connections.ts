@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { Chain, createPublicClient, createWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { chains, getCustomParentChains } from '../chains';
-import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
-import { addressSchema, privateKeySchema } from './primitives';
+import { chains, getCustomParentChains } from '../../../src/chains';
+import { sanitizePrivateKey } from '../../../src/utils/sanitizePrivateKey';
+import { privateKeySchema } from './primitives';
 
 // ── Resolve helpers ──
 
@@ -18,14 +18,14 @@ export function findChain(chainId: number): Chain {
   return chain;
 }
 
-function toPublicClient<TChain extends Chain | undefined = undefined>(
+export function toPublicClient<TChain extends Chain | undefined = undefined>(
   rpcUrl: string,
   chain?: TChain,
 ) {
   return createPublicClient({ chain, transport: http(rpcUrl) });
 }
 
-function toAccount(privateKey: string) {
+export function toAccount(privateKey: string) {
   return privateKeyToAccount(sanitizePrivateKey(privateKey));
 }
 

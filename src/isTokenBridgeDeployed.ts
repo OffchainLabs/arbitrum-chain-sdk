@@ -1,6 +1,4 @@
-import { z } from 'zod';
 import { Address, Chain, PublicClient, Transport } from 'viem';
-import { addressSchema } from './schemas/primitives';
 
 import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';
 import { getTokenBridgeCreatorAddress } from './utils';
@@ -17,11 +15,6 @@ import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridge
  *
  * @returns true if token bridge was already deployed
  */
-export const isTokenBridgeDeployedParams = z.object({
-  rollup: addressSchema,
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
-
 export async function isTokenBridgeDeployed<
   TParentChain extends Chain | undefined,
   TOrbitChain extends Chain | undefined,
@@ -35,7 +28,6 @@ export async function isTokenBridgeDeployed<
   orbitChainPublicClient: PublicClient<Transport, TOrbitChain>;
   rollup: Address;
 }>): Promise<boolean> {
-  isTokenBridgeDeployedParams.parse({ rollup, tokenBridgeCreatorAddressOverride });
   const inbox = await parentChainPublicClient.readContract({
     address: rollup,
     abi: rollupABI,
