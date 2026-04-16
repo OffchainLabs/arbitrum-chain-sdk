@@ -8,7 +8,6 @@ import {
   getKeysetsSchema,
   getKeysetsResolver,
   isAnyTrustSchema,
-  isAnyTrustResolver,
   createRollupFetchTransactionHashSchema,
   createRollupFetchTransactionHashResolver,
   createRollupFetchCoreContractsSchema,
@@ -157,7 +156,7 @@ runCli('chain-sdk', {
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsResolver), getValidators),
   getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersResolver), getBatchPosters),
   getKeysets: cmd(getKeysetsSchema.transform(getKeysetsResolver), getKeysets),
-  isAnyTrust: cmd(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust),
+  isAnyTrust: cmd(isAnyTrustSchema, isAnyTrust),
   createRollupFetchTransactionHash: cmd(
     createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashResolver),
     createRollupFetchTransactionHash,

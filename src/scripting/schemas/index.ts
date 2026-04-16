@@ -38,7 +38,7 @@ export {
   feeRouterDeployChildToParentRewardRouterResolver,
 } from './feeRouter';
 export { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './getBridgeUiConfig';
-export { isAnyTrustSchema, isAnyTrustResolver } from './isAnyTrust';
+export { isAnyTrustSchema } from './isAnyTrust';
 export {
   createRollupFetchTransactionHashSchema,
   createRollupFetchTransactionHashResolver,

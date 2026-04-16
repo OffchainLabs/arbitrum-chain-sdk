@@ -7,7 +7,7 @@ import { getKeysetsSchema, getKeysetsResolver } from './schemas/getKeysets';
 import { getKeysets } from '../getKeysets';
 import { getBatchPostersSchema, getBatchPostersResolver } from './schemas/getBatchPosters';
 import { getBatchPosters } from '../getBatchPosters';
-import { isAnyTrustSchema, isAnyTrustResolver } from './schemas/isAnyTrust';
+import { isAnyTrustSchema } from './schemas/isAnyTrust';
 import { isAnyTrust } from '../isAnyTrust';
 import { prepareKeysetHashSchema, prepareKeysetHashTransform } from './schemas/prepareKeysetHash';
 import { prepareKeysetHash } from '../prepareKeysetHash';
@@ -178,7 +178,7 @@ describe('schema coverage', () => {
   });
 
   it('isAnyTrust', async () => {
-    await assertSchemaCoverage(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust, mocks);
+    await assertSchemaCoverage(isAnyTrustSchema, isAnyTrust, mocks);
   });
 
   it('prepareKeysetHash', async () => {

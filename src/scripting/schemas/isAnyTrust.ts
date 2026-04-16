@@ -5,6 +5,5 @@ export const isAnyTrustSchema = publicClientSchema
   .extend({
     rollup: addressSchema,
   })
-  .strict();
-
-export const isAnyTrustResolver = withPublicClient;
+  .strict()
+  .transform(withPublicClient);
