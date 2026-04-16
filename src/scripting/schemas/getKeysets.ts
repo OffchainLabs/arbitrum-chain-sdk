@@ -1,17 +1,9 @@
-import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema } from './common';
-import { getKeysets } from '../../getKeysets';
+import { withPublicClientPositional } from '../viemTransforms';
+import { addressSchema, publicClientSchema } from './common';
 
-export const getKeysetsSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  sequencerInbox: addressSchema,
-});
-
-export const getKeysetsTransform = (
-  input: z.output<typeof getKeysetsSchema>,
-): Parameters<typeof getKeysets> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  { sequencerInbox: input.sequencerInbox },
-];
+export const getKeysetsSchema = publicClientSchema
+  .extend({
+    sequencerInbox: addressSchema,
+  })
+  .strict()
+  .transform(withPublicClientPositional);
