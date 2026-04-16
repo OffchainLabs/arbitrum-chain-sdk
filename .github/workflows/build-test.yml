@@ -165,22 +165,22 @@ jobs:
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            version: v0.2.0
+            version: v0.2.2
             nitro-contracts-version: v3.2
             decimals: 18
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            version: v0.2.0
+            version: v0.2.2
             nitro-contracts-version: v3.2
             decimals: 6
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            version: v0.2.0
+            version: v0.2.2
             nitro-contracts-version: v2.1
             decimals: 18
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            version: v0.2.0
+            version: v0.2.2
             nitro-contracts-version: v2.1
             decimals: 6
 
@@ -206,7 +206,7 @@ jobs:
           cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Set up the local node
-        uses: OffchainLabs/arbitrum-testnode@v0.2.0
+        uses: OffchainLabs/arbitrum-testnode@v0.2.2
         with:
           version: ${{ matrix.config.version }}
           l3-node: true
