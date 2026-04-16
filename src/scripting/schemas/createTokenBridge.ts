@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient, toAccount, findChain } from '../viemTransforms';
+import { toPublicClient, withParentChainSign } from '../viemTransforms';
 import {
   addressSchema,
   bigintSchema,
@@ -24,25 +24,8 @@ export const createTokenBridgeSchema = parentChainPublicClientSchema
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
     setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
   })
-  .strict();
-
-export const createTokenBridgeTransform = (
-  input: z.output<typeof createTokenBridgeSchema>,
-): Parameters<typeof createTokenBridge> => [
-  {
-    rollupOwner: input.rollupOwner,
-    rollupAddress: input.rollupAddress,
-    account: toAccount(input.privateKey),
-    parentChainPublicClient: toPublicClient(
-      input.parentChainRpcUrl,
-      findChain(input.parentChainId),
-    ),
-    orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
-    rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
-    nativeTokenAddress: input.nativeTokenAddress,
-    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-    gasOverrides: input.gasOverrides,
-    retryableGasOverrides: input.retryableGasOverrides,
-    setWethGatewayGasOverrides: input.setWethGatewayGasOverrides,
-  },
-];
+  .strict()
+  .transform((input): Parameters<typeof createTokenBridge> => {
+    const [{ orbitChainRpcUrl, ...rest }] = withParentChainSign(input);
+    return [{ ...rest, orbitChainPublicClient: toPublicClient(orbitChainRpcUrl) }];
+  });

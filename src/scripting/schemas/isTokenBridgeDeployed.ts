@@ -9,18 +9,17 @@ export const isTokenBridgeDeployedSchema = parentChainPublicClientSchema
     rollup: addressSchema,
     tokenBridgeCreatorAddressOverride: addressSchema.optional(),
   })
-  .strict();
-
-export const isTokenBridgeDeployedTransform = (
-  input: z.output<typeof isTokenBridgeDeployedSchema>,
-): Parameters<typeof isTokenBridgeDeployed> => [
-  {
-    parentChainPublicClient: toPublicClient(
-      input.parentChainRpcUrl,
-      findChain(input.parentChainId),
-    ),
-    orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
-    rollup: input.rollup,
-    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-  },
-];
+  .strict()
+  .transform(
+    (input): Parameters<typeof isTokenBridgeDeployed> => [
+      {
+        parentChainPublicClient: toPublicClient(
+          input.parentChainRpcUrl,
+          findChain(input.parentChainId),
+        ),
+        orbitChainPublicClient: toPublicClient(input.orbitChainRpcUrl),
+        rollup: input.rollup,
+        tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
+      },
+    ],
+  );

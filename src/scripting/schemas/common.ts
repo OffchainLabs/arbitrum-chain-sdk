@@ -22,7 +22,9 @@ export const parentChainPublicClientSchema = z.object({
 
 export const actionWriteBaseSchema = publicClientSchema.extend({
   account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
+  upgradeExecutor: addressSchema
+    .optional()
+    .transform((v) => v ?? false),
 });
 
 export const privateKeySchema = z

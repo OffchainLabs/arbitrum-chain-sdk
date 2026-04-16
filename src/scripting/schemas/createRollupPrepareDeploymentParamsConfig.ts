@@ -53,22 +53,20 @@ export const paramsV2Dot1Schema = z.object({
 
 export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSchema
   .extend(paramsV2Dot1Schema.shape)
-  .strict();
+  .strict()
+  .transform(
+    (input): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
+      const { parentChainRpcUrl, parentChainId, ...params } = input;
+      return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
+    },
+  );
 
 export const prepareDeploymentParamsConfigV32Schema = parentChainPublicClientSchema
   .extend(paramsV3Dot2Schema.shape)
-  .strict();
-
-export const prepareDeploymentParamsConfigV21Transform = (
-  input: z.output<typeof prepareDeploymentParamsConfigV21Schema>,
-): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
-  const { parentChainRpcUrl, parentChainId, ...params } = input;
-  return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
-};
-
-export const prepareDeploymentParamsConfigV32Transform = (
-  input: z.output<typeof prepareDeploymentParamsConfigV32Schema>,
-): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
-  const { parentChainRpcUrl, parentChainId, ...params } = input;
-  return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
-};
+  .strict()
+  .transform(
+    (input): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
+      const { parentChainRpcUrl, parentChainId, ...params } = input;
+      return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
+    },
+  );

@@ -1,21 +1,10 @@
-import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
+import { withPublicClient } from '../viemTransforms';
 import { addressSchema, bigintSchema, publicClientSchema } from './common';
-import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
 
 export const createRollupFetchTransactionHashSchema = publicClientSchema
   .extend({
     rollup: addressSchema,
     fromBlock: bigintSchema.optional(),
   })
-  .strict();
-
-export const createRollupFetchTransactionHashTransform = (
-  input: z.output<typeof createRollupFetchTransactionHashSchema>,
-): Parameters<typeof createRollupFetchTransactionHash> => [
-  {
-    rollup: input.rollup,
-    publicClient: toPublicClient(input.rpcUrl, findChain(input.chainId)),
-    fromBlock: input.fromBlock,
-  },
-];
+  .strict()
+  .transform(withPublicClient);

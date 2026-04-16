@@ -1,4 +1,3 @@
-import { z } from 'zod';
 import { toPublicClient, findChain } from '../viemTransforms';
 import {
   addressSchema,
@@ -6,7 +5,6 @@ import {
   publicClientSchema,
   rollupCreatorVersionSchema,
 } from './common';
-import { createRollupGetRetryablesFees } from '../../createRollupGetRetryablesFees';
 
 export const createRollupGetRetryablesFeesSchema = publicClientSchema
   .extend({
@@ -15,16 +13,8 @@ export const createRollupGetRetryablesFeesSchema = publicClientSchema
     maxFeePerGasForRetryables: bigintSchema.optional(),
     rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
   })
-  .strict();
-
-export const createRollupGetRetryablesFeesTransform = (
-  input: z.output<typeof createRollupGetRetryablesFeesSchema>,
-): Parameters<typeof createRollupGetRetryablesFees> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    account: input.account,
-    nativeToken: input.nativeToken,
-    maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
-  },
-  input.rollupCreatorVersion,
-];
+  .strict()
+  .transform((input) => {
+    const { rpcUrl, chainId, rollupCreatorVersion, ...rest } = input;
+    return [toPublicClient(rpcUrl, findChain(chainId)), rest, rollupCreatorVersion] as const;
+  });
