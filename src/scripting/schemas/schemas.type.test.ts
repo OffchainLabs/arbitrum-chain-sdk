@@ -53,9 +53,9 @@ import { getMaxTimeVariation } from '../../actions/getMaxTimeVariation';
 import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
 import { createTokenBridgeResolver } from './createTokenBridge';
-import { getKeysetsTransform } from './getKeysets';
+import { getKeysetsSchema, getKeysetsResolver } from './getKeysets';
 import { getValidatorsSchema, getValidatorsResolver } from './getValidators';
-import { getBatchPostersTransform } from './getBatchPosters';
+import { getBatchPostersSchema, getBatchPostersResolver } from './getBatchPosters';
 import {
   prepareDeploymentParamsConfigV32Transform,
   prepareDeploymentParamsConfigV21Transform,
@@ -263,10 +263,10 @@ it('createTokenBridgeResolver output matches createTokenBridge params', () =>
     DeepNormalize<Parameters<typeof createTokenBridge>>
   >());
 
-it('getKeysetsTransform output matches getKeysets params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getKeysetsTransform>>>().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof getKeysets>>
-  >());
+it('getKeysetsResolver output matches getKeysets params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof getKeysetsResolver<z.output<typeof getKeysetsSchema>>>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getKeysets>>>());
 
 it('coreContractsSchema matches CoreContracts', () =>
   expectTypeOf<z.output<typeof coreContractsSchema>>().toEqualTypeOf<CoreContracts>());
@@ -307,10 +307,10 @@ it('getValidatorsResolver output matches getValidators params', () =>
     DeepNormalize<ReturnType<typeof getValidatorsResolver<z.output<typeof getValidatorsSchema>>>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof getValidators>>>());
 
-it('getBatchPostersTransform output matches getBatchPosters params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getBatchPostersTransform>>>().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof getBatchPosters>>
-  >());
+it('getBatchPostersResolver output matches getBatchPosters params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof getBatchPostersResolver<z.output<typeof getBatchPostersSchema>>>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getBatchPosters>>>());
 
 it('upgradeExecutorFetchPrivilegedAccountsTransform output matches upgradeExecutorFetchPrivilegedAccounts params', () =>
   expectTypeOf<

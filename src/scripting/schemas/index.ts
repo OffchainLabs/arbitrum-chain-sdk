@@ -23,9 +23,9 @@ export {
 export { createRollupSchema, createRollupResolver } from './createRollup';
 export { setValidKeysetSchema, setValidKeysetTransform } from './setValidKeyset';
 export { createTokenBridgeSchema, createTokenBridgeResolver } from './createTokenBridge';
-export { getKeysetsSchema, getKeysetsTransform } from './getKeysets';
+export { getKeysetsSchema, getKeysetsResolver } from './getKeysets';
 export { getValidatorsSchema, getValidatorsResolver } from './getValidators';
-export { getBatchPostersSchema, getBatchPostersTransform } from './getBatchPosters';
+export { getBatchPostersSchema, getBatchPostersResolver } from './getBatchPosters';
 export {
   setAnyTrustFastConfirmerSchema,
   setAnyTrustFastConfirmerResolver,

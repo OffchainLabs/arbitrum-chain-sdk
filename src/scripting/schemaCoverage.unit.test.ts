@@ -3,9 +3,9 @@ import { mocks, assertSchemaCoverage } from './schemaCoverage';
 
 import { getValidatorsSchema, getValidatorsResolver } from './schemas/getValidators';
 import { getValidators } from '../getValidators';
-import { getKeysetsSchema, getKeysetsTransform } from './schemas/getKeysets';
+import { getKeysetsSchema, getKeysetsResolver } from './schemas/getKeysets';
 import { getKeysets } from '../getKeysets';
-import { getBatchPostersSchema, getBatchPostersTransform } from './schemas/getBatchPosters';
+import { getBatchPostersSchema, getBatchPostersResolver } from './schemas/getBatchPosters';
 import { getBatchPosters } from '../getBatchPosters';
 import { isAnyTrustSchema, isAnyTrustResolver } from './schemas/isAnyTrust';
 import { isAnyTrust } from '../isAnyTrust';
@@ -166,12 +166,12 @@ describe('schema coverage', () => {
   });
 
   it('getKeysets', async () => {
-    await assertSchemaCoverage(getKeysetsSchema.transform(getKeysetsTransform), getKeysets, mocks);
+    await assertSchemaCoverage(getKeysetsSchema.transform(getKeysetsResolver), getKeysets, mocks);
   });
 
   it('getBatchPosters', async () => {
     await assertSchemaCoverage(
-      getBatchPostersSchema.transform(getBatchPostersTransform),
+      getBatchPostersSchema.transform(getBatchPostersResolver),
       getBatchPosters,
       mocks,
     );

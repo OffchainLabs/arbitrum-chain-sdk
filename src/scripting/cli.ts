@@ -4,9 +4,9 @@ import {
   getValidatorsSchema,
   getValidatorsResolver,
   getBatchPostersSchema,
-  getBatchPostersTransform,
+  getBatchPostersResolver,
   getKeysetsSchema,
-  getKeysetsTransform,
+  getKeysetsResolver,
   isAnyTrustSchema,
   isAnyTrustResolver,
   createRollupFetchTransactionHashSchema,
@@ -155,8 +155,8 @@ import {
 
 runCli('chain-sdk', {
   getValidators: cmd(getValidatorsSchema.transform(getValidatorsResolver), getValidators),
-  getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersTransform), getBatchPosters),
-  getKeysets: cmd(getKeysetsSchema.transform(getKeysetsTransform), getKeysets),
+  getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersResolver), getBatchPosters),
+  getKeysets: cmd(getKeysetsSchema.transform(getKeysetsResolver), getKeysets),
   isAnyTrust: cmd(isAnyTrustSchema.transform(isAnyTrustResolver), isAnyTrust),
   createRollupFetchTransactionHash: cmd(
     createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashResolver),
