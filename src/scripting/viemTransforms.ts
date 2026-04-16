@@ -29,6 +29,10 @@ type WithPublicClient<T> = [
   Omit<T, 'rpcUrl' | 'chainId'> & { publicClient: ReturnType<typeof toPublicClient<Chain>> },
 ];
 
+type WithPublicClientOptionalChain<T> = [
+  Omit<T, 'rpcUrl' | 'chainId'> & { publicClient: ReturnType<typeof toPublicClient> },
+];
+
 type WithParentChainPublicClient<T> = [
   Omit<T, 'parentChainRpcUrl' | 'parentChainId'> & {
     parentChainPublicClient: ReturnType<typeof toPublicClient<Chain>>;
@@ -69,6 +73,15 @@ export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(
 ): WithPublicClient<T> {
   const { rpcUrl, chainId, ...rest } = input;
   return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }] as WithPublicClient<T>;
+}
+
+export function withPublicClientOptionalChain<
+  T extends { rpcUrl: string; chainId?: number },
+>(input: T): WithPublicClientOptionalChain<T> {
+  const { rpcUrl, chainId, ...rest } = input;
+  return [
+    { publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest },
+  ] as WithPublicClientOptionalChain<T>;
 }
 
 export function withParentChainPublicClient<

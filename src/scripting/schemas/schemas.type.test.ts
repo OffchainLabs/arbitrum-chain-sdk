@@ -63,7 +63,7 @@ import {
 import { prepareChainConfigTransform } from './prepareChainConfig';
 import {
   upgradeExecutorPrepareTransactionRequestSchema,
-  upgradeExecutorFetchPrivilegedAccountsTransform,
+  upgradeExecutorFetchPrivilegedAccountsSchema,
 } from './upgradeExecutor';
 import { setAnyTrustFastConfirmerSchema } from './setAnyTrustFastConfirmer';
 import { prepareNodeConfigTransform } from './prepareNodeConfig';
@@ -98,7 +98,8 @@ import { prepareKeysetTransform } from './prepareKeyset';
 import { prepareKeysetHashTransform } from './prepareKeysetHash';
 import { getDefaultsTransform } from './getDefaults';
 import { createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
-import { fetchAllowanceTransform, fetchDecimalsTransform } from './erc20';
+import { fetchAllowanceSchema, fetchDecimalsSchema } from './erc20';
+import { withPublicClientOptionalChain } from '../viemTransforms';
 import { coreContractsSchema, chainConfigSchema } from './common';
 import { parentChainIsArbitrumTransform } from './parentChainIsArbitrum';
 import { parentChainIsArbitrum } from '../../parentChainIsArbitrum';
@@ -312,10 +313,14 @@ it('getBatchPostersResolver output matches getBatchPosters params', () =>
     DeepNormalize<ReturnType<typeof getBatchPostersResolver<z.output<typeof getBatchPostersSchema>>>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof getBatchPosters>>>());
 
-it('upgradeExecutorFetchPrivilegedAccountsTransform output matches upgradeExecutorFetchPrivilegedAccounts params', () =>
-  expectTypeOf<
-    DeepNormalize<ReturnType<typeof upgradeExecutorFetchPrivilegedAccountsTransform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>>());
+it('upgradeExecutorFetchPrivilegedAccountsResolver output matches upgradeExecutorFetchPrivilegedAccounts params', () => {
+  const transformed = upgradeExecutorFetchPrivilegedAccountsSchema.transform(
+    withPublicClientOptionalChain,
+  );
+  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>
+  >();
+});
 
 it('setAnyTrustFastConfirmerResolver output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () => {
   const transformed = setAnyTrustFastConfirmerSchema.transform(withChainSign);
@@ -492,15 +497,19 @@ it('createRollupGetRetryablesFeesTransform output matches createRollupGetRetryab
     DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFeesWithDefaults>>>());
 
-it('fetchAllowanceTransform output matches fetchAllowance params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof fetchAllowanceTransform>>>().toEqualTypeOf<
+it('fetchAllowanceResolver output matches fetchAllowance params', () => {
+  const transformed = fetchAllowanceSchema.transform(withPublicClientOptionalChain);
+  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof fetchAllowance>>
-  >());
+  >();
+});
 
-it('fetchDecimalsTransform output matches fetchDecimals params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof fetchDecimalsTransform>>>().toEqualTypeOf<
+it('fetchDecimalsResolver output matches fetchDecimals params', () => {
+  const transformed = fetchDecimalsSchema.transform(withPublicClientOptionalChain);
+  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof fetchDecimals>>
-  >());
+  >();
+});
 
 it('buildSetIsBatchPosterTransform output matches buildSetIsBatchPoster params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof buildSetIsBatchPosterTransform>>>().toEqualTypeOf<

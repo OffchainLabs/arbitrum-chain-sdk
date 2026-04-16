@@ -18,7 +18,7 @@ import {
   getBridgeUiConfigSchema,
   getBridgeUiConfigTransform,
   upgradeExecutorFetchPrivilegedAccountsSchema,
-  upgradeExecutorFetchPrivilegedAccountsTransform,
+  upgradeExecutorFetchPrivilegedAccountsResolver,
   setAnyTrustFastConfirmerSchema,
   setAnyTrustFastConfirmerResolver,
   setValidKeysetSchema,
@@ -68,9 +68,9 @@ import {
   createRollupGetRetryablesFeesSchema,
   createRollupGetRetryablesFeesTransform,
   fetchAllowanceSchema,
-  fetchAllowanceTransform,
+  fetchAllowanceResolver,
   fetchDecimalsSchema,
-  fetchDecimalsTransform,
+  fetchDecimalsResolver,
   buildSetIsBatchPosterSchema,
   buildSetIsBatchPosterTransform,
   buildSetValidKeysetSchema,
@@ -176,12 +176,12 @@ runCli('chain-sdk', {
   ),
   upgradeExecutorFetchPrivilegedAccounts: cmd(
     upgradeExecutorFetchPrivilegedAccountsSchema.transform(
-      upgradeExecutorFetchPrivilegedAccountsTransform,
+      upgradeExecutorFetchPrivilegedAccountsResolver,
     ),
     upgradeExecutorFetchPrivilegedAccounts,
   ),
-  fetchAllowance: cmd(fetchAllowanceSchema.transform(fetchAllowanceTransform), fetchAllowance),
-  fetchDecimals: cmd(fetchDecimalsSchema.transform(fetchDecimalsTransform), fetchDecimals),
+  fetchAllowance: cmd(fetchAllowanceSchema.transform(fetchAllowanceResolver), fetchAllowance),
+  fetchDecimals: cmd(fetchDecimalsSchema.transform(fetchDecimalsResolver), fetchDecimals),
 
   setAnyTrustFastConfirmer: cmd(
     setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerResolver),

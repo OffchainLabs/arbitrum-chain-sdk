@@ -47,14 +47,14 @@ import {
 import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
 import {
   fetchAllowanceSchema,
-  fetchAllowanceTransform,
+  fetchAllowanceResolver,
   fetchDecimalsSchema,
-  fetchDecimalsTransform,
+  fetchDecimalsResolver,
 } from './schemas/erc20';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
 import {
   upgradeExecutorFetchPrivilegedAccountsSchema,
-  upgradeExecutorFetchPrivilegedAccountsTransform,
+  upgradeExecutorFetchPrivilegedAccountsResolver,
 } from './schemas/upgradeExecutor';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
 import { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './schemas/getBridgeUiConfig';
@@ -249,7 +249,7 @@ describe('schema coverage', () => {
 
   it('fetchDecimals', async () => {
     await assertSchemaCoverage(
-      fetchDecimalsSchema.transform(fetchDecimalsTransform),
+      fetchDecimalsSchema.transform(fetchDecimalsResolver),
       fetchDecimals,
       mocks,
     );
@@ -257,7 +257,7 @@ describe('schema coverage', () => {
 
   it('fetchAllowance', async () => {
     await assertSchemaCoverage(
-      fetchAllowanceSchema.transform(fetchAllowanceTransform),
+      fetchAllowanceSchema.transform(fetchAllowanceResolver),
       fetchAllowance,
       mocks,
     );
@@ -266,7 +266,7 @@ describe('schema coverage', () => {
   it('upgradeExecutorFetchPrivilegedAccounts', async () => {
     await assertSchemaCoverage(
       upgradeExecutorFetchPrivilegedAccountsSchema.transform(
-        upgradeExecutorFetchPrivilegedAccountsTransform,
+        upgradeExecutorFetchPrivilegedAccountsResolver,
       ),
       upgradeExecutorFetchPrivilegedAccounts,
       mocks,

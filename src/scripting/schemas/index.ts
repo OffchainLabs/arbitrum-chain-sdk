@@ -18,7 +18,7 @@ export {
   upgradeExecutorPrepareTransactionRequestSchema,
   upgradeExecutorPrepareTransactionRequestResolver,
   upgradeExecutorFetchPrivilegedAccountsSchema,
-  upgradeExecutorFetchPrivilegedAccountsTransform,
+  upgradeExecutorFetchPrivilegedAccountsResolver,
 } from './upgradeExecutor';
 export { createRollupSchema, createRollupResolver } from './createRollup';
 export { setValidKeysetSchema, setValidKeysetTransform } from './setValidKeyset';
@@ -90,9 +90,9 @@ export {
 } from './createRollupGetRetryablesFees';
 export {
   fetchAllowanceSchema,
-  fetchAllowanceTransform,
+  fetchAllowanceResolver,
   fetchDecimalsSchema,
-  fetchDecimalsTransform,
+  fetchDecimalsResolver,
 } from './erc20';
 export {
   prepareDeploymentParamsConfigV21Schema,

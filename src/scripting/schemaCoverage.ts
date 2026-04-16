@@ -133,6 +133,10 @@ vi.mock('./viemTransforms', () => {
       const { rpcUrl, chainId, ...rest } = input;
       return [toPublicClient(rpcUrl, findChain(chainId)), rest];
     },
+    withPublicClientOptionalChain: <T extends { rpcUrl: string; chainId?: number }>(input: T) => {
+      const { rpcUrl, chainId, ...rest } = input;
+      return [{ publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest }];
+    },
     withParentChainPublicClient: <T extends { parentChainRpcUrl: string; parentChainId: number }>(input: T) => {
       const { parentChainRpcUrl, parentChainId, ...rest } = input;
       return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), ...rest }];
