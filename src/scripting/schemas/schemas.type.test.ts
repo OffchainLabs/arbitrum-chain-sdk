@@ -72,7 +72,7 @@ import {
   feeRouterDeployChildToParentRewardRouterTransform,
 } from './feeRouter';
 import { getBridgeUiConfigTransform } from './getBridgeUiConfig';
-import { isAnyTrustTransform } from './isAnyTrust';
+import { isAnyTrustSchema, isAnyTrustResolver } from './isAnyTrust';
 import { createRollupFetchTransactionHashTransform } from './createRollupFetchTransactionHash';
 import { createRollupFetchCoreContractsTransform } from './createRollupFetchCoreContracts';
 import { isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
@@ -333,10 +333,10 @@ it('getBridgeUiConfigTransform output matches getBridgeUiConfig params', () =>
     DeepNormalize<Parameters<typeof getBridgeUiConfig>>
   >());
 
-it('isAnyTrustTransform output matches isAnyTrust params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isAnyTrustTransform>>>().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof isAnyTrust>>
-  >());
+it('isAnyTrustResolver output matches isAnyTrust params', () =>
+  expectTypeOf<
+    DeepNormalize<ReturnType<typeof isAnyTrustResolver<z.output<typeof isAnyTrustSchema>>>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof isAnyTrust>[0]>>());
 
 it('createRollupFetchTransactionHashTransform output matches createRollupFetchTransactionHash params', () =>
   expectTypeOf<
