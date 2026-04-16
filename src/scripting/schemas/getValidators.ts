@@ -5,6 +5,5 @@ export const getValidatorsSchema = publicClientSchema
   .extend({
     rollup: addressSchema,
   })
-  .strict();
-
-export const getValidatorsResolver = withPublicClientPositional;
+  .strict()
+  .transform(withPublicClientPositional);

@@ -9,15 +9,13 @@ export const fetchAllowanceSchema = publicClientSchema
     owner: addressSchema,
     spender: addressSchema,
   })
-  .strict();
-
-export const fetchAllowanceResolver = withPublicClientOptionalChain;
+  .strict()
+  .transform(withPublicClientOptionalChain);
 
 export const fetchDecimalsSchema = publicClientSchema
   .extend({
     chainId: z.number().optional(),
     address: addressSchema,
   })
-  .strict();
-
-export const fetchDecimalsResolver = withPublicClientOptionalChain;
+  .strict()
+  .transform(withPublicClientOptionalChain);

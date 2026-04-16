@@ -18,6 +18,5 @@ export const createTokenBridgePrepareTransactionRequestSchema = parentChainPubli
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
     tokenBridgeCreatorAddressOverride: addressSchema.optional(),
   })
-  .strict();
-
-export const createTokenBridgePrepareTransactionRequestResolver = withParentChainPublicClient;
+  .strict()
+  .transform(withParentChainPublicClient);

@@ -12,14 +12,14 @@ const recipientSchema = z.object({
   weight: bigintSchema,
 });
 
-export const feeRouterDeployRewardDistributorSchema = z.strictObject({
-  orbitChainRpcUrl: z.url(),
-  orbitChainId: z.number(),
-  privateKey: privateKeySchema,
-  recipients: z.array(recipientSchema),
-});
-
-export const feeRouterDeployRewardDistributorResolver = withChildChainSign;
+export const feeRouterDeployRewardDistributorSchema = z
+  .strictObject({
+    orbitChainRpcUrl: z.url(),
+    orbitChainId: z.number(),
+    privateKey: privateKeySchema,
+    recipients: z.array(recipientSchema),
+  })
+  .transform(withChildChainSign);
 
 export const feeRouterDeployChildToParentRewardRouterSchema = parentChainPublicClientSchema
   .extend({
@@ -31,6 +31,5 @@ export const feeRouterDeployChildToParentRewardRouterSchema = parentChainPublicC
     parentChainTokenAddress: addressSchema.optional(),
     tokenBridgeCreatorAddressOverride: addressSchema.optional(),
   })
-  .strict();
-
-export const feeRouterDeployChildToParentRewardRouterResolver = withParentReadChildSign;
+  .strict()
+  .transform(withParentReadChildSign);

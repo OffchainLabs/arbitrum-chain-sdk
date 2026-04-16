@@ -16,8 +16,5 @@ export const prepareNodeConfigSchema = parentChainPublicClientSchema
     parentChainBeaconRpcUrl: z.url().optional(),
     dasServerUrl: z.url().optional(),
   })
-  .strict();
-
-export const prepareNodeConfigTransform = (
-  input: z.output<typeof prepareNodeConfigSchema>,
-): Parameters<typeof prepareNodeConfig> => [input];
+  .strict()
+  .transform((input): Parameters<typeof prepareNodeConfig> => [input]);

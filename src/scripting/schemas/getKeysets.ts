@@ -5,6 +5,5 @@ export const getKeysetsSchema = publicClientSchema
   .extend({
     sequencerInbox: addressSchema,
   })
-  .strict();
-
-export const getKeysetsResolver = withPublicClientPositional;
+  .strict()
+  .transform(withPublicClientPositional);

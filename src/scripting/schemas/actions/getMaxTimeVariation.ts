@@ -5,6 +5,5 @@ export const getMaxTimeVariationSchema = publicClientSchema
   .extend({
     sequencerInbox: addressSchema,
   })
-  .strict();
-
-export const getMaxTimeVariationResolver = withPublicClientPositional;
+  .strict()
+  .transform(withPublicClientPositional);

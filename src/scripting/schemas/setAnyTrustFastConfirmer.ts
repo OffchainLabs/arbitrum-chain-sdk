@@ -8,6 +8,5 @@ export const setAnyTrustFastConfirmerSchema = publicClientSchema
     upgradeExecutor: addressSchema,
     fastConfirmer: addressSchema,
   })
-  .strict();
-
-export const setAnyTrustFastConfirmerResolver = withChainSign;
+  .strict()
+  .transform(withChainSign);

@@ -51,31 +51,31 @@ import { isValidKeysetHash } from '../../actions/isValidKeysetHash';
 import { getMaxTimeVariation } from '../../actions/getMaxTimeVariation';
 
 import { createRollupTransformedSchema } from './createRollup';
-import { setValidKeysetTransform } from './setValidKeyset';
-import { createTokenBridgeResolver } from './createTokenBridge';
-import { getKeysetsSchema, getKeysetsResolver } from './getKeysets';
-import { getValidatorsSchema, getValidatorsResolver } from './getValidators';
-import { getBatchPostersSchema, getBatchPostersResolver } from './getBatchPosters';
+import { setValidKeysetSchema } from './setValidKeyset';
+import { createTokenBridgeSchema } from './createTokenBridge';
+import { getKeysetsSchema } from './getKeysets';
+import { getValidatorsSchema } from './getValidators';
+import { getBatchPostersSchema } from './getBatchPosters';
 import {
-  prepareDeploymentParamsConfigV32Transform,
-  prepareDeploymentParamsConfigV21Transform,
+  prepareDeploymentParamsConfigV32Schema,
+  prepareDeploymentParamsConfigV21Schema,
 } from './createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigTransform } from './prepareChainConfig';
+import { prepareChainConfigParamsSchema } from './prepareChainConfig';
 import {
   upgradeExecutorPrepareTransactionRequestSchema,
   upgradeExecutorFetchPrivilegedAccountsSchema,
 } from './upgradeExecutor';
 import { setAnyTrustFastConfirmerSchema } from './setAnyTrustFastConfirmer';
-import { prepareNodeConfigTransform } from './prepareNodeConfig';
+import { prepareNodeConfigSchema } from './prepareNodeConfig';
 import {
   feeRouterDeployRewardDistributorSchema,
   feeRouterDeployChildToParentRewardRouterSchema,
 } from './feeRouter';
-import { getBridgeUiConfigTransform } from './getBridgeUiConfig';
+import { getBridgeUiConfigSchema } from './getBridgeUiConfig';
 import { isAnyTrustSchema } from './isAnyTrust';
 import { createRollupFetchTransactionHashSchema } from './createRollupFetchTransactionHash';
 import { createRollupFetchCoreContractsSchema } from './createRollupFetchCoreContracts';
-import { isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
+import { isTokenBridgeDeployedSchema } from './isTokenBridgeDeployed';
 import { createTokenBridgePrepareTransactionRequestSchema } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequestSchema } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { setValidKeysetPrepareTransactionRequestSchema } from './setValidKeysetPrepareTransactionRequest';
@@ -87,21 +87,13 @@ import {
   createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
 } from './customFeeToken';
-import {
-  withPublicClient,
-  withParentChainPublicClient,
-  withChainSign,
-  withChildChainSign,
-  withParentReadChildSign,
-} from '../viemTransforms';
-import { prepareKeysetTransform } from './prepareKeyset';
-import { prepareKeysetHashTransform } from './prepareKeysetHash';
-import { getDefaultsTransform } from './getDefaults';
-import { createRollupGetRetryablesFeesTransform } from './createRollupGetRetryablesFees';
+import { prepareKeysetSchema } from './prepareKeyset';
+import { prepareKeysetHashSchema } from './prepareKeysetHash';
+import { getDefaultsSchema } from './getDefaults';
+import { createRollupGetRetryablesFeesSchema } from './createRollupGetRetryablesFees';
 import { fetchAllowanceSchema, fetchDecimalsSchema } from './erc20';
-import { withPublicClientOptionalChain } from '../viemTransforms';
 import { coreContractsSchema, chainConfigSchema } from './common';
-import { parentChainIsArbitrumTransform } from './parentChainIsArbitrum';
+import { parentChainIsArbitrumSchema } from './parentChainIsArbitrum';
 import { parentChainIsArbitrum } from '../../parentChainIsArbitrum';
 import {
   getConsensusReleaseByVersion,
@@ -109,20 +101,19 @@ import {
   isKnownWasmModuleRoot,
 } from '../../wasmModuleRoot';
 import {
-  getConsensusReleaseByVersionTransform,
-  getConsensusReleaseByWasmModuleRootTransform,
-  isKnownWasmModuleRootTransform,
+  getConsensusReleaseByVersionSchema,
+  getConsensusReleaseByWasmModuleRootSchema,
+  isKnownWasmModuleRootSchema,
 } from './wasmModuleRoot';
 import {
-  buildSetIsBatchPosterTransform,
-  buildSetValidKeysetTransform,
-  buildInvalidateKeysetHashTransform,
-  buildSetMaxTimeVariationTransform,
-  buildScheduleArbOSUpgradeTransform,
-  isBatchPosterTransform,
-  isValidKeysetHashTransform,
+  buildSetIsBatchPosterSchema,
+  buildSetValidKeysetSchema,
+  buildInvalidateKeysetHashSchema,
+  buildSetMaxTimeVariationSchema,
+  buildScheduleArbOSUpgradeSchema,
+  isBatchPosterSchema,
+  isValidKeysetHashSchema,
   getMaxTimeVariationSchema,
-  getMaxTimeVariationResolver,
 } from './actions';
 
 // DeepNormalize<T>
@@ -255,20 +246,20 @@ it('createRollupTransformedSchema output matches createRollup params', () => {
   expectTypeOf<SO_default>().toEqualTypeOf<FP_default>();
 });
 
-it('setValidKeysetTransform output matches setValidKeyset params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof setValidKeysetTransform>>>().toEqualTypeOf<
+it('setValidKeysetSchema output matches setValidKeyset params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof setValidKeysetSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof setValidKeyset>>
   >());
 
-it('createTokenBridgeResolver output matches createTokenBridge params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgeResolver>>>().toEqualTypeOf<
+it('createTokenBridgeSchema output matches createTokenBridge params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof createTokenBridgeSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridge>>
   >());
 
-it('getKeysetsResolver output matches getKeysets params', () =>
-  expectTypeOf<
-    DeepNormalize<ReturnType<typeof getKeysetsResolver<z.output<typeof getKeysetsSchema>>>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getKeysets>>>());
+it('getKeysetsSchema output matches getKeysets params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof getKeysetsSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getKeysets>>
+  >());
 
 it('coreContractsSchema matches CoreContracts', () =>
   expectTypeOf<z.output<typeof coreContractsSchema>>().toEqualTypeOf<CoreContracts>());
@@ -276,83 +267,73 @@ it('coreContractsSchema matches CoreContracts', () =>
 it('chainConfigSchema matches ChainConfig', () =>
   expectTypeOf<z.output<typeof chainConfigSchema>>().toEqualTypeOf<ChainConfig>());
 
-it('prepareDeploymentParamsConfigV32Transform params match CreateRollupPrepareDeploymentParamsConfigParams', () => {
-  type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV32Transform>;
+it('prepareDeploymentParamsConfigV32Schema params match CreateRollupPrepareDeploymentParamsConfigParams', () => {
+  type TransformOutput = z.output<typeof prepareDeploymentParamsConfigV32Schema>;
   expectTypeOf<DeepNormalize<TransformOutput[1]>>().toEqualTypeOf<
     DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams>
   >();
 });
 
-it('prepareDeploymentParamsConfigV21Transform params match CreateRollupPrepareDeploymentParamsConfigParams<v2.1>', () => {
-  type TransformOutput = ReturnType<typeof prepareDeploymentParamsConfigV21Transform>;
+it('prepareDeploymentParamsConfigV21Schema params match CreateRollupPrepareDeploymentParamsConfigParams<v2.1>', () => {
+  type TransformOutput = z.output<typeof prepareDeploymentParamsConfigV21Schema>;
   expectTypeOf<DeepNormalize<TransformOutput[1]>>().toEqualTypeOf<
     DeepNormalize<CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>>
   >();
 });
 
-it('prepareChainConfigTransform output matches prepareChainConfig params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareChainConfigTransform>>>().toEqualTypeOf<
+it('prepareChainConfigParamsSchema output matches prepareChainConfig params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof prepareChainConfigParamsSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof prepareChainConfig>>
   >());
 
-it('upgradeExecutorPrepareTransactionRequestResolver output matches upgradeExecutorPrepareAddExecutorTransactionRequest params', () => {
-  const transformed = upgradeExecutorPrepareTransactionRequestSchema.transform(withPublicClient);
+it('upgradeExecutorPrepareTransactionRequestSchema output matches upgradeExecutorPrepareAddExecutorTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof upgradeExecutorPrepareTransactionRequestSchema>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof upgradeExecutorPrepareAddExecutorTransactionRequest>>
-  >();
-});
+  >());
 
-it('getValidatorsResolver output matches getValidators params', () =>
+it('getValidatorsSchema output matches getValidators params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof getValidatorsSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getValidators>>
+  >());
+
+it('getBatchPostersSchema output matches getBatchPosters params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof getBatchPostersSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getBatchPosters>>
+  >());
+
+it('upgradeExecutorFetchPrivilegedAccountsSchema output matches upgradeExecutorFetchPrivilegedAccounts params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof getValidatorsResolver<z.output<typeof getValidatorsSchema>>>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getValidators>>>());
-
-it('getBatchPostersResolver output matches getBatchPosters params', () =>
-  expectTypeOf<
-    DeepNormalize<ReturnType<typeof getBatchPostersResolver<z.output<typeof getBatchPostersSchema>>>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getBatchPosters>>>());
-
-it('upgradeExecutorFetchPrivilegedAccountsResolver output matches upgradeExecutorFetchPrivilegedAccounts params', () => {
-  const transformed = upgradeExecutorFetchPrivilegedAccountsSchema.transform(
-    withPublicClientOptionalChain,
-  );
-  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
+    DeepNormalize<z.output<typeof upgradeExecutorFetchPrivilegedAccountsSchema>>
+  >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>
-  >();
-});
+  >());
 
-it('setAnyTrustFastConfirmerResolver output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () => {
-  const transformed = setAnyTrustFastConfirmerSchema.transform(withChainSign);
+it('setAnyTrustFastConfirmerSchema output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof setAnyTrustFastConfirmerSchema>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof setAnyTrustFastConfirmerPrepareTransactionRequest>>
-  >();
-});
+  >());
 
-it('prepareNodeConfigTransform output matches prepareNodeConfig params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareNodeConfigTransform>>>().toEqualTypeOf<
+it('prepareNodeConfigSchema output matches prepareNodeConfig params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof prepareNodeConfigSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof prepareNodeConfig>>
   >());
 
-it('feeRouterDeployRewardDistributorResolver output matches feeRouterDeployRewardDistributor params', () => {
-  const transformed = feeRouterDeployRewardDistributorSchema.transform(withChildChainSign);
+it('feeRouterDeployRewardDistributorSchema output matches feeRouterDeployRewardDistributor params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployRewardDistributor>>>();
-});
+    DeepNormalize<z.output<typeof feeRouterDeployRewardDistributorSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployRewardDistributor>>>());
 
-it('feeRouterDeployChildToParentRewardRouterResolver output matches feeRouterDeployChildToParentRewardRouter params', () => {
-  const transformed = feeRouterDeployChildToParentRewardRouterSchema.transform(withParentReadChildSign);
+it('feeRouterDeployChildToParentRewardRouterSchema output matches feeRouterDeployChildToParentRewardRouter params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployChildToParentRewardRouter>>>();
-});
+    DeepNormalize<z.output<typeof feeRouterDeployChildToParentRewardRouterSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployChildToParentRewardRouter>>>());
 
-it('getBridgeUiConfigTransform output matches getBridgeUiConfig params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getBridgeUiConfigTransform>>>().toEqualTypeOf<
+it('getBridgeUiConfigSchema output matches getBridgeUiConfig params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof getBridgeUiConfigSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof getBridgeUiConfig>>
   >());
 
@@ -361,49 +342,39 @@ it('isAnyTrustSchema output matches isAnyTrust params', () =>
     DeepNormalize<Parameters<typeof isAnyTrust>>
   >());
 
-it('createRollupFetchTransactionHashResolver output matches createRollupFetchTransactionHash params', () => {
-  const transformed = createRollupFetchTransactionHashSchema.transform(withPublicClient);
+it('createRollupFetchTransactionHashSchema output matches createRollupFetchTransactionHash params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchTransactionHash>>>();
-});
+    DeepNormalize<z.output<typeof createRollupFetchTransactionHashSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchTransactionHash>>>());
 
-it('createRollupFetchCoreContractsResolver output matches createRollupFetchCoreContracts params', () => {
-  const transformed = createRollupFetchCoreContractsSchema.transform(withPublicClient);
+it('createRollupFetchCoreContractsSchema output matches createRollupFetchCoreContracts params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchCoreContracts>>>();
-});
+    DeepNormalize<z.output<typeof createRollupFetchCoreContractsSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchCoreContracts>>>());
 
-it('isTokenBridgeDeployedTransform output matches isTokenBridgeDeployed params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isTokenBridgeDeployedTransform>>>().toEqualTypeOf<
+it('isTokenBridgeDeployedSchema output matches isTokenBridgeDeployed params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof isTokenBridgeDeployedSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof isTokenBridgeDeployed>>
   >());
 
-it('createTokenBridgePrepareTransactionRequestResolver output matches createTokenBridgePrepareTransactionRequest params', () => {
-  const transformed = createTokenBridgePrepareTransactionRequestSchema.transform(withParentChainPublicClient);
+it('createTokenBridgePrepareTransactionRequestSchema output matches createTokenBridgePrepareTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof createTokenBridgePrepareTransactionRequestSchema>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridgePrepareTransactionRequest>>
-  >();
-});
+  >());
 
-it('createTokenBridgePrepareSetWethGatewayTransactionRequestResolver output matches createTokenBridgePrepareSetWethGatewayTransactionRequest params', () => {
-  const transformed = createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(withParentChainPublicClient);
+it('createTokenBridgePrepareSetWethGatewayTransactionRequestSchema output matches createTokenBridgePrepareSetWethGatewayTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestSchema>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridgePrepareSetWethGatewayTransactionRequest>>
-  >();
-});
+  >());
 
-it('setValidKeysetPrepareTransactionRequestResolver output matches setValidKeysetPrepareTransactionRequest params', () => {
-  const transformed = setValidKeysetPrepareTransactionRequestSchema.transform(withPublicClient);
+it('setValidKeysetPrepareTransactionRequestSchema output matches setValidKeysetPrepareTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof setValidKeysetPrepareTransactionRequest>>>();
-});
+    DeepNormalize<z.output<typeof setValidKeysetPrepareTransactionRequestSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof setValidKeysetPrepareTransactionRequest>>>());
 
 it('createRollupPrepareTransactionRequestTransformedSchema output matches createRollupPrepareTransactionRequest params', () => {
   type SchemaOutput = z.output<typeof createRollupPrepareTransactionRequestTransformedSchema>;
@@ -428,146 +399,130 @@ it('createRollupPrepareTransactionRequestTransformedSchema output matches create
   expectTypeOf<SO_default>().toEqualTypeOf<FP_default>();
 });
 
-it('createSafePrepareTransactionRequestResolver output matches createSafePrepareTransactionRequest params', () => {
-  const transformed = createSafePrepareTransactionRequestSchema.transform(withChainSign);
+it('createSafePrepareTransactionRequestSchema output matches createSafePrepareTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createSafePrepareTransactionRequest>>>();
-});
+    DeepNormalize<z.output<typeof createSafePrepareTransactionRequestSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createSafePrepareTransactionRequest>>>());
 
-it('createRollupEnoughCustomFeeTokenAllowanceResolver output matches createRollupEnoughCustomFeeTokenAllowance params', () => {
-  const transformed = createRollupEnoughCustomFeeTokenAllowanceSchema.transform(withPublicClient);
+it('createRollupEnoughCustomFeeTokenAllowanceSchema output matches createRollupEnoughCustomFeeTokenAllowance params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupEnoughCustomFeeTokenAllowance>>>();
-});
+    DeepNormalize<z.output<typeof createRollupEnoughCustomFeeTokenAllowanceSchema>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupEnoughCustomFeeTokenAllowance>>>());
 
-it('createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver output matches createRollupPrepareCustomFeeTokenApprovalTransactionRequest params', () => {
-  const transformed = createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(withPublicClient);
+it('createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema output matches createRollupPrepareCustomFeeTokenApprovalTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequest>>
-  >();
-});
+  >());
 
-it('createTokenBridgeEnoughCustomFeeTokenAllowanceResolver output matches createTokenBridgeEnoughCustomFeeTokenAllowance params', () => {
-  const transformed = createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(withPublicClient);
+it('createTokenBridgeEnoughCustomFeeTokenAllowanceSchema output matches createTokenBridgeEnoughCustomFeeTokenAllowance params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof createTokenBridgeEnoughCustomFeeTokenAllowanceSchema>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridgeEnoughCustomFeeTokenAllowance>>
-  >();
-});
+  >());
 
-it('createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver output matches createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest params', () => {
-  const transformed = createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(withPublicClient);
+it('createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema output matches createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof transformed>>
+    DeepNormalize<z.output<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema>>
   >().toEqualTypeOf<
     DeepNormalize<
       Parameters<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest>
     >
-  >();
-});
+  >());
 
-it('prepareKeysetTransform output matches prepareKeyset params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareKeysetTransform>>>().toEqualTypeOf<
+it('prepareKeysetSchema output matches prepareKeyset params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof prepareKeysetSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof prepareKeyset>>
   >());
 
-it('prepareKeysetHashTransform output matches prepareKeysetHash params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof prepareKeysetHashTransform>>>().toEqualTypeOf<
+it('prepareKeysetHashSchema output matches prepareKeysetHash params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof prepareKeysetHashSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof prepareKeysetHash>>
   >());
 
-it('getDefaultsTransform output matches getDefaultConfirmPeriodBlocks params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof getDefaultsTransform>>>().toEqualTypeOf<
+it('getDefaultsSchema output matches getDefaultConfirmPeriodBlocks params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof getDefaultsSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof getDefaultConfirmPeriodBlocks>>
   >());
 
-it('createRollupGetRetryablesFeesTransform output matches createRollupGetRetryablesFees params', () =>
+it('createRollupGetRetryablesFeesSchema output matches createRollupGetRetryablesFees params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>
+    DeepNormalize<z.output<typeof createRollupGetRetryablesFeesSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFees>>>());
 
-it('createRollupGetRetryablesFeesTransform output matches createRollupGetRetryablesFeesWithDefaults params', () =>
+it('createRollupGetRetryablesFeesSchema output matches createRollupGetRetryablesFeesWithDefaults params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof createRollupGetRetryablesFeesTransform>>
+    DeepNormalize<z.output<typeof createRollupGetRetryablesFeesSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFeesWithDefaults>>>());
 
-it('fetchAllowanceResolver output matches fetchAllowance params', () => {
-  const transformed = fetchAllowanceSchema.transform(withPublicClientOptionalChain);
-  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
+it('fetchAllowanceSchema output matches fetchAllowance params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof fetchAllowanceSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof fetchAllowance>>
-  >();
-});
+  >());
 
-it('fetchDecimalsResolver output matches fetchDecimals params', () => {
-  const transformed = fetchDecimalsSchema.transform(withPublicClientOptionalChain);
-  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
+it('fetchDecimalsSchema output matches fetchDecimals params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof fetchDecimalsSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof fetchDecimals>>
-  >();
-});
+  >());
 
-it('buildSetIsBatchPosterTransform output matches buildSetIsBatchPoster params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetIsBatchPosterTransform>>>().toEqualTypeOf<
+it('buildSetIsBatchPosterSchema output matches buildSetIsBatchPoster params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof buildSetIsBatchPosterSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof buildSetIsBatchPoster>>
   >());
 
-it('buildSetValidKeysetTransform output matches buildSetValidKeyset params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetValidKeysetTransform>>>().toEqualTypeOf<
+it('buildSetValidKeysetSchema output matches buildSetValidKeyset params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof buildSetValidKeysetSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof buildSetValidKeyset>>
   >());
 
-it('buildInvalidateKeysetHashTransform output matches buildInvalidateKeysetHash params', () =>
+it('buildInvalidateKeysetHashSchema output matches buildInvalidateKeysetHash params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof buildInvalidateKeysetHashTransform>>
+    DeepNormalize<z.output<typeof buildInvalidateKeysetHashSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildInvalidateKeysetHash>>>());
 
-it('buildSetMaxTimeVariationTransform output matches buildSetMaxTimeVariation params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof buildSetMaxTimeVariationTransform>>>().toEqualTypeOf<
+it('buildSetMaxTimeVariationSchema output matches buildSetMaxTimeVariation params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof buildSetMaxTimeVariationSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof buildSetMaxTimeVariation>>
   >());
 
-it('buildScheduleArbOSUpgradeTransform output matches buildScheduleArbOSUpgrade params', () =>
+it('buildScheduleArbOSUpgradeSchema output matches buildScheduleArbOSUpgrade params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof buildScheduleArbOSUpgradeTransform>>
+    DeepNormalize<z.output<typeof buildScheduleArbOSUpgradeSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildScheduleArbOSUpgrade>>>());
 
-it('isBatchPosterTransform output matches isBatchPoster params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isBatchPosterTransform>>>().toEqualTypeOf<
+it('isBatchPosterSchema output matches isBatchPoster params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof isBatchPosterSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof isBatchPoster>>
   >());
 
-it('isValidKeysetHashTransform output matches isValidKeysetHash params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isValidKeysetHashTransform>>>().toEqualTypeOf<
+it('isValidKeysetHashSchema output matches isValidKeysetHash params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof isValidKeysetHashSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof isValidKeysetHash>>
   >());
 
-it('getMaxTimeVariationResolver output matches getMaxTimeVariation params', () => {
-  const transformed = getMaxTimeVariationSchema.transform(getMaxTimeVariationResolver);
-  expectTypeOf<DeepNormalize<z.output<typeof transformed>>>().toEqualTypeOf<
+it('getMaxTimeVariationSchema output matches getMaxTimeVariation params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof getMaxTimeVariationSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof getMaxTimeVariation>>
-  >();
-});
+  >());
 
-it('parentChainIsArbitrumTransform output matches parentChainIsArbitrum params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof parentChainIsArbitrumTransform>>>().toEqualTypeOf<
+it('parentChainIsArbitrumSchema output matches parentChainIsArbitrum params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof parentChainIsArbitrumSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof parentChainIsArbitrum>>
   >());
 
-it('getConsensusReleaseByVersionTransform output matches getConsensusReleaseByVersion params', () =>
+it('getConsensusReleaseByVersionSchema output matches getConsensusReleaseByVersion params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof getConsensusReleaseByVersionTransform>>
+    DeepNormalize<z.output<typeof getConsensusReleaseByVersionSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof getConsensusReleaseByVersion>>>());
 
-it('getConsensusReleaseByWasmModuleRootTransform output matches getConsensusReleaseByWasmModuleRoot params', () =>
+it('getConsensusReleaseByWasmModuleRootSchema output matches getConsensusReleaseByWasmModuleRoot params', () =>
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof getConsensusReleaseByWasmModuleRootTransform>>
+    DeepNormalize<z.output<typeof getConsensusReleaseByWasmModuleRootSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof getConsensusReleaseByWasmModuleRoot>>>());
 
-it('isKnownWasmModuleRootTransform output matches isKnownWasmModuleRoot params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof isKnownWasmModuleRootTransform>>>().toEqualTypeOf<
+it('isKnownWasmModuleRootSchema output matches isKnownWasmModuleRoot params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof isKnownWasmModuleRootSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof isKnownWasmModuleRoot>>
   >());

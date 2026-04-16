@@ -2,100 +2,53 @@ import { runCli, cmd } from './scriptUtils';
 
 import {
   getValidatorsSchema,
-  getValidatorsResolver,
   getBatchPostersSchema,
-  getBatchPostersResolver,
   getKeysetsSchema,
-  getKeysetsResolver,
   isAnyTrustSchema,
   createRollupFetchTransactionHashSchema,
-  createRollupFetchTransactionHashResolver,
   createRollupFetchCoreContractsSchema,
-  createRollupFetchCoreContractsResolver,
   isTokenBridgeDeployedSchema,
-  isTokenBridgeDeployedTransform,
   getBridgeUiConfigSchema,
-  getBridgeUiConfigTransform,
   upgradeExecutorFetchPrivilegedAccountsSchema,
-  upgradeExecutorFetchPrivilegedAccountsResolver,
   setAnyTrustFastConfirmerSchema,
-  setAnyTrustFastConfirmerResolver,
   setValidKeysetSchema,
-  setValidKeysetTransform,
   createRollupSchema,
-  createRollupResolver,
   createTokenBridgeSchema,
-  createTokenBridgeResolver,
   createTokenBridgePrepareTransactionRequestSchema,
-  createTokenBridgePrepareTransactionRequestResolver,
   createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
-  createTokenBridgePrepareSetWethGatewayTransactionRequestResolver,
   setValidKeysetPrepareTransactionRequestSchema,
-  setValidKeysetPrepareTransactionRequestResolver,
   createRollupPrepareTransactionRequestSchema,
-  createRollupPrepareTransactionRequestResolver,
   createSafePrepareTransactionRequestSchema,
-  createSafePrepareTransactionRequestResolver,
   upgradeExecutorPrepareTransactionRequestSchema,
-  upgradeExecutorPrepareTransactionRequestResolver,
   createRollupEnoughCustomFeeTokenAllowanceSchema,
-  createRollupEnoughCustomFeeTokenAllowanceResolver,
   createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
   createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
-  createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
   feeRouterDeployRewardDistributorSchema,
-  feeRouterDeployRewardDistributorResolver,
   feeRouterDeployChildToParentRewardRouterSchema,
-  feeRouterDeployChildToParentRewardRouterResolver,
   prepareChainConfigParamsSchema,
-  prepareChainConfigTransform,
   prepareNodeConfigSchema,
-  prepareNodeConfigTransform,
   prepareKeysetSchema,
-  prepareKeysetTransform,
   prepareKeysetHashSchema,
-  prepareKeysetHashTransform,
   prepareDeploymentParamsConfigV21Schema,
-  prepareDeploymentParamsConfigV21Transform,
   prepareDeploymentParamsConfigV32Schema,
-  prepareDeploymentParamsConfigV32Transform,
   getDefaultsSchema,
-  getDefaultsTransform,
   createRollupGetRetryablesFeesSchema,
-  createRollupGetRetryablesFeesTransform,
   fetchAllowanceSchema,
-  fetchAllowanceResolver,
   fetchDecimalsSchema,
-  fetchDecimalsResolver,
   buildSetIsBatchPosterSchema,
-  buildSetIsBatchPosterTransform,
   buildSetValidKeysetSchema,
-  buildSetValidKeysetTransform,
   buildInvalidateKeysetHashSchema,
-  buildInvalidateKeysetHashTransform,
   buildSetMaxTimeVariationSchema,
-  buildSetMaxTimeVariationTransform,
   buildScheduleArbOSUpgradeSchema,
-  buildScheduleArbOSUpgradeTransform,
   isBatchPosterSchema,
-  isBatchPosterTransform,
   isValidKeysetHashSchema,
-  isValidKeysetHashTransform,
   getMaxTimeVariationSchema,
-  getMaxTimeVariationResolver,
   createRollupPrepareDeploymentParamsConfigDefaultsSchema,
-  createRollupPrepareDeploymentParamsConfigDefaultsTransform,
   parentChainIsArbitrumSchema,
-  parentChainIsArbitrumTransform,
   getConsensusReleaseByVersionSchema,
-  getConsensusReleaseByVersionTransform,
   getConsensusReleaseByWasmModuleRootSchema,
-  getConsensusReleaseByWasmModuleRootTransform,
   isKnownWasmModuleRootSchema,
-  isKnownWasmModuleRootTransform,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -153,223 +106,193 @@ import {
 } from '../wasmModuleRoot';
 
 runCli('chain-sdk', {
-  getValidators: cmd(getValidatorsSchema.transform(getValidatorsResolver), getValidators),
-  getBatchPosters: cmd(getBatchPostersSchema.transform(getBatchPostersResolver), getBatchPosters),
-  getKeysets: cmd(getKeysetsSchema.transform(getKeysetsResolver), getKeysets),
+  getValidators: cmd(getValidatorsSchema, getValidators),
+  getBatchPosters: cmd(getBatchPostersSchema, getBatchPosters),
+  getKeysets: cmd(getKeysetsSchema, getKeysets),
   isAnyTrust: cmd(isAnyTrustSchema, isAnyTrust),
   createRollupFetchTransactionHash: cmd(
-    createRollupFetchTransactionHashSchema.transform(createRollupFetchTransactionHashResolver),
+    createRollupFetchTransactionHashSchema,
     createRollupFetchTransactionHash,
   ),
   createRollupFetchCoreContracts: cmd(
-    createRollupFetchCoreContractsSchema.transform(createRollupFetchCoreContractsResolver),
+    createRollupFetchCoreContractsSchema,
     createRollupFetchCoreContracts,
   ),
   isTokenBridgeDeployed: cmd(
-    isTokenBridgeDeployedSchema.transform(isTokenBridgeDeployedTransform),
+    isTokenBridgeDeployedSchema,
     isTokenBridgeDeployed,
   ),
   getBridgeUiConfig: cmd(
-    getBridgeUiConfigSchema.transform(getBridgeUiConfigTransform),
+    getBridgeUiConfigSchema,
     getBridgeUiConfig,
   ),
   upgradeExecutorFetchPrivilegedAccounts: cmd(
-    upgradeExecutorFetchPrivilegedAccountsSchema.transform(
-      upgradeExecutorFetchPrivilegedAccountsResolver,
-    ),
+    upgradeExecutorFetchPrivilegedAccountsSchema,
     upgradeExecutorFetchPrivilegedAccounts,
   ),
-  fetchAllowance: cmd(fetchAllowanceSchema.transform(fetchAllowanceResolver), fetchAllowance),
-  fetchDecimals: cmd(fetchDecimalsSchema.transform(fetchDecimalsResolver), fetchDecimals),
+  fetchAllowance: cmd(fetchAllowanceSchema, fetchAllowance),
+  fetchDecimals: cmd(fetchDecimalsSchema, fetchDecimals),
 
   setAnyTrustFastConfirmer: cmd(
-    setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerResolver),
+    setAnyTrustFastConfirmerSchema,
     setAnyTrustFastConfirmerPrepareTransactionRequest,
   ),
-  setValidKeyset: cmd(setValidKeysetSchema.transform(setValidKeysetTransform), setValidKeyset),
-  createRollup: cmd(createRollupSchema.transform(createRollupResolver), createRollup),
+  setValidKeyset: cmd(setValidKeysetSchema, setValidKeyset),
+  createRollup: cmd(createRollupSchema, createRollup),
   createTokenBridge: cmd(
-    createTokenBridgeSchema.transform(createTokenBridgeResolver),
+    createTokenBridgeSchema,
     createTokenBridge,
   ),
   createTokenBridgePrepareTransactionRequest: cmd(
-    createTokenBridgePrepareTransactionRequestSchema.transform(
-      createTokenBridgePrepareTransactionRequestResolver,
-    ),
+    createTokenBridgePrepareTransactionRequestSchema,
     createTokenBridgePrepareTransactionRequest,
   ),
   createTokenBridgePrepareSetWethGatewayTransactionRequest: cmd(
-    createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(
-      createTokenBridgePrepareSetWethGatewayTransactionRequestResolver,
-    ),
+    createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
     createTokenBridgePrepareSetWethGatewayTransactionRequest,
   ),
   setValidKeysetPrepareTransactionRequest: cmd(
-    setValidKeysetPrepareTransactionRequestSchema.transform(
-      setValidKeysetPrepareTransactionRequestResolver,
-    ),
+    setValidKeysetPrepareTransactionRequestSchema,
     setValidKeysetPrepareTransactionRequest,
   ),
   createRollupPrepareTransactionRequest: cmd(
-    createRollupPrepareTransactionRequestSchema.transform(
-      createRollupPrepareTransactionRequestResolver,
-    ),
+    createRollupPrepareTransactionRequestSchema,
     createRollupPrepareTransactionRequest,
   ),
   createSafePrepareTransactionRequest: cmd(
-    createSafePrepareTransactionRequestSchema.transform(
-      createSafePrepareTransactionRequestResolver,
-    ),
+    createSafePrepareTransactionRequestSchema,
     createSafePrepareTransactionRequest,
   ),
   upgradeExecutorPrepareAddExecutor: cmd(
-    upgradeExecutorPrepareTransactionRequestSchema.transform(
-      upgradeExecutorPrepareTransactionRequestResolver,
-    ),
+    upgradeExecutorPrepareTransactionRequestSchema,
     upgradeExecutorPrepareAddExecutorTransactionRequest,
   ),
   upgradeExecutorPrepareRemoveExecutor: cmd(
-    upgradeExecutorPrepareTransactionRequestSchema.transform(
-      upgradeExecutorPrepareTransactionRequestResolver,
-    ),
+    upgradeExecutorPrepareTransactionRequestSchema,
     upgradeExecutorPrepareRemoveExecutorTransactionRequest,
   ),
   createRollupEnoughCustomFeeTokenAllowance: cmd(
-    createRollupEnoughCustomFeeTokenAllowanceSchema.transform(
-      createRollupEnoughCustomFeeTokenAllowanceResolver,
-    ),
+    createRollupEnoughCustomFeeTokenAllowanceSchema,
     createRollupEnoughCustomFeeTokenAllowance,
   ),
   createRollupPrepareCustomFeeTokenApprovalTransactionRequest: cmd(
-    createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
-      createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver,
-    ),
+    createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
     createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
   ),
   createTokenBridgeEnoughCustomFeeTokenAllowance: cmd(
-    createTokenBridgeEnoughCustomFeeTokenAllowanceSchema.transform(
-      createTokenBridgeEnoughCustomFeeTokenAllowanceResolver,
-    ),
+    createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
     createTokenBridgeEnoughCustomFeeTokenAllowance,
   ),
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: cmd(
-    createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema.transform(
-      createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver,
-    ),
+    createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
   ),
   feeRouterDeployRewardDistributor: cmd(
-    feeRouterDeployRewardDistributorSchema.transform(feeRouterDeployRewardDistributorResolver),
+    feeRouterDeployRewardDistributorSchema,
     feeRouterDeployRewardDistributor,
   ),
   feeRouterDeployChildToParentRewardRouter: cmd(
-    feeRouterDeployChildToParentRewardRouterSchema.transform(
-      feeRouterDeployChildToParentRewardRouterResolver,
-    ),
+    feeRouterDeployChildToParentRewardRouterSchema,
     feeRouterDeployChildToParentRewardRouter,
   ),
 
   prepareChainConfig: cmd(
-    prepareChainConfigParamsSchema.transform(prepareChainConfigTransform),
+    prepareChainConfigParamsSchema,
     prepareChainConfig,
   ),
   prepareNodeConfig: cmd(
-    prepareNodeConfigSchema.transform(prepareNodeConfigTransform),
+    prepareNodeConfigSchema,
     prepareNodeConfig,
   ),
-  prepareKeyset: cmd(prepareKeysetSchema.transform(prepareKeysetTransform), prepareKeyset),
+  prepareKeyset: cmd(prepareKeysetSchema, prepareKeyset),
   prepareKeysetHash: cmd(
-    prepareKeysetHashSchema.transform(prepareKeysetHashTransform),
+    prepareKeysetHashSchema,
     prepareKeysetHash,
   ),
   prepareDeploymentParamsConfigV21: cmd(
-    prepareDeploymentParamsConfigV21Schema.transform(prepareDeploymentParamsConfigV21Transform),
+    prepareDeploymentParamsConfigV21Schema,
     createRollupPrepareDeploymentParamsConfig,
   ),
   prepareDeploymentParamsConfigV32: cmd(
-    prepareDeploymentParamsConfigV32Schema.transform(prepareDeploymentParamsConfigV32Transform),
+    prepareDeploymentParamsConfigV32Schema,
     createRollupPrepareDeploymentParamsConfig,
   ),
   createRollupGetRetryablesFees: cmd(
-    createRollupGetRetryablesFeesSchema.transform(createRollupGetRetryablesFeesTransform),
+    createRollupGetRetryablesFeesSchema,
     createRollupGetRetryablesFees,
   ),
 
   getDefaultConfirmPeriodBlocks: cmd(
-    getDefaultsSchema.transform(getDefaultsTransform),
+    getDefaultsSchema,
     getDefaultConfirmPeriodBlocks,
   ),
   getDefaultChallengeGracePeriodBlocks: cmd(
-    getDefaultsSchema.transform(getDefaultsTransform),
+    getDefaultsSchema,
     getDefaultChallengeGracePeriodBlocks,
   ),
   getDefaultMinimumAssertionPeriod: cmd(
-    getDefaultsSchema.transform(getDefaultsTransform),
+    getDefaultsSchema,
     getDefaultMinimumAssertionPeriod,
   ),
   getDefaultValidatorAfkBlocks: cmd(
-    getDefaultsSchema.transform(getDefaultsTransform),
+    getDefaultsSchema,
     getDefaultValidatorAfkBlocks,
   ),
   getDefaultSequencerInboxMaxTimeVariation: cmd(
-    getDefaultsSchema.transform(getDefaultsTransform),
+    getDefaultsSchema,
     getDefaultSequencerInboxMaxTimeVariation,
   ),
 
   buildSetIsBatchPoster: cmd(
-    buildSetIsBatchPosterSchema.transform(buildSetIsBatchPosterTransform),
+    buildSetIsBatchPosterSchema,
     buildSetIsBatchPoster,
   ),
   buildSetValidKeyset: cmd(
-    buildSetValidKeysetSchema.transform(buildSetValidKeysetTransform),
+    buildSetValidKeysetSchema,
     buildSetValidKeyset,
   ),
   buildInvalidateKeysetHash: cmd(
-    buildInvalidateKeysetHashSchema.transform(buildInvalidateKeysetHashTransform),
+    buildInvalidateKeysetHashSchema,
     buildInvalidateKeysetHash,
   ),
   buildSetMaxTimeVariation: cmd(
-    buildSetMaxTimeVariationSchema.transform(buildSetMaxTimeVariationTransform),
+    buildSetMaxTimeVariationSchema,
     buildSetMaxTimeVariation,
   ),
   buildScheduleArbOSUpgrade: cmd(
-    buildScheduleArbOSUpgradeSchema.transform(buildScheduleArbOSUpgradeTransform),
+    buildScheduleArbOSUpgradeSchema,
     buildScheduleArbOSUpgrade,
   ),
-  isBatchPoster: cmd(isBatchPosterSchema.transform(isBatchPosterTransform), isBatchPoster),
+  isBatchPoster: cmd(isBatchPosterSchema, isBatchPoster),
   isValidKeysetHash: cmd(
-    isValidKeysetHashSchema.transform(isValidKeysetHashTransform),
+    isValidKeysetHashSchema,
     isValidKeysetHash,
   ),
   getMaxTimeVariation: cmd(
-    getMaxTimeVariationSchema.transform(getMaxTimeVariationResolver),
+    getMaxTimeVariationSchema,
     getMaxTimeVariation,
   ),
 
   createRollupPrepareDeploymentParamsConfigDefaults: cmd(
-    createRollupPrepareDeploymentParamsConfigDefaultsSchema.transform(
-      createRollupPrepareDeploymentParamsConfigDefaultsTransform,
-    ),
+    createRollupPrepareDeploymentParamsConfigDefaultsSchema,
     createRollupPrepareDeploymentParamsConfigDefaults as (
       version?: 'v2.1' | 'v3.2',
     ) => ReturnType<typeof createRollupPrepareDeploymentParamsConfigDefaults>,
   ),
   parentChainIsArbitrum: cmd(
-    parentChainIsArbitrumSchema.transform(parentChainIsArbitrumTransform),
+    parentChainIsArbitrumSchema,
     parentChainIsArbitrum,
   ),
   getConsensusReleaseByVersion: cmd(
-    getConsensusReleaseByVersionSchema.transform(getConsensusReleaseByVersionTransform),
+    getConsensusReleaseByVersionSchema,
     getConsensusReleaseByVersion,
   ),
   getConsensusReleaseByWasmModuleRoot: cmd(
-    getConsensusReleaseByWasmModuleRootSchema.transform(
-      getConsensusReleaseByWasmModuleRootTransform,
-    ),
+    getConsensusReleaseByWasmModuleRootSchema,
     getConsensusReleaseByWasmModuleRoot,
   ),
   isKnownWasmModuleRoot: cmd(
-    isKnownWasmModuleRootSchema.transform(isKnownWasmModuleRootTransform),
+    isKnownWasmModuleRootSchema,
     isKnownWasmModuleRoot,
   ),
 });

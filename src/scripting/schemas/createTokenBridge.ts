@@ -24,11 +24,8 @@ export const createTokenBridgeSchema = parentChainPublicClientSchema
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
     setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
   })
-  .strict();
-
-export const createTokenBridgeResolver = (
-  input: z.output<typeof createTokenBridgeSchema>,
-): Parameters<typeof createTokenBridge> => {
-  const [{ orbitChainRpcUrl, ...rest }] = withParentChainSign(input);
-  return [{ ...rest, orbitChainPublicClient: toPublicClient(orbitChainRpcUrl) }];
-};
+  .strict()
+  .transform((input): Parameters<typeof createTokenBridge> => {
+    const [{ orbitChainRpcUrl, ...rest }] = withParentChainSign(input);
+    return [{ ...rest, orbitChainPublicClient: toPublicClient(orbitChainRpcUrl) }];
+  });

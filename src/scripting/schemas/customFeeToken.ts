@@ -15,19 +15,17 @@ const createRollupCustomFeeTokenBaseSchema = publicClientSchema.extend({
   rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
 });
 
-export const createRollupEnoughCustomFeeTokenAllowanceSchema = z.strictObject(
-  createRollupCustomFeeTokenBaseSchema.shape,
-);
+export const createRollupEnoughCustomFeeTokenAllowanceSchema = z
+  .strictObject(createRollupCustomFeeTokenBaseSchema.shape)
+  .transform(withPublicClient);
 
-export const createRollupEnoughCustomFeeTokenAllowanceResolver = withPublicClient;
-
-export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema = z.strictObject(
-  createRollupCustomFeeTokenBaseSchema.extend({
-    amount: bigintSchema.optional(),
-  }).shape,
-);
-
-export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestResolver = withPublicClient;
+export const createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema = z
+  .strictObject(
+    createRollupCustomFeeTokenBaseSchema.extend({
+      amount: bigintSchema.optional(),
+    }).shape,
+  )
+  .transform(withPublicClient);
 
 const createTokenBridgeCustomFeeTokenBaseSchema = publicClientSchema.extend({
   nativeToken: addressSchema,
@@ -35,18 +33,14 @@ const createTokenBridgeCustomFeeTokenBaseSchema = publicClientSchema.extend({
   tokenBridgeCreatorAddressOverride: addressSchema.optional(),
 });
 
-export const createTokenBridgeEnoughCustomFeeTokenAllowanceSchema = z.strictObject(
-  createTokenBridgeCustomFeeTokenBaseSchema.shape,
-);
+export const createTokenBridgeEnoughCustomFeeTokenAllowanceSchema = z
+  .strictObject(createTokenBridgeCustomFeeTokenBaseSchema.shape)
+  .transform(withPublicClient);
 
-export const createTokenBridgeEnoughCustomFeeTokenAllowanceResolver = withPublicClient;
-
-export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema =
-  z.strictObject(
+export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema = z
+  .strictObject(
     createTokenBridgeCustomFeeTokenBaseSchema.extend({
       amount: bigintSchema.optional(),
     }).shape,
-  );
-
-export const createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestResolver =
-  withPublicClient;
+  )
+  .transform(withPublicClient);

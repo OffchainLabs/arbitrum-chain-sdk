@@ -31,16 +31,6 @@ export const createRollupPrepareTransactionRequestDefaultSchema = z.strictObject
   }).shape,
 );
 
-const versionedCreateRollupPrepareTransactionRequestSchema = z.discriminatedUnion(
-  'rollupCreatorVersion',
-  [createRollupPrepareTransactionRequestV21Schema, createRollupPrepareTransactionRequestV32Schema],
-);
-
-export const createRollupPrepareTransactionRequestSchema = z.union([
-  versionedCreateRollupPrepareTransactionRequestSchema,
-  createRollupPrepareTransactionRequestDefaultSchema,
-]);
-
 type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
   Extract<
     CreateRollupPrepareTransactionRequestParams<Chain | undefined>,
@@ -48,38 +38,17 @@ type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
   >,
 ];
 
-const resolveV21 = (
-  input: z.output<typeof createRollupPrepareTransactionRequestV21Schema>,
-): Params<'v2.1'> => {
-  return withPublicClient(input);
-};
-
-const resolveV32 = (
-  input: z.output<typeof createRollupPrepareTransactionRequestV32Schema>,
-): Params<'v3.2'> => {
-  return withPublicClient(input);
-};
-
-const resolveDefault = (
-  input: z.output<typeof createRollupPrepareTransactionRequestDefaultSchema>,
-): Params<undefined> => {
-  return withPublicClient(input);
-};
-
-export const createRollupPrepareTransactionRequestResolver = (
-  input: z.output<typeof createRollupPrepareTransactionRequestSchema>,
-): [CreateRollupPrepareTransactionRequestParams<Chain | undefined>] => {
-  if (input.rollupCreatorVersion === 'v2.1')
-    return resolveV21(input as z.output<typeof createRollupPrepareTransactionRequestV21Schema>);
-  if (input.rollupCreatorVersion === 'v3.2')
-    return resolveV32(input as z.output<typeof createRollupPrepareTransactionRequestV32Schema>);
-  return resolveDefault(
-    input as z.output<typeof createRollupPrepareTransactionRequestDefaultSchema>,
-  );
-};
-
-export const createRollupPrepareTransactionRequestTransformedSchema = z.union([
-  createRollupPrepareTransactionRequestV21Schema.transform(resolveV21),
-  createRollupPrepareTransactionRequestV32Schema.transform(resolveV32),
-  createRollupPrepareTransactionRequestDefaultSchema.transform(resolveDefault),
+export const createRollupPrepareTransactionRequestSchema = z.union([
+  createRollupPrepareTransactionRequestV21Schema.transform(
+    (input): Params<'v2.1'> => withPublicClient(input),
+  ),
+  createRollupPrepareTransactionRequestV32Schema.transform(
+    (input): Params<'v3.2'> => withPublicClient(input),
+  ),
+  createRollupPrepareTransactionRequestDefaultSchema.transform(
+    (input): Params<undefined> => withPublicClient(input),
+  ),
 ]);
+
+export const createRollupPrepareTransactionRequestTransformedSchema =
+  createRollupPrepareTransactionRequestSchema;

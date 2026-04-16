@@ -6,6 +6,5 @@ export const createRollupFetchCoreContractsSchema = publicClientSchema
     rollup: addressSchema,
     rollupDeploymentBlockNumber: bigintSchema.optional(),
   })
-  .strict();
-
-export const createRollupFetchCoreContractsResolver = withPublicClient;
+  .strict()
+  .transform(withPublicClient);

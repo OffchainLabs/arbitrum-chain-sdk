@@ -15,7 +15,5 @@ export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema =
       retryableGasOverrides: setWethGatewayGasOverridesSchema.optional(),
       tokenBridgeCreatorAddressOverride: addressSchema.optional(),
     })
-    .strict();
-
-export const createTokenBridgePrepareSetWethGatewayTransactionRequestResolver =
-  withParentChainPublicClient;
+    .strict()
+    .transform(withParentChainPublicClient);

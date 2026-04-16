@@ -9,6 +9,5 @@ export const createSafePrepareTransactionRequestSchema = publicClientSchema
     threshold: z.number(),
     saltNonce: bigintSchema.optional(),
   })
-  .strict();
-
-export const createSafePrepareTransactionRequestResolver = withChainSign;
+  .strict()
+  .transform(withChainSign);

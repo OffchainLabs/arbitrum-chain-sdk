@@ -15,16 +15,15 @@ export const createRollupGetRetryablesFeesSchema = publicClientSchema
     maxFeePerGasForRetryables: bigintSchema.optional(),
     rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
   })
-  .strict();
-
-export const createRollupGetRetryablesFeesTransform = (
-  input: z.output<typeof createRollupGetRetryablesFeesSchema>,
-): Parameters<typeof createRollupGetRetryablesFees> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    account: input.account,
-    nativeToken: input.nativeToken,
-    maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
-  },
-  input.rollupCreatorVersion,
-];
+  .strict()
+  .transform(
+    (input): Parameters<typeof createRollupGetRetryablesFees> => [
+      toPublicClient(input.rpcUrl, findChain(input.chainId)),
+      {
+        account: input.account,
+        nativeToken: input.nativeToken,
+        maxFeePerGasForRetryables: input.maxFeePerGasForRetryables,
+      },
+      input.rollupCreatorVersion,
+    ],
+  );

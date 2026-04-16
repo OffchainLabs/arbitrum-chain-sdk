@@ -10,23 +10,20 @@ export const getBridgeUiConfigSchema = parentChainPublicClientSchema
     rpcUrl: z.url().optional(),
     explorerUrl: z.url().optional(),
   })
-  .strict();
+  .strict()
+  .transform((input): Parameters<typeof getBridgeUiConfig> => {
+    const parentChain = findChain(input.parentChainId);
 
-export const getBridgeUiConfigTransform = (
-  input: z.output<typeof getBridgeUiConfigSchema>,
-): Parameters<typeof getBridgeUiConfig> => {
-  const parentChain = findChain(input.parentChainId);
-
-  return [
-    {
-      params: {
-        parentChain,
-        deploymentTxHash: input.deploymentTxHash,
-        chainName: input.chainName,
-        rpcUrl: input.rpcUrl,
-        explorerUrl: input.explorerUrl,
+    return [
+      {
+        params: {
+          parentChain,
+          deploymentTxHash: input.deploymentTxHash,
+          chainName: input.chainName,
+          rpcUrl: input.rpcUrl,
+          explorerUrl: input.explorerUrl,
+        },
+        parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, parentChain),
       },
-      parentChainPublicClient: toPublicClient(input.parentChainRpcUrl, parentChain),
-    },
-  ];
-};
+    ];
+  });

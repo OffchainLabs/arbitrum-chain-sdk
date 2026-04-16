@@ -10,6 +10,5 @@ export const setValidKeysetPrepareTransactionRequestSchema = publicClientSchema
     }),
     keyset: hexSchema,
   })
-  .strict();
-
-export const setValidKeysetPrepareTransactionRequestResolver = withPublicClient;
+  .strict()
+  .transform(withPublicClient);

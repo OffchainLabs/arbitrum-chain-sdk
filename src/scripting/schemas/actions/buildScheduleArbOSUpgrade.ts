@@ -12,14 +12,11 @@ export const buildScheduleArbOSUpgradeSchema = actionWriteBaseSchema
       })
       .optional(),
   })
-  .strict();
-
-export const buildScheduleArbOSUpgradeTransform = (
-  input: z.output<typeof buildScheduleArbOSUpgradeSchema>,
-) => {
-  const { rpcUrl, chainId, newVersion, timestamp, gasOverrides, ...rest } = input;
-  return [
-    toPublicClient(rpcUrl, findChain(chainId)),
-    { ...rest, args: [newVersion, timestamp] as const, ...(gasOverrides && { gasOverrides }) },
-  ] as const;
-};
+  .strict()
+  .transform((input) => {
+    const { rpcUrl, chainId, newVersion, timestamp, gasOverrides, ...rest } = input;
+    return [
+      toPublicClient(rpcUrl, findChain(chainId)),
+      { ...rest, args: [newVersion, timestamp] as const, ...(gasOverrides && { gasOverrides }) },
+    ] as const;
+  });

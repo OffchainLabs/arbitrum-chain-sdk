@@ -8,15 +8,13 @@ export const upgradeExecutorPrepareTransactionRequestSchema = publicClientSchema
     upgradeExecutorAddress: addressSchema,
     executorAccountAddress: addressSchema,
   })
-  .strict();
-
-export const upgradeExecutorPrepareTransactionRequestResolver = withPublicClient;
+  .strict()
+  .transform(withPublicClient);
 
 export const upgradeExecutorFetchPrivilegedAccountsSchema = publicClientSchema
   .extend({
     chainId: z.number().optional(),
     upgradeExecutorAddress: addressSchema,
   })
-  .strict();
-
-export const upgradeExecutorFetchPrivilegedAccountsResolver = withPublicClientOptionalChain;
+  .strict()
+  .transform(withPublicClientOptionalChain);

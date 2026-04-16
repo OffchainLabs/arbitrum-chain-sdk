@@ -17,19 +17,18 @@ export const setValidKeysetSchema = parentChainPublicClientSchema
     }),
     keyset: hexSchema,
   })
-  .strict();
-
-export const setValidKeysetTransform = (
-  input: z.output<typeof setValidKeysetSchema>,
-): Parameters<typeof setValidKeyset> => [
-  {
-    coreContracts: input.coreContracts,
-    keyset: input.keyset,
-    publicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
-    walletClient: toWalletClient(
-      input.parentChainRpcUrl,
-      input.privateKey,
-      findChain(input.parentChainId),
-    ),
-  },
-];
+  .strict()
+  .transform(
+    (input): Parameters<typeof setValidKeyset> => [
+      {
+        coreContracts: input.coreContracts,
+        keyset: input.keyset,
+        publicClient: toPublicClient(input.parentChainRpcUrl, findChain(input.parentChainId)),
+        walletClient: toWalletClient(
+          input.parentChainRpcUrl,
+          input.privateKey,
+          findChain(input.parentChainId),
+        ),
+      },
+    ],
+  );

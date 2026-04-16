@@ -6,6 +6,5 @@ export const getBatchPostersSchema = publicClientSchema
     rollup: addressSchema,
     sequencerInbox: addressSchema,
   })
-  .strict();
-
-export const getBatchPostersResolver = withPublicClientPositional;
+  .strict()
+  .transform(withPublicClientPositional);
