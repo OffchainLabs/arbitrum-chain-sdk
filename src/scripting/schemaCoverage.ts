@@ -114,19 +114,41 @@ export const mocks = _mocks;
 // test file's imports resolve.
 
 vi.mock('./viemTransforms', () => {
-  const toPublicClient = (rpcUrl: string, chain: unknown) =>
+  const toPublicClient = (rpcUrl: string, chain?: unknown) =>
     _mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`);
   const findChain = (chainId: number) => ({ _tracked: 'Chain', id: chainId });
+  const toAccount = (pk: string) => _mocks.trackedObject(`Account(${pk})`);
+  const toWalletClient = (rpcUrl: string, pk: string, chain?: unknown) =>
+    _mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`);
   return {
     toPublicClient,
     findChain,
+    toAccount,
+    toWalletClient,
     withPublicClient: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
-      return { publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest };
+      return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
     },
-    toAccount: (pk: string) => _mocks.trackedObject(`Account(${pk})`),
-    toWalletClient: (rpcUrl: string, pk: string, chain: unknown) =>
-      _mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`),
+    withParentChainPublicClient: <T extends { parentChainRpcUrl: string; parentChainId: number }>(input: T) => {
+      const { parentChainRpcUrl, parentChainId, ...rest } = input;
+      return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), ...rest }];
+    },
+    withChainSign: <T extends { rpcUrl: string; chainId: number; privateKey: string }>(input: T) => {
+      const { rpcUrl, chainId, privateKey, ...rest } = input;
+      return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), account: toAccount(privateKey), ...rest }];
+    },
+    withParentChainSign: <T extends { parentChainRpcUrl: string; parentChainId: number; privateKey: string }>(input: T) => {
+      const { parentChainRpcUrl, parentChainId, privateKey, ...rest } = input;
+      return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), account: toAccount(privateKey), ...rest }];
+    },
+    withChildChainSign: <T extends { orbitChainRpcUrl: string; orbitChainId: number; privateKey: string }>(input: T) => {
+      const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
+      return [{ orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)), ...rest }];
+    },
+    withParentReadChildSign: <T extends { parentChainRpcUrl: string; parentChainId: number; orbitChainRpcUrl: string; privateKey: string }>(input: T) => {
+      const { parentChainRpcUrl, parentChainId, orbitChainRpcUrl, privateKey, ...rest } = input;
+      return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey), ...rest }];
+    },
   };
 });
 

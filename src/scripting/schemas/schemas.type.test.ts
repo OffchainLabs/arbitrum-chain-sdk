@@ -52,7 +52,7 @@ import { getMaxTimeVariation } from '../../actions/getMaxTimeVariation';
 
 import { createRollupTransformedSchema } from './createRollup';
 import { setValidKeysetTransform } from './setValidKeyset';
-import { createTokenBridgeTransform } from './createTokenBridge';
+import { createTokenBridgeResolver } from './createTokenBridge';
 import { getKeysetsTransform } from './getKeysets';
 import { getValidatorsTransform } from './getValidators';
 import { getBatchPostersTransform } from './getBatchPosters';
@@ -65,29 +65,35 @@ import {
   upgradeExecutorPrepareTransactionRequestSchema,
   upgradeExecutorFetchPrivilegedAccountsTransform,
 } from './upgradeExecutor';
-import { setAnyTrustFastConfirmerTransform } from './setAnyTrustFastConfirmer';
+import { setAnyTrustFastConfirmerSchema } from './setAnyTrustFastConfirmer';
 import { prepareNodeConfigTransform } from './prepareNodeConfig';
 import {
-  feeRouterDeployRewardDistributorTransform,
-  feeRouterDeployChildToParentRewardRouterTransform,
+  feeRouterDeployRewardDistributorSchema,
+  feeRouterDeployChildToParentRewardRouterSchema,
 } from './feeRouter';
 import { getBridgeUiConfigTransform } from './getBridgeUiConfig';
 import { isAnyTrustSchema } from './isAnyTrust';
 import { createRollupFetchTransactionHashSchema } from './createRollupFetchTransactionHash';
 import { createRollupFetchCoreContractsSchema } from './createRollupFetchCoreContracts';
 import { isTokenBridgeDeployedTransform } from './isTokenBridgeDeployed';
-import { createTokenBridgePrepareTransactionRequestTransform } from './createTokenBridgePrepareTransactionRequest';
-import { createTokenBridgePrepareSetWethGatewayTransactionRequestTransform } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
+import { createTokenBridgePrepareTransactionRequestSchema } from './createTokenBridgePrepareTransactionRequest';
+import { createTokenBridgePrepareSetWethGatewayTransactionRequestSchema } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { setValidKeysetPrepareTransactionRequestSchema } from './setValidKeysetPrepareTransactionRequest';
 import { createRollupPrepareTransactionRequestTransformedSchema } from './createRollupPrepareTransactionRequest';
-import { createSafePrepareTransactionRequestTransform } from './createSafePrepareTransactionRequest';
+import { createSafePrepareTransactionRequestSchema } from './createSafePrepareTransactionRequest';
 import {
   createRollupEnoughCustomFeeTokenAllowanceSchema,
   createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
   createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
 } from './customFeeToken';
-import { withPublicClient } from '../viemTransforms';
+import {
+  withPublicClient,
+  withParentChainPublicClient,
+  withChainSign,
+  withChildChainSign,
+  withParentReadChildSign,
+} from '../viemTransforms';
 import { prepareKeysetTransform } from './prepareKeyset';
 import { prepareKeysetHashTransform } from './prepareKeysetHash';
 import { getDefaultsTransform } from './getDefaults';
@@ -252,8 +258,8 @@ it('setValidKeysetTransform output matches setValidKeyset params', () =>
     DeepNormalize<Parameters<typeof setValidKeyset>>
   >());
 
-it('createTokenBridgeTransform output matches createTokenBridge params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgeTransform>>>().toEqualTypeOf<
+it('createTokenBridgeResolver output matches createTokenBridge params', () =>
+  expectTypeOf<DeepNormalize<ReturnType<typeof createTokenBridgeResolver>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridge>>
   >());
 
@@ -311,25 +317,33 @@ it('upgradeExecutorFetchPrivilegedAccountsTransform output matches upgradeExecut
     DeepNormalize<ReturnType<typeof upgradeExecutorFetchPrivilegedAccountsTransform>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>>());
 
-it('setAnyTrustFastConfirmerTransform output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () =>
-  expectTypeOf<DeepNormalize<ReturnType<typeof setAnyTrustFastConfirmerTransform>>>().toEqualTypeOf<
+it('setAnyTrustFastConfirmerResolver output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () => {
+  const transformed = setAnyTrustFastConfirmerSchema.transform(withChainSign);
+  expectTypeOf<
+    DeepNormalize<z.output<typeof transformed>>
+  >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof setAnyTrustFastConfirmerPrepareTransactionRequest>>
-  >());
+  >();
+});
 
 it('prepareNodeConfigTransform output matches prepareNodeConfig params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof prepareNodeConfigTransform>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof prepareNodeConfig>>
   >());
 
-it('feeRouterDeployRewardDistributorTransform output matches feeRouterDeployRewardDistributor params', () =>
+it('feeRouterDeployRewardDistributorResolver output matches feeRouterDeployRewardDistributor params', () => {
+  const transformed = feeRouterDeployRewardDistributorSchema.transform(withChildChainSign);
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof feeRouterDeployRewardDistributorTransform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployRewardDistributor>>>());
+    DeepNormalize<z.output<typeof transformed>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployRewardDistributor>>>();
+});
 
-it('feeRouterDeployChildToParentRewardRouterTransform output matches feeRouterDeployChildToParentRewardRouter params', () =>
+it('feeRouterDeployChildToParentRewardRouterResolver output matches feeRouterDeployChildToParentRewardRouter params', () => {
+  const transformed = feeRouterDeployChildToParentRewardRouterSchema.transform(withParentReadChildSign);
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof feeRouterDeployChildToParentRewardRouterTransform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployChildToParentRewardRouter>>>());
+    DeepNormalize<z.output<typeof transformed>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof feeRouterDeployChildToParentRewardRouter>>>();
+});
 
 it('getBridgeUiConfigTransform output matches getBridgeUiConfig params', () =>
   expectTypeOf<DeepNormalize<ReturnType<typeof getBridgeUiConfigTransform>>>().toEqualTypeOf<
@@ -362,21 +376,23 @@ it('isTokenBridgeDeployedTransform output matches isTokenBridgeDeployed params',
     DeepNormalize<Parameters<typeof isTokenBridgeDeployed>>
   >());
 
-it('createTokenBridgePrepareTransactionRequestTransform output matches createTokenBridgePrepareTransactionRequest params', () =>
+it('createTokenBridgePrepareTransactionRequestResolver output matches createTokenBridgePrepareTransactionRequest params', () => {
+  const transformed = createTokenBridgePrepareTransactionRequestSchema.transform(withParentChainPublicClient);
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof createTokenBridgePrepareTransactionRequestTransform>>
+    DeepNormalize<z.output<typeof transformed>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridgePrepareTransactionRequest>>
-  >());
+  >();
+});
 
-it('createTokenBridgePrepareSetWethGatewayTransactionRequestTransform output matches createTokenBridgePrepareSetWethGatewayTransactionRequest params', () =>
+it('createTokenBridgePrepareSetWethGatewayTransactionRequestResolver output matches createTokenBridgePrepareSetWethGatewayTransactionRequest params', () => {
+  const transformed = createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(withParentChainPublicClient);
   expectTypeOf<
-    DeepNormalize<
-      ReturnType<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestTransform>
-    >
+    DeepNormalize<z.output<typeof transformed>>
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createTokenBridgePrepareSetWethGatewayTransactionRequest>>
-  >());
+  >();
+});
 
 it('setValidKeysetPrepareTransactionRequestResolver output matches setValidKeysetPrepareTransactionRequest params', () => {
   const transformed = setValidKeysetPrepareTransactionRequestSchema.transform(withPublicClient);
@@ -408,10 +424,12 @@ it('createRollupPrepareTransactionRequestTransformedSchema output matches create
   expectTypeOf<SO_default>().toEqualTypeOf<FP_default>();
 });
 
-it('createSafePrepareTransactionRequestTransform output matches createSafePrepareTransactionRequest params', () =>
+it('createSafePrepareTransactionRequestResolver output matches createSafePrepareTransactionRequest params', () => {
+  const transformed = createSafePrepareTransactionRequestSchema.transform(withChainSign);
   expectTypeOf<
-    DeepNormalize<ReturnType<typeof createSafePrepareTransactionRequestTransform>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createSafePrepareTransactionRequest>>>());
+    DeepNormalize<z.output<typeof transformed>>
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createSafePrepareTransactionRequest>>>();
+});
 
 it('createRollupEnoughCustomFeeTokenAllowanceResolver output matches createRollupEnoughCustomFeeTokenAllowance params', () => {
   const transformed = createRollupEnoughCustomFeeTokenAllowanceSchema.transform(withPublicClient);

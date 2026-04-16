@@ -20,22 +20,22 @@ export {
   upgradeExecutorFetchPrivilegedAccountsSchema,
   upgradeExecutorFetchPrivilegedAccountsTransform,
 } from './upgradeExecutor';
-export { createRollupSchema, createRollupTransform } from './createRollup';
+export { createRollupSchema, createRollupResolver } from './createRollup';
 export { setValidKeysetSchema, setValidKeysetTransform } from './setValidKeyset';
-export { createTokenBridgeSchema, createTokenBridgeTransform } from './createTokenBridge';
+export { createTokenBridgeSchema, createTokenBridgeResolver } from './createTokenBridge';
 export { getKeysetsSchema, getKeysetsTransform } from './getKeysets';
 export { getValidatorsSchema, getValidatorsTransform } from './getValidators';
 export { getBatchPostersSchema, getBatchPostersTransform } from './getBatchPosters';
 export {
   setAnyTrustFastConfirmerSchema,
-  setAnyTrustFastConfirmerTransform,
+  setAnyTrustFastConfirmerResolver,
 } from './setAnyTrustFastConfirmer';
 export { prepareNodeConfigSchema, prepareNodeConfigTransform } from './prepareNodeConfig';
 export {
   feeRouterDeployRewardDistributorSchema,
-  feeRouterDeployRewardDistributorTransform,
+  feeRouterDeployRewardDistributorResolver,
   feeRouterDeployChildToParentRewardRouterSchema,
-  feeRouterDeployChildToParentRewardRouterTransform,
+  feeRouterDeployChildToParentRewardRouterResolver,
 } from './feeRouter';
 export { getBridgeUiConfigSchema, getBridgeUiConfigTransform } from './getBridgeUiConfig';
 export { isAnyTrustSchema, isAnyTrustResolver } from './isAnyTrust';
@@ -53,11 +53,11 @@ export {
 } from './isTokenBridgeDeployed';
 export {
   createTokenBridgePrepareTransactionRequestSchema,
-  createTokenBridgePrepareTransactionRequestTransform,
+  createTokenBridgePrepareTransactionRequestResolver,
 } from './createTokenBridgePrepareTransactionRequest';
 export {
   createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
-  createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
+  createTokenBridgePrepareSetWethGatewayTransactionRequestResolver,
 } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 export {
   setValidKeysetPrepareTransactionRequestSchema,
@@ -69,7 +69,7 @@ export {
 } from './createRollupPrepareTransactionRequest';
 export {
   createSafePrepareTransactionRequestSchema,
-  createSafePrepareTransactionRequestTransform,
+  createSafePrepareTransactionRequestResolver,
 } from './createSafePrepareTransactionRequest';
 export {
   createRollupEnoughCustomFeeTokenAllowanceSchema,

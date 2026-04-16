@@ -20,7 +20,7 @@ import {
 import { prepareChainConfig } from '../prepareChainConfig';
 import {
   setAnyTrustFastConfirmerSchema,
-  setAnyTrustFastConfirmerTransform,
+  setAnyTrustFastConfirmerResolver,
 } from './schemas/setAnyTrustFastConfirmer';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../setAnyTrustFastConfirmerPrepareTransactionRequest';
 import {
@@ -71,7 +71,7 @@ import {
 import { createRollupGetRetryablesFees } from '../createRollupGetRetryablesFees';
 import {
   createSafePrepareTransactionRequestSchema,
-  createSafePrepareTransactionRequestTransform,
+  createSafePrepareTransactionRequestResolver,
 } from './schemas/createSafePrepareTransactionRequest';
 import { createSafePrepareTransactionRequest } from '../createSafePrepareTransactionRequest';
 import {
@@ -99,19 +99,19 @@ import {
   createRollupDefaultSchema,
   createRollupV21Schema,
   createRollupV32Schema,
-  createRollupTransform,
+  createRollupResolver,
 } from './schemas/createRollup';
 import { createRollup as createRollupFn } from '../createRollup';
-import { createTokenBridgeSchema, createTokenBridgeTransform } from './schemas/createTokenBridge';
+import { createTokenBridgeSchema, createTokenBridgeResolver } from './schemas/createTokenBridge';
 import { createTokenBridge } from '../createTokenBridge';
 import {
   createTokenBridgePrepareTransactionRequestSchema,
-  createTokenBridgePrepareTransactionRequestTransform,
+  createTokenBridgePrepareTransactionRequestResolver,
 } from './schemas/createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionRequest } from '../createTokenBridgePrepareTransactionRequest';
 import {
   createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
-  createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
+  createTokenBridgePrepareSetWethGatewayTransactionRequestResolver,
 } from './schemas/createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
@@ -123,9 +123,9 @@ import {
 import { createRollupPrepareDeploymentParamsConfig } from '../createRollupPrepareDeploymentParamsConfig';
 import {
   feeRouterDeployRewardDistributorSchema,
-  feeRouterDeployRewardDistributorTransform,
+  feeRouterDeployRewardDistributorResolver,
   feeRouterDeployChildToParentRewardRouterSchema,
-  feeRouterDeployChildToParentRewardRouterTransform,
+  feeRouterDeployChildToParentRewardRouterResolver,
 } from './schemas/feeRouter';
 import { feeRouterDeployRewardDistributor } from '../feeRouterDeployRewardDistributor';
 import { feeRouterDeployChildToParentRewardRouter } from '../feeRouterDeployChildToParentRewardRouter';
@@ -207,7 +207,7 @@ describe('schema coverage', () => {
 
   it('setAnyTrustFastConfirmer', async () => {
     await assertSchemaCoverage(
-      setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform),
+      setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerResolver),
       setAnyTrustFastConfirmerPrepareTransactionRequest,
       mocks,
     );
@@ -300,7 +300,7 @@ describe('schema coverage', () => {
   it('createSafePrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
       createSafePrepareTransactionRequestSchema.transform(
-        createSafePrepareTransactionRequestTransform,
+        createSafePrepareTransactionRequestResolver,
       ),
       createSafePrepareTransactionRequest,
       mocks,
@@ -379,7 +379,7 @@ describe('schema coverage', () => {
 
   it('createRollup (default)', async () => {
     await assertSchemaCoverage(
-      createRollupDefaultSchema.transform(createRollupTransform),
+      createRollupDefaultSchema.transform(createRollupResolver),
       createRollupFn,
       mocks,
     );
@@ -387,7 +387,7 @@ describe('schema coverage', () => {
 
   it('createRollup (v2.1)', async () => {
     await assertSchemaCoverage(
-      createRollupV21Schema.transform(createRollupTransform),
+      createRollupV21Schema.transform(createRollupResolver),
       createRollupFn,
       mocks,
     );
@@ -395,7 +395,7 @@ describe('schema coverage', () => {
 
   it('createRollup (v3.2)', async () => {
     await assertSchemaCoverage(
-      createRollupV32Schema.transform(createRollupTransform),
+      createRollupV32Schema.transform(createRollupResolver),
       createRollupFn,
       mocks,
     );
@@ -403,7 +403,7 @@ describe('schema coverage', () => {
 
   it('createTokenBridge', async () => {
     await assertSchemaCoverage(
-      createTokenBridgeSchema.transform(createTokenBridgeTransform),
+      createTokenBridgeSchema.transform(createTokenBridgeResolver),
       createTokenBridge,
       mocks,
     );
@@ -412,7 +412,7 @@ describe('schema coverage', () => {
   it('createTokenBridgePrepareTransactionRequest', async () => {
     await assertSchemaCoverage(
       createTokenBridgePrepareTransactionRequestSchema.transform(
-        createTokenBridgePrepareTransactionRequestTransform,
+        createTokenBridgePrepareTransactionRequestResolver,
       ),
       createTokenBridgePrepareTransactionRequest,
       mocks,
@@ -422,7 +422,7 @@ describe('schema coverage', () => {
   it('createTokenBridgePrepareSetWethGatewayTransactionRequest', async () => {
     await assertSchemaCoverage(
       createTokenBridgePrepareSetWethGatewayTransactionRequestSchema.transform(
-        createTokenBridgePrepareSetWethGatewayTransactionRequestTransform,
+        createTokenBridgePrepareSetWethGatewayTransactionRequestResolver,
       ),
       createTokenBridgePrepareSetWethGatewayTransactionRequest,
       mocks,
@@ -455,7 +455,7 @@ describe('schema coverage', () => {
 
   it('feeRouterDeployRewardDistributor', async () => {
     await assertSchemaCoverage(
-      feeRouterDeployRewardDistributorSchema.transform(feeRouterDeployRewardDistributorTransform),
+      feeRouterDeployRewardDistributorSchema.transform(feeRouterDeployRewardDistributorResolver),
       feeRouterDeployRewardDistributor,
       mocks,
     );
@@ -464,7 +464,7 @@ describe('schema coverage', () => {
   it('feeRouterDeployChildToParentRewardRouter', async () => {
     await assertSchemaCoverage(
       feeRouterDeployChildToParentRewardRouterSchema.transform(
-        feeRouterDeployChildToParentRewardRouterTransform,
+        feeRouterDeployChildToParentRewardRouterResolver,
       ),
       feeRouterDeployChildToParentRewardRouter,
       mocks,
