@@ -67,6 +67,12 @@ export function runCli(
     process.exit(1);
   }
 
+  if (process.argv[3] === '--schema') {
+    const jsonSchema = z.toJSONSchema(command.input, { io: 'input', unrepresentable: 'any' });
+    process.stdout.write(JSON.stringify(jsonSchema, null, 2) + '\n');
+    process.exit(0);
+  }
+
   const jsonString = process.argv[3];
 
   if (!jsonString) {
