@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, vi } from 'vitest';
 import { mocks, assertSchemaCoverage } from './schemaCoverage';
 
 import { getValidatorsSchema } from './schemas/getValidators';
@@ -86,6 +86,25 @@ import { prepareNodeConfigSchema } from './schemas/prepareNodeConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { getDefaultsSchema } from './schemas/getDefaults';
 import { getDefaultConfirmPeriodBlocks } from '../getDefaultConfirmPeriodBlocks';
+import {
+  buildSetAllowListSchema,
+  buildSetAllowListEnabledSchema,
+  isAllowListEnabledSchema,
+  isAllowedSchema,
+} from './schemas/actions';
+import { buildSetAllowList } from '../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../actions/buildSetAllowListEnabled';
+import { isAllowListEnabled } from '../actions/isAllowListEnabled';
+import { isAllowed } from '../actions/isAllowed';
+
+vi.mock('../types/ParentChain', async (importOriginal) => {
+  const original = await importOriginal<typeof import('../types/ParentChain')>();
+  return {
+    ...original,
+    validateParentChain: () => ({ chainId: 1, isCustom: false }),
+  };
+});
+
 import {
   schema as createRollupExampleSchema,
   execute as createRollupExecute,
@@ -427,5 +446,33 @@ describe('schema coverage', () => {
         },
       }),
     });
+  });
+
+  it('buildSetAllowList', async () => {
+    await assertSchemaCoverage(
+      buildSetAllowListSchema,
+      buildSetAllowList,
+      mocks,
+    );
+  });
+
+  it('buildSetAllowListEnabled', async () => {
+    await assertSchemaCoverage(
+      buildSetAllowListEnabledSchema,
+      buildSetAllowListEnabled,
+      mocks,
+    );
+  });
+
+  it('isAllowListEnabled', async () => {
+    await assertSchemaCoverage(
+      isAllowListEnabledSchema,
+      isAllowListEnabled,
+      mocks,
+    );
+  });
+
+  it('isAllowed', async () => {
+    await assertSchemaCoverage(isAllowedSchema, isAllowed, mocks);
   });
 });

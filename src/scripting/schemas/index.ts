@@ -96,4 +96,8 @@ export {
   isBatchPosterSchema,
   isValidKeysetHashSchema,
   getMaxTimeVariationSchema,
+  buildSetAllowListSchema,
+  buildSetAllowListEnabledSchema,
+  isAllowListEnabledSchema,
+  isAllowedSchema,
 } from './actions';

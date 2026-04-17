@@ -49,6 +49,10 @@ import { buildScheduleArbOSUpgrade } from '../../actions/buildScheduleArbOSUpgra
 import { isBatchPoster } from '../../actions/isBatchPoster';
 import { isValidKeysetHash } from '../../actions/isValidKeysetHash';
 import { getMaxTimeVariation } from '../../actions/getMaxTimeVariation';
+import { buildSetAllowList } from '../../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../../actions/buildSetAllowListEnabled';
+import { isAllowListEnabled } from '../../actions/isAllowListEnabled';
+import { isAllowed } from '../../actions/isAllowed';
 
 import { createRollupSchema } from './createRollup';
 import { setValidKeysetSchema } from './setValidKeyset';
@@ -114,6 +118,10 @@ import {
   isBatchPosterSchema,
   isValidKeysetHashSchema,
   getMaxTimeVariationSchema,
+  buildSetAllowListSchema,
+  buildSetAllowListEnabledSchema,
+  isAllowListEnabledSchema,
+  isAllowedSchema,
 } from './actions';
 
 // DeepNormalize<T>
@@ -525,4 +533,24 @@ it('getConsensusReleaseByWasmModuleRootSchema output matches getConsensusRelease
 it('isKnownWasmModuleRootSchema output matches isKnownWasmModuleRoot params', () =>
   expectTypeOf<DeepNormalize<z.output<typeof isKnownWasmModuleRootSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof isKnownWasmModuleRoot>>
+  >());
+
+it('buildSetAllowListSchema output matches buildSetAllowList params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof buildSetAllowListSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetAllowList>>
+  >());
+
+it('buildSetAllowListEnabledSchema output matches buildSetAllowListEnabled params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof buildSetAllowListEnabledSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildSetAllowListEnabled>>
+  >());
+
+it('isAllowListEnabledSchema output matches isAllowListEnabled params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof isAllowListEnabledSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isAllowListEnabled>>
+  >());
+
+it('isAllowedSchema output matches isAllowed params', () =>
+  expectTypeOf<DeepNormalize<z.output<typeof isAllowedSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof isAllowed>>
   >());

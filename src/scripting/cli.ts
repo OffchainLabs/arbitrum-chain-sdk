@@ -49,6 +49,10 @@ import {
   getConsensusReleaseByVersionSchema,
   getConsensusReleaseByWasmModuleRootSchema,
   isKnownWasmModuleRootSchema,
+  buildSetAllowListSchema,
+  buildSetAllowListEnabledSchema,
+  isAllowListEnabledSchema,
+  isAllowedSchema,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -97,6 +101,10 @@ import { buildScheduleArbOSUpgrade } from '../actions/buildScheduleArbOSUpgrade'
 import { isBatchPoster } from '../actions/isBatchPoster';
 import { isValidKeysetHash } from '../actions/isValidKeysetHash';
 import { getMaxTimeVariation } from '../actions/getMaxTimeVariation';
+import { buildSetAllowList } from '../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../actions/buildSetAllowListEnabled';
+import { isAllowListEnabled } from '../actions/isAllowListEnabled';
+import { isAllowed } from '../actions/isAllowed';
 import { createRollupPrepareDeploymentParamsConfigDefaults } from '../createRollupPrepareDeploymentParamsConfigDefaults';
 import { parentChainIsArbitrum } from '../parentChainIsArbitrum';
 import {
@@ -318,8 +326,10 @@ runCli('chain-sdk', {
     getConsensusReleaseByWasmModuleRootSchema,
     getConsensusReleaseByWasmModuleRoot,
   ),
-  isKnownWasmModuleRoot: cmd(
-    isKnownWasmModuleRootSchema,
-    isKnownWasmModuleRoot,
-  ),
+  isKnownWasmModuleRoot: cmd(isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
+
+  buildSetAllowList: cmd(buildSetAllowListSchema, buildSetAllowList),
+  buildSetAllowListEnabled: cmd(buildSetAllowListEnabledSchema, buildSetAllowListEnabled),
+  isAllowListEnabled: cmd(isAllowListEnabledSchema, isAllowListEnabled),
+  isAllowed: cmd(isAllowedSchema, isAllowed),
 });
