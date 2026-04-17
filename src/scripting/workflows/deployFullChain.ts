@@ -216,11 +216,11 @@ export const execute = async (input: z.output<typeof schema>) => {
         inbox: coreContracts.inbox,
         sequencerInbox: coreContracts.sequencerInbox,
         validatorWalletCreator: coreContracts.validatorWalletCreator,
-        upgradeExecutor: coreContracts.upgradeExecutor,
         stakeToken,
         deployedAtBlockNumber: coreContracts.deployedAtBlockNumber,
       },
     },
+    coreContracts,
     tokenBridgeContracts,
   };
 };
