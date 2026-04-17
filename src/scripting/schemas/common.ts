@@ -105,13 +105,15 @@ export const assertionStateSchema = z.object({
   endHistoryRoot: hexSchema,
 });
 
-export const prepareChainConfigArbitrumParamsSchema = z.object({
-  InitialChainOwner: addressSchema,
-  DataAvailabilityCommittee: z.boolean().optional(),
-  InitialArbOSVersion: z.number().optional(),
-  MaxCodeSize: z.number().optional(),
-  MaxInitCodeSize: z.number().optional(),
-});
+export const prepareChainConfigArbitrumParamsSchema = z
+  .object({
+    InitialChainOwner: addressSchema,
+    DataAvailabilityCommittee: z.boolean().optional(),
+    InitialArbOSVersion: z.number().optional(),
+    MaxCodeSize: z.number().optional(),
+    MaxInitCodeSize: z.number().optional(),
+  })
+  .strict();
 
 const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema.required().extend({
   EnableArbOS: z.boolean(),

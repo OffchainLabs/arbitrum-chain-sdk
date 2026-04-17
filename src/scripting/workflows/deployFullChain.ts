@@ -23,31 +23,40 @@ import {
 
 const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSchema.shape;
 
-export const inputSchema = z.object({
-  ...baseFields,
-  chainName: z.string(),
-  createRollupParams: createRollupBaseParams.extend({
-    config: paramsV3Dot2Schema.extend({
-      chainId: bigintSchema.prefault(() => String(generateChainId())),
-      chainConfig: prepareChainConfigInputSchema.optional(),
-    }),
-    nativeToken: addressSchema.default(zeroAddress),
-    keyset: hexSchema.optional(),
-  }),
-  tokenBridgeParams: z
-    .object({
-      gasOverrides: createTokenBridgeInputSchema.shape.gasOverrides,
-      retryableGasOverrides: createTokenBridgeInputSchema.shape.retryableGasOverrides,
-      tokenBridgeCreatorAddressOverride:
-        createTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
-    })
-    .default({}),
-  ownershipTransferParams: z.object({
-    newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
-    maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
-    refundAddress: transferOwnershipInputSchema.shape.refundAddress,
-  }),
-});
+export const inputSchema = z
+  .object({
+    ...baseFields,
+    chainName: z.string(),
+    createRollupParams: createRollupBaseParams
+      .extend({
+        config: paramsV3Dot2Schema
+          .extend({
+            chainId: bigintSchema.prefault(() => String(generateChainId())),
+            chainConfig: prepareChainConfigInputSchema.optional(),
+          })
+          .strict(),
+        nativeToken: addressSchema.default(zeroAddress),
+        keyset: hexSchema.optional(),
+      })
+      .strict(),
+    tokenBridgeParams: z
+      .object({
+        gasOverrides: createTokenBridgeInputSchema.shape.gasOverrides,
+        retryableGasOverrides: createTokenBridgeInputSchema.shape.retryableGasOverrides,
+        tokenBridgeCreatorAddressOverride:
+          createTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
+      })
+      .strict()
+      .default({}),
+    ownershipTransferParams: z
+      .object({
+        newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
+        maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
+        refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+      })
+      .strict(),
+  })
+  .strict();
 
 export const schema = inputSchema
   .superRefine((data, ctx) => {
