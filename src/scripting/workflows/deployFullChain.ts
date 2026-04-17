@@ -2,15 +2,17 @@ import { z } from 'zod';
 import { parseAbi, zeroAddress } from 'viem';
 
 import { createRollupDefaultSchema } from '../schemas/createRollup';
-import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
+import { hexSchema, bigintSchema, addressSchema, privateKeySchema } from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfigInputSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
+import { prepareNodeConfig } from '../../prepareNodeConfig';
 import { getArbOSVersion } from '../../utils/getArbOSVersion';
 import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
+import { ParentChainId } from '../../types/ParentChain';
 import { execute as deployNewChainExecute } from './deployNewChain';
 import {
   inputSchema as createTokenBridgeInputSchema,
@@ -53,6 +55,14 @@ export const inputSchema = z
         newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
         maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
         refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+      })
+      .strict()
+      .optional(),
+    nodeConfigParams: z
+      .object({
+        batchPosterPrivateKey: privateKeySchema,
+        validatorPrivateKey: privateKeySchema,
+        parentChainBeaconRpcUrl: z.url().optional(),
       })
       .strict()
       .optional(),
@@ -117,6 +127,8 @@ export const schema = inputSchema
               input.ownershipTransferParams.newOwnerAddress,
           }
         : undefined,
+      nodeConfigParams: input.nodeConfigParams,
+      parentChainRpcUrl: input.parentChainRpcUrl,
     };
   });
 
@@ -135,6 +147,8 @@ export const execute = async (input: z.output<typeof schema>) => {
     retryableGasOverrides,
     tokenBridgeCreatorAddressOverride,
     ownershipTransfer,
+    nodeConfigParams,
+    parentChainRpcUrl,
   } = input;
 
   const chainConfig: ChainConfig | undefined = chainConfigParams
@@ -203,6 +217,22 @@ export const execute = async (input: z.output<typeof schema>) => {
       .catch(() => false),
   ]);
 
+  const nodeConfig =
+    nodeConfigParams && chainConfig
+      ? prepareNodeConfig({
+          chainName,
+          chainConfig,
+          coreContracts: { ...coreContracts, nativeToken: restParams.nativeToken },
+          batchPosterPrivateKey: nodeConfigParams.batchPosterPrivateKey,
+          validatorPrivateKey: nodeConfigParams.validatorPrivateKey,
+          stakeToken,
+          parentChainId: parentChainId as ParentChainId,
+          parentChainIsArbitrum,
+          parentChainRpcUrl,
+          parentChainBeaconRpcUrl: nodeConfigParams.parentChainBeaconRpcUrl,
+        })
+      : undefined;
+
   return {
     chainInfo: {
       chainId: chainConfig?.chainId ?? 0,
@@ -222,5 +252,6 @@ export const execute = async (input: z.output<typeof schema>) => {
     },
     coreContracts,
     tokenBridgeContracts,
+    nodeConfig,
   };
 };
