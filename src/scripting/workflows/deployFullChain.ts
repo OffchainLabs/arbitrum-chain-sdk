@@ -54,7 +54,8 @@ export const inputSchema = z
         maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
         refundAddress: transferOwnershipInputSchema.shape.refundAddress,
       })
-      .strict(),
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -107,11 +108,15 @@ export const schema = inputSchema
       gasOverrides: input.tokenBridgeParams.gasOverrides,
       retryableGasOverrides: input.tokenBridgeParams.retryableGasOverrides,
       tokenBridgeCreatorAddressOverride: input.tokenBridgeParams.tokenBridgeCreatorAddressOverride,
-      newOwnerAddress: input.ownershipTransferParams.newOwnerAddress,
-      maxGasPrice: input.ownershipTransferParams.maxGasPrice,
-      refundAddress:
-        input.ownershipTransferParams.refundAddress ??
-        input.ownershipTransferParams.newOwnerAddress,
+      ownershipTransfer: input.ownershipTransferParams
+        ? {
+            newOwnerAddress: input.ownershipTransferParams.newOwnerAddress,
+            maxGasPrice: input.ownershipTransferParams.maxGasPrice,
+            refundAddress:
+              input.ownershipTransferParams.refundAddress ??
+              input.ownershipTransferParams.newOwnerAddress,
+          }
+        : undefined,
     };
   });
 
@@ -129,9 +134,7 @@ export const execute = async (input: z.output<typeof schema>) => {
     gasOverrides,
     retryableGasOverrides,
     tokenBridgeCreatorAddressOverride,
-    newOwnerAddress,
-    maxGasPrice,
-    refundAddress,
+    ownershipTransfer,
   } = input;
 
   const chainConfig: ChainConfig | undefined = chainConfigParams
@@ -171,20 +174,22 @@ export const execute = async (input: z.output<typeof schema>) => {
       : undefined,
   });
 
-  // Step 3: Transfer ownership
-  const childUpgradeExecutorAddress = tokenBridgeContracts.orbitChainContracts.upgradeExecutor;
-  await transferOwnershipExecute({
-    upgradeExecutorAddress: coreContracts.upgradeExecutor,
-    newOwnerAddress,
-    inboxAddress: coreContracts.inbox,
-    childUpgradeExecutorAddress,
-    childChainId: Number(rawConfig.chainId),
-    nativeToken: restParams.nativeToken,
-    maxGasPrice,
-    publicClient: parentChainPublicClient,
-    account,
-    refundAddress,
-  });
+  // Step 3: Transfer ownership (optional)
+  if (ownershipTransfer) {
+    const childUpgradeExecutorAddress = tokenBridgeContracts.orbitChainContracts.upgradeExecutor;
+    await transferOwnershipExecute({
+      upgradeExecutorAddress: coreContracts.upgradeExecutor,
+      newOwnerAddress: ownershipTransfer.newOwnerAddress,
+      inboxAddress: coreContracts.inbox,
+      childUpgradeExecutorAddress,
+      childChainId: Number(rawConfig.chainId),
+      nativeToken: restParams.nativeToken,
+      maxGasPrice: ownershipTransfer.maxGasPrice,
+      publicClient: parentChainPublicClient,
+      account,
+      refundAddress: ownershipTransfer.refundAddress,
+    });
+  }
 
   // Build getChainDeploymentInfo-shaped output
   const [stakeToken, parentChainIsArbitrum] = await Promise.all([
