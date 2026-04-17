@@ -166,6 +166,9 @@ export const execute = async (input: z.output<typeof schema>) => {
     },
     signer: account,
     nativeToken: restParams.nativeToken,
+    rollupDeploymentBlockNumber: coreContracts.deployedAtBlockNumber
+      ? BigInt(coreContracts.deployedAtBlockNumber)
+      : undefined,
   });
 
   // Step 3: Transfer ownership

@@ -35,11 +35,14 @@ export const schema = inputSchema.strict().transform((input) => {
   };
 });
 
-export const execute = async (input: z.output<typeof schema>) => {
+export const execute = async (
+  input: z.output<typeof schema> & { rollupDeploymentBlockNumber?: bigint },
+) => {
   const deployer = input.signer;
   const nativeToken = input.nativeToken;
   const createTokenBridgeParams = input.createTokenBridgeParams;
   const parentChainPublicClient = createTokenBridgeParams.parentChainPublicClient;
+  const rollupDeploymentBlockNumber = input.rollupDeploymentBlockNumber;
 
   if (nativeToken != zeroAddress) {
     const allowanceParams = {
@@ -84,7 +87,7 @@ export const execute = async (input: z.output<typeof schema>) => {
         rollup: createTokenBridgeParams.params.rollup,
         account: deployer.address,
         parentChainPublicClient,
-        rollupDeploymentBlockNumber: txReceipt.blockNumber,
+        rollupDeploymentBlockNumber,
       });
 
     const setWethGatewayTxHash = await parentChainPublicClient.sendRawTransaction({
