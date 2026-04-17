@@ -44,7 +44,6 @@ export const inputSchema = z.object({
     .default({}),
   ownershipTransferParams: z.object({
     newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
-    childUpgradeExecutorAddress: transferOwnershipInputSchema.shape.childUpgradeExecutorAddress,
     maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
     refundAddress: transferOwnershipInputSchema.shape.refundAddress,
   }),
@@ -100,7 +99,6 @@ export const schema = inputSchema
       retryableGasOverrides: input.tokenBridgeParams.retryableGasOverrides,
       tokenBridgeCreatorAddressOverride: input.tokenBridgeParams.tokenBridgeCreatorAddressOverride,
       newOwnerAddress: input.ownershipTransferParams.newOwnerAddress,
-      childUpgradeExecutorAddress: input.ownershipTransferParams.childUpgradeExecutorAddress,
       maxGasPrice: input.ownershipTransferParams.maxGasPrice,
       refundAddress:
         input.ownershipTransferParams.refundAddress ??
@@ -123,7 +121,6 @@ export const execute = async (input: z.output<typeof schema>) => {
     retryableGasOverrides,
     tokenBridgeCreatorAddressOverride,
     newOwnerAddress,
-    childUpgradeExecutorAddress,
     maxGasPrice,
     refundAddress,
   } = input;
@@ -163,6 +160,7 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // Step 3: Transfer ownership
+  const childUpgradeExecutorAddress = tokenBridgeContracts.orbitChainContracts.upgradeExecutor;
   await transferOwnershipExecute({
     upgradeExecutorAddress: coreContracts.upgradeExecutor,
     newOwnerAddress,
