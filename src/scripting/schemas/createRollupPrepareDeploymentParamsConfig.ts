@@ -4,6 +4,7 @@ import {
   addressSchema,
   hexSchema,
   bigintSchema,
+  parentChainPublicClientSchema,
   sequencerInboxMaxTimeVariationSchema,
   bufferConfigSchema,
   assertionStateSchema,
@@ -50,29 +51,22 @@ export const paramsV2Dot1Schema = z.object({
   sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema.optional(),
 });
 
-const commonFieldsSchema = z.object({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-});
+export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSchema
+  .extend(paramsV2Dot1Schema.shape)
+  .strict()
+  .transform(
+    (input): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
+      const { parentChainRpcUrl, parentChainId, ...params } = input;
+      return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
+    },
+  );
 
-export const prepareDeploymentParamsConfigV21Schema = z.strictObject(
-  commonFieldsSchema.extend(paramsV2Dot1Schema.shape).shape,
-);
-
-export const prepareDeploymentParamsConfigV32Schema = z.strictObject(
-  commonFieldsSchema.extend(paramsV3Dot2Schema.shape).shape,
-);
-
-export const prepareDeploymentParamsConfigV21Transform = (
-  input: z.output<typeof prepareDeploymentParamsConfigV21Schema>,
-): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
-  const { parentChainRpcUrl, parentChainId, ...params } = input;
-  return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
-};
-
-export const prepareDeploymentParamsConfigV32Transform = (
-  input: z.output<typeof prepareDeploymentParamsConfigV32Schema>,
-): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
-  const { parentChainRpcUrl, parentChainId, ...params } = input;
-  return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
-};
+export const prepareDeploymentParamsConfigV32Schema = parentChainPublicClientSchema
+  .extend(paramsV3Dot2Schema.shape)
+  .strict()
+  .transform(
+    (input): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
+      const { parentChainRpcUrl, parentChainId, ...params } = input;
+      return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
+    },
+  );

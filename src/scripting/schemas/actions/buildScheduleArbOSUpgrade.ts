@@ -1,30 +1,22 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema, bigintSchema, gasOptionsSchema } from '../common';
-import { buildScheduleArbOSUpgrade } from '../../../actions/buildScheduleArbOSUpgrade';
+import { bigintSchema, gasOptionsSchema, actionWriteBaseSchema } from '../common';
 
-export const buildScheduleArbOSUpgradeSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-  newVersion: bigintSchema,
-  timestamp: bigintSchema,
-  gasOverrides: z
-    .object({
-      gasLimit: gasOptionsSchema.optional(),
-    })
-    .optional(),
-});
-
-export const buildScheduleArbOSUpgradeTransform = (
-  input: z.output<typeof buildScheduleArbOSUpgradeSchema>,
-): Parameters<typeof buildScheduleArbOSUpgrade> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    account: input.account,
-    upgradeExecutor: input.upgradeExecutor ?? false,
-    args: [input.newVersion, input.timestamp],
-    ...(input.gasOverrides && { gasOverrides: input.gasOverrides }),
-  },
-];
+export const buildScheduleArbOSUpgradeSchema = actionWriteBaseSchema
+  .extend({
+    newVersion: bigintSchema,
+    timestamp: bigintSchema,
+    gasOverrides: z
+      .object({
+        gasLimit: gasOptionsSchema.optional(),
+      })
+      .optional(),
+  })
+  .strict()
+  .transform((input) => {
+    const { rpcUrl, chainId, newVersion, timestamp, gasOverrides, ...rest } = input;
+    return [
+      toPublicClient(rpcUrl, findChain(chainId)),
+      { ...rest, args: [newVersion, timestamp] as const, ...(gasOverrides && { gasOverrides }) },
+    ] as const;
+  });

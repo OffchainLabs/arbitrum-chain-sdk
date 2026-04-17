@@ -24,7 +24,7 @@ export const schema = createRollupDefaultSchema
     }),
   })
   .superRefine((data, ctx) => {
-    const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
+    const isAnytrust = data.params.config.chainConfig?.[0]?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
       ctx.addIssue({
         code: 'custom',
@@ -44,8 +44,8 @@ export const schema = createRollupDefaultSchema
       keyset,
       ...params
     } = input.params;
-    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
-    const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
+    const chainConfig = chainConfigParams ? prepareChainConfig(...chainConfigParams) : undefined;
+    const isAnytrust = chainConfigParams?.[0]?.arbitrum?.DataAvailabilityCommittee === true;
     const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
       ...restConfig,
       chainConfig,
