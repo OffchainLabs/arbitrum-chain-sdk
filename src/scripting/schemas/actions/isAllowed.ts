@@ -1,21 +1,13 @@
-import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema } from '../common';
-import { isAllowed } from '../../../actions/isAllowed';
+import { addressSchema, publicClientSchema } from '../common';
 
-export const isAllowedSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  inbox: addressSchema,
-  address: addressSchema,
-});
-
-export const isAllowedTransform = (
-  input: z.output<typeof isAllowedSchema>,
-): Parameters<typeof isAllowed> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    inbox: input.inbox,
-    params: { address: input.address },
-  },
-];
+export const isAllowedSchema = publicClientSchema
+  .extend({
+    inbox: addressSchema,
+    address: addressSchema,
+  })
+  .strict()
+  .transform((input) => {
+    const { rpcUrl, chainId, address, ...rest } = input;
+    return [toPublicClient(rpcUrl, findChain(chainId)), { ...rest, params: { address } }] as const;
+  });

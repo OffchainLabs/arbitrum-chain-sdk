@@ -1,26 +1,15 @@
 import { z } from 'zod';
 import { toPublicClient, findChain } from '../../viemTransforms';
-import { addressSchema } from '../common';
-import { buildSetAllowList } from '../../../actions/buildSetAllowList';
+import { addressSchema, actionWriteBaseSchema } from '../common';
 
-export const buildSetAllowListSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number(),
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-  inbox: addressSchema,
-  addresses: z.array(addressSchema),
-  allowed: z.array(z.boolean()),
-});
-
-export const buildSetAllowListTransform = (
-  input: z.output<typeof buildSetAllowListSchema>,
-): Parameters<typeof buildSetAllowList> => [
-  toPublicClient(input.rpcUrl, findChain(input.chainId)),
-  {
-    account: input.account,
-    upgradeExecutor: input.upgradeExecutor ?? false,
-    inbox: input.inbox,
-    params: { addresses: input.addresses, allowed: input.allowed },
-  },
-];
+export const buildSetAllowListSchema = actionWriteBaseSchema
+  .extend({
+    inbox: addressSchema,
+    addresses: z.array(addressSchema),
+    allowed: z.array(z.boolean()),
+  })
+  .strict()
+  .transform((input) => {
+    const { rpcUrl, chainId, addresses, allowed, ...rest } = input;
+    return [toPublicClient(rpcUrl, findChain(chainId)), { ...rest, params: { addresses, allowed } }] as const;
+  });

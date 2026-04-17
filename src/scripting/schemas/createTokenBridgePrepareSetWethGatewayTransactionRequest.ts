@@ -1,30 +1,19 @@
-import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema, bigintSchema, setWethGatewayGasOverridesSchema } from './common';
-import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
+import { withParentChainPublicClient } from '../viemTransforms';
+import {
+  addressSchema,
+  bigintSchema,
+  parentChainPublicClientSchema,
+  setWethGatewayGasOverridesSchema,
+} from './common';
 
-export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema = z.strictObject({
-  parentChainRpcUrl: z.url(),
-  parentChainId: z.number(),
-  account: addressSchema,
-  rollup: addressSchema,
-  rollupDeploymentBlockNumber: bigintSchema.optional(),
-  retryableGasOverrides: setWethGatewayGasOverridesSchema.optional(),
-  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-});
-
-export const createTokenBridgePrepareSetWethGatewayTransactionRequestTransform = (
-  input: z.output<typeof createTokenBridgePrepareSetWethGatewayTransactionRequestSchema>,
-): Parameters<typeof createTokenBridgePrepareSetWethGatewayTransactionRequest> => [
-  {
-    rollup: input.rollup,
-    rollupDeploymentBlockNumber: input.rollupDeploymentBlockNumber,
-    parentChainPublicClient: toPublicClient(
-      input.parentChainRpcUrl,
-      findChain(input.parentChainId),
-    ),
-    account: input.account,
-    retryableGasOverrides: input.retryableGasOverrides,
-    tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-  },
-];
+export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema =
+  parentChainPublicClientSchema
+    .extend({
+      account: addressSchema,
+      rollup: addressSchema,
+      rollupDeploymentBlockNumber: bigintSchema.optional(),
+      retryableGasOverrides: setWethGatewayGasOverridesSchema.optional(),
+      tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+    })
+    .strict()
+    .transform(withParentChainPublicClient);
