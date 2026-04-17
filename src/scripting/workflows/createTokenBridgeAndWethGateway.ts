@@ -6,6 +6,7 @@ import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from '../../
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import {
   addressSchema,
+  bigintSchema,
   privateKeySchema,
   parentChainPublicClientSchema,
   gasLimitSchema,
@@ -18,6 +19,7 @@ import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../
 export const inputSchema = parentChainPublicClientSchema.extend({
   account: addressSchema,
   params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
+  rollupDeploymentBlockNumber: bigintSchema.optional(),
   gasOverrides: gasLimitSchema.optional(),
   retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
   tokenBridgeCreatorAddressOverride: addressSchema.optional(),
@@ -26,18 +28,17 @@ export const inputSchema = parentChainPublicClientSchema.extend({
 });
 
 export const schema = inputSchema.strict().transform((input) => {
-  const { privateKey, nativeToken, ...rest } = input;
+  const { privateKey, nativeToken, rollupDeploymentBlockNumber, ...rest } = input;
   const [createTokenBridgeParams] = withParentChainPublicClient(rest);
   return {
     createTokenBridgeParams,
     signer: toAccount(privateKey),
     nativeToken,
+    rollupDeploymentBlockNumber,
   };
 });
 
-export const execute = async (
-  input: z.output<typeof schema> & { rollupDeploymentBlockNumber?: bigint },
-) => {
+export const execute = async (input: z.output<typeof schema>) => {
   const deployer = input.signer;
   const nativeToken = input.nativeToken;
   const createTokenBridgeParams = input.createTokenBridgeParams;
