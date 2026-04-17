@@ -28,11 +28,12 @@ export const schema = parentChainPublicClientSchema
   })
   .strict()
   .transform((input) => {
-    const [createTokenBridgeParams] = withParentChainPublicClient(input);
+    const { privateKey, nativeToken, ...rest } = input;
+    const [createTokenBridgeParams] = withParentChainPublicClient(rest);
     return {
       createTokenBridgeParams,
-      signer: toAccount(input.privateKey),
-      nativeToken: input.nativeToken,
+      signer: toAccount(privateKey),
+      nativeToken,
     };
   });
 
