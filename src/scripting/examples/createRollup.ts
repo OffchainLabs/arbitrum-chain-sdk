@@ -25,7 +25,7 @@ export const schema = createRollupDefaultSchema
       config: { chainConfig: chainConfigParams, ...restConfig },
       ...params
     } = input.params;
-    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
+    const chainConfig = chainConfigParams ? prepareChainConfig(...chainConfigParams) : undefined;
     const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
       ...restConfig,
       chainConfig,
