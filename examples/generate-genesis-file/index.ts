@@ -13,10 +13,14 @@ config();
 if (typeof process.env.NITRO_NODE_IMAGE === 'undefined') {
   throw new Error(`Please provide the "NITRO_NODE_IMAGE" environment variable`);
 }
+if (typeof process.env.GENESIS_FILE_GENERATOR_IMAGE === 'undefined') {
+  throw new Error(`Please provide the "GENESIS_FILE_GENERATOR_IMAGE" environment variable`);
+}
 if (typeof process.env.L1_BASE_FEE === 'undefined') {
   throw new Error(`Please provide the "L1_BASE_FEE" environment variable`);
 }
 const nitroNodeImage = process.env.NITRO_NODE_IMAGE;
+const genesisFileGeneratorImage = process.env.GENESIS_FILE_GENERATOR_IMAGE;
 const l1BaseFee = BigInt(process.env.L1_BASE_FEE);
 
 // Optional checks when creating a rollup
@@ -73,15 +77,9 @@ async function main() {
   // Step 1 - If needed, generate the genesis file
   // Note: remove this step once we have a public image
   if (generateGenesisFile) {
-    // Build genesis file generator container from Github
-    console.log(`Build genesis file generator container...`);
-    execSync(
-      `docker build -t genesis-file-generator https://github.com/OffchainLabs/genesis-file-generator.git#support-new-nitro-feat`,
-    );
-
     // Generate genesis file
     console.log(`Generate genesis file...`);
-    execSync(`docker run --env-file ./.env genesis-file-generator > genesis.json`);
+    execSync(`docker run --env-file ./.env ${genesisFileGeneratorImage} > genesis.json`);
   }
 
   // Step 2 - Obtain genesis block hash and sendRoot hash
@@ -145,6 +143,15 @@ async function main() {
     }
     const genesisConfiguration = JSON.parse(genesisFileContents);
 
+    // Parse the chain config from the serializedChainConfig field (genesis-file-generator v0.0.2+)
+    if (typeof genesisConfiguration.serializedChainConfig !== 'string') {
+      throw new Error(
+        'genesis.json must contain a "serializedChainConfig" field (string). ' +
+          'Make sure you are using genesis-file-generator v0.0.2 or newer.',
+      );
+    }
+    const chainConfig = JSON.parse(genesisConfiguration.serializedChainConfig);
+
     // Check whether or not we need to deploy the L2 factories (since they are included in the genesis file by default)
     const l2Factories = [
       // Arachnid's deterministic deployment proxy
@@ -183,7 +190,7 @@ async function main() {
     const createRollupConfig = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
       chainId: BigInt(chainId),
       owner: chainOwner,
-      chainConfig: genesisConfiguration.config,
+      chainConfig,
       genesisAssertionState,
     });
     const createRollupConfigWithDataCostEstimate = {
