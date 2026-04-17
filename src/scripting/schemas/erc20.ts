@@ -1,44 +1,21 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
-import { addressSchema } from './common';
-import { fetchAllowance, fetchDecimals } from '../../utils/erc20';
+import { withPublicClientOptionalChain } from '../viemTransforms';
+import { addressSchema, publicClientSchema } from './common';
 
-export const fetchAllowanceSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number().optional(),
-  address: addressSchema,
-  owner: addressSchema,
-  spender: addressSchema,
-});
+export const fetchAllowanceSchema = publicClientSchema
+  .extend({
+    chainId: z.number().optional(),
+    address: addressSchema,
+    owner: addressSchema,
+    spender: addressSchema,
+  })
+  .strict()
+  .transform(withPublicClientOptionalChain);
 
-export const fetchAllowanceTransform = (
-  input: z.output<typeof fetchAllowanceSchema>,
-): Parameters<typeof fetchAllowance> => [
-  {
-    address: input.address,
-    owner: input.owner,
-    spender: input.spender,
-    publicClient: toPublicClient(
-      input.rpcUrl,
-      input.chainId ? findChain(input.chainId) : undefined,
-    ),
-  },
-];
-
-export const fetchDecimalsSchema = z.strictObject({
-  rpcUrl: z.url(),
-  chainId: z.number().optional(),
-  address: addressSchema,
-});
-
-export const fetchDecimalsTransform = (
-  input: z.output<typeof fetchDecimalsSchema>,
-): Parameters<typeof fetchDecimals> => [
-  {
-    address: input.address,
-    publicClient: toPublicClient(
-      input.rpcUrl,
-      input.chainId ? findChain(input.chainId) : undefined,
-    ),
-  },
-];
+export const fetchDecimalsSchema = publicClientSchema
+  .extend({
+    chainId: z.number().optional(),
+    address: addressSchema,
+  })
+  .strict()
+  .transform(withPublicClientOptionalChain);

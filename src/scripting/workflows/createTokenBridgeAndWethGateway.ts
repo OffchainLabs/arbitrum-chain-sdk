@@ -1,29 +1,39 @@
 import { z } from 'zod';
-
-import {
-  createTokenBridgePrepareTransactionRequestSchema,
-  createTokenBridgePrepareTransactionRequestTransform,
-} from '../schemas/createTokenBridgePrepareTransactionRequest';
+import { withParentChainPublicClient, toAccount } from '../viemTransforms';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from '../../createTokenBridgePrepareTransactionReceipt';
 import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from '../../createTokenBridgePrepareSetWethGatewayTransactionReceipt';
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
-import { addressSchema, privateKeySchema } from '../schemas';
-import { toAccount } from '../viemTransforms';
+import {
+  addressSchema,
+  privateKeySchema,
+  parentChainPublicClientSchema,
+  gasLimitSchema,
+  tokenBridgeRetryableGasOverridesSchema,
+} from '../schemas/common';
 import { zeroAddress } from 'viem';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-export const inputSchema = createTokenBridgePrepareTransactionRequestSchema.extend({
+export const inputSchema = parentChainPublicClientSchema.extend({
+  account: addressSchema,
+  params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
+  gasOverrides: gasLimitSchema.optional(),
+  retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
+  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
   privateKey: privateKeySchema,
   nativeToken: addressSchema.default(zeroAddress),
 });
 
-export const schema = inputSchema.transform((input) => ({
-  createTokenBridgeParams: createTokenBridgePrepareTransactionRequestTransform(input)[0],
-  signer: toAccount(input.privateKey),
-  nativeToken: input.nativeToken,
-}));
+export const schema = inputSchema.strict().transform((input) => {
+  const { privateKey, nativeToken, ...rest } = input;
+  const [createTokenBridgeParams] = withParentChainPublicClient(rest);
+  return {
+    createTokenBridgeParams,
+    signer: toAccount(privateKey),
+    nativeToken,
+  };
+});
 
 export const execute = async (input: z.output<typeof schema>) => {
   const deployer = input.signer;
