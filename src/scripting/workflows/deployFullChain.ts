@@ -61,8 +61,8 @@ export const inputSchema = z
       .optional(),
     nodeConfigParams: z
       .object({
-        batchPosterPrivateKey: privateKeySchema,
-        validatorPrivateKey: privateKeySchema,
+        batchPosterPrivateKey: privateKeySchema.optional(),
+        validatorPrivateKey: privateKeySchema.optional(),
         parentChainBeaconRpcUrl: z.url().optional(),
       })
       .strict()
