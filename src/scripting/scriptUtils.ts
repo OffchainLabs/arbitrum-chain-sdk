@@ -83,6 +83,10 @@ export function runCli(
   let rawInput: unknown;
   try {
     rawInput = JSON.parse(jsonString);
+    // Strip $schema key so strict schemas don't reject it
+    if (rawInput && typeof rawInput === 'object' && '$schema' in rawInput) {
+      delete (rawInput as Record<string, unknown>)['$schema'];
+    }
   } catch (error) {
     handleError(error);
   }
