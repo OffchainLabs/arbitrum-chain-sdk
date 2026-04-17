@@ -61,7 +61,6 @@ async function sendRetryableViaUpgradeExecutor(
 ) {
   const {
     publicClient,
-    walletClient,
     account,
     upgradeExecutorAddress,
     inboxAddress,
@@ -96,7 +95,7 @@ async function sendRetryableViaUpgradeExecutor(
     args: retryableArgs as never,
   });
 
-  const { request } = await publicClient.simulateContract({
+  await publicClient.simulateContract({
     account: account.address,
     address: upgradeExecutorAddress,
     abi: upgradeExecutorABI,
@@ -106,7 +105,26 @@ async function sendRetryableViaUpgradeExecutor(
     ...(!isErc20 && { value: deposit }),
   } as Parameters<typeof publicClient.simulateContract>[0]);
 
-  const txHash = await walletClient.writeContract(request);
+  const executeCallData = encodeFunctionData({
+    abi: upgradeExecutorABI,
+    functionName: 'executeCall',
+    args: [inboxAddress, createRetryableTicketData],
+  });
+
+  const txRequest = await publicClient.prepareTransactionRequest({
+    account,
+    to: upgradeExecutorAddress,
+    data: executeCallData,
+    ...(!isErc20 && { value: deposit }),
+    chain: publicClient.chain,
+  });
+
+  const txHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await account.signTransaction({
+      ...txRequest,
+      chainId: publicClient.chain!.id,
+    }),
+  });
   await publicClient.waitForTransactionReceipt({ hash: txHash });
   return txHash;
 }
