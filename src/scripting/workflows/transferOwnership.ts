@@ -11,7 +11,7 @@ import {
 } from 'viem';
 
 import { addressSchema, bigintSchema, privateKeySchema } from '../schemas/common';
-import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
+import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorPrepareRemoveExecutorTransactionRequest } from '../../upgradeExecutorPrepareRemoveExecutorTransactionRequest';
 import {
@@ -130,7 +130,7 @@ async function sendRetryableViaUpgradeExecutor(
 }
 
 async function sendL2Message(
-  { publicClient, walletClient, account, inboxAddress, childChainId, maxGasPrice }: Input,
+  { publicClient, account, inboxAddress, childChainId, maxGasPrice }: Input,
   to: `0x${string}`,
   data: `0x${string}`,
   nonce: number,
@@ -169,7 +169,7 @@ async function sendL2Message(
   // InboxMessageKind.L2MessageType_signedTx = 4
   const message = concatHex([toHex(4, { size: 1 }), signedTx]);
 
-  const { request } = await publicClient.simulateContract({
+  await publicClient.simulateContract({
     account: account.address,
     address: inboxAddress,
     abi: sendL2MessageABI,
@@ -177,7 +177,25 @@ async function sendL2Message(
     args: [message],
   });
 
-  const txHash = await walletClient.writeContract(request);
+  const sendL2MessageData = encodeFunctionData({
+    abi: sendL2MessageABI,
+    functionName: 'sendL2Message',
+    args: [message],
+  });
+
+  const txRequest = await publicClient.prepareTransactionRequest({
+    account,
+    to: inboxAddress,
+    data: sendL2MessageData,
+    chain: publicClient.chain,
+  });
+
+  const txHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await account.signTransaction({
+      ...txRequest,
+      chainId: publicClient.chain!.id,
+    }),
+  });
   await publicClient.waitForTransactionReceipt({ hash: txHash });
   return txHash;
 }
@@ -201,7 +219,6 @@ export const schema = inputSchema.transform(
     ...rest,
     publicClient: toPublicClient(rpcUrl, findChain(chainId)),
     account: toAccount(privateKey),
-    walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)),
     refundAddress: refundAddress ?? newOwnerAddress,
     newOwnerAddress,
   }),

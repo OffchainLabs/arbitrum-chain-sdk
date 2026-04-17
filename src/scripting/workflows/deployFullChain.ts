@@ -183,7 +183,6 @@ export const execute = async (input: z.output<typeof schema>) => {
     maxGasPrice,
     publicClient: parentChainPublicClient,
     account,
-    walletClient,
     refundAddress,
   });
 
