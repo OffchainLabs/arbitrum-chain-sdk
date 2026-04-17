@@ -10,6 +10,7 @@ import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPre
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { prepareNodeConfig } from '../../prepareNodeConfig';
 import { getArbOSVersion } from '../../utils/getArbOSVersion';
+import { getParentChainLayer } from '../../utils/getParentChainLayer';
 import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { ParentChainId } from '../../types/ParentChain';
@@ -79,6 +80,18 @@ export const schema = inputSchema
         path: ['createRollupParams', 'keyset'],
         message:
           'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
+      });
+    }
+
+    if (
+      data.nodeConfigParams &&
+      getParentChainLayer(data.parentChainId as ParentChainId) === 1 &&
+      !data.nodeConfigParams.parentChainBeaconRpcUrl
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['nodeConfigParams', 'parentChainBeaconRpcUrl'],
+        message: 'parentChainBeaconRpcUrl is required when parent chain is L1',
       });
     }
   })
