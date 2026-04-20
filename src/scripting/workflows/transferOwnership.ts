@@ -200,7 +200,7 @@ async function sendL2Message(
   return txHash;
 }
 
-export const inputSchema = z.object({
+export const inputSchema = z.strictObject({
   rpcUrl: z.url(),
   chainId: z.number(),
   privateKey: privateKeySchema,

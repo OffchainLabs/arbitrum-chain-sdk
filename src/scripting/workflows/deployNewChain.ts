@@ -1,9 +1,13 @@
 import { z } from 'zod';
 
 import { createRollupDefaultSchema } from '../schemas/createRollup';
-import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
+import {
+  hexSchema,
+  bigintSchema,
+  addressSchema,
+  prepareChainConfigArbitrumParamsSchema,
+} from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
@@ -12,11 +16,20 @@ import { zeroAddress } from 'viem';
 import { setValidKeyset } from '../../setValidKeyset';
 import { generateChainId } from '../../utils/generateChainId';
 
+// InitialChainOwner defaults to the deployer address in the workflow transform.
+const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
+  chainId: z.number(),
+  arbitrum: prepareChainConfigArbitrumParamsSchema
+    .omit({ InitialChainOwner: true })
+    .extend({ InitialChainOwner: addressSchema.optional() }),
+});
+
 export const inputSchema = createRollupDefaultSchema.extend({
   params: createRollupDefaultSchema.shape.params.extend({
     config: paramsV3Dot2Schema.extend({
+      owner: addressSchema.optional(),
       chainId: bigintSchema.prefault(() => String(generateChainId())),
-      chainConfig: prepareChainConfigParamsSchema.optional(),
+      chainConfig: chainConfigInputSchemaWithOptionalOwner.optional(),
     }),
     nativeToken: addressSchema.default(zeroAddress),
     keyset: hexSchema.optional(),
@@ -25,7 +38,8 @@ export const inputSchema = createRollupDefaultSchema.extend({
 
 export const schema = inputSchema
   .superRefine((data, ctx) => {
-    const isAnytrust = data.params.config.chainConfig?.[0]?.arbitrum?.DataAvailabilityCommittee === true;
+    const isAnytrust =
+      data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
       ctx.addIssue({
         code: 'custom',
@@ -40,13 +54,25 @@ export const schema = inputSchema
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
     );
+    const account = toAccount(input.privateKey);
     const {
-      config: { chainConfig: chainConfigParams, ...restConfig },
+      config: { chainConfig: rawChainConfigParams, owner: rawOwner, ...restConfigRest },
       keyset,
       ...params
     } = input.params;
-    const chainConfig = chainConfigParams ? prepareChainConfig(...chainConfigParams) : undefined;
-    const isAnytrust = chainConfigParams?.[0]?.arbitrum?.DataAvailabilityCommittee === true;
+    const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
+    const chainConfigParams = rawChainConfigParams
+      ? {
+          ...rawChainConfigParams,
+          arbitrum: {
+            ...rawChainConfigParams.arbitrum,
+            InitialChainOwner:
+              rawChainConfigParams.arbitrum.InitialChainOwner ?? account.address,
+          },
+        }
+      : undefined;
+    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
+    const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
     const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
       ...restConfig,
       chainConfig,
@@ -57,7 +83,7 @@ export const schema = inputSchema
 
     return {
       params: { config, ...params },
-      account: toAccount(input.privateKey),
+      account,
       parentChainPublicClient,
       walletClient: toWalletClient(
         input.parentChainRpcUrl,

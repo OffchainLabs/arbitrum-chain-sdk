@@ -1,4 +1,20 @@
 import { z, ZodError, ZodType } from 'zod';
+import { parse as parseJsonc, ParseError, printParseErrorCode } from 'jsonc-parser';
+
+function parseInput(text: string): unknown {
+  const errors: ParseError[] = [];
+  const result = parseJsonc(text, errors, {
+    allowTrailingComma: true,
+    disallowComments: false,
+  });
+  if (errors.length > 0) {
+    const first = errors[0];
+    throw new SyntaxError(
+      `Parse error: ${printParseErrorCode(first.error)} at offset ${first.offset}`,
+    );
+  }
+  return result;
+}
 
 function formatError(error: unknown): string {
   if (error instanceof Error) {
@@ -31,7 +47,7 @@ export function runScript<TSchema extends ZodType>(
 
   let rawInput: unknown;
   try {
-    rawInput = JSON.parse(jsonString);
+    rawInput = parseInput(jsonString);
   } catch (error) {
     handleError(error);
   }
@@ -82,7 +98,7 @@ export function runCli(
 
   let rawInput: unknown;
   try {
-    rawInput = JSON.parse(jsonString);
+    rawInput = parseInput(jsonString);
   } catch (error) {
     handleError(error);
   }

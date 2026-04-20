@@ -2,9 +2,14 @@ import { z } from 'zod';
 import { parseAbi, zeroAddress } from 'viem';
 
 import { createRollupDefaultSchema } from '../schemas/createRollup';
-import { hexSchema, bigintSchema, addressSchema, privateKeySchema } from '../schemas/common';
+import {
+  hexSchema,
+  bigintSchema,
+  addressSchema,
+  privateKeySchema,
+  prepareChainConfigArbitrumParamsSchema,
+} from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigInputSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
@@ -26,6 +31,14 @@ import {
 
 const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSchema.shape;
 
+// InitialChainOwner defaults to the deployer address in the workflow transform.
+const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
+  chainId: z.number(),
+  arbitrum: prepareChainConfigArbitrumParamsSchema
+    .omit({ InitialChainOwner: true })
+    .extend({ InitialChainOwner: addressSchema.optional() }),
+});
+
 export const inputSchema = z
   .object({
     ...baseFields,
@@ -34,8 +47,9 @@ export const inputSchema = z
       .extend({
         config: paramsV3Dot2Schema
           .extend({
+            owner: addressSchema.optional(),
             chainId: bigintSchema.prefault(() => String(generateChainId())),
-            chainConfig: prepareChainConfigInputSchema.optional(),
+            chainConfig: chainConfigInputSchemaWithOptionalOwner.optional(),
           })
           .strict(),
         nativeToken: addressSchema.default(zeroAddress),
@@ -100,18 +114,30 @@ export const schema = inputSchema
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
     );
+    const account = toAccount(input.privateKey);
     const {
-      config: { chainConfig: chainConfigParams, ...restConfig },
+      config: { chainConfig: rawChainConfigParams, owner: rawOwner, ...restConfigRest },
       keyset,
       ...restParams
     } = input.createRollupParams;
+
+    const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
+    const chainConfigParams = rawChainConfigParams
+      ? {
+          ...rawChainConfigParams,
+          arbitrum: {
+            ...rawChainConfigParams.arbitrum,
+            InitialChainOwner:
+              rawChainConfigParams.arbitrum.InitialChainOwner ?? account.address,
+          },
+        }
+      : undefined;
 
     const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
 
     const DEFAULT_KEYSET: `0x${string}` =
       '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
-    const account = toAccount(input.privateKey);
     const walletClient = toWalletClient(
       input.parentChainRpcUrl,
       input.privateKey,
@@ -218,7 +244,6 @@ export const execute = async (input: z.output<typeof schema>) => {
     });
   }
 
-  // Build getChainDeploymentInfo-shaped output
   const [stakeToken, parentChainIsArbitrum] = await Promise.all([
     parentChainPublicClient.readContract({
       address: coreContracts.rollup,
@@ -247,23 +272,12 @@ export const execute = async (input: z.output<typeof schema>) => {
       : undefined;
 
   return {
-    chainInfo: {
-      chainId: chainConfig?.chainId ?? 0,
-      parentChainId,
-      parentChainIsArbitrum,
-      chainName,
-      chainConfig,
-      rollup: {
-        rollup: coreContracts.rollup,
-        bridge: coreContracts.bridge,
-        inbox: coreContracts.inbox,
-        sequencerInbox: coreContracts.sequencerInbox,
-        validatorWalletCreator: coreContracts.validatorWalletCreator,
-        stakeToken,
-        deployedAtBlockNumber: coreContracts.deployedAtBlockNumber,
-      },
-    },
-    coreContracts,
+    chainName,
+    chainId: chainConfig?.chainId ?? 0,
+    chainConfig,
+    parentChainId,
+    parentChainIsArbitrum,
+    coreContracts: { ...coreContracts, stakeToken },
     tokenBridgeContracts,
     nodeConfig,
   };

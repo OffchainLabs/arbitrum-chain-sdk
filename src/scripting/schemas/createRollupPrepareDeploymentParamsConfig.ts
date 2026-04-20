@@ -12,7 +12,7 @@ import {
 } from './common';
 import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
 
-export const paramsV3Dot2Schema = z.object({
+export const paramsV3Dot2Schema = z.strictObject({
   chainId: bigintSchema,
   owner: addressSchema,
   chainConfig: chainConfigSchema.optional(),
@@ -37,7 +37,7 @@ export const paramsV3Dot2Schema = z.object({
   dataCostEstimate: bigintSchema.optional(),
 });
 
-export const paramsV2Dot1Schema = z.object({
+export const paramsV2Dot1Schema = z.strictObject({
   chainId: bigintSchema,
   owner: addressSchema,
   chainConfig: chainConfigSchema.optional(),

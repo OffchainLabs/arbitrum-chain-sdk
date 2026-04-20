@@ -5,8 +5,8 @@ import { ParentChainId } from '../../types/ParentChain';
 
 export const getDefaultsSchema = z
   .union([
-    z.object({ parentChainId: z.number().transform((n) => n as ParentChainId) }),
-    z.object({ rpcUrl: z.url() }),
+    z.strictObject({ parentChainId: z.number().transform((n) => n as ParentChainId) }),
+    z.strictObject({ rpcUrl: z.url() }),
   ])
   .transform(
     (input): readonly [ParentChainId | Client<Transport, Chain | undefined>] => {

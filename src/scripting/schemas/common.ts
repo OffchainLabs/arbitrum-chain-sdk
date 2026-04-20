@@ -10,12 +10,12 @@ export const addressSchema = z
   .regex(/^0x[0-9a-fA-F]{40}$/, 'Invalid Ethereum address')
   .transform((val) => val as `0x${string}`);
 
-export const publicClientSchema = z.object({
+export const publicClientSchema = z.strictObject({
   rpcUrl: z.url(),
   chainId: z.number(),
 });
 
-export const parentChainPublicClientSchema = z.object({
+export const parentChainPublicClientSchema = z.strictObject({
   parentChainRpcUrl: z.url(),
   parentChainId: z.number(),
 });
@@ -42,23 +42,23 @@ export const bigintSchema = z
 
 export const rollupCreatorVersionSchema = z.enum(['v3.2', 'v2.1']);
 
-export const sequencerInboxMaxTimeVariationSchema = z.object({
+export const sequencerInboxMaxTimeVariationSchema = z.strictObject({
   delayBlocks: bigintSchema,
   futureBlocks: bigintSchema,
   delaySeconds: bigintSchema,
   futureSeconds: bigintSchema,
 });
 
-export const gasOptionsSchema = z.object({
+export const gasOptionsSchema = z.strictObject({
   base: bigintSchema.optional(),
   percentIncrease: bigintSchema.optional(),
 });
 
-export const gasLimitSchema = z.object({
+export const gasLimitSchema = z.strictObject({
   gasLimit: gasOptionsSchema.optional(),
 });
 
-export const tokenBridgeRetryableGasOverridesSchema = z.object({
+export const tokenBridgeRetryableGasOverridesSchema = z.strictObject({
   maxSubmissionCostForFactory: gasOptionsSchema.optional(),
   maxGasForFactory: gasOptionsSchema.optional(),
   maxSubmissionCostForContracts: gasOptionsSchema.optional(),
@@ -66,13 +66,13 @@ export const tokenBridgeRetryableGasOverridesSchema = z.object({
   maxGasPrice: bigintSchema.optional(),
 });
 
-export const setWethGatewayGasOverridesSchema = z.object({
+export const setWethGatewayGasOverridesSchema = z.strictObject({
   gasLimit: gasOptionsSchema.optional(),
   maxFeePerGas: gasOptionsSchema.optional(),
   maxSubmissionCost: gasOptionsSchema.optional(),
 });
 
-export const coreContractsSchema = z.object({
+export const coreContractsSchema = z.strictObject({
   rollup: addressSchema,
   nativeToken: addressSchema,
   inbox: addressSchema,
@@ -88,18 +88,18 @@ export const coreContractsSchema = z.object({
   deployedAtBlockNumber: z.number(),
 });
 
-export const bufferConfigSchema = z.object({
+export const bufferConfigSchema = z.strictObject({
   threshold: bigintSchema,
   max: bigintSchema,
   replenishRateInBasis: bigintSchema,
 });
 
-const globalStateSchema = z.object({
+const globalStateSchema = z.strictObject({
   bytes32Vals: z.tuple([hexSchema, hexSchema]),
   u64Vals: z.tuple([bigintSchema, bigintSchema]),
 });
 
-export const assertionStateSchema = z.object({
+export const assertionStateSchema = z.strictObject({
   globalState: globalStateSchema,
   machineStatus: z.number(),
   endHistoryRoot: hexSchema,
@@ -121,7 +121,7 @@ const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema.r
   GenesisBlockNum: z.number(),
 });
 
-export const chainConfigSchema = z.object({
+export const chainConfigSchema = z.strictObject({
   chainId: z.number(),
   homesteadBlock: z.number(),
   daoForkBlock: z.null(),
@@ -137,6 +137,6 @@ export const chainConfigSchema = z.object({
   muirGlacierBlock: z.number(),
   berlinBlock: z.number(),
   londonBlock: z.number(),
-  clique: z.object({ period: z.number(), epoch: z.number() }),
+  clique: z.strictObject({ period: z.number(), epoch: z.number() }),
   arbitrum: chainConfigArbitrumParamsSchema,
 });

@@ -18,7 +18,7 @@ import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../
 
 export const inputSchema = parentChainPublicClientSchema.extend({
   account: addressSchema,
-  params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
+  params: z.strictObject({ rollup: addressSchema, rollupOwner: addressSchema }),
   rollupDeploymentBlockNumber: bigintSchema.optional(),
   gasOverrides: gasLimitSchema.optional(),
   retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),

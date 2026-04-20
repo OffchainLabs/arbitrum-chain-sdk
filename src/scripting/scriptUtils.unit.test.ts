@@ -59,7 +59,24 @@ it('exits with code 1 for invalid JSON', () => {
   runScript(z.object({}), async () => ({}));
 
   expect(getExitCode()).toBe(1);
-  expect(stderrData).toContain('Unexpected token');
+  expect(stderrData).toContain('Parse error');
+});
+
+it('accepts JSONC input with comments and trailing commas', async () => {
+  process.argv[2] = `{
+    // line comment
+    "x": 5, /* inline block comment */
+    "y": [1, 2, 3,],
+  }`;
+  runScript(
+    z.object({ x: z.number(), y: z.array(z.number()) }),
+    async (input) => ({ sum: input.x + input.y.reduce((a, b) => a + b, 0) }),
+  );
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  expect(JSON.parse(stdoutData)).toEqual({ sum: 11 });
+  expect(getExitCode()).toBeUndefined();
 });
 
 it('prints validation errors to stderr on schema failure', async () => {
@@ -139,7 +156,7 @@ describe('runCli', () => {
     runCli('test-cli', testCommands);
 
     expect(getExitCode()).toBe(1);
-    expect(stderrData).toContain('Unexpected token');
+    expect(stderrData).toContain('Parse error');
   });
 
   it('prints validation error and exits 1 on schema failure', async () => {
