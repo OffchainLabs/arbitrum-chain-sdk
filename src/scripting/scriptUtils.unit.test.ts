@@ -4,6 +4,7 @@ import { runScript, runCli, cmd } from './scriptUtils';
 
 let stdinText: string | undefined;
 let filesByPath: Record<string, string> = {};
+let filesWritten: Record<string, string> = {};
 vi.mock('node:fs', () => ({
   readFileSync: vi.fn((pathOrFd: number | string) => {
     if (pathOrFd === 0) {
@@ -13,6 +14,9 @@ vi.mock('node:fs', () => ({
     const content = filesByPath[pathOrFd as string];
     if (content === undefined) throw new Error(`ENOENT: mock file ${pathOrFd}`);
     return content;
+  }),
+  writeFileSync: vi.fn((path: string, content: string) => {
+    filesWritten[path] = content;
   }),
 }));
 
@@ -24,6 +28,9 @@ beforeEach(() => {
   stderrData = '';
   stdinText = undefined;
   filesByPath = {};
+  filesWritten = {};
+  // Clear any argv tail set by a previous test so -o from one test doesn't bleed into another.
+  process.argv.length = 2;
 
   vi.spyOn(process.stdout, 'write').mockImplementation((data: string | Uint8Array) => {
     stdoutData += data.toString();
@@ -76,6 +83,29 @@ it('exits with code 1 for invalid JSON', () => {
 
   expect(getExitCode()).toBe(1);
   expect(stderrData).toContain('Parse error');
+});
+
+it('writes the result to a file when -o is provided', async () => {
+  process.argv[2] = '{"x": 3}';
+  process.argv[3] = '-o';
+  process.argv[4] = '/out/result.json';
+  runScript(z.object({ x: z.number() }), async (input) => ({ cubed: input.x ** 3 }));
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  expect(stdoutData).toBe('');
+  expect(JSON.parse(filesWritten['/out/result.json'])).toEqual({ cubed: 27 });
+  expect(getExitCode()).toBeUndefined();
+});
+
+it('exits with code 1 when -o has no value', () => {
+  process.argv[2] = '{}';
+  process.argv[3] = '-o';
+  process.argv[4] = undefined as unknown as string;
+  runScript(z.object({}), async () => ({}));
+
+  expect(getExitCode()).toBe(1);
+  expect(stderrData).toContain('Missing value for -o');
 });
 
 it('reads JSON from a file when argv starts with "@"', async () => {
@@ -238,6 +268,31 @@ describe('runCli', () => {
 
     expect(JSON.parse(stdoutData)).toEqual({ value: 'hi' });
     expect(getExitCode()).toBeUndefined();
+  });
+
+  it('writes the command result to a file when -o is provided', async () => {
+    process.argv[2] = 'echo';
+    process.argv[3] = '{"value": "hi"}';
+    process.argv[4] = '-o';
+    process.argv[5] = '/out/result.json';
+    runCli('test-cli', testCommands);
+
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(stdoutData).toBe('');
+    expect(JSON.parse(filesWritten['/out/result.json'])).toEqual({ value: 'hi' });
+    expect(getExitCode()).toBeUndefined();
+  });
+
+  it('writes the schema to a file when --schema is combined with -o', () => {
+    process.argv[2] = 'echo';
+    process.argv[3] = '--schema';
+    process.argv[4] = '-o';
+    process.argv[5] = '/out/schema.json';
+    runCli('test-cli', testCommands);
+
+    expect(stdoutData).toBe('');
+    expect(filesWritten['/out/schema.json']).toContain('"type"');
   });
 
   it('outputs raw string without JSON quotes', async () => {

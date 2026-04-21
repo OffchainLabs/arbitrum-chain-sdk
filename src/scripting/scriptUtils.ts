@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 import { z, ZodError, ZodType } from 'zod';
 import { parse as parseJsonc, ParseError, printParseErrorCode } from 'jsonc-parser';
@@ -11,6 +11,22 @@ function resolveInputArg(arg: string): string {
   if (arg === '-') return readStdin();
   if (arg.startsWith('@')) return readFileSync(arg.slice(1), 'utf8');
   return arg;
+}
+
+function findOutputPath(args: string[]): string | undefined {
+  const i = args.indexOf('-o');
+  if (i === -1) return undefined;
+  const value = args[i + 1];
+  if (value === undefined || value === '') throw new Error('Missing value for -o flag');
+  return value;
+}
+
+function writeOutput(content: string, outputPath: string | undefined): void {
+  if (outputPath !== undefined) {
+    writeFileSync(outputPath, content);
+  } else {
+    process.stdout.write(content);
+  }
 }
 
 function parseInput(text: string): unknown {
@@ -61,8 +77,10 @@ export function runScript<TSchema extends ZodType>(
   }
 
   let rawInput: unknown;
+  let outputPath: string | undefined;
   try {
     rawInput = parseInput(resolveInputArg(jsonString));
+    outputPath = findOutputPath(process.argv.slice(3));
   } catch (error) {
     handleError(error);
   }
@@ -71,7 +89,7 @@ export function runScript<TSchema extends ZodType>(
     const parsed = schema.parse(rawInput);
     const result = await run(parsed);
     const output = typeof result === 'string' ? result : JSON.stringify(result, replacer, 2);
-    process.stdout.write(output + '\n');
+    writeOutput(output + '\n', outputPath);
   })().catch(handleError);
 }
 
@@ -101,9 +119,16 @@ export function runCli(
     process.exit(1);
   }
 
+  let outputPath: string | undefined;
+  try {
+    outputPath = findOutputPath(process.argv.slice(3));
+  } catch (error) {
+    handleError(error);
+  }
+
   if (process.argv[3] === '--schema') {
     const jsonSchema = z.toJSONSchema(command.input, { io: 'input', unrepresentable: 'any' });
-    process.stdout.write(JSON.stringify(jsonSchema, null, 2) + '\n');
+    writeOutput(JSON.stringify(jsonSchema, null, 2) + '\n', outputPath);
     process.exit(0);
   }
 
@@ -125,6 +150,6 @@ export function runCli(
     const parsed = command.input.parse(rawInput);
     const result = await command.run(parsed);
     const output = typeof result === 'string' ? result : JSON.stringify(result, replacer, 2);
-    process.stdout.write(output + '\n');
+    writeOutput(output + '\n', outputPath);
   })().catch(handleError);
 }
