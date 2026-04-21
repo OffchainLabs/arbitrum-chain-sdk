@@ -127,8 +127,8 @@ export function prepareNodeConfig({
         }),
       },
       'staker': {
-        'enable': validatorPrivateKey !== undefined,
-        'strategy': 'MakeNodes',
+        enable: validatorPrivateKey !== undefined,
+        strategy: 'MakeNodes',
         ...(validatorPrivateKey !== undefined && {
           'parent-chain-wallet': {
             'private-key': sanitizePrivateKey(validatorPrivateKey),

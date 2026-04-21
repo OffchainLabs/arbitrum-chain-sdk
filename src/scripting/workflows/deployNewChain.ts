@@ -39,8 +39,7 @@ export const inputSchema = createRollupDefaultSchema.extend({
 
 export const schema = inputSchema
   .superRefine((data, ctx) => {
-    const isAnytrust =
-      data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
+    const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
       ctx.addIssue({
         code: 'custom',
@@ -67,8 +66,7 @@ export const schema = inputSchema
           ...rawChainConfigParams,
           arbitrum: {
             ...rawChainConfigParams.arbitrum,
-            InitialChainOwner:
-              rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
+            InitialChainOwner: rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
           },
         }
       : undefined;

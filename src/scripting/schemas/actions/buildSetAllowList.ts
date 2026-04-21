@@ -11,5 +11,8 @@ export const buildSetAllowListSchema = actionWriteBaseSchema
   .strict()
   .transform((input) => {
     const { rpcUrl, chainId, addresses, allowed, ...rest } = input;
-    return [toPublicClient(rpcUrl, findChain(chainId)), { ...rest, params: { addresses, allowed } }] as const;
+    return [
+      toPublicClient(rpcUrl, findChain(chainId)),
+      { ...rest, params: { addresses, allowed } },
+    ] as const;
   });

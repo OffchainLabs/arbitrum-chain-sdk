@@ -128,10 +128,9 @@ it('accepts JSONC input with comments and trailing commas', async () => {
     "x": 5, /* inline block comment */
     "y": [1, 2, 3,],
   }`;
-  runScript(
-    z.object({ x: z.number(), y: z.array(z.number()) }),
-    async (input) => ({ sum: input.x + input.y.reduce((a, b) => a + b, 0) }),
-  );
+  runScript(z.object({ x: z.number(), y: z.array(z.number()) }), async (input) => ({
+    sum: input.x + input.y.reduce((a, b) => a + b, 0),
+  }));
 
   await new Promise((resolve) => setTimeout(resolve, 10));
 

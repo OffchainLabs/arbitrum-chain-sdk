@@ -134,13 +134,7 @@ export const schema = inputSchema
       ) {
         ctx.addIssue({
           code: 'custom',
-          path: [
-            'createRollupParams',
-            'config',
-            'chainConfig',
-            'arbitrum',
-            'InitialChainOwner',
-          ],
+          path: ['createRollupParams', 'config', 'chainConfig', 'arbitrum', 'InitialChainOwner'],
           message:
             'chainConfig.arbitrum.InitialChainOwner is incompatible with ownershipTransferParams: leave it unset (defaults to the deployer) or omit ownershipTransferParams',
         });
@@ -165,8 +159,7 @@ export const schema = inputSchema
           ...rawChainConfigParams,
           arbitrum: {
             ...rawChainConfigParams.arbitrum,
-            InitialChainOwner:
-              rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
+            InitialChainOwner: rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
           },
         }
       : undefined;

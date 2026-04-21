@@ -55,7 +55,12 @@ export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSch
   .extend(paramsV2Dot1Schema.shape)
   .strict()
   .transform(
-    (input): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>] => {
+    (
+      input,
+    ): [
+      ReturnType<typeof toPublicClient>,
+      CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>,
+    ] => {
       const { parentChainRpcUrl, parentChainId, ...params } = input;
       return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
     },
@@ -65,7 +70,12 @@ export const prepareDeploymentParamsConfigV32Schema = parentChainPublicClientSch
   .extend(paramsV3Dot2Schema.shape)
   .strict()
   .transform(
-    (input): [ReturnType<typeof toPublicClient>, CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>] => {
+    (
+      input,
+    ): [
+      ReturnType<typeof toPublicClient>,
+      CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>,
+    ] => {
       const { parentChainRpcUrl, parentChainId, ...params } = input;
       return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
     },
