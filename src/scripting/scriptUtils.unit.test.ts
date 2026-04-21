@@ -2,12 +2,21 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
 import { runScript, runCli, cmd } from './scriptUtils';
 
+let stdinText: string | undefined;
+vi.mock('node:fs', () => ({
+  readFileSync: vi.fn(() => {
+    if (stdinText === undefined) throw new Error('stdinText not set in test');
+    return stdinText;
+  }),
+}));
+
 let stdoutData: string;
 let stderrData: string;
 
 beforeEach(() => {
   stdoutData = '';
   stderrData = '';
+  stdinText = undefined;
 
   vi.spyOn(process.stdout, 'write').mockImplementation((data: string | Uint8Array) => {
     stdoutData += data.toString();
@@ -60,6 +69,31 @@ it('exits with code 1 for invalid JSON', () => {
 
   expect(getExitCode()).toBe(1);
   expect(stderrData).toContain('Parse error');
+});
+
+it('reads JSON from stdin when argv is "-"', async () => {
+  process.argv[2] = '-';
+  stdinText = '{"x": 7}';
+  runScript(z.object({ x: z.number() }), async (input) => ({ tripled: input.x * 3 }));
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  expect(JSON.parse(stdoutData)).toEqual({ tripled: 21 });
+  expect(getExitCode()).toBeUndefined();
+});
+
+it('routes console.log to stderr so stdout stays reserved for the result', async () => {
+  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  process.argv[2] = '{}';
+  runScript(z.object({}), async () => {
+    console.log('progress message');
+    return { ok: true };
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  expect(JSON.parse(stdoutData)).toEqual({ ok: true });
+  expect(errorSpy).toHaveBeenCalledWith('progress message');
 });
 
 it('accepts JSONC input with comments and trailing commas', async () => {

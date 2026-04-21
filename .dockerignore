@@ -1,0 +1,17 @@
+.git
+.github
+**/node_modules
+**/dist
+**/tsconfig.tsbuildinfo
+
+**/*.test.ts
+**/__snapshots__
+
+.env
+.env.*
+*.log
+.DS_Store
+
+Dockerfile
+.dockerignore
+README.md

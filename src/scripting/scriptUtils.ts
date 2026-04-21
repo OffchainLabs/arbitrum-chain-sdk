@@ -1,5 +1,15 @@
+import { readFileSync } from 'node:fs';
+
 import { z, ZodError, ZodType } from 'zod';
 import { parse as parseJsonc, ParseError, printParseErrorCode } from 'jsonc-parser';
+
+function readStdin(): string {
+  return readFileSync(0, 'utf8');
+}
+
+function resolveInputArg(arg: string): string {
+  return arg === '-' ? readStdin() : arg;
+}
 
 function parseInput(text: string): unknown {
   const errors: ParseError[] = [];
@@ -38,6 +48,9 @@ export function runScript<TSchema extends ZodType>(
   schema: TSchema,
   run: (input: z.output<TSchema>) => unknown,
 ): void {
+  // Keep stdout reserved for the JSON result; route any SDK progress logs to stderr.
+  console.log = console.error.bind(console);
+
   const jsonString = process.argv[2];
 
   if (!jsonString) {
@@ -47,7 +60,7 @@ export function runScript<TSchema extends ZodType>(
 
   let rawInput: unknown;
   try {
-    rawInput = parseInput(jsonString);
+    rawInput = parseInput(resolveInputArg(jsonString));
   } catch (error) {
     handleError(error);
   }
@@ -74,6 +87,9 @@ export function runCli(
   cliName: string,
   commands: Record<string, { input: ZodType; run: (parsed: unknown) => unknown }>,
 ): void {
+  // Keep stdout reserved for the JSON result; route any SDK progress logs to stderr.
+  console.log = console.error.bind(console);
+
   const name = process.argv[2];
   const command = name ? commands[name] : undefined;
 
@@ -98,7 +114,7 @@ export function runCli(
 
   let rawInput: unknown;
   try {
-    rawInput = parseInput(jsonString);
+    rawInput = parseInput(resolveInputArg(jsonString));
   } catch (error) {
     handleError(error);
   }
