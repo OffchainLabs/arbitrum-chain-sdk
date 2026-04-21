@@ -8,7 +8,9 @@ function readStdin(): string {
 }
 
 function resolveInputArg(arg: string): string {
-  return arg === '-' ? readStdin() : arg;
+  if (arg === '-') return readStdin();
+  if (arg.startsWith('@')) return readFileSync(arg.slice(1), 'utf8');
+  return arg;
 }
 
 function parseInput(text: string): unknown {

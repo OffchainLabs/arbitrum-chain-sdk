@@ -3,10 +3,16 @@ import { z } from 'zod';
 import { runScript, runCli, cmd } from './scriptUtils';
 
 let stdinText: string | undefined;
+let filesByPath: Record<string, string> = {};
 vi.mock('node:fs', () => ({
-  readFileSync: vi.fn(() => {
-    if (stdinText === undefined) throw new Error('stdinText not set in test');
-    return stdinText;
+  readFileSync: vi.fn((pathOrFd: number | string) => {
+    if (pathOrFd === 0) {
+      if (stdinText === undefined) throw new Error('stdinText not set in test');
+      return stdinText;
+    }
+    const content = filesByPath[pathOrFd as string];
+    if (content === undefined) throw new Error(`ENOENT: mock file ${pathOrFd}`);
+    return content;
   }),
 }));
 
@@ -17,6 +23,7 @@ beforeEach(() => {
   stdoutData = '';
   stderrData = '';
   stdinText = undefined;
+  filesByPath = {};
 
   vi.spyOn(process.stdout, 'write').mockImplementation((data: string | Uint8Array) => {
     stdoutData += data.toString();
@@ -69,6 +76,25 @@ it('exits with code 1 for invalid JSON', () => {
 
   expect(getExitCode()).toBe(1);
   expect(stderrData).toContain('Parse error');
+});
+
+it('reads JSON from a file when argv starts with "@"', async () => {
+  process.argv[2] = '@/etc/chain/config.json';
+  filesByPath['/etc/chain/config.json'] = '{"x": 4}';
+  runScript(z.object({ x: z.number() }), async (input) => ({ squared: input.x * input.x }));
+
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  expect(JSON.parse(stdoutData)).toEqual({ squared: 16 });
+  expect(getExitCode()).toBeUndefined();
+});
+
+it('exits with code 1 when the @file path does not exist', () => {
+  process.argv[2] = '@/nope.json';
+  runScript(z.object({}), async () => ({}));
+
+  expect(getExitCode()).toBe(1);
+  expect(stderrData).toContain('ENOENT');
 });
 
 it('reads JSON from stdin when argv is "-"', async () => {
