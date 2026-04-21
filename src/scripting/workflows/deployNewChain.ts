@@ -21,7 +21,8 @@ const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
   chainId: z.number(),
   arbitrum: prepareChainConfigArbitrumParamsSchema
     .omit({ InitialChainOwner: true })
-    .extend({ InitialChainOwner: addressSchema.optional() }),
+    .extend({ InitialChainOwner: addressSchema.optional() })
+    .optional(),
 });
 
 export const inputSchema = createRollupDefaultSchema.extend({
@@ -67,7 +68,7 @@ export const schema = inputSchema
           arbitrum: {
             ...rawChainConfigParams.arbitrum,
             InitialChainOwner:
-              rawChainConfigParams.arbitrum.InitialChainOwner ?? account.address,
+              rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
           },
         }
       : undefined;

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { parseAbi, zeroAddress } from 'viem';
+import { parseAbi, zeroAddress, isAddressEqual } from 'viem';
 
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import {
@@ -36,7 +36,8 @@ const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
   chainId: z.number(),
   arbitrum: prepareChainConfigArbitrumParamsSchema
     .omit({ InitialChainOwner: true })
-    .extend({ InitialChainOwner: addressSchema.optional() }),
+    .extend({ InitialChainOwner: addressSchema.optional() })
+    .optional(),
 });
 
 export const inputSchema = z
@@ -108,6 +109,43 @@ export const schema = inputSchema
         message: 'parentChainBeaconRpcUrl is required when parent chain is L1',
       });
     }
+
+    // ownershipTransferParams assumes the deployer holds both the parent-chain EXECUTOR
+    // role and the child-chain ArbOwner role. Supplying a non-deployer owner breaks that
+    // assumption -- the transfer step would attempt to sign as deployer and revert.
+    if (data.ownershipTransferParams) {
+      const deployerAddress = toAccount(data.privateKey).address;
+      const explicitOwner = data.createRollupParams.config.owner;
+      const explicitInitialChainOwner =
+        data.createRollupParams.config.chainConfig?.arbitrum?.InitialChainOwner;
+
+      if (explicitOwner && !isAddressEqual(explicitOwner, deployerAddress)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['createRollupParams', 'config', 'owner'],
+          message:
+            'createRollupParams.config.owner is incompatible with ownershipTransferParams: leave it unset (defaults to the deployer) or omit ownershipTransferParams',
+        });
+      }
+
+      if (
+        explicitInitialChainOwner &&
+        !isAddressEqual(explicitInitialChainOwner, deployerAddress)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: [
+            'createRollupParams',
+            'config',
+            'chainConfig',
+            'arbitrum',
+            'InitialChainOwner',
+          ],
+          message:
+            'chainConfig.arbitrum.InitialChainOwner is incompatible with ownershipTransferParams: leave it unset (defaults to the deployer) or omit ownershipTransferParams',
+        });
+      }
+    }
   })
   .transform((input) => {
     const parentChainPublicClient = toPublicClient(
@@ -128,7 +166,7 @@ export const schema = inputSchema
           arbitrum: {
             ...rawChainConfigParams.arbitrum,
             InitialChainOwner:
-              rawChainConfigParams.arbitrum.InitialChainOwner ?? account.address,
+              rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
           },
         }
       : undefined;
