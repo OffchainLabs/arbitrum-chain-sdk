@@ -6,9 +6,13 @@ It runs against the current repository checkout, so `pnpm dev` builds the local 
 
 It requires:
 
-- Docker installed and available on `PATH`
 - an inbox address for the chain you want to inspect
 - a parent chain RPC URL
+
+Optional:
+
+- Docker installed and available on `PATH` when `EXECUTION_MODE=docker`
+- a custom Orbit Actions image via `ORBIT_ACTIONS_IMAGE` when using docker mode
 
 ## Setup
 
@@ -32,16 +36,22 @@ It requires:
 
 ## Parent-chain RPC behavior
 
-This example derives the parent chain id directly from `PARENT_CHAIN_RPC` and passes that id to the SDK as `networkOrChainId`. That means you only need the RPC URL in `.env`.
+The example passes `INBOX_ADDRESS` and `PARENT_CHAIN_RPC` directly to the SDK helper. It does not derive or require a separate parent chain id.
 
-The SDK then runs the Dockerized versioner in `fork` mode and builds the Docker env for you:
+By default the SDK uses the native `orbit-actions` versioner:
 
 ```env
 PARENT_CHAIN_RPC=https://arb1.arbitrum.io/rpc
 ```
 
-For local RPC URLs, the SDK rewrites the container-facing RPC env vars (`PARENT_CHAIN_RPC`, and `FORK_URL` when fork mode is used) from `localhost` / `127.0.0.1` to `host.docker.internal`, and adds Docker's `host-gateway` mapping so the container can reach the host on Linux Docker Engine as well as Docker Desktop.
+If you want to force Docker execution instead, set:
 
-This example uses the SDK's default pinned `chain-actions` image. If you need a custom Docker image, update the script to pass the helper's optional `image` parameter explicitly.
+```env
+EXECUTION_MODE=docker
+```
 
-The script prints the discovered contract versions and any upgrade recommendation as JSON.
+In docker mode, the SDK runs `yarn orbit:contracts:version` inside the configured Orbit Actions image. For local RPC URLs, it rewrites `PARENT_CHAIN_RPC` from `localhost` / `127.0.0.1` to `host.docker.internal`, and adds Docker's `host-gateway` mapping so the container can reach the host on Linux Docker Engine as well as Docker Desktop.
+
+This example uses the SDK's default pinned `chain-actions` image in docker mode. If you need a custom image, set `ORBIT_ACTIONS_IMAGE`.
+
+The script logs the discovered contract versions and any upgrade recommendation to stdout.
