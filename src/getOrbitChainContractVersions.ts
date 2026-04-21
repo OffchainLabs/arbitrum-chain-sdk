@@ -1,37 +1,18 @@
 import type { Address } from 'viem';
 
-import { runDockerCommand } from './runDockerCommand';
-import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
+import { runOrbitVersioner } from 'orbit-actions';
 
-export type GetOrbitChainContractVersionsParameters = {
-  image?: string;
-  inboxAddress: Address;
-  networkOrChainId: string | number | bigint;
-  parentChainRpc: string;
-};
+import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
+import { runDockerCommand } from './runDockerCommand';
 
 export type GetOrbitChainContractVersionsResult = {
   versions: Record<string, string | null>;
   upgradeRecommendation: unknown;
 };
 
-function isChainId(networkOrChainId: string | number | bigint): boolean {
-  if (typeof networkOrChainId === 'bigint') {
-    return networkOrChainId >= 0n;
-  }
-
-  if (typeof networkOrChainId === 'number') {
-    return Number.isInteger(networkOrChainId) && networkOrChainId >= 0;
-  }
-
-  const numericNetwork = Number(networkOrChainId);
-
-  return Number.isInteger(numericNetwork) && numericNetwork >= 0;
-}
-
-function getDockerRpcConfig(parentChainRpc: string): {
-  dockerRunArgs?: string[];
+function getDockerNetworkConfig(parentChainRpc: string): {
   rpcUrl: string;
+  dockerRunArgs?: string[];
 } {
   const parsed = new URL(parentChainRpc);
 
@@ -44,74 +25,24 @@ function getDockerRpcConfig(parentChainRpc: string): {
   parsed.hostname = 'host.docker.internal';
 
   return {
-    dockerRunArgs: ['--add-host', 'host.docker.internal:host-gateway'],
     rpcUrl: parsed.toString(),
+    dockerRunArgs: ['--add-host', 'host.docker.internal:host-gateway'],
   };
 }
 
-function getDockerNetworkConfig(
-  networkOrChainId: string | number | bigint,
-  parentChainRpc: string,
-): {
-  dockerRunArgs?: string[];
-  env: Record<string, string | undefined>;
-  network: string;
-} {
-  const dockerRpcConfig = getDockerRpcConfig(parentChainRpc);
-
-  if (!isChainId(networkOrChainId)) {
-    return {
-      dockerRunArgs: dockerRpcConfig.dockerRunArgs,
-      network: networkOrChainId.toString(),
-      env: { PARENT_CHAIN_RPC: dockerRpcConfig.rpcUrl },
-    };
-  }
-
-  return {
-    dockerRunArgs: dockerRpcConfig.dockerRunArgs,
-    network: 'fork',
-    env: {
-      PARENT_CHAIN_RPC: dockerRpcConfig.rpcUrl,
-      FORK_URL: dockerRpcConfig.rpcUrl,
-    },
-  };
-}
-
-export async function getOrbitChainContractVersions({
-  image = DEFAULT_ORBIT_ACTIONS_IMAGE,
-  inboxAddress,
-  networkOrChainId,
-  parentChainRpc,
-}: GetOrbitChainContractVersionsParameters): Promise<GetOrbitChainContractVersionsResult> {
-  const dockerNetworkConfig = getDockerNetworkConfig(networkOrChainId, parentChainRpc);
-
-  const { stdout } = await runDockerCommand({
-    image,
-    entrypoint: 'yarn',
-    ...(dockerNetworkConfig.dockerRunArgs
-      ? { dockerRunArgs: dockerNetworkConfig.dockerRunArgs }
-      : {}),
-    command: [
-      '--silent',
-      'orbit:contracts:version',
-      '--network',
-      dockerNetworkConfig.network,
-      '--no-compile',
-    ],
-    env: {
-      ...dockerNetworkConfig.env,
-      INBOX_ADDRESS: inboxAddress,
-      JSON_OUTPUT: 'true',
-    },
-  });
-
-  let parsed: unknown;
-
-  try {
-    parsed = JSON.parse(stdout) as unknown;
-  } catch {
-    throw new Error('Failed to parse Orbit chain contract versions');
-  }
+function parseOrbitChainContractVersionsResult(
+  result: string | GetOrbitChainContractVersionsResult,
+): GetOrbitChainContractVersionsResult {
+  const parsed =
+    typeof result === 'string'
+      ? (() => {
+          try {
+            return JSON.parse(result) as unknown;
+          } catch {
+            throw new Error('Failed to parse Orbit chain contract versions');
+          }
+        })()
+      : result;
 
   if (
     typeof parsed !== 'object' ||
@@ -123,4 +54,48 @@ export async function getOrbitChainContractVersions({
   }
 
   return parsed as GetOrbitChainContractVersionsResult;
+}
+
+async function getOrbitChainContractVersionsWithDocker(
+  inboxAddress: Address,
+  parentChainRpc: string,
+  image: string,
+): Promise<GetOrbitChainContractVersionsResult> {
+  const dockerConfig = getDockerNetworkConfig(parentChainRpc);
+
+  const { stdout } = await runDockerCommand({
+    image,
+    entrypoint: 'yarn',
+    ...(dockerConfig.dockerRunArgs ? { dockerRunArgs: dockerConfig.dockerRunArgs } : {}),
+    command: ['--silent', 'orbit:contracts:version'],
+    env: {
+      INBOX_ADDRESS: inboxAddress,
+      PARENT_CHAIN_RPC: dockerConfig.rpcUrl,
+      JSON_OUTPUT: 'true',
+    },
+  });
+
+  return parseOrbitChainContractVersionsResult(stdout);
+}
+
+async function getOrbitChainContractVersionsWithNative(
+  inboxAddress: Address,
+  parentChainRpc: string,
+): Promise<GetOrbitChainContractVersionsResult> {
+  const result = await runOrbitVersioner(inboxAddress, parentChainRpc, true);
+
+  return parseOrbitChainContractVersionsResult(result);
+}
+
+export async function getOrbitChainContractVersions(
+  inboxAddress: Address,
+  parentChainRpc: string,
+  executionMode = 'native',
+  image = DEFAULT_ORBIT_ACTIONS_IMAGE,
+): Promise<GetOrbitChainContractVersionsResult> {
+  if (executionMode.toLowerCase() === 'docker') {
+    return getOrbitChainContractVersionsWithDocker(inboxAddress, parentChainRpc, image);
+  }
+
+  return getOrbitChainContractVersionsWithNative(inboxAddress, parentChainRpc);
 }
