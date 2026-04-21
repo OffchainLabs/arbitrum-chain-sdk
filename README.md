@@ -27,3 +27,26 @@ pnpm test:integration
 ## Examples
 
 See [examples](./examples).
+
+## CLI (Docker)
+
+The SDK ships a Docker image for running workflows without installing anything locally.
+
+### Generate a JSON Schema for a command
+
+```bash
+docker run --rm offchainlabs/arbitrum-chain-sdk:cli-rc deployFullChain --schema > deployFullChain.schema.json
+```
+
+Point your editor at this schema (via a `$schema` key in your config file or a `json.schemas` mapping in VS Code settings) to get autocomplete and inline validation as you write the input.
+
+### Run `deployFullChain` with a mounted config file
+
+```bash
+docker run --rm \
+  -v "$PWD/deployFullChain.jsonc:/config/deployFullChain.jsonc:ro" \
+  offchainlabs/arbitrum-chain-sdk:cli-rc \
+  deployFullChain @/config/deployFullChain.jsonc
+```
+
+The config file can be JSON or JSONC (comments and trailing commas allowed). The `@` prefix tells the CLI to read the file at that path inside the container. Stdout is the deployment result as JSON; progress messages go to stderr.
