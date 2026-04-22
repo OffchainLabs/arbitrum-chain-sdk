@@ -101,7 +101,6 @@ import {
   CreateTokenBridgeResults,
   createTokenBridge,
 } from './createTokenBridge';
-import { isTokenBridgeDeployed } from './isTokenBridgeDeployed';
 import {
   createTokenBridgeEnoughCustomFeeTokenAllowance,
   CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams,
@@ -178,7 +177,12 @@ import {
 import {
   createRollupDefaultRetryablesFees,
   createTokenBridgeDefaultRetryablesFees,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
 } from './constants';
+import { CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
   CreateRollupGetRetryablesFeesParams,
   createRollupGetRetryablesFees,
@@ -275,7 +279,6 @@ export {
   prepareKeysetHash,
   utils,
   //
-  isTokenBridgeDeployed,
   CreateTokenBridgeParams,
   CreateTokenBridgeResults,
   createTokenBridge,
@@ -347,6 +350,11 @@ export {
   CreateRollupGetRetryablesFeesParams,
   //
   createTokenBridgeDefaultRetryablesFees,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
+  CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams,
   //
   fetchAllowance,
   FetchAllowanceProps,
