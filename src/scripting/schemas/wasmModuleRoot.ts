@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { hexSchema } from './common';
-import { ConsensusVersion, WasmModuleRoot } from '../../wasmModuleRoot';
+import { ConsensusVersion, WasmModuleRoot, isKnownWasmModuleRoot } from '../../wasmModuleRoot';
 
 export const getConsensusReleaseByVersionSchema = z
   .strictObject({
@@ -19,7 +19,5 @@ export const isKnownWasmModuleRootSchema = z
     wasmModuleRoot: hexSchema,
   })
   .transform(
-    (input): Parameters<typeof import('../../wasmModuleRoot').isKnownWasmModuleRoot> => [
-      input.wasmModuleRoot,
-    ],
+    (input): Parameters<typeof isKnownWasmModuleRoot> => [input.wasmModuleRoot],
   );
