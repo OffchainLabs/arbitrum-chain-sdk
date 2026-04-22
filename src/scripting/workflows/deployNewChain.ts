@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
+import { prepareChainConfigParamsBaseSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
@@ -16,7 +16,7 @@ export const inputSchema = createRollupDefaultSchema.extend({
   params: createRollupDefaultSchema.shape.params.extend({
     config: paramsV3Dot2Schema.extend({
       chainId: bigintSchema.prefault(() => String(generateChainId())),
-      chainConfig: prepareChainConfigParamsSchema.optional(),
+      chainConfig: prepareChainConfigParamsBaseSchema.optional(),
     }),
     nativeToken: addressSchema.default(zeroAddress),
     keyset: hexSchema.optional(),
@@ -25,7 +25,7 @@ export const inputSchema = createRollupDefaultSchema.extend({
 
 export const schema = inputSchema
   .superRefine((data, ctx) => {
-    const isAnytrust = data.params.config.chainConfig?.[0]?.arbitrum?.DataAvailabilityCommittee === true;
+    const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
       ctx.addIssue({
         code: 'custom',
@@ -45,15 +45,15 @@ export const schema = inputSchema
       keyset,
       ...params
     } = input.params;
-    const chainConfig = chainConfigParams ? prepareChainConfig(...chainConfigParams) : undefined;
-    const isAnytrust = chainConfigParams?.[0]?.arbitrum?.DataAvailabilityCommittee === true;
+    const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
+    const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
     const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
       ...restConfig,
       chainConfig,
     });
 
     const DEFAULT_KEYSET: `0x${string}` =
-      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
     return {
       params: { config, ...params },
