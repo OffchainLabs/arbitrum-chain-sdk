@@ -1,7 +1,7 @@
 import { runScript } from '../scriptUtils';
-import { setAnyTrustFastConfirmerSchema, setAnyTrustFastConfirmerTransform } from '../schemas';
+import { setAnyTrustFastConfirmerSchema } from '../schemas';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../../setAnyTrustFastConfirmerPrepareTransactionRequest';
 
-const schema = setAnyTrustFastConfirmerSchema.transform(setAnyTrustFastConfirmerTransform);
-
-runScript(schema, async (args) => setAnyTrustFastConfirmerPrepareTransactionRequest(...args));
+runScript(setAnyTrustFastConfirmerSchema, async (args) =>
+  setAnyTrustFastConfirmerPrepareTransactionRequest(...args),
+);

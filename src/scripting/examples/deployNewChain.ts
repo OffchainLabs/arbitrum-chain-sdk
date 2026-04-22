@@ -2,8 +2,8 @@ import { runScript } from '../scriptUtils';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigParamsSchema } from '../schemas/prepareChainConfig';
-import { toPublicClient, toAccount, toWalletClient } from '../viemTransforms';
+import { prepareChainConfigParamsBaseSchema } from '../schemas/prepareChainConfig';
+import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { createRollup } from '../../createRollup';
@@ -16,7 +16,7 @@ const schema = createRollupDefaultSchema
     params: createRollupDefaultSchema.shape.params.extend({
       config: paramsV3Dot2Schema.extend({
         chainId: bigintSchema.prefault(() => String(generateChainId())),
-        chainConfig: prepareChainConfigParamsSchema.optional(),
+        chainConfig: prepareChainConfigParamsBaseSchema.optional(),
       }),
       nativeToken: addressSchema.default(zeroAddress),
       keyset: hexSchema.optional(),
@@ -34,7 +34,10 @@ const schema = createRollupDefaultSchema
     }
   })
   .transform((input) => {
-    const parentChainPublicClient = toPublicClient(input.parentChainRpcUrl);
+    const parentChainPublicClient = toPublicClient(
+      input.parentChainRpcUrl,
+      findChain(input.parentChainId),
+    );
     const {
       config: { chainConfig: chainConfigParams, ...restConfig },
       keyset,
@@ -48,13 +51,17 @@ const schema = createRollupDefaultSchema
     });
 
     const DEFAULT_KEYSET: `0x${string}` =
-      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
     return {
       params: { config, ...params },
       account: toAccount(input.privateKey),
       parentChainPublicClient,
-      walletClient: toWalletClient(input.parentChainRpcUrl, input.privateKey),
+      walletClient: toWalletClient(
+        input.parentChainRpcUrl,
+        input.privateKey,
+        findChain(input.parentChainId),
+      ),
       keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
     };
   });

@@ -1,7 +1,5 @@
 import { runScript } from '../scriptUtils';
-import { getValidatorsSchema, getValidatorsTransform } from '../schemas';
+import { getValidatorsSchema } from '../schemas';
 import { getValidators } from '../../getValidators';
 
-const schema = getValidatorsSchema.transform(getValidatorsTransform);
-
-runScript(schema, async (args) => getValidators(...args));
+runScript(getValidatorsSchema, async (args) => getValidators(...args));
