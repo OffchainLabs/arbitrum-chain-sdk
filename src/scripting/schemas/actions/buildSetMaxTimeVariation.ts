@@ -12,7 +12,8 @@ export const buildSetMaxTimeVariationSchema = actionWriteBaseSchema
   })
   .strict()
   .transform((input) => {
-    const { rpcUrl, chainId, delayBlocks, futureBlocks, delaySeconds, futureSeconds, ...rest } = input;
+    const { rpcUrl, chainId, delayBlocks, futureBlocks, delaySeconds, futureSeconds, ...rest } =
+      input;
     return [
       toPublicClient(rpcUrl, findChain(chainId)),
       { ...rest, params: { delayBlocks, futureBlocks, delaySeconds, futureSeconds } },

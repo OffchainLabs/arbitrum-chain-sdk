@@ -11,5 +11,8 @@ export const buildSetIsBatchPosterSchema = actionWriteBaseSchema
   .strict()
   .transform((input) => {
     const { rpcUrl, chainId, batchPoster, enable, ...rest } = input;
-    return [toPublicClient(rpcUrl, findChain(chainId)), { ...rest, params: { batchPoster, enable } }] as const;
+    return [
+      toPublicClient(rpcUrl, findChain(chainId)),
+      { ...rest, params: { batchPoster, enable } },
+    ] as const;
   });

@@ -135,27 +135,82 @@ vi.mock('./viemTransforms', () => {
     },
     withPublicClientOptionalChain: <T extends { rpcUrl: string; chainId?: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
-      return [{ publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest }];
+      return [
+        { publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest },
+      ];
     },
-    withParentChainPublicClient: <T extends { parentChainRpcUrl: string; parentChainId: number }>(input: T) => {
+    withParentChainPublicClient: <T extends { parentChainRpcUrl: string; parentChainId: number }>(
+      input: T,
+    ) => {
       const { parentChainRpcUrl, parentChainId, ...rest } = input;
-      return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), ...rest }];
+      return [
+        {
+          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          ...rest,
+        },
+      ];
     },
-    withChainSign: <T extends { rpcUrl: string; chainId: number; privateKey: string }>(input: T) => {
+    withChainSign: <T extends { rpcUrl: string; chainId: number; privateKey: string }>(
+      input: T,
+    ) => {
       const { rpcUrl, chainId, privateKey, ...rest } = input;
-      return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), account: toAccount(privateKey), ...rest }];
+      return [
+        {
+          publicClient: toPublicClient(rpcUrl, findChain(chainId)),
+          account: toAccount(privateKey),
+          ...rest,
+        },
+      ];
     },
-    withParentChainSign: <T extends { parentChainRpcUrl: string; parentChainId: number; privateKey: string }>(input: T) => {
+    withParentChainSign: <
+      T extends { parentChainRpcUrl: string; parentChainId: number; privateKey: string },
+    >(
+      input: T,
+    ) => {
       const { parentChainRpcUrl, parentChainId, privateKey, ...rest } = input;
-      return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), account: toAccount(privateKey), ...rest }];
+      return [
+        {
+          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          account: toAccount(privateKey),
+          ...rest,
+        },
+      ];
     },
-    withChildChainSign: <T extends { orbitChainRpcUrl: string; orbitChainId: number; privateKey: string }>(input: T) => {
+    withChildChainSign: <
+      T extends { orbitChainRpcUrl: string; orbitChainId: number; privateKey: string },
+    >(
+      input: T,
+    ) => {
       const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
-      return [{ orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)), ...rest }];
+      return [
+        {
+          orbitChainWalletClient: toWalletClient(
+            orbitChainRpcUrl,
+            privateKey,
+            findChain(orbitChainId),
+          ),
+          ...rest,
+        },
+      ];
     },
-    withParentReadChildSign: <T extends { parentChainRpcUrl: string; parentChainId: number; orbitChainRpcUrl: string; privateKey: string }>(input: T) => {
+    withParentReadChildSign: <
+      T extends {
+        parentChainRpcUrl: string;
+        parentChainId: number;
+        orbitChainRpcUrl: string;
+        privateKey: string;
+      },
+    >(
+      input: T,
+    ) => {
       const { parentChainRpcUrl, parentChainId, orbitChainRpcUrl, privateKey, ...rest } = input;
-      return [{ parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey), ...rest }];
+      return [
+        {
+          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey),
+          ...rest,
+        },
+      ];
     },
   };
 });
@@ -508,12 +563,16 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
     registry.clear();
     const parsedBase = schema.parse(base) as any;
-    const resultBase = await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
+    const resultBase = await (Array.isArray(parsedBase)
+      ? execute(...parsedBase)
+      : execute(parsedBase));
     const snapshotBase = registry.snapshot() + JSON.stringify(resultBase, replacer);
 
     registry.clear();
     const parsedMutated = schema.parse(mutated) as any;
-    const resultMutated = await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
+    const resultMutated = await (Array.isArray(parsedMutated)
+      ? execute(...parsedMutated)
+      : execute(parsedMutated));
     const snapshotMutated = registry.snapshot() + JSON.stringify(resultMutated, replacer);
 
     if (snapshotBase === snapshotMutated) deadFields.push(key);

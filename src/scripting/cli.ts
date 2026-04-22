@@ -135,10 +135,7 @@ runCli('chain-sdk', {
     createRollupFetchCoreContractsSchema,
     createRollupFetchCoreContracts,
   ),
-  getBridgeUiConfig: cmd(
-    getBridgeUiConfigSchema,
-    getBridgeUiConfig,
-  ),
+  getBridgeUiConfig: cmd(getBridgeUiConfigSchema, getBridgeUiConfig),
   upgradeExecutorFetchPrivilegedAccounts: cmd(
     upgradeExecutorFetchPrivilegedAccountsSchema,
     upgradeExecutorFetchPrivilegedAccounts,
@@ -152,10 +149,7 @@ runCli('chain-sdk', {
   ),
   setValidKeyset: cmd(setValidKeysetSchema, setValidKeyset),
   createRollup: cmd(createRollupSchema, createRollup),
-  createTokenBridge: cmd(
-    createTokenBridgeSchema,
-    createTokenBridge,
-  ),
+  createTokenBridge: cmd(createTokenBridgeSchema, createTokenBridge),
   createTokenBridgePrepareTransactionRequest: cmd(
     createTokenBridgePrepareTransactionRequestSchema,
     createTokenBridgePrepareTransactionRequest,
@@ -209,19 +203,10 @@ runCli('chain-sdk', {
     feeRouterDeployChildToParentRewardRouter,
   ),
 
-  prepareChainConfig: cmd(
-    prepareChainConfigParamsSchema,
-    prepareChainConfig,
-  ),
-  prepareNodeConfig: cmd(
-    prepareNodeConfigSchema,
-    prepareNodeConfig,
-  ),
+  prepareChainConfig: cmd(prepareChainConfigParamsSchema, prepareChainConfig),
+  prepareNodeConfig: cmd(prepareNodeConfigSchema, prepareNodeConfig),
   prepareKeyset: cmd(prepareKeysetSchema, prepareKeyset),
-  prepareKeysetHash: cmd(
-    prepareKeysetHashSchema,
-    prepareKeysetHash,
-  ),
+  prepareKeysetHash: cmd(prepareKeysetHashSchema, prepareKeysetHash),
   prepareDeploymentParamsConfigV21: cmd(
     prepareDeploymentParamsConfigV21Schema,
     createRollupPrepareDeploymentParamsConfig,
@@ -235,22 +220,13 @@ runCli('chain-sdk', {
     createRollupGetRetryablesFees,
   ),
 
-  getDefaultConfirmPeriodBlocks: cmd(
-    getDefaultsSchema,
-    getDefaultConfirmPeriodBlocks,
-  ),
+  getDefaultConfirmPeriodBlocks: cmd(getDefaultsSchema, getDefaultConfirmPeriodBlocks),
   getDefaultChallengeGracePeriodBlocks: cmd(
     getDefaultsSchema,
     getDefaultChallengeGracePeriodBlocks,
   ),
-  getDefaultMinimumAssertionPeriod: cmd(
-    getDefaultsSchema,
-    getDefaultMinimumAssertionPeriod,
-  ),
-  getDefaultValidatorAfkBlocks: cmd(
-    getDefaultsSchema,
-    getDefaultValidatorAfkBlocks,
-  ),
+  getDefaultMinimumAssertionPeriod: cmd(getDefaultsSchema, getDefaultMinimumAssertionPeriod),
+  getDefaultValidatorAfkBlocks: cmd(getDefaultsSchema, getDefaultValidatorAfkBlocks),
   getDefaultSequencerInboxMaxTimeVariation: cmd(
     getDefaultsSchema,
     getDefaultSequencerInboxMaxTimeVariation,
@@ -264,35 +240,14 @@ runCli('chain-sdk', {
   transferOwnership: cmd(transferOwnershipSchema.transform(toTuple), transferOwnership),
   deployFullChain: cmd(deployFullChainSchema.transform(toTuple), deployFullChain),
 
-  buildSetIsBatchPoster: cmd(
-    buildSetIsBatchPosterSchema,
-    buildSetIsBatchPoster,
-  ),
-  buildSetValidKeyset: cmd(
-    buildSetValidKeysetSchema,
-    buildSetValidKeyset,
-  ),
-  buildInvalidateKeysetHash: cmd(
-    buildInvalidateKeysetHashSchema,
-    buildInvalidateKeysetHash,
-  ),
-  buildSetMaxTimeVariation: cmd(
-    buildSetMaxTimeVariationSchema,
-    buildSetMaxTimeVariation,
-  ),
-  buildScheduleArbOSUpgrade: cmd(
-    buildScheduleArbOSUpgradeSchema,
-    buildScheduleArbOSUpgrade,
-  ),
+  buildSetIsBatchPoster: cmd(buildSetIsBatchPosterSchema, buildSetIsBatchPoster),
+  buildSetValidKeyset: cmd(buildSetValidKeysetSchema, buildSetValidKeyset),
+  buildInvalidateKeysetHash: cmd(buildInvalidateKeysetHashSchema, buildInvalidateKeysetHash),
+  buildSetMaxTimeVariation: cmd(buildSetMaxTimeVariationSchema, buildSetMaxTimeVariation),
+  buildScheduleArbOSUpgrade: cmd(buildScheduleArbOSUpgradeSchema, buildScheduleArbOSUpgrade),
   isBatchPoster: cmd(isBatchPosterSchema, isBatchPoster),
-  isValidKeysetHash: cmd(
-    isValidKeysetHashSchema,
-    isValidKeysetHash,
-  ),
-  getMaxTimeVariation: cmd(
-    getMaxTimeVariationSchema,
-    getMaxTimeVariation,
-  ),
+  isValidKeysetHash: cmd(isValidKeysetHashSchema, isValidKeysetHash),
+  getMaxTimeVariation: cmd(getMaxTimeVariationSchema, getMaxTimeVariation),
 
   createRollupPrepareDeploymentParamsConfigDefaults: cmd(
     createRollupPrepareDeploymentParamsConfigDefaultsSchema,
@@ -300,10 +255,7 @@ runCli('chain-sdk', {
       version?: 'v2.1' | 'v3.2',
     ) => ReturnType<typeof createRollupPrepareDeploymentParamsConfigDefaults>,
   ),
-  parentChainIsArbitrum: cmd(
-    parentChainIsArbitrumSchema,
-    parentChainIsArbitrum,
-  ),
+  parentChainIsArbitrum: cmd(parentChainIsArbitrumSchema, parentChainIsArbitrum),
   getConsensusReleaseByVersion: cmd(
     getConsensusReleaseByVersionSchema,
     getConsensusReleaseByVersion,
@@ -312,8 +264,5 @@ runCli('chain-sdk', {
     getConsensusReleaseByWasmModuleRootSchema,
     getConsensusReleaseByWasmModuleRoot,
   ),
-  isKnownWasmModuleRoot: cmd(
-    isKnownWasmModuleRootSchema,
-    isKnownWasmModuleRoot,
-  ),
+  isKnownWasmModuleRoot: cmd(isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
 });

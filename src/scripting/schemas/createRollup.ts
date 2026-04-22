@@ -36,13 +36,7 @@ export const createRollupDefaultSchema = z.strictObject(
 );
 
 export const createRollupSchema = z.union([
-  createRollupV21Schema.transform(
-    (input): Params<'v2.1'> => withParentChainSign(input),
-  ),
-  createRollupV32Schema.transform(
-    (input): Params<'v3.2'> => withParentChainSign(input),
-  ),
-  createRollupDefaultSchema.transform(
-    (input): Params<undefined> => withParentChainSign(input),
-  ),
+  createRollupV21Schema.transform((input): Params<'v2.1'> => withParentChainSign(input)),
+  createRollupV32Schema.transform((input): Params<'v3.2'> => withParentChainSign(input)),
+  createRollupDefaultSchema.transform((input): Params<undefined> => withParentChainSign(input)),
 ]);
