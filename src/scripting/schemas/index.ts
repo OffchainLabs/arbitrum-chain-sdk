@@ -13,7 +13,10 @@ export {
   privateKeySchema,
   rollupCreatorVersionSchema,
 } from './common';
-export { prepareChainConfigParamsSchema } from './prepareChainConfig';
+export {
+  prepareChainConfigParamsBaseSchema,
+  prepareChainConfigParamsSchema,
+} from './prepareChainConfig';
 export {
   upgradeExecutorPrepareTransactionRequestSchema,
   upgradeExecutorFetchPrivilegedAccountsSchema,
