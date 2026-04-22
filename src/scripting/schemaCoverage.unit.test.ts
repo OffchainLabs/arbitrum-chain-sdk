@@ -27,10 +27,7 @@ import { createRollupFetchCoreContractsSchema } from './schemas/createRollupFetc
 import { createRollupFetchCoreContracts } from '../createRollupFetchCoreContracts';
 import { createRollupFetchTransactionHashSchema } from './schemas/createRollupFetchTransactionHash';
 import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
-import {
-  fetchAllowanceSchema,
-  fetchDecimalsSchema,
-} from './schemas/erc20';
+import { fetchAllowanceSchema, fetchDecimalsSchema } from './schemas/erc20';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
 import { upgradeExecutorFetchPrivilegedAccountsSchema } from './schemas/upgradeExecutor';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
