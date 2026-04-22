@@ -10,7 +10,7 @@ import {
   tokenBridgeRetryableGasOverridesSchema,
 } from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigInputSchema } from '../schemas/prepareChainConfig';
+import { prepareChainConfigParamsBaseSchema } from '../schemas/prepareChainConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
@@ -26,7 +26,7 @@ export const schema = createRollupDefaultSchema
     params: createRollupDefaultSchema.shape.params.extend({
       config: paramsV3Dot2Schema.extend({
         chainId: bigintSchema.prefault(() => String(generateChainId())),
-        chainConfig: prepareChainConfigInputSchema.optional(),
+        chainConfig: prepareChainConfigParamsBaseSchema.optional(),
       }),
       nativeToken: addressSchema.default(zeroAddress),
       keyset: hexSchema.optional(),
