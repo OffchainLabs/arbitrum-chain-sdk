@@ -202,9 +202,6 @@ vi.mock('../upgradeExecutorFetchPrivilegedAccounts', () => ({
   upgradeExecutorFetchPrivilegedAccounts: _mocks.fn('upgradeExecutorFetchPrivilegedAccounts'),
 }));
 vi.mock('../getBridgeUiConfig', () => ({ getBridgeUiConfig: _mocks.fn('getBridgeUiConfig') }));
-vi.mock('../isTokenBridgeDeployed', () => ({
-  isTokenBridgeDeployed: _mocks.fn('isTokenBridgeDeployed'),
-}));
 vi.mock('../createRollupGetRetryablesFees', () => ({
   createRollupGetRetryablesFees: _mocks.fn('createRollupGetRetryablesFees'),
 }));
