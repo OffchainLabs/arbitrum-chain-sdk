@@ -6,7 +6,6 @@ export const createRollupPrepareDeploymentParamsConfigDefaultsSchema = z
   .strictObject({
     rollupCreatorVersion: rollupCreatorVersionSchema.optional(),
   })
-  .transform(
-    (input): [RollupCreatorSupportedVersion] | [] =>
-      input.rollupCreatorVersion ? [input.rollupCreatorVersion] : [],
+  .transform((input): [RollupCreatorSupportedVersion] | [] =>
+    input.rollupCreatorVersion ? [input.rollupCreatorVersion] : [],
   );

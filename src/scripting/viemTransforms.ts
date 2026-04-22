@@ -71,12 +71,14 @@ export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(
   input: T,
 ): WithPublicClient<T> {
   const { rpcUrl, chainId, ...rest } = input;
-  return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }] as WithPublicClient<T>;
+  return [
+    { publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest },
+  ] as WithPublicClient<T>;
 }
 
-export function withPublicClientOptionalChain<
-  T extends { rpcUrl: string; chainId?: number },
->(input: T): WithPublicClientOptionalChain<T> {
+export function withPublicClientOptionalChain<T extends { rpcUrl: string; chainId?: number }>(
+  input: T,
+): WithPublicClientOptionalChain<T> {
   const { rpcUrl, chainId, ...rest } = input;
   return [
     { publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest },
@@ -88,16 +90,23 @@ export function withParentChainPublicClient<
 >(input: T): WithParentChainPublicClient<T> {
   const { parentChainRpcUrl, parentChainId, ...rest } = input;
   return [
-    { parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)), ...rest },
+    {
+      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+      ...rest,
+    },
   ] as WithParentChainPublicClient<T>;
 }
 
-export function withChainSign<
-  T extends { rpcUrl: string; chainId: number; privateKey: string },
->(input: T): WithChainSign<T> {
+export function withChainSign<T extends { rpcUrl: string; chainId: number; privateKey: string }>(
+  input: T,
+): WithChainSign<T> {
   const { rpcUrl, chainId, privateKey, ...rest } = input;
   return [
-    { publicClient: toPublicClient(rpcUrl, findChain(chainId)), account: toAccount(privateKey), ...rest },
+    {
+      publicClient: toPublicClient(rpcUrl, findChain(chainId)),
+      account: toAccount(privateKey),
+      ...rest,
+    },
   ] as WithChainSign<T>;
 }
 
@@ -119,7 +128,10 @@ export function withChildChainSign<
 >(input: T): WithChildChainSign<T> {
   const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
   return [
-    { orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)), ...rest },
+    {
+      orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)),
+      ...rest,
+    },
   ] as WithChildChainSign<T>;
 }
 

@@ -6,6 +6,4 @@ export const prepareKeysetSchema = z
     publicKeys: z.array(z.string()),
     assumedHonest: z.number(),
   })
-  .transform(
-    (input): Parameters<typeof prepareKeyset> => [input.publicKeys, input.assumedHonest],
-  );
+  .transform((input): Parameters<typeof prepareKeyset> => [input.publicKeys, input.assumedHonest]);

@@ -9,5 +9,8 @@ export const isBatchPosterSchema = publicClientSchema
   .strict()
   .transform((input) => {
     const { rpcUrl, chainId, batchPoster, ...rest } = input;
-    return [toPublicClient(rpcUrl, findChain(chainId)), { ...rest, params: { batchPoster } }] as const;
+    return [
+      toPublicClient(rpcUrl, findChain(chainId)),
+      { ...rest, params: { batchPoster } },
+    ] as const;
   });
