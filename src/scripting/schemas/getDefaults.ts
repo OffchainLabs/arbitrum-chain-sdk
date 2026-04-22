@@ -8,11 +8,9 @@ export const getDefaultsSchema = z
     z.object({ parentChainId: z.number().transform((n) => n as ParentChainId) }),
     z.object({ rpcUrl: z.url() }),
   ])
-  .transform(
-    (input): readonly [ParentChainId | Client<Transport, Chain | undefined>] => {
-      if ('rpcUrl' in input) {
-        return [toPublicClient(input.rpcUrl)];
-      }
-      return [input.parentChainId];
-    },
-  );
+  .transform((input): readonly [ParentChainId | Client<Transport, Chain | undefined>] => {
+    if ('rpcUrl' in input) {
+      return [toPublicClient(input.rpcUrl)];
+    }
+    return [input.parentChainId];
+  });
