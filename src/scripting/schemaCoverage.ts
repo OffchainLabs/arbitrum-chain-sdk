@@ -563,12 +563,16 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
     registry.clear();
     const parsedBase = schema.parse(base) as any;
-    const resultBase = await (Array.isArray(parsedBase) ? execute(...parsedBase) : execute(parsedBase));
+    const resultBase = await (Array.isArray(parsedBase)
+      ? execute(...parsedBase)
+      : execute(parsedBase));
     const snapshotBase = registry.snapshot() + JSON.stringify(resultBase, replacer);
 
     registry.clear();
     const parsedMutated = schema.parse(mutated) as any;
-    const resultMutated = await (Array.isArray(parsedMutated) ? execute(...parsedMutated) : execute(parsedMutated));
+    const resultMutated = await (Array.isArray(parsedMutated)
+      ? execute(...parsedMutated)
+      : execute(parsedMutated));
     const snapshotMutated = registry.snapshot() + JSON.stringify(resultMutated, replacer);
 
     if (snapshotBase === snapshotMutated) deadFields.push(key);
