@@ -37,7 +37,6 @@ export { getBridgeUiConfigSchema } from './getBridgeUiConfig';
 export { isAnyTrustSchema } from './isAnyTrust';
 export { createRollupFetchTransactionHashSchema } from './createRollupFetchTransactionHash';
 export { createRollupFetchCoreContractsSchema } from './createRollupFetchCoreContracts';
-export { isTokenBridgeDeployedSchema } from './isTokenBridgeDeployed';
 export { createTokenBridgePrepareTransactionRequestSchema } from './createTokenBridgePrepareTransactionRequest';
 export { createTokenBridgePrepareSetWethGatewayTransactionRequestSchema } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 export { setValidKeysetPrepareTransactionRequestSchema } from './setValidKeysetPrepareTransactionRequest';

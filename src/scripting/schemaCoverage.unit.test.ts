@@ -33,8 +33,6 @@ import { upgradeExecutorFetchPrivilegedAccountsSchema } from './schemas/upgradeE
 import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
 import { getBridgeUiConfigSchema } from './schemas/getBridgeUiConfig';
 import { getBridgeUiConfig } from '../getBridgeUiConfig';
-import { isTokenBridgeDeployedSchema } from './schemas/isTokenBridgeDeployed';
-import { isTokenBridgeDeployed } from '../isTokenBridgeDeployed';
 import { createRollupGetRetryablesFeesSchema } from './schemas/createRollupGetRetryablesFees';
 import { createRollupGetRetryablesFees } from '../createRollupGetRetryablesFees';
 import { createSafePrepareTransactionRequestSchema } from './schemas/createSafePrepareTransactionRequest';
@@ -214,10 +212,6 @@ describe('schema coverage', () => {
 
   it('getBridgeUiConfig', async () => {
     await assertSchemaCoverage(getBridgeUiConfigSchema, getBridgeUiConfig, mocks);
-  });
-
-  it('isTokenBridgeDeployed', async () => {
-    await assertSchemaCoverage(isTokenBridgeDeployedSchema, isTokenBridgeDeployed, mocks);
   });
 
   it('createRollupGetRetryablesFees', async () => {
