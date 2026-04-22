@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isAddress, isHex, type Address, type Hex } from 'viem';
+import { isAddress, isHex, size, type Address, type Hex } from 'viem';
 
 export const hexSchema = z
   .string()
@@ -28,8 +28,8 @@ export const actionWriteBaseSchema = publicClientSchema.extend({
 
 export const privateKeySchema = z
   .string()
-  .regex(/^0x[0-9a-fA-F]{64}$/, 'Invalid private key')
-  .transform((val) => val as `0x${string}`);
+  .refine((v): v is Hex => isHex(v) && size(v) === 32, 'Invalid private key')
+  .transform((val) => val as Hex);
 
 // z.coerce.bigint() calls BigInt() which throws a raw SyntaxError on invalid
 // input, bypassing zod's error pipeline -- safeParse can throw, and the error
