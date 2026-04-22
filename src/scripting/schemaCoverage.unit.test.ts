@@ -27,10 +27,7 @@ import { createRollupFetchCoreContractsSchema } from './schemas/createRollupFetc
 import { createRollupFetchCoreContracts } from '../createRollupFetchCoreContracts';
 import { createRollupFetchTransactionHashSchema } from './schemas/createRollupFetchTransactionHash';
 import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
-import {
-  fetchAllowanceSchema,
-  fetchDecimalsSchema,
-} from './schemas/erc20';
+import { fetchAllowanceSchema, fetchDecimalsSchema } from './schemas/erc20';
 import { fetchAllowance, fetchDecimals } from '../utils/erc20';
 import { upgradeExecutorFetchPrivilegedAccountsSchema } from './schemas/upgradeExecutor';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
@@ -400,27 +397,15 @@ describe('schema coverage', () => {
   });
 
   it('buildSetAllowList', async () => {
-    await assertSchemaCoverage(
-      buildSetAllowListSchema,
-      buildSetAllowList,
-      mocks,
-    );
+    await assertSchemaCoverage(buildSetAllowListSchema, buildSetAllowList, mocks);
   });
 
   it('buildSetAllowListEnabled', async () => {
-    await assertSchemaCoverage(
-      buildSetAllowListEnabledSchema,
-      buildSetAllowListEnabled,
-      mocks,
-    );
+    await assertSchemaCoverage(buildSetAllowListEnabledSchema, buildSetAllowListEnabled, mocks);
   });
 
   it('isAllowListEnabled', async () => {
-    await assertSchemaCoverage(
-      isAllowListEnabledSchema,
-      isAllowListEnabled,
-      mocks,
-    );
+    await assertSchemaCoverage(isAllowListEnabledSchema, isAllowListEnabled, mocks);
   });
 
   it('isAllowed', async () => {

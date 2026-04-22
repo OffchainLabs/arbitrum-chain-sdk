@@ -312,14 +312,10 @@ it('getBatchPostersSchema output matches getBatchPosters params', () =>
 it('upgradeExecutorFetchPrivilegedAccountsSchema output matches upgradeExecutorFetchPrivilegedAccounts params', () =>
   expectTypeOf<
     DeepNormalize<z.output<typeof upgradeExecutorFetchPrivilegedAccountsSchema>>
-  >().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>
-  >());
+  >().toEqualTypeOf<DeepNormalize<Parameters<typeof upgradeExecutorFetchPrivilegedAccounts>>>());
 
 it('setAnyTrustFastConfirmerSchema output matches setAnyTrustFastConfirmerPrepareTransactionRequest params', () =>
-  expectTypeOf<
-    DeepNormalize<z.output<typeof setAnyTrustFastConfirmerSchema>>
-  >().toEqualTypeOf<
+  expectTypeOf<DeepNormalize<z.output<typeof setAnyTrustFastConfirmerSchema>>>().toEqualTypeOf<
     DeepNormalize<Parameters<typeof setAnyTrustFastConfirmerPrepareTransactionRequest>>
   >());
 
@@ -412,7 +408,9 @@ it('createRollupEnoughCustomFeeTokenAllowanceSchema output matches createRollupE
 
 it('createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema output matches createRollupPrepareCustomFeeTokenApprovalTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema>>
+    DeepNormalize<
+      z.output<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema>
+    >
   >().toEqualTypeOf<
     DeepNormalize<Parameters<typeof createRollupPrepareCustomFeeTokenApprovalTransactionRequest>>
   >());
@@ -426,7 +424,9 @@ it('createTokenBridgeEnoughCustomFeeTokenAllowanceSchema output matches createTo
 
 it('createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema output matches createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest params', () =>
   expectTypeOf<
-    DeepNormalize<z.output<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema>>
+    DeepNormalize<
+      z.output<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema>
+    >
   >().toEqualTypeOf<
     DeepNormalize<
       Parameters<typeof createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest>
@@ -449,14 +449,14 @@ it('getDefaultsSchema output matches getDefaultConfirmPeriodBlocks params', () =
   >());
 
 it('createRollupGetRetryablesFeesSchema output matches createRollupGetRetryablesFees params', () =>
-  expectTypeOf<
-    DeepNormalize<z.output<typeof createRollupGetRetryablesFeesSchema>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFees>>>());
+  expectTypeOf<DeepNormalize<z.output<typeof createRollupGetRetryablesFeesSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createRollupGetRetryablesFees>>
+  >());
 
 it('createRollupGetRetryablesFeesSchema output matches createRollupGetRetryablesFeesWithDefaults params', () =>
-  expectTypeOf<
-    DeepNormalize<z.output<typeof createRollupGetRetryablesFeesSchema>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupGetRetryablesFeesWithDefaults>>>());
+  expectTypeOf<DeepNormalize<z.output<typeof createRollupGetRetryablesFeesSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof createRollupGetRetryablesFeesWithDefaults>>
+  >());
 
 it('fetchAllowanceSchema output matches fetchAllowance params', () =>
   expectTypeOf<DeepNormalize<z.output<typeof fetchAllowanceSchema>>>().toEqualTypeOf<
@@ -479,9 +479,9 @@ it('buildSetValidKeysetSchema output matches buildSetValidKeyset params', () =>
   >());
 
 it('buildInvalidateKeysetHashSchema output matches buildInvalidateKeysetHash params', () =>
-  expectTypeOf<
-    DeepNormalize<z.output<typeof buildInvalidateKeysetHashSchema>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildInvalidateKeysetHash>>>());
+  expectTypeOf<DeepNormalize<z.output<typeof buildInvalidateKeysetHashSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildInvalidateKeysetHash>>
+  >());
 
 it('buildSetMaxTimeVariationSchema output matches buildSetMaxTimeVariation params', () =>
   expectTypeOf<DeepNormalize<z.output<typeof buildSetMaxTimeVariationSchema>>>().toEqualTypeOf<
@@ -489,9 +489,9 @@ it('buildSetMaxTimeVariationSchema output matches buildSetMaxTimeVariation param
   >());
 
 it('buildScheduleArbOSUpgradeSchema output matches buildScheduleArbOSUpgrade params', () =>
-  expectTypeOf<
-    DeepNormalize<z.output<typeof buildScheduleArbOSUpgradeSchema>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof buildScheduleArbOSUpgrade>>>());
+  expectTypeOf<DeepNormalize<z.output<typeof buildScheduleArbOSUpgradeSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof buildScheduleArbOSUpgrade>>
+  >());
 
 it('isBatchPosterSchema output matches isBatchPoster params', () =>
   expectTypeOf<DeepNormalize<z.output<typeof isBatchPosterSchema>>>().toEqualTypeOf<
@@ -514,9 +514,9 @@ it('parentChainIsArbitrumSchema output matches parentChainIsArbitrum params', ()
   >());
 
 it('getConsensusReleaseByVersionSchema output matches getConsensusReleaseByVersion params', () =>
-  expectTypeOf<
-    DeepNormalize<z.output<typeof getConsensusReleaseByVersionSchema>>
-  >().toEqualTypeOf<DeepNormalize<Parameters<typeof getConsensusReleaseByVersion>>>());
+  expectTypeOf<DeepNormalize<z.output<typeof getConsensusReleaseByVersionSchema>>>().toEqualTypeOf<
+    DeepNormalize<Parameters<typeof getConsensusReleaseByVersion>>
+  >());
 
 it('getConsensusReleaseByWasmModuleRootSchema output matches getConsensusReleaseByWasmModuleRoot params', () =>
   expectTypeOf<
