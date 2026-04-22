@@ -1,18 +1,13 @@
 import { z } from 'zod';
 import { isAddress, isHex, type Address, type Hex } from 'viem';
 
-// Regex gives the coverage test generator a pattern it can sample from;
-// isHex / isAddress layer on viem's stricter checks (notably EIP-55
-// checksum validation for mixed-case addresses).
 export const hexSchema = z
   .string()
-  .regex(/^0x[0-9a-fA-F]*$/, 'Invalid hex string')
   .refine(isHex, 'Invalid hex string')
   .transform((val) => val as Hex);
 
 export const addressSchema = z
   .string()
-  .regex(/^0x[0-9a-fA-F]{40}$/, 'Invalid Ethereum address')
   .refine((v): v is Address => isAddress(v), 'Invalid Ethereum address')
   .transform((val) => val as Address);
 
