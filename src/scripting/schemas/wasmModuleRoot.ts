@@ -18,6 +18,4 @@ export const isKnownWasmModuleRootSchema = z
   .strictObject({
     wasmModuleRoot: hexSchema,
   })
-  .transform(
-    (input): Parameters<typeof isKnownWasmModuleRoot> => [input.wasmModuleRoot],
-  );
+  .transform((input): Parameters<typeof isKnownWasmModuleRoot> => [input.wasmModuleRoot]);
