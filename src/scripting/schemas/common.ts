@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isAddress, isHex, size, type Address, type Hex } from 'viem';
+import { isAddress, isHex, type Address, type Hex } from 'viem';
 
 export const hexSchema = z
   .string()
@@ -28,7 +28,7 @@ export const actionWriteBaseSchema = publicClientSchema.extend({
 
 export const privateKeySchema = z
   .string()
-  .refine((v): v is Hex => isHex(v) && size(v) === 32, 'Invalid private key')
+  .refine((v): v is Hex => isHex(v) && v.length === 66, 'Invalid private key')
   .transform((val) => val as Hex);
 
 // z.coerce.bigint() calls BigInt() which throws a raw SyntaxError on invalid
