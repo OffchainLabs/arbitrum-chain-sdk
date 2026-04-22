@@ -17,7 +17,6 @@ import { getBridgeUiConfig } from '../../getBridgeUiConfig';
 import { isAnyTrust } from '../../isAnyTrust';
 import { createRollupFetchTransactionHash } from '../../createRollupFetchTransactionHash';
 import { createRollupFetchCoreContracts } from '../../createRollupFetchCoreContracts';
-import { isTokenBridgeDeployed } from '../../isTokenBridgeDeployed';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { setValidKeysetPrepareTransactionRequest } from '../../setValidKeysetPrepareTransactionRequest';
@@ -79,7 +78,6 @@ import { getBridgeUiConfigSchema } from './getBridgeUiConfig';
 import { isAnyTrustSchema } from './isAnyTrust';
 import { createRollupFetchTransactionHashSchema } from './createRollupFetchTransactionHash';
 import { createRollupFetchCoreContractsSchema } from './createRollupFetchCoreContracts';
-import { isTokenBridgeDeployedSchema } from './isTokenBridgeDeployed';
 import { createTokenBridgePrepareTransactionRequestSchema } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequestSchema } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import { setValidKeysetPrepareTransactionRequestSchema } from './setValidKeysetPrepareTransactionRequest';
@@ -359,11 +357,6 @@ it('createRollupFetchCoreContractsSchema output matches createRollupFetchCoreCon
   expectTypeOf<
     DeepNormalize<z.output<typeof createRollupFetchCoreContractsSchema>>
   >().toEqualTypeOf<DeepNormalize<Parameters<typeof createRollupFetchCoreContracts>>>());
-
-it('isTokenBridgeDeployedSchema output matches isTokenBridgeDeployed params', () =>
-  expectTypeOf<DeepNormalize<z.output<typeof isTokenBridgeDeployedSchema>>>().toEqualTypeOf<
-    DeepNormalize<Parameters<typeof isTokenBridgeDeployed>>
-  >());
 
 it('createTokenBridgePrepareTransactionRequestSchema output matches createTokenBridgePrepareTransactionRequest params', () =>
   expectTypeOf<

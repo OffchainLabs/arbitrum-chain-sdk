@@ -25,15 +25,15 @@ export function runScript<TSchema extends ZodType>(
   const jsonString = process.argv[2];
 
   if (!jsonString) {
-    process.stderr.write('JSON string expected as the first argument.\n');
-    process.exit(1);
+    process.stderr.write(`Usage: ${process.argv[1] ?? 'script'} '<json>'\n`);
+    return process.exit(1);
   }
 
   let rawInput: unknown;
   try {
     rawInput = JSON.parse(jsonString);
   } catch (error) {
-    handleError(error);
+    return handleError(error);
   }
 
   (async () => {
@@ -64,21 +64,21 @@ export function runCli(
   if (!command) {
     const available = Object.keys(commands).join(', ');
     process.stderr.write(`Usage: ${cliName} <command> '<json>'\nCommands: ${available}\n`);
-    process.exit(1);
+    return process.exit(1);
   }
 
   const jsonString = process.argv[3];
 
   if (!jsonString) {
     process.stderr.write(`Usage: ${cliName} ${name} '<json>'\n`);
-    process.exit(1);
+    return process.exit(1);
   }
 
   let rawInput: unknown;
   try {
     rawInput = JSON.parse(jsonString);
   } catch (error) {
-    handleError(error);
+    return handleError(error);
   }
 
   (async () => {
