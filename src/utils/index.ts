@@ -7,6 +7,7 @@ import { getClientVersion } from './getClientVersion';
 import { getRollupCreatorAddress } from './getRollupCreatorAddress';
 import { getTokenBridgeCreatorAddress } from './getTokenBridgeCreatorAddress';
 import { getWethAddress } from './getWethAddress';
+import { verifyFoundryBinaries } from './verifyFoundry';
 
 export {
   generateChainId,
@@ -18,4 +19,5 @@ export {
   getRollupCreatorAddress,
   getTokenBridgeCreatorAddress,
   getWethAddress,
+  verifyFoundryBinaries,
 };
