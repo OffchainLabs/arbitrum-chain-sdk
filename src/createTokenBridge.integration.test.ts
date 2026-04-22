@@ -495,7 +495,7 @@ describe('createTokenBridge', () => {
     };
     const { tokenBridgeContracts } = await createTokenBridge(cfg);
     await expect(createTokenBridge(cfg)).rejects.toThrowError(
-      `Token bridge contracts for Rollup ${testnodeInformation.rollup} are already deployed`,
+      `Token bridge deployment for Rollup ${testnodeInformation.rollup} was already initiated on the parent chain`,
     );
 
     checkTokenBridgeContracts(tokenBridgeContracts);

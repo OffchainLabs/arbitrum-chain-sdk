@@ -7,7 +7,6 @@ import {
   isAnyTrustSchema,
   createRollupFetchTransactionHashSchema,
   createRollupFetchCoreContractsSchema,
-  isTokenBridgeDeployedSchema,
   getBridgeUiConfigSchema,
   upgradeExecutorFetchPrivilegedAccountsSchema,
   setAnyTrustFastConfirmerSchema,
@@ -57,7 +56,6 @@ import { getKeysets } from '../getKeysets';
 import { isAnyTrust } from '../isAnyTrust';
 import { createRollupFetchTransactionHash } from '../createRollupFetchTransactionHash';
 import { createRollupFetchCoreContracts } from '../createRollupFetchCoreContracts';
-import { isTokenBridgeDeployed } from '../isTokenBridgeDeployed';
 import { getBridgeUiConfig } from '../getBridgeUiConfig';
 import { upgradeExecutorFetchPrivilegedAccounts } from '../upgradeExecutorFetchPrivilegedAccounts';
 import { setAnyTrustFastConfirmerPrepareTransactionRequest } from '../setAnyTrustFastConfirmerPrepareTransactionRequest';
@@ -117,10 +115,6 @@ runCli('chain-sdk', {
   createRollupFetchCoreContracts: cmd(
     createRollupFetchCoreContractsSchema,
     createRollupFetchCoreContracts,
-  ),
-  isTokenBridgeDeployed: cmd(
-    isTokenBridgeDeployedSchema,
-    isTokenBridgeDeployed,
   ),
   getBridgeUiConfig: cmd(
     getBridgeUiConfigSchema,

@@ -34,7 +34,6 @@ import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { TransactionRequestGasOverrides } from './utils/gasOverrides';
 import { getBlockExplorerUrl } from './utils/getBlockExplorerUrl';
-import { isTokenBridgeDeployed } from './isTokenBridgeDeployed';
 import { registerNewNetwork } from './utils/registerNewNetwork';
 import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
@@ -188,17 +187,6 @@ export async function createTokenBridge<
 }: CreateTokenBridgeParams<TParentChain, TOrbitChain>): Promise<
   CreateTokenBridgeResults<TParentChain, TOrbitChain>
 > {
-  const isTokenBridgeAlreadyDeployed = await isTokenBridgeDeployed({
-    parentChainPublicClient,
-    orbitChainPublicClient,
-    rollup: rollupAddress,
-    tokenBridgeCreatorAddressOverride,
-  });
-
-  if (isTokenBridgeAlreadyDeployed) {
-    throw new Error(`Token bridge contracts for Rollup ${rollupAddress} are already deployed`);
-  }
-
   const isCustomFeeTokenBridge = isNonZeroAddress(nativeTokenAddress);
   if (isCustomFeeTokenBridge) {
     // set the custom fee token
