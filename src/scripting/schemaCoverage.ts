@@ -37,6 +37,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
 import { type ZodType, type z } from 'zod';
+import { addressSchema, hexSchema } from './schemas/common';
 
 // -- Mock registry -----------------------------------------------------------
 
@@ -379,6 +380,12 @@ function stripOptional(schema: ZodType): ZodType {
 }
 
 function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLeaf[] {
+  // Treat canonical refined-string schemas as atomic leaves so the generator
+  // can produce values that pass their viem-backed validators (isAddress, isHex).
+  if (schema === addressSchema || schema === hexSchema) {
+    return [{ path, schema }];
+  }
+
   const def = getDef(schema);
   if (!def) return [{ path, schema }];
 
@@ -414,6 +421,9 @@ function generateValue(schema: ZodType): unknown {
 }
 
 function generateForType(schema: ZodType, n: number): unknown {
+  if (schema === addressSchema) return `0x${(n + 1).toString(16).padStart(40, '0')}`;
+  if (schema === hexSchema) return `0x${(n + 1).toString(16)}`;
+
   const def = getDef(schema);
   if (!def) throw new Error(`Cannot generate value: schema has no def`);
 
