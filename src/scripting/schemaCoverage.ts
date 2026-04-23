@@ -25,21 +25,28 @@
 // mocks.fnSync(name, returnValue?) -- sync mock, returns returnValue (or a valid hex string)
 // mocks.trackedObject(name)       -- Proxy that records all method calls
 //
-// Note: optional/nullable fields are excluded from automatic testing because
-// they can't be given two distinct non-undefined values without knowing the
-// context (e.g. a refine may reject them). Use the overrides parameter to
-// test optional fields that matter:
+// Optional fields get two automatic checks:
+//   - a "presence" check (undefined vs a populated subtree) per optional
+//     wrapper, to detect fields the transform ignores entirely;
+//   - a "value" check (defined A vs defined B) per scalar leaf, to detect
+//     fields where only presence matters and the value itself is dead.
+// Each optional leaf test materialises only that leaf's outermost-anchor
+// subtree, so unrelated optional siblings stay absent and can't cause
+// cross-refine failures.
+//
+// Supplying an override for a key augments the fixture used for tests at
+// that key (both presence tests for an anchor and value tests for a leaf).
+// Use this to satisfy refines or shape context when automatic generation
+// alone isn't valid:
 //
 //   await assertSchemaCoverage(schema, execute, mocks, {
-//     'optionalField': (base) => ({ ...base, optionalField: 'some valid value' }),
+//     'optionalField': (base) => ({ ...base, otherField: 'required context' }),
 //   });
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
 import { type ZodType, type z } from 'zod';
 import { addressSchema, hexSchema, privateKeySchema } from './schemas/common';
-
-// -- Mock registry -----------------------------------------------------------
 
 const _mocks = vi.hoisted(() => {
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
@@ -109,7 +116,6 @@ const _mocks = vi.hoisted(() => {
 });
 export const mocks = _mocks;
 
-// -- Module mocks ------------------------------------------------------------
 // vi.mock calls are processed by vitest's module transform regardless of
 // which file they appear in, so these mocks are active when the consuming
 // test file's imports resolve.
@@ -218,7 +224,6 @@ vi.mock('./viemTransforms', () => {
 
 vi.mock('./scriptUtils', () => ({ runScript: () => {} }));
 
-// Functions called inside schema transforms
 vi.mock('../createRollupPrepareDeploymentParamsConfig', () => ({
   createRollupPrepareDeploymentParamsConfig: _mocks.fnSync(
     'createRollupPrepareDeploymentParamsConfig',
@@ -231,7 +236,6 @@ vi.mock('../prepareChainConfig', () => ({
   prepareChainConfig: _mocks.fnSync('prepareChainConfig', { _mock: 'chainConfig' }),
 }));
 
-// SDK functions
 vi.mock('../getValidators', () => ({ getValidators: _mocks.fn('getValidators') }));
 vi.mock('../setValidKeysetPrepareTransactionRequest', () => ({
   setValidKeysetPrepareTransactionRequest: _mocks.fn('setValidKeysetPrepareTransactionRequest'),
@@ -346,9 +350,7 @@ vi.mock('viem', async (importOriginal) => {
   };
 });
 
-// -- Schema coverage utility -------------------------------------------------
-
-type SchemaLeaf = { path: string[]; schema: ZodType };
+type SchemaLeaf = { path: string[]; schema: ZodType; optional: boolean };
 
 let counter = 0;
 
@@ -374,40 +376,54 @@ function stripOptional(schema: ZodType): ZodType {
   return schema;
 }
 
-function getSchemaLeaves(schema: ZodType, path: string[] = []): SchemaLeaf[] {
+// Walks the schema once, collecting both atomic leaves (scalar fields we'll
+// test) and optional anchors (paths where a z.optional()/z.nullable() wrapper
+// sits, which are candidates for presence tests). Leaves inherit the optional
+// flag from any optional ancestor.
+type SchemaWalk = { leaves: SchemaLeaf[]; anchors: string[][] };
+
+function walkSchema(schema: ZodType, path: string[], optional: boolean, out: SchemaWalk): void {
   // Treat canonical refined-string schemas as atomic leaves so the generator
   // can produce values that pass their viem-backed validators (isAddress, isHex).
   if (schema === addressSchema || schema === hexSchema || schema === privateKeySchema) {
-    return [{ path, schema }];
+    out.leaves.push({ path, schema, optional });
+    return;
   }
-
   const def = getDef(schema);
-  if (!def) return [{ path, schema }];
-
+  if (!def) {
+    out.leaves.push({ path, schema, optional });
+    return;
+  }
   switch (def.type) {
-    case 'object': {
-      const shape = def.shape as Record<string, ZodType>;
-      return Object.entries(shape).flatMap(([key, child]) =>
-        getSchemaLeaves(child, [...path, key]),
-      );
-    }
+    case 'object':
+      for (const [key, child] of Object.entries(def.shape as Record<string, ZodType>)) {
+        walkSchema(child, [...path, key], optional, out);
+      }
+      return;
     case 'never':
+      return;
     case 'optional':
     case 'nullable':
-      return [];
+      out.anchors.push(path);
+      walkSchema(def.innerType, path, true, out);
+      return;
     case 'nonoptional':
-      return getSchemaLeaves(stripOptional(def.innerType), path);
+      walkSchema(stripOptional(def.innerType), path, optional, out);
+      return;
     case 'default':
     case 'prefault':
     case 'readonly':
     case 'catch':
-      return getSchemaLeaves(def.innerType, path);
+      walkSchema(def.innerType, path, optional, out);
+      return;
     case 'pipe':
-      return getSchemaLeaves(def.in, path);
+      walkSchema(def.in, path, optional, out);
+      return;
     case 'union':
-      return getSchemaLeaves(def.options[0], path);
+      walkSchema(def.options[0], path, optional, out);
+      return;
     default:
-      return [{ path, schema }];
+      out.leaves.push({ path, schema, optional });
   }
 }
 
@@ -509,12 +525,50 @@ function setNestedField(
   };
 }
 
-function buildFixture(leaves: SchemaLeaf[], values: Map<string, unknown>): Record<string, unknown> {
+function buildFixture(
+  leaves: SchemaLeaf[],
+  values: Map<string, unknown>,
+  includeOptional: boolean,
+): Record<string, unknown> {
   let fixture: Record<string, unknown> = {};
   for (const leaf of leaves) {
+    if (leaf.optional && !includeOptional) continue;
     fixture = setNestedField(fixture, leaf.path, values.get(leaf.path.join('.')));
   }
   return fixture;
+}
+
+function isPathPrefix(prefix: string[], path: string[]): boolean {
+  if (prefix.length > path.length) return false;
+  for (let i = 0; i < prefix.length; i++) if (prefix[i] !== path[i]) return false;
+  return true;
+}
+
+// Populates the required-only base fixture with the subtree rooted at
+// `rootPath`. Leaves outside the subtree remain in their base (sparse) state.
+// This keeps optional-leaf tests from cross-polluting unrelated optional
+// subtrees (e.g. refines that fail when a sibling optional field is present).
+function materializeSubtree(
+  base: Record<string, unknown>,
+  leaves: SchemaLeaf[],
+  rootPath: string[],
+  values: Map<string, unknown>,
+): Record<string, unknown> {
+  let fx = base;
+  for (const leaf of leaves) {
+    if (!isPathPrefix(rootPath, leaf.path)) continue;
+    fx = setNestedField(fx, leaf.path, values.get(leaf.path.join('.')));
+  }
+  return fx;
+}
+
+function outermostAnchor(leafPath: string[], anchors: string[][]): string[] | null {
+  let best: string[] | null = null;
+  for (const a of anchors) {
+    if (!isPathPrefix(a, leafPath)) continue;
+    if (best === null || a.length < best.length) best = a;
+  }
+  return best;
 }
 
 /**
@@ -532,61 +586,80 @@ export async function assertSchemaCoverage<T extends ZodType>(
   overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
 ): Promise<void> {
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
-  const leaves = getSchemaLeaves(schema);
-  const testableLeaves = leaves.filter((l) => {
-    const t = getDefType(l.schema);
+  const walk: SchemaWalk = { leaves: [], anchors: [] };
+  walkSchema(schema, [], false, walk);
+  const { leaves, anchors } = walk;
+
+  const isTestable = (leaf: SchemaLeaf): boolean => {
+    const t = getDefType(leaf.schema);
     return t !== 'literal' && t !== 'null';
-  });
-  if (testableLeaves.length === 0) {
+  };
+  if (!leaves.some(isTestable)) {
     throw new Error(
       'assertSchemaCoverage found 0 testable fields. ' +
-        'The schema may be empty or getSchemaLeaves may not support a type it uses.',
+        'The schema may be empty or walkSchema may not support a type it uses.',
     );
   }
 
   resetCounter();
   const valuesA = new Map<string, unknown>();
   const valuesB = new Map<string, unknown>();
-  const keys = new Map<SchemaLeaf, string>();
   for (const leaf of leaves) {
     const key = leaf.path.join('.');
-    keys.set(leaf, key);
     valuesA.set(key, generateValue(leaf.schema));
     valuesB.set(key, generateValue(leaf.schema));
   }
 
-  const baseFixture = buildFixture(leaves, valuesA) as z.input<T>;
+  const baseFixture = buildFixture(leaves, valuesA, false) as Record<string, unknown>;
   const deadFields: string[] = [];
 
+  const applyOverride = (fixture: Record<string, unknown>, key: string): Record<string, unknown> =>
+    overrides?.[key]
+      ? (overrides[key](fixture as z.input<T>) as Record<string, unknown>)
+      : fixture;
+
+  const runSnapshot = async (input: Record<string, unknown>): Promise<string> => {
+    registry.clear();
+    const parsed = schema.parse(input) as any;
+    const result = await (Array.isArray(parsed) ? execute(...parsed) : execute(parsed));
+    return registry.snapshot() + JSON.stringify(result, replacer);
+  };
+
+  // Presence tests: one per distinct optional anchor. Materialize from the
+  // outermost containing anchor so required siblings of any enclosing optional
+  // object are populated -- otherwise a nested anchor would yield a partial
+  // parent object. Anchors whose inner type produces no leaves (e.g.
+  // `z.never().optional()`) are skipped: no valid populated state exists.
+  const seenAnchors = new Set<string>();
+  for (const anchor of anchors) {
+    if (anchor.length === 0) continue;
+    const key = anchor.join('.');
+    if (seenAnchors.has(key)) continue;
+    seenAnchors.add(key);
+    if (!leaves.some((l) => isPathPrefix(anchor, l.path))) continue;
+
+    const root = outermostAnchor(anchor, anchors)!;
+    const materialized = materializeSubtree(baseFixture, leaves, root, valuesA);
+    const present = applyOverride(materialized, key);
+    const absent = setNestedField(present, anchor, undefined);
+
+    if ((await runSnapshot(present)) === (await runSnapshot(absent))) {
+      deadFields.push(`${key} (presence)`);
+    }
+  }
+
   for (const leaf of leaves) {
-    const key = keys.get(leaf)!;
-    const leafType = getDefType(leaf.schema);
-    if (leafType === 'literal' || leafType === 'null') continue;
+    if (!isTestable(leaf)) continue;
+    const key = leaf.path.join('.');
 
-    const base = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
+    const anchor = leaf.optional ? outermostAnchor(leaf.path, anchors) : null;
+    const minimal = anchor ? materializeSubtree(baseFixture, leaves, anchor, valuesA) : baseFixture;
+    const base = applyOverride(minimal, key);
+    const mutated = setNestedField(base, leaf.path, valuesB.get(key));
 
-    let mutated = overrides?.[key] ? overrides[key](baseFixture) : baseFixture;
-    mutated = setNestedField(
-      mutated as Record<string, unknown>,
-      leaf.path,
-      valuesB.get(key),
-    ) as z.input<T>;
-
-    registry.clear();
-    const parsedBase = schema.parse(base) as any;
-    const resultBase = await (Array.isArray(parsedBase)
-      ? execute(...parsedBase)
-      : execute(parsedBase));
-    const snapshotBase = registry.snapshot() + JSON.stringify(resultBase, replacer);
-
-    registry.clear();
-    const parsedMutated = schema.parse(mutated) as any;
-    const resultMutated = await (Array.isArray(parsedMutated)
-      ? execute(...parsedMutated)
-      : execute(parsedMutated));
-    const snapshotMutated = registry.snapshot() + JSON.stringify(resultMutated, replacer);
-
-    if (snapshotBase === snapshotMutated) deadFields.push(key);
+    if ((await runSnapshot(base)) === (await runSnapshot(mutated))) {
+      deadFields.push(leaf.optional ? `${key} (value)` : key);
+    }
   }
 
   if (deadFields.length > 0) {
