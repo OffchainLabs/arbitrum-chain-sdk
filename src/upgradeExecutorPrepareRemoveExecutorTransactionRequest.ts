@@ -71,17 +71,21 @@ export async function upgradeExecutorPrepareRemoveExecutorTransactionRequest<
     ],
   });
 
+  if (publicClient.chain === undefined) {
+    throw new Error(
+      '[upgradeExecutorPrepareRemoveExecutorTransactionRequest] publicClient.chain is undefined',
+    );
+  }
+  const chain: Chain = publicClient.chain;
+
   // 2. Prepare the transaction (must be called through the UpgradeExecutor)
-  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
-    chain: publicClient.chain,
+    chain,
+    type: 'eip1559',
     to: upgradeExecutorAddress,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
-      args: [
-        upgradeExecutorAddress, // target
-        revokeRoleCalldata, // targetCallData
-      ],
+      args: [upgradeExecutorAddress, revokeRoleCalldata],
     }),
     account: executorAccountAddress,
   });

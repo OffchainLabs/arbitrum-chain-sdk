@@ -31,16 +31,27 @@ export function createRollupEncodeFunctionData<
   rollupCreatorVersion: TRollupCreatorVersion = 'v3.2' as TRollupCreatorVersion,
 ): Hex {
   if (rollupCreatorVersion === 'v2.1') {
-    return encodeFunctionData({
-      abi: rollupCreatorV2Dot1ABI,
-      functionName: 'createRollup',
-      args: args as CreateRollupFunctionInputs<'v2.1'>,
-    });
+    // System boundary: the runtime tag matches 'v2.1', so the decoded-in args tuple is the
+    // v2.1 tuple shape. TS can't verify this through the generic `TRollupCreatorVersion`
+    // (microsoft/TypeScript#30581 — correlated-union limitation), so we specialize locally.
+    return encodeV2Dot1(args as CreateRollupFunctionInputs<'v2.1'>);
   }
 
+  return encodeV3Dot2(args as CreateRollupFunctionInputs<'v3.2'>);
+}
+
+function encodeV2Dot1(args: CreateRollupFunctionInputs<'v2.1'>): Hex {
+  return encodeFunctionData({
+    abi: rollupCreatorV2Dot1ABI,
+    functionName: 'createRollup',
+    args,
+  });
+}
+
+function encodeV3Dot2(args: CreateRollupFunctionInputs<'v3.2'>): Hex {
   return encodeFunctionData({
     abi: rollupCreatorV3Dot2ABI,
     functionName: 'createRollup',
-    args: args as CreateRollupFunctionInputs<'v3.2'>,
+    args,
   });
 }

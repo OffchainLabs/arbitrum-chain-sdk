@@ -1,4 +1,11 @@
-import { Address, Chain, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
+import {
+  Address,
+  Chain,
+  PrepareTransactionRequestParameters,
+  PublicClient,
+  Transport,
+  encodeFunctionData,
+} from 'viem';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import {
   ActionParameters,
@@ -30,16 +37,23 @@ export async function buildSetIsBatchPoster<TChain extends Chain | undefined>(
   }: BuildSetIsBatchPosterParameters & { params: { enable: boolean } },
 ): Promise<BuildSetIsBatchPosterReturnType> {
   const { chainId } = validateParentChain(client);
+  if (client.chain === undefined) {
+    throw new Error('[buildSetIsBatchPoster] client.chain is undefined');
+  }
+  const chain: Chain = client.chain;
 
+  const encoded = encodeFunctionData({
+    abi: sequencerInboxABI,
+    functionName: 'setIsBatchPoster',
+    args: [params.batchPoster, params.enable],
+  });
   const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+    chain,
     account,
-    ...prepareUpgradeExecutorCallParameters({
+    type: 'eip1559',
+    ...prepareUpgradeExecutorCallParameters(encoded, {
       to: sequencerInboxAddress,
       upgradeExecutor,
-      args: [params.batchPoster, params.enable],
-      abi: sequencerInboxABI,
-      functionName: 'setIsBatchPoster',
     }),
   } satisfies PrepareTransactionRequestParameters);
 

@@ -67,26 +67,10 @@ import {
   upgradeExecutorPrepareRemoveExecutorTransactionRequest,
   UpgradeExecutorPrepareRemoveExecutorTransactionRequestParams,
 } from './upgradeExecutorPrepareRemoveExecutorTransactionRequest';
-import {
-  arbOwnerPrepareFunctionData,
-  ArbOwnerPrepareFunctionDataParameters,
-} from './arbOwnerPrepareTransactionRequest';
 import { arbOwnerPublicActions } from './decorators/arbOwnerPublicActions';
 import { arbGasInfoPublicActions } from './decorators/arbGasInfoPublicActions';
-import {
-  arbAggregatorPrepareFunctionData,
-  ArbAggregatorPrepareFunctionDataParameters,
-} from './arbAggregatorPrepareTransactionRequest';
 import { arbAggregatorActions } from './decorators/arbAggregatorActions';
-import {
-  sequencerInboxPrepareFunctionData,
-  SequencerInboxPrepareFunctionDataParameters,
-} from './sequencerInboxPrepareTransactionRequest';
 import { sequencerInboxActions } from './decorators/sequencerInboxActions';
-import {
-  rollupAdminLogicPrepareFunctionData,
-  RollupAdminLogicPrepareFunctionDataParameters,
-} from './rollupAdminLogicPrepareTransactionRequest';
 import { rollupAdminLogicPublicActions } from './decorators/rollupAdminLogicPublicActions';
 
 import { ChainConfig, ChainConfigArbitrumParams } from './types/ChainConfig';
@@ -198,22 +182,14 @@ import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
 
 export {
   arbOwnerPublicActions,
-  arbOwnerPrepareFunctionData,
-  ArbOwnerPrepareFunctionDataParameters,
   //
   arbGasInfoPublicActions,
   //
   arbAggregatorActions,
-  arbAggregatorPrepareFunctionData,
-  ArbAggregatorPrepareFunctionDataParameters,
   //
   sequencerInboxActions,
-  sequencerInboxPrepareFunctionData,
-  SequencerInboxPrepareFunctionDataParameters,
   //
   rollupAdminLogicPublicActions,
-  rollupAdminLogicPrepareFunctionData,
-  RollupAdminLogicPrepareFunctionDataParameters,
   //
   createRollupEncodeFunctionData,
   //

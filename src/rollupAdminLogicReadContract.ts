@@ -1,42 +1,53 @@
 import {
   Address,
   Chain,
-  GetFunctionArgs,
+  ContractFunctionArgs,
+  ContractFunctionName,
   PublicClient,
-  ReadContractParameters,
   ReadContractReturnType,
   Transport,
 } from 'viem';
 import { RollupAdminLogic__factory } from '@arbitrum/sdk/dist/lib/abi/factories/RollupAdminLogic__factory';
 
-import { GetFunctionName } from './types/utils';
-import { rollupABI } from './contracts/Rollup';
+export type RollupAdminLogicAbi = typeof RollupAdminLogic__factory.abi;
+export type RollupAdminLogicReadFunctionName = ContractFunctionName<
+  RollupAdminLogicAbi,
+  'pure' | 'view'
+>;
 
-export type RollupAdminLogicAbi = typeof rollupABI;
-export type RollupAdminLogicFunctionName = GetFunctionName<RollupAdminLogicAbi>;
+type RollupAdminLogicReadFunctionCall = {
+  [K in RollupAdminLogicReadFunctionName]: readonly [] extends ContractFunctionArgs<
+    RollupAdminLogicAbi,
+    'pure' | 'view',
+    K
+  >
+    ? {
+        functionName: K;
+        args?: ContractFunctionArgs<RollupAdminLogicAbi, 'pure' | 'view', K>;
+      }
+    : {
+        functionName: K;
+        args: ContractFunctionArgs<RollupAdminLogicAbi, 'pure' | 'view', K>;
+      };
+}[RollupAdminLogicReadFunctionName];
 
-export type RollupAdminLogicReadContractParameters<
-  TFunctionName extends RollupAdminLogicFunctionName,
-> = {
-  functionName: TFunctionName;
+export type RollupAdminLogicReadContractParameters = RollupAdminLogicReadFunctionCall & {
   rollup: Address;
-} & GetFunctionArgs<RollupAdminLogicAbi, TFunctionName>;
+};
 
-export type RollupAdminLogicReadContractReturnType<
-  TFunctionName extends RollupAdminLogicFunctionName,
-> = ReadContractReturnType<RollupAdminLogicAbi, TFunctionName>;
+export type RollupAdminLogicReadContractReturnType = ReadContractReturnType<
+  RollupAdminLogicAbi,
+  RollupAdminLogicReadFunctionName
+>;
 
-export function rollupAdminLogicReadContract<
-  TChain extends Chain | undefined,
-  TFunctionName extends RollupAdminLogicFunctionName,
->(
+export function rollupAdminLogicReadContract<TChain extends Chain | undefined>(
   client: PublicClient<Transport, TChain>,
-  params: RollupAdminLogicReadContractParameters<TFunctionName>,
-): Promise<RollupAdminLogicReadContractReturnType<TFunctionName>> {
+  params: RollupAdminLogicReadContractParameters,
+): Promise<RollupAdminLogicReadContractReturnType> {
   return client.readContract({
     address: params.rollup,
     abi: RollupAdminLogic__factory.abi,
     functionName: params.functionName,
     args: params.args,
-  } as unknown as ReadContractParameters<RollupAdminLogicAbi, TFunctionName>);
+  });
 }

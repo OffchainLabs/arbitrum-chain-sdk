@@ -1,102 +1,107 @@
+import type { AbiStateMutability } from 'abitype';
 import {
   PublicClient,
   encodeFunctionData,
-  EncodeFunctionDataParameters,
   Address,
   Transport,
   Chain,
+  ContractFunctionArgs,
+  ContractFunctionName,
 } from 'viem';
 
 import { sequencerInboxABI } from './contracts/SequencerInbox';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
-import { GetFunctionName } from './types/utils';
+import { PrepareTransactionRequestReturnTypeWithChainId } from './types/Actions';
 import { validateParentChain } from './types/ParentChain';
 
 export type SequencerInboxAbi = typeof sequencerInboxABI;
-export type SequencerInboxFunctionName = GetFunctionName<SequencerInboxAbi>;
+// SequencerInbox callers go through write entry points; narrow `TFunctionName` to the
+// `nonpayable | payable` subset — viem v2 constrains contract-function generics to the
+// function names that match the requested `stateMutability`.
+type SequencerInboxWriteMutability = 'nonpayable' | 'payable';
+export type SequencerInboxFunctionName = ContractFunctionName<
+  SequencerInboxAbi,
+  SequencerInboxWriteMutability
+>;
 
-type SequencerInboxEncodeFunctionDataParameters<TFunctionName extends SequencerInboxFunctionName> =
-  EncodeFunctionDataParameters<SequencerInboxAbi, TFunctionName>;
+// Distributed union over every SequencerInbox write function. Each branch carries a
+// concrete literal `functionName` + its matching `args` tuple so non-generic helpers that
+// take this union can hand the fields to viem directly — viem's own correlated-union
+// generic then resolves per-branch (microsoft/TypeScript#30581 is only triggered when
+// `functionName` itself is still a generic).
+type SequencerInboxFunctionCall = {
+  [K in SequencerInboxFunctionName]: {
+    functionName: K;
+    args: ContractFunctionArgs<SequencerInboxAbi, AbiStateMutability, K>;
+  };
+}[SequencerInboxFunctionName];
 
-function sequencerInboxEncodeFunctionData<TFunctionName extends SequencerInboxFunctionName>({
-  abi,
-  functionName,
-  args,
-}: SequencerInboxEncodeFunctionDataParameters<TFunctionName>) {
-  return encodeFunctionData({
-    abi,
-    functionName,
-    args,
-  });
-}
-
-export type SequencerInboxPrepareFunctionDataParameters<
-  TFunctionName extends SequencerInboxFunctionName,
-> = SequencerInboxEncodeFunctionDataParameters<TFunctionName> & {
+// Public parameter shape for `sequencerInboxPrepareFunctionData`. Accepts the distributed
+// union directly so callers get concrete-literal inference per branch.
+export type SequencerInboxPrepareFunctionDataParameters = SequencerInboxFunctionCall & {
   upgradeExecutor: Address | false;
   abi: SequencerInboxAbi;
   sequencerInbox: Address;
 };
 
-export function sequencerInboxPrepareFunctionData<TFunctionName extends SequencerInboxFunctionName>(
-  params: SequencerInboxPrepareFunctionDataParameters<TFunctionName>,
+export function sequencerInboxPrepareFunctionData(
+  params: SequencerInboxPrepareFunctionDataParameters,
 ) {
-  const { upgradeExecutor } = params;
+  const encoded = encodeFunctionData({
+    abi: params.abi,
+    functionName: params.functionName,
+    args: params.args,
+  });
 
-  if (!upgradeExecutor) {
+  if (!params.upgradeExecutor) {
     return {
       to: params.sequencerInbox,
-      data: sequencerInboxEncodeFunctionData(
-        params as SequencerInboxEncodeFunctionDataParameters<TFunctionName>,
-      ),
+      data: encoded,
       value: BigInt(0),
     };
   }
 
   return {
-    to: upgradeExecutor,
+    to: params.upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
       args: [
         params.sequencerInbox, // target
-        sequencerInboxEncodeFunctionData(
-          params as SequencerInboxEncodeFunctionDataParameters<TFunctionName>,
-        ), // targetCallData
+        encoded, // targetCallData
       ],
     }),
     value: BigInt(0),
   };
 }
 
-export type SequencerInboxPrepareTransactionRequestParameters<
-  TFunctionName extends SequencerInboxFunctionName,
-> = Omit<SequencerInboxPrepareFunctionDataParameters<TFunctionName>, 'abi'> & {
+export type SequencerInboxPrepareTransactionRequestParameters = SequencerInboxFunctionCall & {
+  upgradeExecutor: Address | false;
+  sequencerInbox: Address;
   account: Address;
 };
 
-export async function sequencerInboxPrepareTransactionRequest<
-  TFunctionName extends SequencerInboxFunctionName,
-  TTransport extends Transport = Transport,
-  TChain extends Chain | undefined = Chain | undefined,
->(
-  client: PublicClient<TTransport, TChain>,
-  params: SequencerInboxPrepareTransactionRequestParameters<TFunctionName>,
-) {
+export async function sequencerInboxPrepareTransactionRequest<TChain extends Chain | undefined>(
+  client: PublicClient<Transport, TChain>,
+  params: SequencerInboxPrepareTransactionRequestParameters,
+): Promise<PrepareTransactionRequestReturnTypeWithChainId> {
   const { chainId } = validateParentChain(client);
+  if (client.chain === undefined) {
+    throw new Error('[sequencerInboxPrepareTransactionRequest] client.chain is undefined');
+  }
+  const chain: Chain = client.chain;
 
-  // params is extending SequencerInboxPrepareFunctionDataParameters, it's safe to cast
   const { to, data, value } = sequencerInboxPrepareFunctionData({
     ...params,
     abi: sequencerInboxABI,
-  } as unknown as SequencerInboxPrepareFunctionDataParameters<TFunctionName>);
+  });
 
-  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+    chain,
     to,
     data,
     value,
     account: params.account,
+    type: 'eip1559',
   });
 
   return { ...request, chainId };

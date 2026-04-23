@@ -1,4 +1,10 @@
-import { Chain, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
+import {
+  Chain,
+  PrepareTransactionRequestParameters,
+  PublicClient,
+  Transport,
+  encodeFunctionData,
+} from 'viem';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import {
   ActionParameters,
@@ -32,16 +38,23 @@ export async function buildSetMaxTimeVariation<TChain extends Chain | undefined>
   }: BuildSetMaxTimeVariationParameters,
 ): Promise<BuildSetMaxTimeVariationReturnType> {
   const { chainId } = validateParentChain(client);
+  if (client.chain === undefined) {
+    throw new Error('[buildSetMaxTimeVariation] client.chain is undefined');
+  }
+  const chain: Chain = client.chain;
 
+  const encoded = encodeFunctionData({
+    abi: sequencerInboxABI,
+    functionName: 'setMaxTimeVariation',
+    args: [params],
+  });
   const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+    chain,
     account,
-    ...prepareUpgradeExecutorCallParameters({
+    type: 'eip1559',
+    ...prepareUpgradeExecutorCallParameters(encoded, {
       to: sequencerInboxAddress,
       upgradeExecutor,
-      args: [params],
-      abi: sequencerInboxABI,
-      functionName: 'setMaxTimeVariation',
     }),
   } satisfies PrepareTransactionRequestParameters);
 

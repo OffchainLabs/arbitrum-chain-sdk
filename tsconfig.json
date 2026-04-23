@@ -1,14 +1,15 @@
 {
   "include": ["./src/**/*"],
-  "exclude": ["./src/dist/**/*"],
+  "exclude": ["./src/dist/**/*", "./node_modules/**/*", "**/node_modules/**/*"],
   "compilerOptions": {
     "strict": true,
     "incremental": true,
 
-    "lib": ["ES2021"],
+    "lib": ["ES2021", "DOM"],
     "target": "ES2021",
 
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
+    "module": "preserve",
 
     // JavaScript support
     "allowJs": false,

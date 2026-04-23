@@ -1,26 +1,44 @@
-import { Chain, GetFunctionArgs, PublicClient, ReadContractReturnType, Transport } from 'viem';
+import {
+  Chain,
+  ContractFunctionArgs,
+  ContractFunctionName,
+  PublicClient,
+  ReadContractReturnType,
+  Transport,
+} from 'viem';
 
 import { arbAggregatorABI, arbAggregatorAddress } from './contracts/ArbAggregator';
-import { GetFunctionName } from './types/utils';
 
 export type ArbAggregatorAbi = typeof arbAggregatorABI;
-export type ArbAggregatorFunctionName = GetFunctionName<ArbAggregatorAbi>;
+export type ArbAggregatorReadFunctionName = ContractFunctionName<ArbAggregatorAbi, 'pure' | 'view'>;
 
-export type ArbAggregatorReadContractParameters<TFunctionName extends ArbAggregatorFunctionName> = {
-  functionName: TFunctionName;
-} & GetFunctionArgs<ArbAggregatorAbi, TFunctionName>;
+type ArbAggregatorReadFunctionCall = {
+  [K in ArbAggregatorReadFunctionName]: readonly [] extends ContractFunctionArgs<
+    ArbAggregatorAbi,
+    'pure' | 'view',
+    K
+  >
+    ? {
+        functionName: K;
+        args?: ContractFunctionArgs<ArbAggregatorAbi, 'pure' | 'view', K>;
+      }
+    : {
+        functionName: K;
+        args: ContractFunctionArgs<ArbAggregatorAbi, 'pure' | 'view', K>;
+      };
+}[ArbAggregatorReadFunctionName];
 
-export type ArbAggregatorReadContractReturnType<TFunctionName extends ArbAggregatorFunctionName> =
-  ReadContractReturnType<ArbAggregatorAbi, TFunctionName>;
+export type ArbAggregatorReadContractParameters = ArbAggregatorReadFunctionCall;
 
-export function arbAggregatorReadContract<
-  TChain extends Chain | undefined,
-  TFunctionName extends ArbAggregatorFunctionName,
->(
+export type ArbAggregatorReadContractReturnType = ReadContractReturnType<
+  ArbAggregatorAbi,
+  ArbAggregatorReadFunctionName
+>;
+
+export function arbAggregatorReadContract<TChain extends Chain | undefined>(
   client: PublicClient<Transport, TChain>,
-  params: ArbAggregatorReadContractParameters<TFunctionName>,
-): Promise<ArbAggregatorReadContractReturnType<TFunctionName>> {
-  // @ts-expect-error -- todo: fix viem type issue
+  params: ArbAggregatorReadContractParameters,
+): Promise<ArbAggregatorReadContractReturnType> {
   return client.readContract({
     address: arbAggregatorAddress,
     abi: arbAggregatorABI,

@@ -214,7 +214,6 @@ export function testHelper_createCustomParentChain(params?: { id?: number }) {
   return {
     id: chainId,
     name: `Custom Parent Chain (${chainId})`,
-    network: `custom-parent-chain-${chainId}`,
     nativeCurrency: {
       name: 'Ether',
       symbol: 'ETH',

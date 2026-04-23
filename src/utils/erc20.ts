@@ -1,4 +1,12 @@
-import { Address, PublicClient, Transport, Chain, WalletClient, encodeFunctionData } from 'viem';
+import {
+  Account,
+  Address,
+  PublicClient,
+  Transport,
+  Chain,
+  WalletClient,
+  encodeFunctionData,
+} from 'viem';
 
 import { erc20ABI } from '../contracts/ERC20';
 
@@ -25,13 +33,19 @@ export async function approvePrepareTransactionRequest<TChain extends Chain | un
   amount,
   publicClient,
 }: ApprovePrepareTransactionRequestProps<TChain>) {
-  // @ts-expect-error -- todo: fix viem type issue
+  if (publicClient.chain === undefined) {
+    throw new Error(
+      '[utils/erc20::approvePrepareTransactionRequest] publicClient.chain is undefined',
+    );
+  }
+  const chain: Chain = publicClient.chain;
   return await publicClient.prepareTransactionRequest({
-    chain: publicClient.chain,
+    chain,
     to: address,
     data: approveEncodeFunctionData({ spender, amount }),
     value: BigInt(0),
     account: owner,
+    type: 'eip1559',
   });
 }
 
@@ -40,33 +54,32 @@ export type ApproveProps<TChain extends Chain | undefined> = {
   spender: Address;
   amount: bigint;
   publicClient: PublicClient<Transport, TChain>;
-  walletClient: WalletClient;
+  walletClient: WalletClient<Transport, Chain, Account>;
 };
 
-export async function approve<TChain extends Chain | undefined>({
+export async function approve({
   address,
   spender,
   amount,
   publicClient,
   walletClient,
-}: ApproveProps<TChain>) {
-  const account = walletClient.account?.address;
+}: ApproveProps<Chain | undefined>) {
+  const account = walletClient.account;
 
   if (typeof account === 'undefined') {
     throw new Error('[utils/erc20::approve] account is undefined');
   }
 
-  // @ts-expect-error -- todo: fix viem type issue
-  const { request } = await publicClient.simulateContract({
-    address: address,
+  const hash = await walletClient.writeContract({
+    address,
     abi: erc20ABI,
     functionName: 'approve',
     args: [spender, amount],
     account,
+    chain: walletClient.chain,
   });
 
-  const hash = await walletClient.writeContract(request);
-  return await publicClient.waitForTransactionReceipt({ hash: hash });
+  return await publicClient.waitForTransactionReceipt({ hash });
 }
 
 export type FetchAllowanceProps<TChain extends Chain | undefined> = {

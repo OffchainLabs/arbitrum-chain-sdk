@@ -1,7 +1,19 @@
-import { EIP1193RequestFn, Hex, createPublicClient, createTransport, http, padHex } from 'viem';
+import {
+  EIP1193RequestFn,
+  Hex,
+  createPublicClient,
+  createTransport,
+  encodeAbiParameters,
+  http,
+  padHex,
+  toEventSelector,
+} from 'viem';
 import { arbitrum, arbitrumSepolia } from 'viem/chains';
 import { it, expect, vi, describe } from 'vitest';
 import { getKeysets } from './getKeysets';
+
+const setValidKeysetSelector = toEventSelector('SetValidKeyset(bytes32,bytes)');
+const invalidateKeysetSelector = toEventSelector('InvalidateKeyset(bytes32)');
 
 const client = createPublicClient({
   chain: arbitrum,
@@ -17,23 +29,21 @@ const mockEventCommon = {
   logIndex: 0,
   data: '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000013300000000000000010000000000000001012160184f37a4eaea75e8252d38d5b3f0298703794d58f38b3551104ce0c2472aea78f53ccd07fdb7b1c5b08444d2be9025d519ccc21d12fd9f8b67c50615694b626aaec898b9c1e613b0c17aac28539ee667a98e08d734193de9b2e612b4b082439506aa6ff965bfff2e8d3e6ade9e038412d767778850c717b388fb17e40c359c8ef3b99b4e7aee94b88f7d96c09e8d522a0f24d90efa7db34f42cefa18ae1ab1e08f780e613e0baf8e28c322a0d52b915fcff3e143a9daa7c2ba525029066f8230120e9803fd21d332015b3ec22ae180cbd1f3cf89561a0c5bd914dc5f746d692cefcb4762a012af0fe55c1148f138221a196fbec9942400b7772ce371c8ccc8ed0cd3926398cd62f1b900758b82591174295eb7ac00555d40051ad280ceb2cfa700000000000000000000000000',
 } as const;
-function mockSetValidKeysetEvent(keysetHash?: Hex, keysetBytes?: Hex) {
+function mockSetValidKeysetEvent(keysetHash: Hex, keysetBytes: Hex) {
+  // Raw RPC log shape: topics[0] is the event selector, topics[1] is the indexed
+  // `keysetHash`, and `data` encodes the non-indexed `keysetBytes` payload. viem v2's
+  // `parseEventLogs` decodes from this shape — the decoded fixture from v1 no longer works.
   return {
     ...mockEventCommon,
-    args: {
-      keysetHash,
-      keysetBytes,
-    },
-    eventName: 'SetValidKeyset',
+    topics: [setValidKeysetSelector, keysetHash],
+    data: encodeAbiParameters([{ type: 'bytes' }], [keysetBytes]),
   };
 }
 function mockInvalidateKeysetHashEvent(keysetHash: Hex) {
   return {
     ...mockEventCommon,
-    args: {
-      keysetHash,
-    },
-    eventName: 'InvalidateKeyset',
+    topics: [invalidateKeysetSelector, keysetHash],
+    data: '0x' as Hex,
   };
 }
 function mockData({

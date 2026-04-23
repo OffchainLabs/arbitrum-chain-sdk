@@ -19,17 +19,18 @@ export async function setValidKeysetPrepareTransactionRequest<TChain extends Cha
   publicClient,
 }: SetValidKeysetPrepareTransactionRequestParams<TChain>) {
   const { chainId } = validateParentChain(publicClient);
+  if (publicClient.chain === undefined) {
+    throw new Error('[setValidKeysetPrepareTransactionRequest] publicClient.chain is undefined');
+  }
+  const chain: Chain = publicClient.chain;
 
-  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
-    chain: publicClient.chain,
+    chain,
+    type: 'eip1559',
     to: coreContracts.upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
-      args: [
-        coreContracts.sequencerInbox, // target
-        setValidKeysetEncodeFunctionData(keyset), // targetCallData
-      ],
+      args: [coreContracts.sequencerInbox, setValidKeysetEncodeFunctionData(keyset)],
     }),
     account,
   });

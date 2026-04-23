@@ -1,5 +1,6 @@
 import { Address, PublicClient, Transport, Chain, zeroAddress } from 'viem';
 
+import { PrepareTransactionRequestReturnTypeWithChainId } from './types/Actions';
 import { defaults } from './createRollupDefaults';
 import { createRollupGetCallValue } from './createRollupGetCallValue';
 import { createRollupGetMaxDataSize } from './createRollupGetMaxDataSize';
@@ -57,7 +58,7 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
   gasOverrides,
   rollupCreatorAddressOverride,
   rollupCreatorVersion = 'v3.2',
-}: CreateRollupPrepareTransactionRequestParams<TChain>) {
+}: CreateRollupPrepareTransactionRequestParams<TChain>): Promise<PrepareTransactionRequestReturnTypeWithChainId> {
   const { chainId: parentChainId, isCustom: parentChainIsCustom } =
     validateParentChain(publicClient);
 
@@ -146,9 +147,14 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
   const paramsWithDefaults = { ...defaults, ...params, maxDataSize };
   const createRollupGetCallValueParams = { ...paramsWithDefaults, account };
 
-  // @ts-expect-error -- todo: fix viem type issue
+  if (publicClient.chain === undefined) {
+    throw new Error('[createRollupPrepareTransactionRequest] publicClient.chain is undefined');
+  }
+  const chain: Chain = publicClient.chain;
+
   const request = await publicClient.prepareTransactionRequest({
-    chain: publicClient.chain,
+    chain,
+    type: 'eip1559',
     to: rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient, rollupCreatorVersion),
     data: createRollupEncodeFunctionData(
       [paramsWithDefaults] as CreateRollupFunctionInputs<RollupCreatorSupportedVersion>,

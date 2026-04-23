@@ -221,7 +221,6 @@ export async function createRollup<TChain extends Chain | undefined>({
   // from RPCs that use load balancing and caching. More information can be found here:
   // https://github.com/wevm/viem/issues/1056#issuecomment-1689800265 )
   const tx = createRollupPrepareTransaction(
-    // @ts-expect-error -- todo: fix viem type issue
     await parentChainPublicClient.getTransaction({ hash: txHash }),
   );
 

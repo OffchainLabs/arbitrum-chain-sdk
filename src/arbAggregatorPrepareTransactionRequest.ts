@@ -1,99 +1,83 @@
+import type { AbiStateMutability } from 'abitype';
 import {
   PublicClient,
   encodeFunctionData,
-  EncodeFunctionDataParameters,
   Address,
   Chain,
   Transport,
+  ContractFunctionArgs,
+  ContractFunctionName,
 } from 'viem';
 
 import { arbAggregatorABI, arbAggregatorAddress } from './contracts/ArbAggregator';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
-import { GetFunctionName } from './types/utils';
+import { PrepareTransactionRequestReturnTypeWithChainId } from './types/Actions';
 
 type ArbAggregatorAbi = typeof arbAggregatorABI;
-export type ArbAggregatorPrepareTransactionRequestFunctionName = GetFunctionName<ArbAggregatorAbi>;
-export type ArbAggregatorEncodeFunctionDataParameters<
-  TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
-> = EncodeFunctionDataParameters<ArbAggregatorAbi, TFunctionName>;
+// ArbAggregator callers go through write entry points; narrow `TFunctionName` to the
+// `nonpayable | payable` subset — viem v2 constrains contract-function generics to the
+// function names that match the requested `stateMutability`.
+type ArbAggregatorWriteMutability = 'nonpayable' | 'payable';
+export type ArbAggregatorPrepareTransactionRequestFunctionName = ContractFunctionName<
+  ArbAggregatorAbi,
+  ArbAggregatorWriteMutability
+>;
 
-function arbAggregatorEncodeFunctionData<
-  TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
->({ functionName, abi, args }: ArbAggregatorEncodeFunctionDataParameters<TFunctionName>) {
-  return encodeFunctionData({
-    abi,
-    functionName,
-    args,
-  });
-}
-
-export type ArbAggregatorPrepareFunctionDataParameters<
-  TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
-> = ArbAggregatorEncodeFunctionDataParameters<TFunctionName> & {
-  upgradeExecutor: Address | false;
-  abi: ArbAggregatorAbi;
-};
-
-export function arbAggregatorPrepareFunctionData<
-  TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
->(params: ArbAggregatorPrepareFunctionDataParameters<TFunctionName>) {
-  const { upgradeExecutor } = params;
-
-  if (!upgradeExecutor) {
-    return {
-      to: arbAggregatorAddress,
-      data: arbAggregatorEncodeFunctionData(
-        params as ArbAggregatorEncodeFunctionDataParameters<TFunctionName>,
-      ),
-      value: BigInt(0),
-    };
-  }
-
-  return {
-    to: upgradeExecutor,
-    data: upgradeExecutorEncodeFunctionData({
-      functionName: 'executeCall',
-      args: [
-        arbAggregatorAddress, // target
-        arbAggregatorEncodeFunctionData(
-          params as ArbAggregatorEncodeFunctionDataParameters<TFunctionName>,
-        ), // targetCallData
-      ],
-    }),
-    value: BigInt(0),
+// Distributed union over every ArbAggregator write function. Each branch carries a
+// concrete literal `functionName` + its matching `args` tuple so non-generic helpers that
+// take this union can hand the fields to viem directly — viem's own correlated-union
+// generic then resolves per-branch (microsoft/TypeScript#30581 is only triggered when
+// `functionName` itself is still a generic).
+type ArbAggregatorFunctionCall = {
+  [K in ArbAggregatorPrepareTransactionRequestFunctionName]: {
+    functionName: K;
+    args: ContractFunctionArgs<ArbAggregatorAbi, AbiStateMutability, K>;
   };
-}
+}[ArbAggregatorPrepareTransactionRequestFunctionName];
 
-export type ArbAggregatorPrepareTransactionRequestParameters<
-  TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
-> = Omit<ArbAggregatorPrepareFunctionDataParameters<TFunctionName>, 'abi'> & {
+export type ArbAggregatorPrepareTransactionRequestParameters = ArbAggregatorFunctionCall & {
+  upgradeExecutor: Address | false;
   account: Address;
 };
-export async function arbAggregatorPrepareTransactionRequest<
-  TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
-  TChain extends Chain | undefined,
->(
+
+export async function arbAggregatorPrepareTransactionRequest<TChain extends Chain | undefined>(
   client: PublicClient<Transport, TChain>,
-  params: ArbAggregatorPrepareTransactionRequestParameters<TFunctionName>,
-) {
+  params: ArbAggregatorPrepareTransactionRequestParameters,
+): Promise<PrepareTransactionRequestReturnTypeWithChainId> {
   if (typeof client.chain === 'undefined') {
     throw new Error('[arbAggregatorPrepareTransactionRequest] client.chain is undefined');
   }
+  const chain: Chain = client.chain;
 
-  // params is extending ArbAggregatorPrepareFunctionDataParameters, it's safe to cast
-  const { to, data, value } = arbAggregatorPrepareFunctionData({
-    ...params,
+  const encoded = encodeFunctionData({
     abi: arbAggregatorABI,
-  } as unknown as ArbAggregatorPrepareFunctionDataParameters<TFunctionName>);
+    functionName: params.functionName,
+    args: params.args,
+  });
 
-  // @ts-expect-error -- todo: fix viem type issue
+  const { to, data, value } = params.upgradeExecutor
+    ? {
+        to: params.upgradeExecutor,
+        data: upgradeExecutorEncodeFunctionData({
+          functionName: 'executeCall',
+          args: [arbAggregatorAddress, encoded],
+        }),
+        value: BigInt(0),
+      }
+    : {
+        to: arbAggregatorAddress,
+        data: encoded,
+        value: BigInt(0),
+      };
+
   const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+    chain,
     to,
     data,
     value,
     account: params.account,
+    type: 'eip1559',
   });
 
-  return { ...request, chainId: client.chain.id };
+  return { ...request, chainId: chain.id };
 }

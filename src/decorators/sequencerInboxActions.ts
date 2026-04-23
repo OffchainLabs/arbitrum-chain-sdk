@@ -1,4 +1,5 @@
-import { Transport, Chain, PrepareTransactionRequestReturnType, PublicClient, Address } from 'viem';
+import { Transport, Chain, PublicClient, Address } from 'viem';
+import { PrepareTransactionRequestReturnTypeWithChainId } from '../types/Actions';
 
 import {
   sequencerInboxReadContract,
@@ -6,67 +7,37 @@ import {
   SequencerInboxReadContractReturnType,
 } from '../sequencerInboxReadContract';
 import {
-  SequencerInboxFunctionName,
   sequencerInboxPrepareTransactionRequest,
   SequencerInboxPrepareTransactionRequestParameters,
 } from '../sequencerInboxPrepareTransactionRequest';
 
-type SequencerInboxReadContractArgs<
-  TSequencerInbox extends Address | undefined,
-  TFunctionName extends SequencerInboxFunctionName,
-> = TSequencerInbox extends Address
-  ? Omit<SequencerInboxReadContractParameters<TFunctionName>, 'sequencerInbox'> & {
-      sequencerInbox?: Address;
-    }
-  : SequencerInboxReadContractParameters<TFunctionName>;
-type SequencerInboxPrepareTransactionRequestArgs<
-  TSequencerInbox extends Address | undefined,
-  TFunctionName extends SequencerInboxFunctionName,
-> = TSequencerInbox extends Address
-  ? Omit<SequencerInboxPrepareTransactionRequestParameters<TFunctionName>, 'sequencerInbox'> & {
-      sequencerInbox?: Address;
-    }
-  : SequencerInboxPrepareTransactionRequestParameters<TFunctionName>;
+// Distribute `Omit<..., 'sequencerInbox'>` over a union so every branch keeps its
+// discriminant after the conditional type.
+type DistributeOmitSequencerInbox<T> = T extends unknown ? Omit<T, 'sequencerInbox'> : never;
 
-export type SequencerInboxActions<
-  TSequencerInbox extends Address | undefined,
-  TChain extends Chain | undefined = Chain | undefined,
-> = {
-  sequencerInboxReadContract: <TFunctionName extends SequencerInboxFunctionName>(
-    args: SequencerInboxReadContractArgs<TSequencerInbox, TFunctionName>,
-  ) => Promise<SequencerInboxReadContractReturnType<TFunctionName>>;
+type SequencerInboxReadContractArgs<TSequencerInbox extends Address | undefined> =
+  TSequencerInbox extends Address
+    ? DistributeOmitSequencerInbox<SequencerInboxReadContractParameters> & {
+        sequencerInbox?: Address;
+      }
+    : SequencerInboxReadContractParameters;
 
-  sequencerInboxPrepareTransactionRequest: <TFunctionName extends SequencerInboxFunctionName>(
-    args: SequencerInboxPrepareTransactionRequestArgs<TSequencerInbox, TFunctionName>,
-  ) => Promise<PrepareTransactionRequestReturnType<TChain> & { chainId: number }>;
+type SequencerInboxPrepareTransactionRequestArgs<TSequencerInbox extends Address | undefined> =
+  TSequencerInbox extends Address
+    ? DistributeOmitSequencerInbox<SequencerInboxPrepareTransactionRequestParameters> & {
+        sequencerInbox?: Address;
+      }
+    : SequencerInboxPrepareTransactionRequestParameters;
+
+export type SequencerInboxActions<TSequencerInbox extends Address | undefined> = {
+  sequencerInboxReadContract: (
+    args: SequencerInboxReadContractArgs<TSequencerInbox>,
+  ) => Promise<SequencerInboxReadContractReturnType>;
+
+  sequencerInboxPrepareTransactionRequest: (
+    args: SequencerInboxPrepareTransactionRequestArgs<TSequencerInbox>,
+  ) => Promise<PrepareTransactionRequestReturnTypeWithChainId>;
 };
-
-/**
- * Set of actions that can be performed on the sequencerInbox contract through wagmi public client
- *
- * @param {Object} sequencerInbox - Address of the sequencerInbox core contract
- * User can still overrides sequencerInbox address,
- * by passing it as an argument to sequencerInboxReadContract/sequencerInboxPrepareTransactionRequest calls
- *
- * @returns {Function} sequencerInboxActionsWithSequencerInbox - Function passed to client.extends() to extend the public client
- *
- * @example
- * const client = createPublicClient({
- *   chain: arbitrumOne,
- *   transport: http(),
- * }).extend(sequencerInboxActions(coreContracts.sequencerInbox));
- *
- * // SequencerInbox is set to `coreContracts.sequencerInbox` for every call
- * client.sequencerInboxReadContract({
- *   functionName: 'inboxAccs',
- * });
- *
- * // Overriding sequencerInbox address for this call only
- * client.sequencerInboxReadContract({
- *   functionName: 'inboxAccs',
- *   sequencerInbox: contractAddress.anotherSequencerInbox
- * });
- */
 
 export function sequencerInboxActions<
   TParams extends { sequencerInbox?: Address },
@@ -75,25 +46,20 @@ export function sequencerInboxActions<
 >({ sequencerInbox }: TParams) {
   return function sequencerInboxActionsWithSequencerInbox(
     client: PublicClient<TTransport, TChain>,
-  ) {
-    const sequencerInboxExtensions: SequencerInboxActions<TParams['sequencerInbox'], TChain> = {
-      sequencerInboxReadContract: <TFunctionName extends SequencerInboxFunctionName>(
-        args: SequencerInboxReadContractArgs<TParams['sequencerInbox'], TFunctionName>,
-      ) => {
+  ): SequencerInboxActions<TParams['sequencerInbox']> {
+    return {
+      sequencerInboxReadContract: (args) => {
         return sequencerInboxReadContract(client, {
           ...args,
-          sequencerInbox: args.sequencerInbox || sequencerInbox,
-        } as SequencerInboxReadContractParameters<TFunctionName>);
+          sequencerInbox: (args.sequencerInbox ?? sequencerInbox) as Address,
+        });
       },
-      sequencerInboxPrepareTransactionRequest: <TFunctionName extends SequencerInboxFunctionName>(
-        args: SequencerInboxPrepareTransactionRequestArgs<TParams['sequencerInbox'], TFunctionName>,
-      ) => {
+      sequencerInboxPrepareTransactionRequest: (args) => {
         return sequencerInboxPrepareTransactionRequest(client, {
           ...args,
-          sequencerInbox: args.sequencerInbox || sequencerInbox,
-        } as SequencerInboxPrepareTransactionRequestParameters<TFunctionName>);
+          sequencerInbox: (args.sequencerInbox ?? sequencerInbox) as Address,
+        });
       },
     };
-    return sequencerInboxExtensions;
   };
 }

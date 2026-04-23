@@ -1,5 +1,6 @@
 import { Address, PublicClient, Transport, Chain, encodeFunctionData, zeroAddress } from 'viem';
 
+import { PrepareTransactionRequestReturnTypeWithChainId } from './types/Actions';
 import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';
 import { rollupABI } from './contracts/Rollup';
 import { validateParentChain } from './types/ParentChain';
@@ -53,7 +54,7 @@ export async function createTokenBridgePrepareTransactionRequest<
   gasOverrides,
   retryableGasOverrides,
   tokenBridgeCreatorAddressOverride,
-}: CreateTokenBridgePrepareTransactionRequestParams<TParentChain>) {
+}: CreateTokenBridgePrepareTransactionRequestParams<TParentChain>): Promise<PrepareTransactionRequestReturnTypeWithChainId> {
   const { chainId } = validateParentChain(parentChainPublicClient);
 
   const tokenBridgeCreatorAddress =
@@ -157,9 +158,16 @@ export async function createTokenBridgePrepareTransactionRequest<
     maxSubmissionCostForContracts +
     maxGasPrice * (maxGasForContracts + maxGasForFactory);
 
-  // @ts-expect-error -- todo: fix viem type issue
+  if (parentChainPublicClient.chain === undefined) {
+    throw new Error(
+      '[createTokenBridgePrepareTransactionRequest] parentChainPublicClient.chain is undefined',
+    );
+  }
+  const chain: Chain = parentChainPublicClient.chain;
+
   const request = await parentChainPublicClient.prepareTransactionRequest({
-    chain: parentChainPublicClient.chain,
+    chain,
+    type: 'eip1559',
     to: tokenBridgeCreatorAddress,
     data: encodeFunctionData({
       abi: tokenBridgeCreatorABI,

@@ -1,26 +1,44 @@
-import { Chain, GetFunctionArgs, PublicClient, ReadContractReturnType, Transport } from 'viem';
+import {
+  Chain,
+  ContractFunctionArgs,
+  ContractFunctionName,
+  PublicClient,
+  ReadContractReturnType,
+  Transport,
+} from 'viem';
 
 import { arbGasInfoABI, arbGasInfoAddress } from './contracts/ArbGasInfo';
-import { GetFunctionName } from './types/utils';
 
 export type ArbGasInfoAbi = typeof arbGasInfoABI;
-export type ArbGasInfoFunctionName = GetFunctionName<ArbGasInfoAbi>;
+export type ArbGasInfoReadFunctionName = ContractFunctionName<ArbGasInfoAbi, 'pure' | 'view'>;
 
-export type ArbGasInfoReadContractParameters<TFunctionName extends ArbGasInfoFunctionName> = {
-  functionName: TFunctionName;
-} & GetFunctionArgs<ArbGasInfoAbi, TFunctionName>;
+type ArbGasInfoReadFunctionCall = {
+  [K in ArbGasInfoReadFunctionName]: readonly [] extends ContractFunctionArgs<
+    ArbGasInfoAbi,
+    'pure' | 'view',
+    K
+  >
+    ? {
+        functionName: K;
+        args?: ContractFunctionArgs<ArbGasInfoAbi, 'pure' | 'view', K>;
+      }
+    : {
+        functionName: K;
+        args: ContractFunctionArgs<ArbGasInfoAbi, 'pure' | 'view', K>;
+      };
+}[ArbGasInfoReadFunctionName];
 
-export type ArbGasInfoReadContractReturnType<TFunctionName extends ArbGasInfoFunctionName> =
-  ReadContractReturnType<ArbGasInfoAbi, TFunctionName>;
+export type ArbGasInfoReadContractParameters = ArbGasInfoReadFunctionCall;
 
-export function arbGasInfoReadContract<
-  TChain extends Chain | undefined,
-  TFunctionName extends ArbGasInfoFunctionName,
->(
+export type ArbGasInfoReadContractReturnType = ReadContractReturnType<
+  ArbGasInfoAbi,
+  ArbGasInfoReadFunctionName
+>;
+
+export function arbGasInfoReadContract<TChain extends Chain | undefined>(
   client: PublicClient<Transport, TChain>,
-  params: ArbGasInfoReadContractParameters<TFunctionName>,
-): Promise<ArbGasInfoReadContractReturnType<TFunctionName>> {
-  // @ts-expect-error -- todo: fix viem type issue
+  params: ArbGasInfoReadContractParameters,
+): Promise<ArbGasInfoReadContractReturnType> {
   return client.readContract({
     address: arbGasInfoAddress,
     abi: arbGasInfoABI,

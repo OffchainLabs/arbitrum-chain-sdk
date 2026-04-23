@@ -213,16 +213,20 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
     ],
   });
 
-  // @ts-expect-error -- todo: fix viem type issue
+  if (parentChainPublicClient.chain === undefined) {
+    throw new Error(
+      '[createTokenBridgePrepareSetWethGatewayTransactionRequest] parentChainPublicClient.chain is undefined',
+    );
+  }
+  const chain: Chain = parentChainPublicClient.chain;
+
   const request = await parentChainPublicClient.prepareTransactionRequest({
-    chain: parentChainPublicClient.chain,
+    chain,
+    type: 'eip1559',
     to: rollupCoreContracts.upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
-      args: [
-        tokenBridgeContracts.parentChainContracts.router, // target
-        setGatewaysCalldata, // targetCallData
-      ],
+      args: [tokenBridgeContracts.parentChainContracts.router, setGatewaysCalldata],
     }),
     value: deposit,
     account,

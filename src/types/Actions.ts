@@ -1,5 +1,11 @@
-import { Address, PrepareTransactionRequestReturnType } from 'viem';
+import { Address, Chain, PrepareTransactionRequestReturnType } from 'viem';
 import { Prettify } from './utils';
+
+// Pin the transaction type to `eip1559` so viem's v2 `PrepareTransactionRequestReturnType`
+// narrows its discriminated union to the EIP-1559 branch. This exposes the fee fields we
+// always populate (gas / maxFeePerGas / maxPriorityFeePerGas) and makes the result
+// assignable to `OneOf<TransactionSerializable>` for `signTransaction` / `sendRawTransaction`.
+type Eip1559Request = { type: 'eip1559' };
 
 type isEmptyObject<Args> = Args extends Record<string, never> ? true : false;
 
@@ -27,6 +33,22 @@ export type WithUpgradeExecutor<Args> = Args & {
   upgradeExecutor: Address | false;
 };
 
-export type PrepareTransactionRequestReturnTypeWithChainId = PrepareTransactionRequestReturnType & {
+// Return shape for all `*PrepareTransactionRequest` helpers in the SDK. The SDK always calls
+// these helpers with a bound `chain` and an `Address` account override (never a full Account),
+// which is why we pin the generics: `Chain` for the client chain, `undefined` for the hoisted
+// account, and `Address` for the account override. Narrowing `request` to `{ type: 'eip1559' }`
+// makes the result:
+//   1. Compatible with `signTransaction` / `sendRawTransaction` (assignable to
+//      `OneOf<TransactionSerializable>` via the EIP-1559 branch).
+//   2. Expose the `gas` / `maxFeePerGas` / `maxPriorityFeePerGas` fields for gas overrides.
+// The `chainId` override intersects with viem's optional `chainId` to make it required —
+// the SDK guarantees we populate it before returning.
+export type PrepareTransactionRequestReturnTypeWithChainId = PrepareTransactionRequestReturnType<
+  Chain,
+  undefined,
+  undefined,
+  Address,
+  Eip1559Request
+> & {
   chainId: number;
 };

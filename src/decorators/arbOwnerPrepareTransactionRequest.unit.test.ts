@@ -21,7 +21,7 @@ it('Infer parameters based on function name', async () => {
   await expect(
     client.arbOwnerPrepareTransactionRequest({
       functionName: 'addChainOwner',
-      // @ts-expect-error Args are missing
+      // @ts-expect-error empty args not assignable to addChainOwner's [Address]
       args: [],
       upgradeExecutor: false,
       account: randomAccount.address,
@@ -29,9 +29,9 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrow(AbiEncodingLengthMismatchError);
 
   await expect(
+    // @ts-expect-error [bigint] not assignable to addChainOwner's [Address]
     client.arbOwnerPrepareTransactionRequest({
       functionName: 'addChainOwner',
-      // @ts-expect-error Args are of the wrong type
       args: [10n],
       upgradeExecutor: false,
       account: randomAccount.address,
@@ -39,28 +39,25 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrow(InvalidAddressError);
 
   await expect(
-    client
-      // @ts-expect-error Args are required for `addChainOwner`
-      .arbOwnerPrepareTransactionRequest({
-        functionName: 'addChainOwner',
-        upgradeExecutor: false,
-        account: randomAccount.address,
-      }),
-  ).rejects.toThrow(AbiEncodingLengthMismatchError);
-
-  expectTypeOf<typeof client.arbOwnerPrepareTransactionRequest<'addChainOwner'>>().toBeCallableWith(
-    {
+    // @ts-expect-error args required for addChainOwner but missing
+    client.arbOwnerPrepareTransactionRequest({
       functionName: 'addChainOwner',
-      args: [randomAccount.address],
       upgradeExecutor: false,
       account: randomAccount.address,
-    },
-  );
+    }),
+  ).rejects.toThrow(AbiEncodingLengthMismatchError);
+
+  expectTypeOf(client.arbOwnerPrepareTransactionRequest).toBeCallableWith({
+    functionName: 'addChainOwner',
+    args: [randomAccount.address],
+    upgradeExecutor: false,
+    account: randomAccount.address,
+  });
 
   // Function doesn't exist
   await expect(
     client.arbOwnerReadContract({
-      // @ts-expect-error Function not available
+      // @ts-expect-error functionName 'notExisting' not in ABI
       functionName: 'notExisting',
     }),
   ).rejects.toThrowError(AbiFunctionNotFoundError);
