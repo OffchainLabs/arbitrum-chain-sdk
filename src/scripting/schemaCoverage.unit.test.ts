@@ -356,24 +356,27 @@ describe('schema coverage', () => {
   });
 
   it('deployNewChain example', async () => {
-    await assertSchemaCoverage(deployNewChainSchema, deployNewChainExecute, mocks, {
-      'params.keyset': (base) => ({
-        ...base,
-        params: {
-          ...base.params,
-          config: {
-            ...base.params.config,
-            chainConfig: {
-              chainId: 99999,
-              arbitrum: {
-                InitialChainOwner: '0x' + '1'.repeat(40),
-                DataAvailabilityCommittee: true,
+    await assertSchemaCoverage(deployNewChainSchema, deployNewChainExecute, mocks, [
+      {
+        matches: (k) => k === 'params.keyset',
+        apply: (base) => ({
+          ...base,
+          params: {
+            ...base.params,
+            config: {
+              ...base.params.config,
+              chainConfig: {
+                chainId: 99999,
+                arbitrum: {
+                  InitialChainOwner: '0x' + '1'.repeat(40),
+                  DataAvailabilityCommittee: true,
+                },
               },
             },
           },
-        },
-      }),
-    });
+        }),
+      },
+    ]);
   });
 
   it('createTokenBridge example', async () => {
@@ -381,22 +384,28 @@ describe('schema coverage', () => {
       createTokenBridgeExampleSchema,
       createTokenBridgeExampleExecute,
       mocks,
-      {
-        nativeToken: (base) => ({
-          ...base,
-          nativeToken: '0x0000000000000000000000000000000000000000',
-        }),
-      },
+      [
+        {
+          matches: (k) => k === 'nativeToken',
+          apply: (base) => ({
+            ...base,
+            nativeToken: '0x0000000000000000000000000000000000000000',
+          }),
+        },
+      ],
     );
   });
 
   it('transferOwnership example', async () => {
-    await assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute, mocks, {
-      nativeToken: (base) => ({
-        ...base,
-        nativeToken: '0x0000000000000000000000000000000000000000',
-      }),
-    });
+    await assertSchemaCoverage(transferOwnershipSchema, transferOwnershipExecute, mocks, [
+      {
+        matches: (k) => k === 'nativeToken',
+        apply: (base) => ({
+          ...base,
+          nativeToken: '0x0000000000000000000000000000000000000000',
+        }),
+      },
+    ]);
   });
 
   it('deployFullChain example', async () => {
