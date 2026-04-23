@@ -380,12 +380,15 @@ describe('schema coverage', () => {
       createTokenBridgeExampleSchema,
       createTokenBridgeExampleExecute,
       mocks,
-      {
-        nativeToken: (base) => ({
-          ...base,
-          nativeToken: '0x0000000000000000000000000000000000000000',
-        }),
-      },
+      [
+        {
+          matches: (k) => k === 'nativeToken',
+          apply: (base) => ({
+            ...base,
+            nativeToken: '0x0000000000000000000000000000000000000000',
+          }),
+        },
+      ],
     );
   });
 
