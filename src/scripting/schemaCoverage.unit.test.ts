@@ -409,23 +409,26 @@ describe('schema coverage', () => {
   });
 
   it('deployFullChain example', async () => {
-    await assertSchemaCoverage(deployFullChainSchema, deployFullChainExecute, mocks, {
-      'params.keyset': (base) => ({
-        ...base,
-        params: {
-          ...base.params,
-          config: {
-            ...base.params.config,
-            chainConfig: {
-              chainId: 99999,
-              arbitrum: {
-                InitialChainOwner: '0x' + '1'.repeat(40),
-                DataAvailabilityCommittee: true,
+    await assertSchemaCoverage(deployFullChainSchema, deployFullChainExecute, mocks, [
+      {
+        matches: (k) => k === 'params.keyset',
+        apply: (base) => ({
+          ...base,
+          params: {
+            ...base.params,
+            config: {
+              ...base.params.config,
+              chainConfig: {
+                chainId: 99999,
+                arbitrum: {
+                  InitialChainOwner: '0x' + '1'.repeat(40),
+                  DataAvailabilityCommittee: true,
+                },
               },
             },
           },
-        },
-      }),
-    });
+        }),
+      },
+    ]);
   });
 });
