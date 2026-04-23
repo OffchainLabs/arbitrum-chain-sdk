@@ -51,7 +51,7 @@ it('exits with code 1 when no JSON argument provided', () => {
   runScript(z.object({}), async () => ({}));
 
   expect(getExitCode()).toBe(1);
-  expect(stderrData).toContain('JSON string expected');
+  expect(stderrData).toContain('Usage');
 });
 
 it('exits with code 1 for invalid JSON', () => {
