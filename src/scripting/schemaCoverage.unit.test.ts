@@ -399,13 +399,16 @@ describe('schema coverage', () => {
   });
 
   it('createTokenBridge example', async () => {
+    // `rollupDeploymentBlockNumber` is only read by `execute` inside the
+    // `nativeToken === zeroAddress` branch (the WETH-gateway path), so it
+    // needs the same zero-address context that the nativeToken test uses.
     await assertSchemaCoverage(
       createTokenBridgeExampleSchema,
       createTokenBridgeExampleExecute,
       mocks,
       [
         {
-          matches: (k) => k === 'nativeToken',
+          matches: (k) => k === 'nativeToken' || k === 'rollupDeploymentBlockNumber',
           apply: (base) => ({
             ...base,
             nativeToken: '0x0000000000000000000000000000000000000000',
@@ -444,6 +447,23 @@ describe('schema coverage', () => {
                   DataAvailabilityCommittee: true,
                 },
               },
+            },
+          },
+        }),
+      },
+      // `execute` only calls `prepareNodeConfig` when both `nodeConfigParams`
+      // and `chainConfig` are set. The harness materialises each optional
+      // subtree in isolation, so nodeConfigParams tests need chainConfig
+      // populated explicitly.
+      {
+        matches: (k) => k === 'nodeConfigParams' || k.startsWith('nodeConfigParams.'),
+        apply: (base) => ({
+          ...base,
+          createRollupParams: {
+            ...base.createRollupParams,
+            config: {
+              ...base.createRollupParams.config,
+              chainConfig: { chainId: 99999 },
             },
           },
         }),
