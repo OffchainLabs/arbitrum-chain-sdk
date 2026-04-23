@@ -1,4 +1,4 @@
-import { GetFunctionArgs } from 'viem';
+import { ContractFunctionArgs } from 'viem';
 
 import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from '../contracts/RollupCreator/v3.2';
 import { rollupCreatorABI as rollupCreatorV3Dot1ABI } from '../contracts/RollupCreator/v3.1';
@@ -23,9 +23,24 @@ export type RollupCreatorABI<TVersion extends RollupCreatorVersion = RollupCreat
     ? typeof rollupCreatorV1Dot1ABI
     : never;
 
+// Per-version specialization. viem v2 `ContractFunctionArgs`' function-name generic is
+// constrained by `ContractFunctionName<TAbi, TMut>`. When `TAbi` is the conditional
+// `RollupCreatorABI<TVersion>` and `TVersion` is still generic, TS can't prove that
+// `'createRollup'` satisfies the constraint for every branch — so we resolve the ABI
+// before passing it in, using `TVersion`-matching fixed alternatives.
+type CreateRollupArgsForVersion<TVersion extends RollupCreatorVersion> = TVersion extends 'v3.2'
+  ? ContractFunctionArgs<typeof rollupCreatorV3Dot2ABI, 'payable', 'createRollup'>
+  : TVersion extends 'v3.1'
+  ? ContractFunctionArgs<typeof rollupCreatorV3Dot1ABI, 'payable', 'createRollup'>
+  : TVersion extends 'v2.1'
+  ? ContractFunctionArgs<typeof rollupCreatorV2Dot1ABI, 'payable', 'createRollup'>
+  : TVersion extends 'v1.1'
+  ? ContractFunctionArgs<typeof rollupCreatorV1Dot1ABI, 'payable', 'createRollup'>
+  : never;
+
 export type CreateRollupFunctionInputs<
   TVersion extends RollupCreatorVersion = RollupCreatorLatestVersion,
-> = GetFunctionArgs<RollupCreatorABI<TVersion>, 'createRollup'>['args'] & readonly unknown[]; // this tells TypeScript that the type is also an indexable array
+> = CreateRollupArgsForVersion<TVersion> & readonly unknown[]; // this tells TypeScript that the type is also an indexable array
 
 type GetCreateRollupRequiredKeys<
   TVersion extends RollupCreatorVersion = RollupCreatorLatestVersion,

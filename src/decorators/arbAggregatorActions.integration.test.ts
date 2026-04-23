@@ -17,9 +17,12 @@ const nitroTestnodeL2Client = createPublicClient({
 
 describe('ArgAggregator decorator tests', () => {
   it('successfully fetches the batch posters and the fee collectors', async () => {
-    const batchPosters = await nitroTestnodeL2Client.arbAggregatorReadContract({
+    const batchPostersResult = await nitroTestnodeL2Client.arbAggregatorReadContract({
       functionName: 'getBatchPosters',
     });
+    if (!Array.isArray(batchPostersResult))
+      throw new Error('getBatchPosters must return an address tuple');
+    const batchPosters = batchPostersResult as readonly `0x${string}`[];
 
     expect(batchPosters).toHaveLength(2);
     expect(batchPosters[0]).toEqual('0xA4b000000000000000000073657175656e636572');
@@ -34,9 +37,12 @@ describe('ArgAggregator decorator tests', () => {
 
   it('succesfully updates the fee collector of a batch poster', async () => {
     // Get the batch posters
-    const batchPosters = await nitroTestnodeL2Client.arbAggregatorReadContract({
+    const batchPostersResult = await nitroTestnodeL2Client.arbAggregatorReadContract({
       functionName: 'getBatchPosters',
     });
+    if (!Array.isArray(batchPostersResult))
+      throw new Error('getBatchPosters must return an address tuple');
+    const batchPosters = batchPostersResult as readonly `0x${string}`[];
 
     // Set the fee collector of the batch poster to the random address
     const setFeeCollectorTransactionRequest =

@@ -37,16 +37,20 @@ describe('sequencerInboxReadContract', () => {
       sequencerInbox: l3SequencerInbox,
     });
 
+    if (typeof result !== 'string') throw new Error('bridge must return an address string');
     expect(result.toLowerCase()).toEqual(l3Bridge.toLowerCase());
   });
 
   it('successfully fetches dasKeySetInfo', async () => {
-    const [isValidKeyset, creationBlock] = await client.sequencerInboxReadContract({
+    const result = await client.sequencerInboxReadContract({
       functionName: 'dasKeySetInfo',
       sequencerInbox: l3SequencerInbox,
       args: ['0x0000000000000000000000000000000000000000000000000000000000000000'],
     });
 
+    if (!Array.isArray(result))
+      throw new Error('dasKeySetInfo must return [isValidKeyset, creationBlock]');
+    const [isValidKeyset, creationBlock] = result;
     expect(isValidKeyset).toEqual(false);
     expect(creationBlock).toEqual(0n);
   });
@@ -102,6 +106,7 @@ describe('sequencerInboxReadContract', () => {
       sequencerInbox: l3SequencerInbox,
     });
 
+    if (typeof result !== 'string') throw new Error('rollup must return an address string');
     expect(result.toLowerCase()).toEqual(l3Rollup.toLowerCase());
   });
 
@@ -245,6 +250,7 @@ describe('sequencerInboxPrepareTransactionRequest', () => {
     expect(result).toEqual([2_880n, 6n, 43_200n, 1_800n]);
 
     // Revert the change, so read test still work
+    if (!Array.isArray(resultBefore)) throw new Error('maxTimeVariation must return a tuple');
     const transactionRequestRevert = await client.sequencerInboxPrepareTransactionRequest({
       functionName: 'setMaxTimeVariation',
       sequencerInbox: l3SequencerInbox,

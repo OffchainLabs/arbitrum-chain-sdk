@@ -1,26 +1,44 @@
-import { Chain, GetFunctionArgs, PublicClient, ReadContractReturnType, Transport } from 'viem';
+import {
+  Chain,
+  ContractFunctionArgs,
+  ContractFunctionName,
+  PublicClient,
+  ReadContractReturnType,
+  Transport,
+} from 'viem';
 
 import { arbOwnerPublicABI, arbOwnerPublicAddress } from './contracts/ArbOwnerPublic';
-import { GetFunctionName } from './types/utils';
 
 export type ArbOwnerPublicAbi = typeof arbOwnerPublicABI;
-export type ArbOwnerPublicFunctionName = GetFunctionName<ArbOwnerPublicAbi>;
+export type ArbOwnerReadFunctionName = ContractFunctionName<ArbOwnerPublicAbi, 'pure' | 'view'>;
 
-export type ArbOwnerReadContractParameters<TFunctionName extends ArbOwnerPublicFunctionName> = {
-  functionName: TFunctionName;
-} & GetFunctionArgs<ArbOwnerPublicAbi, TFunctionName>;
+type ArbOwnerReadFunctionCall = {
+  [K in ArbOwnerReadFunctionName]: readonly [] extends ContractFunctionArgs<
+    ArbOwnerPublicAbi,
+    'pure' | 'view',
+    K
+  >
+    ? {
+        functionName: K;
+        args?: ContractFunctionArgs<ArbOwnerPublicAbi, 'pure' | 'view', K>;
+      }
+    : {
+        functionName: K;
+        args: ContractFunctionArgs<ArbOwnerPublicAbi, 'pure' | 'view', K>;
+      };
+}[ArbOwnerReadFunctionName];
 
-export type ArbOwnerReadContractReturnType<TFunctionName extends ArbOwnerPublicFunctionName> =
-  ReadContractReturnType<ArbOwnerPublicAbi, TFunctionName>;
+export type ArbOwnerReadContractParameters = ArbOwnerReadFunctionCall;
 
-export function arbOwnerReadContract<
-  TChain extends Chain | undefined,
-  TFunctionName extends ArbOwnerPublicFunctionName,
->(
+export type ArbOwnerReadContractReturnType = ReadContractReturnType<
+  ArbOwnerPublicAbi,
+  ArbOwnerReadFunctionName
+>;
+
+export function arbOwnerReadContract<TChain extends Chain | undefined>(
   client: PublicClient<Transport, TChain>,
-  params: ArbOwnerReadContractParameters<TFunctionName>,
-): Promise<ArbOwnerReadContractReturnType<TFunctionName>> {
-  // @ts-expect-error -- todo: fix viem type issue
+  params: ArbOwnerReadContractParameters,
+): Promise<ArbOwnerReadContractReturnType> {
   return client.readContract({
     address: arbOwnerPublicAddress,
     abi: arbOwnerPublicABI,

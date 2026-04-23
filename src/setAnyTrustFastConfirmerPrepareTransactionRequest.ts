@@ -55,17 +55,20 @@ export async function setAnyTrustFastConfirmerPrepareTransactionRequest<
     args: [fastConfirmer],
   });
 
-  // prepare the transaction request
-  // @ts-expect-error -- todo: fix viem type issue
+  if (publicClient.chain === undefined) {
+    throw new Error(
+      '[setAnyTrustFastConfirmerPrepareTransactionRequest] publicClient.chain is undefined',
+    );
+  }
+  const chain: Chain = publicClient.chain;
+
   const request = await publicClient.prepareTransactionRequest({
-    chain: publicClient.chain,
+    chain,
+    type: 'eip1559',
     to: upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
-      args: [
-        rollup, // target
-        setAnyTrustFastConfirmerCalldata, // targetCallData
-      ],
+      args: [rollup, setAnyTrustFastConfirmerCalldata],
     }),
     account,
   });

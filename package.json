@@ -4,7 +4,7 @@
   "packageManager": "pnpm@10.30.3",
   "scripts": {
     "prebuild": "rm -rf ./src/dist",
-    "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./src/dist --declaration",
+    "build": "tsc --project ./tsconfig.json --outDir ./src/dist --declaration",
     "dev": "pnpm build --watch",
     "generate": "wagmi generate",
     "generate:node-config-type": "pnpm build && node ./src/dist/scripts/generateNodeConfigType.js",
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@offchainlabs/prettier-config": "0.2.1",
-    "@wagmi/cli": "^1.5.2",
+    "@wagmi/cli": "^2.10.0",
     "audit-ci": "^7.0.1",
     "dotenv": "^16.3.1",
     "eslint": "^9.39.1",
@@ -30,14 +30,12 @@
     "prettier": "^2.8.3",
     "ts-morph": "^21.0.1",
     "typescript-eslint": "^8.56.1",
-    "typescript": "^5.2.2",
-    "viem": "^1.20.0",
+    "typescript": "^5.9.3",
+    "viem": "^2.48.4",
     "vitest": "^3.2.4"
   },
   "pnpm": {
     "overrides": {
-      "viem": "1.20.0",
-      "viem>ws": "8.17.1",
       "@wagmi/cli>esbuild": "0.25.1",
       "@wagmi/cli>bundle-require": "5.1.0",
       "@ethersproject/providers>ws": "7.5.10",

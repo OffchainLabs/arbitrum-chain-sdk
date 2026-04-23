@@ -4,7 +4,6 @@ import {
   Transport,
   Address,
   CallParameters,
-  EstimateGasParameters,
   encodeFunctionData,
   decodeFunctionResult,
   parseEther,
@@ -205,7 +204,7 @@ export async function createRollupGetRetryablesFees<TChain extends Chain | undef
   //
   // https://github.com/wevm/viem/discussions/862#discussioncomment-6398745
   const gasWithBuffer = applyPercentIncrease({
-    base: await publicClient.estimateGas(callParams as unknown as EstimateGasParameters<TChain>),
+    base: await publicClient.estimateGas(callParams),
     percentIncrease: 30n,
   });
 

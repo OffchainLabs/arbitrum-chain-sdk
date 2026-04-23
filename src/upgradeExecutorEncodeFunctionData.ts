@@ -1,7 +1,6 @@
-import { encodeFunctionData, EncodeFunctionDataParameters, keccak256, toHex } from 'viem';
+import { ContractFunctionName, encodeFunctionData, keccak256, toHex } from 'viem';
 
 import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
-import { GetFunctionName, Prettify } from './types/utils';
 
 // Roles
 /**
@@ -17,21 +16,47 @@ export type UpgradeExecutorRole =
   | typeof UPGRADE_EXECUTOR_ROLE_ADMIN
   | typeof UPGRADE_EXECUTOR_ROLE_EXECUTOR;
 
-// Types for upgradeExecutorEncodeFunctionData
 export type UpgradeExecutorAbi = typeof upgradeExecutorABI;
-export type UpgradeExecutorFunctionName = GetFunctionName<UpgradeExecutorAbi>;
-export type UpgradeExecutorEncodeFunctionDataParameters<
-  TFunctionName extends UpgradeExecutorFunctionName,
-> = Prettify<Omit<EncodeFunctionDataParameters<UpgradeExecutorAbi, TFunctionName>, 'abi'>>;
+export type UpgradeExecutorFunctionName = ContractFunctionName<UpgradeExecutorAbi>;
 
-// Encodes a function call to be sent through the UpgradeExecutor
-export function upgradeExecutorEncodeFunctionData<
-  TFunctionName extends UpgradeExecutorFunctionName,
->({ functionName, args }: UpgradeExecutorEncodeFunctionDataParameters<TFunctionName>) {
-  // @ts-expect-error -- todo: fix viem type issue
-  return encodeFunctionData({
-    abi: upgradeExecutorABI,
-    functionName,
-    args,
-  });
+// Discriminated union over UpgradeExecutor's write entry points. Each branch carries a
+// literal `functionName` + the matching `args` tuple, so the `switch` below passes a
+// concrete literal to viem — that avoids the correlated-union limitation
+// (microsoft/TypeScript#30581) which only triggers when `functionName` is itself a generic.
+export type UpgradeExecutorEncodeFunctionDataParameters =
+  | { functionName: 'execute'; args: readonly [`0x${string}`, `0x${string}`] }
+  | { functionName: 'executeCall'; args: readonly [`0x${string}`, `0x${string}`] }
+  | { functionName: 'grantRole'; args: readonly [`0x${string}`, `0x${string}`] }
+  | { functionName: 'revokeRole'; args: readonly [`0x${string}`, `0x${string}`] };
+
+// Encodes a function call to be sent through the UpgradeExecutor.
+export function upgradeExecutorEncodeFunctionData(
+  params: UpgradeExecutorEncodeFunctionDataParameters,
+) {
+  switch (params.functionName) {
+    case 'execute':
+      return encodeFunctionData({
+        abi: upgradeExecutorABI,
+        functionName: 'execute',
+        args: params.args,
+      });
+    case 'executeCall':
+      return encodeFunctionData({
+        abi: upgradeExecutorABI,
+        functionName: 'executeCall',
+        args: params.args,
+      });
+    case 'grantRole':
+      return encodeFunctionData({
+        abi: upgradeExecutorABI,
+        functionName: 'grantRole',
+        args: params.args,
+      });
+    case 'revokeRole':
+      return encodeFunctionData({
+        abi: upgradeExecutorABI,
+        functionName: 'revokeRole',
+        args: params.args,
+      });
+  }
 }

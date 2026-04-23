@@ -41,18 +41,10 @@ const ownerFunctionCalledEventAbi = getAbiItem({
 
 const validatorsSetEventAbi = getAbiItem({ abi: rollupV3Dot1ABI, name: 'ValidatorsSet' });
 
-function getValidatorsFromFunctionData<
-  TAbi extends
-    | (typeof createRollupV2Dot1ABI)[]
-    | (typeof createRollupV1Dot1ABI)[]
-    | (typeof setValidatorABI)[],
->({ abi, data }: { abi: TAbi; data: Hex }) {
-  const { args } = decodeFunctionData({
-    abi,
-    data,
-  });
-  return args;
-}
+// Direct `decodeFunctionData` calls with a single-element ABI return a concrete tuple.
+// Wrapping them in a generic helper under viem v2 makes `args` widen to
+// `readonly unknown[] | undefined`, which loses the discriminated-union narrowing needed
+// at each call site below (microsoft/TypeScript#30581).
 
 function iterateThroughValidatorsList(
   acc: Set<Address>,
@@ -78,10 +70,11 @@ function iterateThroughValidatorsList(
 }
 
 function updateAccumulator(acc: Set<Address>, input: Hex) {
-  const [validators, enabled] = getValidatorsFromFunctionData({
+  const { args } = decodeFunctionData({
     abi: [setValidatorABI],
     data: input,
   });
+  const [validators, enabled] = args;
 
   return iterateThroughValidatorsList(acc, validators, enabled);
 }
@@ -127,39 +120,42 @@ async function getValidatorsPreV3Dot1<TChain extends Chain>(
 
   let isAccurate = true;
   const validators = preV3Dot1Txs.reduce((acc, tx) => {
-    const txSelectedFunction = tx.input.slice(0, 10);
+    const input: Hex = tx.input;
+    const txSelectedFunction = input.slice(0, 10);
 
     switch (txSelectedFunction) {
       case createRollupV2Dot1FunctionSelector: {
-        const [{ validators }] = getValidatorsFromFunctionData({
+        const { args } = decodeFunctionData({
           abi: [createRollupV2Dot1ABI],
-          data: tx.input,
+          data: input,
         });
+        const [{ validators }] = args;
 
         return new Set([...acc, ...validators]);
       }
       case createRollupV1Dot1FunctionSelector: {
-        const [{ validators }] = getValidatorsFromFunctionData({
+        const { args } = decodeFunctionData({
           abi: [createRollupV1Dot1ABI],
-          data: tx.input,
+          data: input,
         });
+        const [{ validators }] = args;
 
         return new Set([...acc, ...validators]);
       }
       case setValidatorFunctionSelector: {
-        return updateAccumulator(acc, tx.input);
+        return updateAccumulator(acc, input);
       }
       case upgradeExecutorExecuteCallFunctionSelector: {
         const { args: executeCallCalldata } = decodeFunctionData({
           abi: [executeCallABI],
-          data: tx.input,
+          data: input,
         });
         return updateAccumulator(acc, executeCallCalldata[1]);
       }
       case safeL2FunctionSelector: {
         const { args: execTransactionCalldata } = decodeFunctionData({
           abi: [execTransactionABI],
-          data: tx.input,
+          data: input,
         });
 
         const execTransactionCalldataData = execTransactionCalldata[2];

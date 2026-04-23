@@ -46,26 +46,17 @@ const ownerFunctionCalledEventAbi = getAbiItem({
   name: 'OwnerFunctionCalled',
 });
 
-function getBatchPostersFromFunctionData<
-  TAbi extends
-    | (typeof createRollupV3Dot2ABI)[]
-    | (typeof createRollupV3Dot1ABI)[]
-    | (typeof createRollupV2Dot1ABI)[]
-    | (typeof createRollupV1Dot1ABI)[]
-    | (typeof setIsBatchPosterABI)[],
->({ abi, data }: { abi: TAbi; data: Hex }) {
-  const { args } = decodeFunctionData({
-    abi,
-    data,
-  });
-  return args;
-}
+// Direct `decodeFunctionData` calls with a single-element ABI return a concrete tuple.
+// Wrapping them in a generic helper under viem v2 makes `args` widen to
+// `readonly unknown[] | undefined`, which loses the discriminated-union narrowing needed
+// at each call site below (microsoft/TypeScript#30581).
 
 function updateAccumulator(acc: Set<Address>, input: Hex) {
-  const [batchPoster, isAdd] = getBatchPostersFromFunctionData({
+  const { args } = decodeFunctionData({
     abi: [setIsBatchPosterABI],
     data: input,
   });
+  const [batchPoster, isAdd] = args;
 
   if (isAdd) {
     acc.add(batchPoster);
@@ -155,55 +146,60 @@ export async function getBatchPosters<TChain extends Chain>(
 
   let isAccurate = true;
   const batchPosters = txs.reduce((acc, tx) => {
-    const txSelectedFunction = tx.input.slice(0, 10);
+    const input: Hex = tx.input;
+    const txSelectedFunction = input.slice(0, 10);
 
     switch (txSelectedFunction) {
       case createRollupV3Dot2FunctionSelector: {
-        const [{ batchPosters }] = getBatchPostersFromFunctionData({
+        const { args } = decodeFunctionData({
           abi: [createRollupV3Dot2ABI],
-          data: tx.input,
+          data: input,
         });
+        const [{ batchPosters }] = args;
 
         return new Set([...acc, ...batchPosters]);
       }
       case createRollupV3Dot1FunctionSelector: {
-        const [{ batchPosters }] = getBatchPostersFromFunctionData({
+        const { args } = decodeFunctionData({
           abi: [createRollupV3Dot1ABI],
-          data: tx.input,
+          data: input,
         });
+        const [{ batchPosters }] = args;
 
         return new Set([...acc, ...batchPosters]);
       }
       case createRollupV2Dot1FunctionSelector: {
-        const [{ batchPosters }] = getBatchPostersFromFunctionData({
+        const { args } = decodeFunctionData({
           abi: [createRollupV2Dot1ABI],
-          data: tx.input,
+          data: input,
         });
+        const [{ batchPosters }] = args;
 
         return new Set([...acc, ...batchPosters]);
       }
       case createRollupV1Dot1FunctionSelector: {
-        const [{ batchPoster }] = getBatchPostersFromFunctionData({
+        const { args } = decodeFunctionData({
           abi: [createRollupV1Dot1ABI],
-          data: tx.input,
+          data: input,
         });
+        const [{ batchPoster }] = args;
 
         return new Set([...acc, batchPoster]);
       }
       case setIsBatchPosterFunctionSelector: {
-        return updateAccumulator(acc, tx.input);
+        return updateAccumulator(acc, input);
       }
       case upgradeExecutorExecuteCallFunctionSelector: {
         const { args: executeCallCalldata } = decodeFunctionData({
           abi: [executeCallABI],
-          data: tx.input,
+          data: input,
         });
         return updateAccumulator(acc, executeCallCalldata[1]);
       }
       case safeL2FunctionSelector: {
         const { args: execTransactionCalldata } = decodeFunctionData({
           abi: [execTransactionABI],
-          data: tx.input,
+          data: input,
         });
         const { args: executeCallCalldata } = decodeFunctionData({
           abi: [executeCallABI],

@@ -1,4 +1,4 @@
-import { Abi } from 'viem';
+import { Abi, AbiStateMutability, ContractFunctionArgs, ContractFunctionName } from 'viem';
 
 // https://twitter.com/mattpocockuk/status/1622730173446557697
 export type Prettify<T> = {
@@ -6,6 +6,15 @@ export type Prettify<T> = {
 } & {};
 
 export type GetFunctionName<TAbi extends Abi> = Extract<TAbi[number], { type: 'function' }>['name'];
+
+// v1 `GetFunctionArgs` shim over v2's `ContractFunctionArgs`. v1 returned `{ args?: Tuple }` with
+// `args` optional when the function has no inputs; v2 returns the tuple directly. We preserve the
+// v1 shape so existing `{ args }` destructuring and no-args call sites keep compiling.
+export type GetFunctionArgs<
+  TAbi extends Abi,
+  TFunctionName extends ContractFunctionName<TAbi>,
+  TArgs = ContractFunctionArgs<TAbi, AbiStateMutability, TFunctionName>,
+> = readonly [] extends TArgs ? { args?: TArgs } : { args: TArgs };
 
 /**
  * Creates a new type by making the specified keys required while keeping the remaining keys optional.

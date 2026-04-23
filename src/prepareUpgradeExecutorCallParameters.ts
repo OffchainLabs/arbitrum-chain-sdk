@@ -1,63 +1,34 @@
-import {
-  Address,
-  encodeFunctionData as viemEncodeFunctionData,
-  EncodeFunctionDataParameters as ViemEncodeFunctionDataParameters,
-} from 'viem';
-import { GetFunctionName } from './types/utils';
-import { sequencerInboxABI } from './contracts/SequencerInbox';
-import { arbOwnerABI } from './contracts/ArbOwner';
+import { Address, Hex } from 'viem';
 import {
   upgradeExecutorEncodeFunctionData,
   UpgradeExecutorFunctionName,
 } from './upgradeExecutorEncodeFunctionData';
 
-type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI;
-type FunctionName<TAbi extends ABIs> = GetFunctionName<TAbi>;
+type UpgradeExecutorEnvelopeOff = {
+  to: Address;
+  upgradeExecutor: false;
+  value?: bigint;
+};
 
-type EncodeFunctionDataParameters<
-  TAbi extends ABIs,
-  TFunctionName extends FunctionName<TAbi>,
-> = ViemEncodeFunctionDataParameters<TAbi, TFunctionName>;
+type UpgradeExecutorEnvelopeOn = {
+  to: Address;
+  upgradeExecutor: Address;
+  value?: bigint;
+  upgradeExecutorFunctionName?: Extract<UpgradeExecutorFunctionName, 'execute' | 'executeCall'>;
+};
 
-function encodeFunctionData<TAbi extends ABIs, TFunctionName extends GetFunctionName<TAbi>>({
-  abi,
-  functionName,
-  args,
-}: EncodeFunctionDataParameters<TAbi, TFunctionName>) {
-  return viemEncodeFunctionData({
-    abi,
-    functionName,
-    args,
-  } as unknown as ViemEncodeFunctionDataParameters<TAbi, TFunctionName>);
-}
+export type UpgradeExecutorCallEnvelope = UpgradeExecutorEnvelopeOff | UpgradeExecutorEnvelopeOn;
 
-export function prepareUpgradeExecutorCallParameters<
-  TAbi extends ABIs,
-  TFunctionName extends FunctionName<TAbi>,
->(
-  params: EncodeFunctionDataParameters<TAbi, TFunctionName> &
-    (
-      | {
-          to: Address;
-          upgradeExecutor: false;
-          value?: bigint;
-        }
-      | {
-          to: Address;
-          upgradeExecutor: Address;
-          value?: bigint;
-          upgradeExecutorFunctionName?: Extract<
-            UpgradeExecutorFunctionName,
-            'execute' | 'executeCall'
-          >;
-        }
-    ),
+export function prepareUpgradeExecutorCallParameters(
+  encoded: Hex,
+  envelope: UpgradeExecutorCallEnvelope,
 ) {
-  const { upgradeExecutor, value = BigInt(0) } = params;
+  const { upgradeExecutor, value = BigInt(0), to } = envelope;
+
   if (!upgradeExecutor) {
     return {
-      to: params.to,
-      data: encodeFunctionData(params),
+      to,
+      data: encoded,
       value,
     };
   }
@@ -65,11 +36,8 @@ export function prepareUpgradeExecutorCallParameters<
   return {
     to: upgradeExecutor,
     data: upgradeExecutorEncodeFunctionData({
-      functionName: params.upgradeExecutorFunctionName ?? 'executeCall',
-      args: [
-        params.to, // target
-        encodeFunctionData(params), // targetCallData
-      ],
+      functionName: envelope.upgradeExecutorFunctionName ?? 'executeCall',
+      args: [to, encoded],
     }),
     value,
   };

@@ -219,6 +219,7 @@ describe('createTokenBridge utils function', () => {
     // 1. fund l3deployer account
     const fundTxRequestRaw = await nitroTestnodeL2Client.prepareTransactionRequest({
       chain: nitroTestnodeL2Client.chain,
+      type: 'eip1559',
       to: testnodeInformation.l3NativeToken,
       data: encodeFunctionData({
         abi: erc20ABI,
@@ -394,6 +395,7 @@ describe('createTokenBridge', () => {
     // 1. fund l3deployer account
     const fundTxRequestRaw = await nitroTestnodeL2Client.prepareTransactionRequest({
       chain: nitroTestnodeL2Client.chain,
+      type: 'eip1559',
       to: testnodeInformation.l3NativeToken,
       data: encodeFunctionData({
         abi: erc20ABI,

@@ -27,7 +27,7 @@ describe('SequencerInbox parameter:', () => {
       transport: http(),
     }).extend(sequencerInboxActions({}));
 
-    // @ts-expect-error sequencerInbox is required
+    // @ts-expect-error sequencerInbox is required when not curried
     clientWithoutSequencerInboxAddress.sequencerInboxReadContract({
       functionName: 'inboxAccs',
       args: [10n],
@@ -62,9 +62,9 @@ describe('SequencerInbox parameter:', () => {
 
 it('Infer parameters based on function name', async () => {
   await expect(
+    // @ts-expect-error empty args not assignable to setIsBatchPoster's [Address, boolean]
     client.sequencerInboxPrepareTransactionRequest({
       functionName: 'setIsBatchPoster',
-      // @ts-expect-error Args are missing
       args: [],
       upgradeExecutor: false,
       account: randomAccount.address,
@@ -74,7 +74,7 @@ it('Infer parameters based on function name', async () => {
   await expect(
     client.sequencerInboxPrepareTransactionRequest({
       functionName: 'setIsBatchPoster',
-      // @ts-expect-error Args are of the wrong type
+      // @ts-expect-error [bigint, true] not assignable to setIsBatchPoster's [Address, boolean]
       args: [10n, true],
       upgradeExecutor: false,
       account: randomAccount.address,
@@ -82,18 +82,15 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrowError(InvalidAddressError);
 
   await expect(
-    client
-      // @ts-expect-error Args are required for `setIsBatchPoster`
-      .sequencerInboxPrepareTransactionRequest({
-        functionName: 'setIsBatchPoster',
-        upgradeExecutor: false,
-        account: randomAccount.address,
-      }),
+    // @ts-expect-error args required for setIsBatchPoster but missing
+    client.sequencerInboxPrepareTransactionRequest({
+      functionName: 'setIsBatchPoster',
+      upgradeExecutor: false,
+      account: randomAccount.address,
+    }),
   ).rejects.toThrow(AbiEncodingLengthMismatchError);
 
-  expectTypeOf<
-    typeof client.sequencerInboxPrepareTransactionRequest<'setIsBatchPoster'>
-  >().toBeCallableWith({
+  expectTypeOf(client.sequencerInboxPrepareTransactionRequest).toBeCallableWith({
     functionName: 'setIsBatchPoster',
     args: [randomAccount.address, true],
     upgradeExecutor: false,
@@ -103,7 +100,7 @@ it('Infer parameters based on function name', async () => {
   // Function doesn't exist
   await expect(
     client.sequencerInboxPrepareTransactionRequest({
-      // @ts-expect-error Function not available
+      // @ts-expect-error functionName 'notExisting' not in ABI
       functionName: 'notExisting',
     }),
   ).rejects.toThrowError(AbiFunctionNotFoundError);

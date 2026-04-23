@@ -46,15 +46,15 @@ describe('RollupAdminLogic parameter:', () => {
       transport: http(),
     }).extend(rollupAdminLogicPublicActions({}));
 
-    // @ts-expect-error rollupAdminLogic is required
+    // @ts-expect-error rollup is required when not curried
     clientWithoutRollupAdminLogicAddress.rollupAdminLogicReadContract({
       functionName: 'amountStaked',
       args: [randomAccount.address],
     });
 
-    expectTypeOf<
-      typeof clientWithoutRollupAdminLogicAddress.rollupAdminLogicReadContract<'amountStaked'>
-    >().toBeCallableWith({
+    expectTypeOf(
+      clientWithoutRollupAdminLogicAddress.rollupAdminLogicReadContract,
+    ).toBeCallableWith({
       functionName: 'amountStaked',
       args: [randomAccount.address],
       rollup: rollupAdminLogicAddress,
@@ -67,9 +67,7 @@ describe('RollupAdminLogic parameter:', () => {
       transport: http(),
     }).extend(rollupAdminLogicPublicActions({ rollup: rollupAdminLogicAddress }));
 
-    expectTypeOf<
-      typeof clientWithRollupAdminLogicAddress.rollupAdminLogicReadContract<'amountStaked'>
-    >().toBeCallableWith({
+    expectTypeOf(clientWithRollupAdminLogicAddress.rollupAdminLogicReadContract).toBeCallableWith({
       functionName: 'amountStaked',
       args: [randomAccount.address],
     });
@@ -93,9 +91,7 @@ describe('RollupAdminLogic parameter:', () => {
       transport: http(),
     }).extend(rollupAdminLogicPublicActions({ rollup: rollupAdminLogicAddress }));
 
-    expectTypeOf<
-      typeof clientWithRollupAdminLogicAddress.rollupAdminLogicReadContract<'amountStaked'>
-    >().toBeCallableWith({
+    expectTypeOf(clientWithRollupAdminLogicAddress.rollupAdminLogicReadContract).toBeCallableWith({
       functionName: 'amountStaked',
       args: [randomAccount.address],
       rollup: rollupAdminLogicAddress,
@@ -118,9 +114,9 @@ describe('RollupAdminLogic parameter:', () => {
 
 it('Infer parameters based on function name', async () => {
   await expect(
+    // @ts-expect-error empty args not assignable to setLoserStakeEscrow's [Address]
     client.rollupAdminLogicPrepareTransactionRequest({
       functionName: 'setLoserStakeEscrow',
-      // @ts-expect-error Args are missing
       args: [],
       upgradeExecutor: false,
       account: randomAccount.address,
@@ -128,9 +124,9 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrowError(AbiEncodingLengthMismatchError);
 
   await expect(
+    // @ts-expect-error [boolean] not assignable to setLoserStakeEscrow's [Address]
     client.rollupAdminLogicPrepareTransactionRequest({
       functionName: 'setLoserStakeEscrow',
-      // @ts-expect-error Args are of the wrong type
       args: [true],
       upgradeExecutor: false,
       account: randomAccount.address,
@@ -138,18 +134,15 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrowError(InvalidAddressError);
 
   await expect(
-    client
-      // @ts-expect-error Args are required for `setLoserStakeEscrow`
-      .rollupAdminLogicPrepareTransactionRequest({
-        functionName: 'setLoserStakeEscrow',
-        upgradeExecutor: false,
-        account: randomAccount.address,
-      }),
+    // @ts-expect-error args required for setLoserStakeEscrow but missing
+    client.rollupAdminLogicPrepareTransactionRequest({
+      functionName: 'setLoserStakeEscrow',
+      upgradeExecutor: false,
+      account: randomAccount.address,
+    }),
   ).rejects.toThrow(AbiEncodingLengthMismatchError);
 
-  expectTypeOf<
-    typeof client.rollupAdminLogicPrepareTransactionRequest<'setLoserStakeEscrow'>
-  >().toBeCallableWith({
+  expectTypeOf(client.rollupAdminLogicPrepareTransactionRequest).toBeCallableWith({
     functionName: 'setLoserStakeEscrow',
     args: [randomAccount.address],
     upgradeExecutor: false,
@@ -159,7 +152,7 @@ it('Infer parameters based on function name', async () => {
   // Function doesn't exist
   await expect(
     client.rollupAdminLogicPrepareTransactionRequest({
-      // @ts-expect-error Function not available
+      // @ts-expect-error functionName 'notExisting' not in ABI
       functionName: 'notExisting',
     }),
   ).rejects.toThrowError(AbiFunctionNotFoundError);

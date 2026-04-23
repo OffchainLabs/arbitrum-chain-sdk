@@ -1,36 +1,50 @@
 import {
   Address,
   Chain,
-  GetFunctionArgs,
+  ContractFunctionArgs,
+  ContractFunctionName,
   PublicClient,
   ReadContractReturnType,
   Transport,
 } from 'viem';
 
 import { sequencerInboxABI } from './contracts/SequencerInbox';
-import {
+
+export type SequencerInboxAbi = typeof sequencerInboxABI;
+export type SequencerInboxReadFunctionName = ContractFunctionName<
   SequencerInboxAbi,
-  SequencerInboxFunctionName,
-} from './sequencerInboxPrepareTransactionRequest';
+  'pure' | 'view'
+>;
 
-export type SequencerInboxReadContractParameters<TFunctionName extends SequencerInboxFunctionName> =
-  {
-    functionName: TFunctionName;
-    // SequencerInbox address is different for each rollup, so user needs to pass it as a parameter
-    sequencerInbox: Address;
-  } & GetFunctionArgs<SequencerInboxAbi, TFunctionName>;
+type SequencerInboxReadFunctionCall = {
+  [K in SequencerInboxReadFunctionName]: readonly [] extends ContractFunctionArgs<
+    SequencerInboxAbi,
+    'pure' | 'view',
+    K
+  >
+    ? {
+        functionName: K;
+        args?: ContractFunctionArgs<SequencerInboxAbi, 'pure' | 'view', K>;
+      }
+    : {
+        functionName: K;
+        args: ContractFunctionArgs<SequencerInboxAbi, 'pure' | 'view', K>;
+      };
+}[SequencerInboxReadFunctionName];
 
-export type SequencerInboxReadContractReturnType<TFunctionName extends SequencerInboxFunctionName> =
-  ReadContractReturnType<SequencerInboxAbi, TFunctionName>;
+export type SequencerInboxReadContractParameters = SequencerInboxReadFunctionCall & {
+  sequencerInbox: Address;
+};
 
-export function sequencerInboxReadContract<
-  TChain extends Chain | undefined,
-  TFunctionName extends SequencerInboxFunctionName,
->(
+export type SequencerInboxReadContractReturnType = ReadContractReturnType<
+  SequencerInboxAbi,
+  SequencerInboxReadFunctionName
+>;
+
+export function sequencerInboxReadContract<TChain extends Chain | undefined>(
   client: PublicClient<Transport, TChain>,
-  params: SequencerInboxReadContractParameters<TFunctionName>,
-): Promise<SequencerInboxReadContractReturnType<TFunctionName>> {
-  // @ts-expect-error -- todo: fix viem type issue
+  params: SequencerInboxReadContractParameters,
+): Promise<SequencerInboxReadContractReturnType> {
   return client.readContract({
     address: params.sequencerInbox,
     abi: sequencerInboxABI,

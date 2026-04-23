@@ -1,4 +1,11 @@
-import { Chain, Hex, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
+import {
+  Chain,
+  Hex,
+  PrepareTransactionRequestParameters,
+  PublicClient,
+  Transport,
+  encodeFunctionData,
+} from 'viem';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import {
   ActionParameters,
@@ -36,16 +43,23 @@ export async function buildSetValidKeyset<TChain extends Chain | undefined>(
   }: BuildSetValidKeysetParameters,
 ): Promise<BuildSetValidKeysetReturnType> {
   const { chainId } = validateParentChain(client);
+  if (client.chain === undefined) {
+    throw new Error('[buildSetValidKeyset] client.chain is undefined');
+  }
+  const chain: Chain = client.chain;
 
+  const encoded = encodeFunctionData({
+    abi: sequencerInboxABI,
+    functionName: 'setValidKeyset',
+    args: [params.keyset],
+  });
   const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+    chain,
     account,
-    ...prepareUpgradeExecutorCallParameters({
+    type: 'eip1559',
+    ...prepareUpgradeExecutorCallParameters(encoded, {
       to: sequencerInboxAddress,
       upgradeExecutor,
-      args: [params.keyset],
-      abi: sequencerInboxABI,
-      functionName: 'setValidKeyset',
     }),
   } satisfies PrepareTransactionRequestParameters);
 
