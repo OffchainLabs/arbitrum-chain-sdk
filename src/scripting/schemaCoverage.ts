@@ -34,14 +34,18 @@
 // subtree, so unrelated optional siblings stay absent and can't cause
 // cross-refine failures.
 //
-// Supplying an override for a key augments the fixture used for tests at
-// that key (both presence tests for an anchor and value tests for a leaf).
-// Use this to satisfy refines or shape context when automatic generation
-// alone isn't valid:
+// Overrides augment the fixture used when testing a given key. Each entry
+// has a `matches` predicate (called with the leaf/anchor key under test) and
+// an `apply` function that transforms the fixture. Every matching entry is
+// applied in order, so one entry can cover many related keys and multiple
+// entries can compose:
 //
-//   await assertSchemaCoverage(schema, execute, mocks, {
-//     'optionalField': (base) => ({ ...base, otherField: 'required context' }),
-//   });
+//   await assertSchemaCoverage(schema, execute, mocks, [
+//     {
+//       matches: (k) => k === 'nodeConfigParams' || k.startsWith('nodeConfigParams.'),
+//       apply: (base) => ({ ...base, chainConfig: { chainId: 99999 } }),
+//     },
+//   ]);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
@@ -584,11 +588,16 @@ function outermostAnchor(leafPath: string[], anchors: string[][]): string[] | nu
  * Works by generating two inputs that differ in one field at a time,
  * running both through the pipeline, and failing if the outputs match.
  */
+export type CoverageOverride<T extends ZodType> = {
+  matches: (key: string) => boolean;
+  apply: (base: z.input<T>) => z.input<T>;
+};
+
 export async function assertSchemaCoverage<T extends ZodType>(
   schema: T,
   execute: (...args: any[]) => unknown,
   registry: typeof _mocks,
-  overrides?: Record<string, (base: z.input<T>) => z.input<T>>,
+  overrides?: readonly CoverageOverride<T>[],
 ): Promise<void> {
   const walk: SchemaWalk = { leaves: [], anchors: [] };
   walkSchema(schema, [], false, walk);
@@ -618,8 +627,11 @@ export async function assertSchemaCoverage<T extends ZodType>(
   const deadFields: string[] = [];
 
   const applyOverride = (fixture: Record<string, unknown>, key: string): Record<string, unknown> =>
-    overrides?.[key]
-      ? (overrides[key](fixture as z.input<T>) as Record<string, unknown>)
+    overrides
+      ? (overrides.reduce<z.input<T>>(
+          (acc, o) => (o.matches(key) ? o.apply(acc) : acc),
+          fixture as z.input<T>,
+        ) as Record<string, unknown>)
       : fixture;
 
   const runSnapshot = async (input: Record<string, unknown>): Promise<string> => {
