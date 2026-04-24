@@ -44,15 +44,19 @@ export function runScript<TSchema extends ZodType>(
   })().catch(handleError);
 }
 
-export function runCli(
-  cliName: string,
-  commands: Record<string, { input: ZodType; run: (parsed: unknown) => unknown }>,
-): void {
+export type CliCommand = {
+  name: string;
+  schema: ZodType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  func: (...args: any[]) => unknown;
+};
+
+export function runCli(cliName: string, commands: readonly CliCommand[]): void {
   const name = process.argv[2];
-  const command = name ? commands[name] : undefined;
+  const command = commands.find((c) => c.name === name);
 
   if (!command) {
-    const available = Object.keys(commands).join(', ');
+    const available = commands.map((c) => c.name).join(', ');
     process.stderr.write(`Usage: ${cliName} <command> '<json>'\nCommands: ${available}\n`);
     return process.exit(1);
   }
@@ -72,8 +76,9 @@ export function runCli(
   }
 
   (async () => {
-    const parsed = command.input.parse(rawInput);
-    const result = await command.run(parsed);
+    const parsed = command.schema.parse(rawInput);
+    const args = Array.isArray(parsed) ? parsed : [parsed];
+    const result = await command.func(...args);
     const output = typeof result === 'string' ? result : JSON.stringify(result, replacer, 2);
     process.stdout.write(output + '\n');
   })().catch(handleError);
