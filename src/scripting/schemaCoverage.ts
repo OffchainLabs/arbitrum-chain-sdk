@@ -353,6 +353,17 @@ vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionRequest', () => ({
     'createTokenBridgePrepareSetWethGateway',
   ),
 }));
+vi.mock('../createTokenBridgePrepareTransactionReceipt', () => ({
+  createTokenBridgePrepareTransactionReceipt: _mocks.fnSync(
+    'createTokenBridgePrepareTransactionReceipt',
+    _mocks.trackedObject('tokenBridgeTransactionReceipt'),
+  ),
+}));
+vi.mock('../createTokenBridgePrepareSetWethGatewayTransactionReceipt', () => ({
+  createTokenBridgePrepareSetWethGatewayTransactionReceipt: _mocks.fnSync(
+    'createTokenBridgePrepareSetWethGatewayTransactionReceipt',
+  ),
+}));
 vi.mock('../feeRouterDeployRewardDistributor', () => ({
   feeRouterDeployRewardDistributor: _mocks.fn('feeRouterDeployRewardDistributor'),
 }));
@@ -711,6 +722,7 @@ export async function assertSchemaCoverage<T extends ZodType>(
   // the field as live.
   samples?: Readonly<Record<string, unknown>>,
 ): Promise<void> {
+  const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
   const walk: SchemaWalk = { leaves: [], anchors: [] };
   walkSchema(schema, [], false, walk);
   const { leaves, anchors } = walk;
@@ -746,8 +758,6 @@ export async function assertSchemaCoverage<T extends ZodType>(
           fixture as z.input<T>,
         ) as Record<string, unknown>)
       : fixture;
-
-  const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
 
   const runSnapshot = async (input: Record<string, unknown>): Promise<string> => {
     registry.clear();
