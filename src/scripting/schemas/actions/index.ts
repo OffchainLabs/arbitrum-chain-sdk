@@ -6,3 +6,7 @@ export { buildScheduleArbOSUpgradeSchema } from './buildScheduleArbOSUpgrade';
 export { isBatchPosterSchema } from './isBatchPoster';
 export { isValidKeysetHashSchema } from './isValidKeysetHash';
 export { getMaxTimeVariationSchema } from './getMaxTimeVariation';
+export { buildSetAllowListSchema } from './buildSetAllowList';
+export { buildSetAllowListEnabledSchema } from './buildSetAllowListEnabled';
+export { isAllowListEnabledSchema } from './isAllowListEnabled';
+export { isAllowedSchema } from './isAllowed';
