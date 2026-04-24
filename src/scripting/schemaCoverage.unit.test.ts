@@ -84,7 +84,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
       },
     ],
   },
-  createTokenBridgeExample: {
+  initializeTokenBridge: {
     // `rollupDeploymentBlockNumber` is only read inside the
     // `nativeToken === zeroAddress` branch (the WETH-gateway path), so it
     // needs the same zero-address context that the nativeToken test uses.
