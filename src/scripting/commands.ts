@@ -40,6 +40,10 @@ import {
   buildInvalidateKeysetHashSchema,
   buildSetMaxTimeVariationSchema,
   buildScheduleArbOSUpgradeSchema,
+  buildSetAllowListSchema,
+  buildSetAllowListEnabledSchema,
+  isAllowListEnabledSchema,
+  isAllowedSchema,
   isBatchPosterSchema,
   isValidKeysetHashSchema,
   getMaxTimeVariationSchema,
@@ -92,6 +96,10 @@ import { buildSetValidKeyset } from '../actions/buildSetValidKeyset';
 import { buildInvalidateKeysetHash } from '../actions/buildInvalidateKeysetHash';
 import { buildSetMaxTimeVariation } from '../actions/buildSetMaxTimeVariation';
 import { buildScheduleArbOSUpgrade } from '../actions/buildScheduleArbOSUpgrade';
+import { buildSetAllowList } from '../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../actions/buildSetAllowListEnabled';
+import { isAllowListEnabled } from '../actions/isAllowListEnabled';
+import { isAllowed } from '../actions/isAllowed';
 import { isBatchPoster } from '../actions/isBatchPoster';
 import { isValidKeysetHash } from '../actions/isValidKeysetHash';
 import { getMaxTimeVariation } from '../actions/getMaxTimeVariation';
@@ -285,6 +293,10 @@ export const commands: readonly Command[] = [
   command('buildInvalidateKeysetHash', buildInvalidateKeysetHashSchema, buildInvalidateKeysetHash),
   command('buildSetMaxTimeVariation', buildSetMaxTimeVariationSchema, buildSetMaxTimeVariation),
   command('buildScheduleArbOSUpgrade', buildScheduleArbOSUpgradeSchema, buildScheduleArbOSUpgrade),
+  command('buildSetAllowList', buildSetAllowListSchema, buildSetAllowList),
+  command('buildSetAllowListEnabled', buildSetAllowListEnabledSchema, buildSetAllowListEnabled),
+  command('isAllowListEnabled', isAllowListEnabledSchema, isAllowListEnabled),
+  command('isAllowed', isAllowedSchema, isAllowed),
   command('isBatchPoster', isBatchPosterSchema, isBatchPoster),
   command('isValidKeysetHash', isValidKeysetHashSchema, isValidKeysetHash),
   command('getMaxTimeVariation', getMaxTimeVariationSchema, getMaxTimeVariation),
