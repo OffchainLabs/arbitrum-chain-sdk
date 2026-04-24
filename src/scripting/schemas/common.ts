@@ -39,7 +39,7 @@ export const bigintSchema = z
   .regex(/^-?\d+$/, 'Expected a numeric string')
   .transform(BigInt);
 
-export const rollupCreatorVersionSchema = z.enum(['v3.2', 'v2.1']);
+export const rollupCreatorVersionSchema = z.enum(['v2.1', 'v3.2']);
 
 export const sequencerInboxMaxTimeVariationSchema = z.object({
   delayBlocks: bigintSchema,

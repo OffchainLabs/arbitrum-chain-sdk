@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { parseAbi, zeroAddress } from 'viem';
-import { runScript } from '../scriptUtils';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import {
   hexSchema,
@@ -197,5 +196,3 @@ export const execute = async (input: z.output<typeof schema>) => {
     tokenBridgeContracts,
   };
 };
-
-runScript(schema, execute);

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { runScript } from '../scriptUtils';
 import { withParentChainPublicClient, toAccount } from '../viemTransforms';
 import { createTokenBridgePrepareTransactionRequest } from '../../createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from '../../createTokenBridgePrepareTransactionReceipt';
@@ -100,5 +99,3 @@ export const execute = async (input: z.output<typeof schema>) => {
 
   return tokenBridgeContracts;
 };
-
-runScript(schema, execute);
