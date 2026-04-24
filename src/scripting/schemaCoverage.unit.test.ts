@@ -84,7 +84,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
       },
     ],
   },
-  createTokenBridgeExample: {
+  initializeTokenBridge: {
     overrides: [
       {
         matches: (k) => k === 'nativeToken',

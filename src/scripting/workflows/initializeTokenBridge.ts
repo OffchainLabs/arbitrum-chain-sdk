@@ -16,7 +16,6 @@ import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createToke
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
 export const inputSchema = parentChainPublicClientSchema.extend({
-  account: addressSchema,
   params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
   gasOverrides: gasLimitSchema.optional(),
   retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
@@ -27,12 +26,12 @@ export const inputSchema = parentChainPublicClientSchema.extend({
 
 export const schema = inputSchema.strict().transform((input) => {
   const { privateKey, nativeToken, ...rest } = input;
-  const [createTokenBridgeParams] = withParentChainPublicClient(rest);
-  return {
-    createTokenBridgeParams,
-    signer: toAccount(privateKey),
-    nativeToken,
-  };
+  const signer = toAccount(privateKey);
+  const [createTokenBridgeParams] = withParentChainPublicClient({
+    ...rest,
+    account: signer.address,
+  });
+  return { createTokenBridgeParams, signer, nativeToken };
 });
 
 export const execute = async (input: z.output<typeof schema>) => {
@@ -41,11 +40,12 @@ export const execute = async (input: z.output<typeof schema>) => {
   const createTokenBridgeParams = input.createTokenBridgeParams;
   const parentChainPublicClient = createTokenBridgeParams.parentChainPublicClient;
 
-  if (nativeToken != zeroAddress) {
+  if (nativeToken !== zeroAddress) {
     const allowanceParams = {
       nativeToken: nativeToken,
       owner: deployer.address,
       publicClient: parentChainPublicClient,
+      tokenBridgeCreatorAddressOverride: createTokenBridgeParams.tokenBridgeCreatorAddressOverride,
     };
     if (!(await createTokenBridgeEnoughCustomFeeTokenAllowance(allowanceParams))) {
       const approvalTxRequest =
@@ -78,7 +78,7 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // If the nativeToken is the zero address, we also set the WETH gateway
-  if (nativeToken == zeroAddress) {
+  if (nativeToken === zeroAddress) {
     const setWethGatewayTransactionRequest =
       await createTokenBridgePrepareSetWethGatewayTransactionRequest({
         rollup: createTokenBridgeParams.params.rollup,

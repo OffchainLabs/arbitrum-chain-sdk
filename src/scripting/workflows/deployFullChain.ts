@@ -12,9 +12,9 @@ import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { execute as deployNewChainExecute } from './deployNewChain';
 import {
-  inputSchema as createTokenBridgeInputSchema,
-  execute as createTokenBridgeExecute,
-} from './createTokenBridgeAndWethGateway';
+  inputSchema as initializeTokenBridgeInputSchema,
+  execute as initializeTokenBridgeExecute,
+} from './initializeTokenBridge';
 import {
   inputSchema as transferOwnershipInputSchema,
   execute as transferOwnershipExecute,
@@ -35,10 +35,10 @@ export const inputSchema = z.object({
   }),
   tokenBridgeParams: z
     .object({
-      gasOverrides: createTokenBridgeInputSchema.shape.gasOverrides,
-      retryableGasOverrides: createTokenBridgeInputSchema.shape.retryableGasOverrides,
+      gasOverrides: initializeTokenBridgeInputSchema.shape.gasOverrides,
+      retryableGasOverrides: initializeTokenBridgeInputSchema.shape.retryableGasOverrides,
       tokenBridgeCreatorAddressOverride:
-        createTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
+        initializeTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
     })
     .default({}),
   ownershipTransferParams: z.object({
@@ -145,7 +145,7 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // Step 2: Create token bridge
-  const tokenBridgeContracts = await createTokenBridgeExecute({
+  const tokenBridgeContracts = await initializeTokenBridgeExecute({
     createTokenBridgeParams: {
       params: {
         rollup: coreContracts.rollup,
