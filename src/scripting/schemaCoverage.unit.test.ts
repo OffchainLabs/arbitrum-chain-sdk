@@ -95,6 +95,34 @@ const coverageConfig: Record<string, CoverageConfig> = {
       },
     ],
   },
+  deployFullChain: {
+    // `execute` only exercises keyset when DAC=true; schema enforces via
+    // superRefine. Supply both so toggling `params.keyset` hits the branch.
+    overrides: [
+      {
+        matches: (k) => k === 'params.keyset',
+        apply: (base) => {
+          const b = base as { params: { config: Record<string, unknown> } };
+          return {
+            ...b,
+            params: {
+              ...b.params,
+              config: {
+                ...b.params.config,
+                chainConfig: {
+                  chainId: 99999,
+                  arbitrum: {
+                    InitialChainOwner: '0x' + '1'.repeat(40),
+                    DataAvailabilityCommittee: true,
+                  },
+                },
+              },
+            },
+          };
+        },
+      },
+    ],
+  },
 };
 
 describe('schema coverage', () => {

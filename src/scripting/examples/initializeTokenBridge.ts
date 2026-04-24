@@ -26,16 +26,13 @@ export const schema = parentChainPublicClientSchema
   })
   .strict()
   .transform((input) => {
-    const signer = toAccount(input.privateKey);
+    const { privateKey, nativeToken, ...rest } = input;
+    const signer = toAccount(privateKey);
     const [createTokenBridgeParams] = withParentChainPublicClient({
-      ...input,
+      ...rest,
       account: signer.address,
     });
-    return {
-      createTokenBridgeParams,
-      signer,
-      nativeToken: input.nativeToken,
-    };
+    return { createTokenBridgeParams, signer, nativeToken };
   });
 
 export const execute = async (input: z.output<typeof schema>) => {
