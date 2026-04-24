@@ -1,5 +1,4 @@
 import { z } from 'zod';
-
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
 import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
