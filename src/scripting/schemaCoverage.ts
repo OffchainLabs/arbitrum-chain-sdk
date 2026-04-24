@@ -46,6 +46,16 @@
 //       apply: (base) => ({ ...base, chainConfig: { chainId: 99999 } }),
 //     },
 //   ]);
+//
+// Samples (the fifth argument) provide realistic values for specific leaves.
+// They're used only on the `base` side of each check, so the generated `valB`
+// still diverges. Reach for these when a pure function's synthetic inputs
+// collapse to the same output (e.g. a lookup-table miss), which would
+// otherwise look dead even though the field is plumbed through:
+//
+//   await assertSchemaCoverage(schema, execute, mocks, undefined, {
+//     wasmModuleRoot: '0x6b94...',
+//   });
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
@@ -54,11 +64,7 @@ import { addressSchema, hexSchema, privateKeySchema } from './schemas/common';
 
 const _mocks = vi.hoisted(() => {
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
-  const BIGINT_METHODS = new Set([
-    'getGasPrice',
-    'readContract',
-    'calculateRetryableSubmissionFee',
-  ]);
+  const BIGINT_METHODS = new Set(['getGasPrice', 'calculateRetryableSubmissionFee']);
   const HASH_METHODS = new Set(['sendRawTransaction', 'writeContract', 'signTransaction']);
   const RECEIPT_METHODS = new Set(['waitForTransactionReceipt']);
   const SIMULATE_METHODS = new Set(['simulateContract']);
@@ -66,17 +72,38 @@ const _mocks = vi.hoisted(() => {
   const validHex = (bytes: number) => '0x' + (++hexCounter).toString(16).padStart(bytes * 2, '0');
   const calls: unknown[] = [];
 
+  // Scalar properties the generic proxy should return as bigints. These show
+  // up when real viem result objects (e.g. from `prepareTransactionRequest`)
+  // are consumed arithmetically; without this the default "everything is a
+  // method" behaviour would hand back a function and break bigint math.
+  const BIGINT_PROPS = new Set(['gas', 'value', 'nonce', 'maxFeePerGas', 'maxPriorityFeePerGas']);
+
   function trackedObject(name: string): any {
     return new Proxy(Object.create(null), {
-      get(_, prop) {
+      get(target, prop) {
+        // Values explicitly assigned on the tracked object (e.g. the real
+        // code mutating `request.gas = applyPercentIncrease(...)`) must win
+        // over the synthetic defaults below, otherwise those writes are
+        // invisible to the harness and downstream reads look constant.
+        if (Object.prototype.hasOwnProperty.call(target, prop)) {
+          return (target as Record<string | symbol, unknown>)[prop as string | symbol];
+        }
         if (prop === 'then') return undefined;
         if (prop === Symbol.toPrimitive) return () => validHex(20);
         if (prop === 'toJSON') return () => ({ _tracked: name });
         if (prop === 'address') return validHex(20);
         if (prop === 'chain') return { _tracked: `${name}.chain` };
+        if (typeof prop === 'string' && BIGINT_PROPS.has(prop)) return 1_000_000n;
         const method = String(prop);
         return (...args: unknown[]) => {
           calls.push({ target: name, method, args: JSON.parse(JSON.stringify(args, replacer)) });
+          if (method === 'readContract') {
+            const fn = (args[0] as { functionName?: string } | undefined)?.functionName;
+            // Contract reads whose ABI returns a tuple need an iterable result
+            // or destructuring throws. Extend this list as new callers surface.
+            if (fn === 'maxTimeVariation') return Promise.resolve([1n, 2n, 3n, 4n]);
+            return Promise.resolve(1000000n);
+          }
           if (BIGINT_METHODS.has(method)) return Promise.resolve(1000000n);
           if (HASH_METHODS.has(method)) return Promise.resolve(validHex(32));
           if (RECEIPT_METHODS.has(method)) return Promise.resolve({ blockNumber: 1n });
@@ -228,6 +255,28 @@ vi.mock('./viemTransforms', () => {
 
 vi.mock('./scriptUtils', () => ({ runScript: () => {} }));
 
+// Generated `parentChainId` values are synthetic integers. The real
+// `validateParentChain` rejects anything not in its supported-chain list,
+// which would trip coverage runs before they reach the mocks. Echo the
+// input back so the coverage harness can still observe value changes.
+vi.mock('../types/ParentChain', () => ({
+  validateParentChain: (chainIdOrClient: unknown) => {
+    const chainId =
+      typeof chainIdOrClient === 'number'
+        ? chainIdOrClient
+        : (chainIdOrClient as { chain?: { id?: number } } | undefined)?.chain?.id ?? 1;
+    return { chainId, isCustom: false };
+  },
+}));
+
+// The real `getParentChainBlockTime` returns 2 or 12 depending on chain id.
+// That collapses the synthetic chain ids the harness generates into the same
+// bucket, masking genuine field usage downstream in the getDefault* helpers.
+// Echo the id so snapshots vary with the input.
+vi.mock('../getParentChainBlockTime', () => ({
+  getParentChainBlockTime: (chainId: number) => chainId,
+}));
+
 vi.mock('../createRollupPrepareDeploymentParamsConfig', () => ({
   createRollupPrepareDeploymentParamsConfig: _mocks.fnSync(
     'createRollupPrepareDeploymentParamsConfig',
@@ -343,7 +392,21 @@ vi.mock('viem', async (importOriginal) => {
   };
 });
 
-type SchemaLeaf = { path: string[]; schema: ZodType; optional: boolean };
+/**
+ * A testable leaf of a schema -- a scalar field the harness will vary when
+ * running coverage.
+ */
+type SchemaLeaf = {
+  /** Dotted-path components from the schema root to this leaf. */
+  path: string[];
+  /** The innermost zod type (optional/default wrappers peeled). */
+  schema: ZodType;
+  /**
+   * True if any ancestor in the schema is `z.optional()` or `z.nullable()`;
+   * gates whether this leaf gets a presence check.
+   */
+  optional: boolean;
+};
 
 let counter = 0;
 
@@ -369,11 +432,19 @@ function stripOptional(schema: ZodType): ZodType {
   return schema;
 }
 
-// Walks the schema once, collecting both atomic leaves (scalar fields we'll
-// test) and optional anchors (paths where a z.optional()/z.nullable() wrapper
-// sits, which are candidates for presence tests). Leaves inherit the optional
-// flag from any optional ancestor.
-type SchemaWalk = { leaves: SchemaLeaf[]; anchors: string[][] };
+/**
+ * Result of walking a schema once. Leaves inherit the optional flag from
+ * any optional ancestor.
+ */
+type SchemaWalk = {
+  /** Scalar leaves the harness will test. */
+  leaves: SchemaLeaf[];
+  /**
+   * Paths where a `z.optional()` / `z.nullable()` wrapper sits. Each is a
+   * candidate for a presence check (undefined vs populated subtree).
+   */
+  anchors: string[][];
+};
 
 function walkSchema(schema: ZodType, path: string[], optional: boolean, out: SchemaWalk): void {
   // Treat canonical refined-string schemas as atomic leaves so the generator
@@ -555,6 +626,48 @@ function materializeSubtree(
   return fx;
 }
 
+// Expands a schema into its discriminator variants for independent coverage.
+// The harness walks only the first union option when collecting leaves, so a
+// `z.union([v21, v32, default])` would only cover v21's fields unless callers
+// iterate variants explicitly.
+export function getSchemaVariants(schema: ZodType): readonly ZodType[] {
+  const def = getDef(schema);
+  return def?.type === 'union' ? (def.options as ZodType[]) : [schema];
+}
+
+// Best-effort label for a variant: picks the first literal field inside the
+// variant's input object, or a `z.never().optional()` field as "default".
+// Returns null if no obvious discriminator is found.
+export function getVariantLabel(variant: ZodType): string | null {
+  let current: ZodType = variant;
+  for (let i = 0; i < 8; i++) {
+    const def = getDef(current);
+    if (!def) return null;
+    if (def.type === 'object') {
+      for (const child of Object.values(def.shape as Record<string, ZodType>)) {
+        const childDef = getDef(child);
+        if (childDef?.type === 'literal') return String(childDef.values[0]);
+        if (childDef?.type === 'optional' && getDef(childDef.innerType)?.type === 'never') {
+          return 'default';
+        }
+      }
+      return null;
+    }
+    if (
+      def.type === 'pipe' ||
+      def.type === 'default' ||
+      def.type === 'prefault' ||
+      def.type === 'readonly' ||
+      def.type === 'catch'
+    ) {
+      current = def.type === 'pipe' ? def.in : def.innerType;
+      continue;
+    }
+    return null;
+  }
+  return null;
+}
+
 function outermostAnchor(leafPath: string[], anchors: string[][]): string[] | null {
   let best: string[] | null = null;
   for (const a of anchors) {
@@ -565,6 +678,19 @@ function outermostAnchor(leafPath: string[], anchors: string[][]): string[] | nu
 }
 
 /**
+ * Augmentation applied to the `base` fixture during a coverage run. Useful
+ * for satisfying schema refines or supplying sibling context that the leaf
+ * under test depends on. Multiple overrides can match a single key and are
+ * composed in order. See the file header for a usage example.
+ */
+export type CoverageOverride<T extends ZodType> = {
+  /** Returns true for the leaf/anchor keys this override should fire on. */
+  matches: (key: string) => boolean;
+  /** Transforms the fixture; returns the next state. */
+  apply: (base: z.input<T>) => z.input<T>;
+};
+
+/**
  * Checks that every field in a schema is actually used. If a field can be
  * changed without affecting what the SDK function receives, it's dead --
  * the user is providing a value that doesn't matter.
@@ -572,16 +698,18 @@ function outermostAnchor(leafPath: string[], anchors: string[][]): string[] | nu
  * Works by generating two inputs that differ in one field at a time,
  * running both through the pipeline, and failing if the outputs match.
  */
-export type CoverageOverride<T extends ZodType> = {
-  matches: (key: string) => boolean;
-  apply: (base: z.input<T>) => z.input<T>;
-};
-
 export async function assertSchemaCoverage<T extends ZodType>(
   schema: T,
   execute: (...args: any[]) => unknown,
   registry: typeof _mocks,
   overrides?: readonly CoverageOverride<T>[],
+  // Realistic sample values keyed by dotted leaf path. Used for the `base`
+  // input when a pure function's synthetic inputs would collapse to the same
+  // output (e.g. a lookup-table miss returning the same `undefined`/`false`
+  // for any non-matching value). Leaving valuesB synthetic means base and
+  // mutated land in different code-path buckets, letting the harness observe
+  // the field as live.
+  samples?: Readonly<Record<string, unknown>>,
 ): Promise<void> {
   const walk: SchemaWalk = { leaves: [], anchors: [] };
   walkSchema(schema, [], false, walk);
@@ -603,7 +731,8 @@ export async function assertSchemaCoverage<T extends ZodType>(
   const valuesB = new Map<string, unknown>();
   for (const leaf of leaves) {
     const key = leaf.path.join('.');
-    valuesA.set(key, generateValue(leaf.schema));
+    const generatedA = generateValue(leaf.schema);
+    valuesA.set(key, samples && key in samples ? samples[key] : generatedA);
     valuesB.set(key, generateValue(leaf.schema));
   }
 
@@ -618,11 +747,13 @@ export async function assertSchemaCoverage<T extends ZodType>(
         ) as Record<string, unknown>)
       : fixture;
 
+  const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
+
   const runSnapshot = async (input: Record<string, unknown>): Promise<string> => {
     registry.clear();
     const parsed = schema.parse(input) as any;
-    await (Array.isArray(parsed) ? execute(...parsed) : execute(parsed));
-    return registry.snapshot();
+    const result = await (Array.isArray(parsed) ? execute(...parsed) : execute(parsed));
+    return registry.snapshot() + JSON.stringify(result, replacer);
   };
 
   // Presence tests: one per distinct optional anchor. Materialize from the
