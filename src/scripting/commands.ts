@@ -1,7 +1,5 @@
-import { runCli } from './scriptUtils';
-import { commands } from './commands';
+import { z, ZodType } from 'zod';
 
-<<<<<<< HEAD
 import {
   getValidatorsSchema,
   getBatchPostersSchema,
@@ -42,6 +40,10 @@ import {
   buildInvalidateKeysetHashSchema,
   buildSetMaxTimeVariationSchema,
   buildScheduleArbOSUpgradeSchema,
+  buildSetAllowListSchema,
+  buildSetAllowListEnabledSchema,
+  isAllowListEnabledSchema,
+  isAllowedSchema,
   isBatchPosterSchema,
   isValidKeysetHashSchema,
   getMaxTimeVariationSchema,
@@ -50,10 +52,6 @@ import {
   getConsensusReleaseByVersionSchema,
   getConsensusReleaseByWasmModuleRootSchema,
   isKnownWasmModuleRootSchema,
-  buildSetAllowListSchema,
-  buildSetAllowListEnabledSchema,
-  isAllowListEnabledSchema,
-  isAllowedSchema,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -98,13 +96,13 @@ import { buildSetValidKeyset } from '../actions/buildSetValidKeyset';
 import { buildInvalidateKeysetHash } from '../actions/buildInvalidateKeysetHash';
 import { buildSetMaxTimeVariation } from '../actions/buildSetMaxTimeVariation';
 import { buildScheduleArbOSUpgrade } from '../actions/buildScheduleArbOSUpgrade';
-import { isBatchPoster } from '../actions/isBatchPoster';
-import { isValidKeysetHash } from '../actions/isValidKeysetHash';
-import { getMaxTimeVariation } from '../actions/getMaxTimeVariation';
 import { buildSetAllowList } from '../actions/buildSetAllowList';
 import { buildSetAllowListEnabled } from '../actions/buildSetAllowListEnabled';
 import { isAllowListEnabled } from '../actions/isAllowListEnabled';
 import { isAllowed } from '../actions/isAllowed';
+import { isBatchPoster } from '../actions/isBatchPoster';
+import { isValidKeysetHash } from '../actions/isValidKeysetHash';
+import { getMaxTimeVariation } from '../actions/getMaxTimeVariation';
 import { createRollupPrepareDeploymentParamsConfigDefaults } from '../createRollupPrepareDeploymentParamsConfigDefaults';
 import { parentChainIsArbitrum } from '../parentChainIsArbitrum';
 import {
@@ -112,148 +110,216 @@ import {
   getConsensusReleaseByWasmModuleRoot,
   isKnownWasmModuleRoot,
 } from '../wasmModuleRoot';
+import {
+  schema as deployNewChainSchema,
+  execute as deployNewChainExecute,
+} from './examples/deployNewChain';
+import {
+  schema as transferOwnershipSchema,
+  execute as transferOwnershipExecute,
+} from './examples/transferOwnership';
 
-runCli('chain-sdk', {
-  getValidators: cmd(getValidatorsSchema, getValidators),
-  getBatchPosters: cmd(getBatchPostersSchema, getBatchPosters),
-  getKeysets: cmd(getKeysetsSchema, getKeysets),
-  isAnyTrust: cmd(isAnyTrustSchema, isAnyTrust),
-  createRollupFetchTransactionHash: cmd(
+/**
+ * A scripting entry point: one schema + function pair exposed both as a CLI
+ * subcommand and as a coverage-test target. Consumed by `cli.ts` (iterates
+ * to build `runCli` commands) and `schemaCoverage.unit.test.ts` (iterates to
+ * generate `it` blocks).
+ */
+export type Command = {
+  /** The CLI subcommand name and the coverage test label. */
+  name: string;
+  /**
+   * Zod schema whose output is a tuple, so the parsed value can be spread
+   * into `func`'s positional arguments.
+   */
+  schema: ZodType<readonly unknown[]>;
+  /** The SDK function this command wraps. */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  func: (...args: any[]) => unknown;
+};
+
+/**
+ * Factory that ties each command's `schema` to its `func` at the call site
+ * so TypeScript rejects mismatched pairings. A plain object literal typed
+ * as `Command` would widen `func` to `(...args: any[]) => unknown`,
+ * silently accepting a function whose arguments don't line up with
+ * `z.output<schema>`. Captures the specific `S` here, then returns the
+ * widened `Command` so all entries share one array type.
+ */
+const command = <S extends ZodType<readonly unknown[]>>(
+  name: string,
+  schema: S,
+  func: (...args: z.output<S>) => unknown,
+): Command => ({ name, schema, func });
+
+export const commands: readonly Command[] = [
+  command('getValidators', getValidatorsSchema, getValidators),
+  command('getBatchPosters', getBatchPostersSchema, getBatchPosters),
+  command('getKeysets', getKeysetsSchema, getKeysets),
+  command('isAnyTrust', isAnyTrustSchema, isAnyTrust),
+  command(
+    'createRollupFetchTransactionHash',
     createRollupFetchTransactionHashSchema,
     createRollupFetchTransactionHash,
   ),
-  createRollupFetchCoreContracts: cmd(
+  command(
+    'createRollupFetchCoreContracts',
     createRollupFetchCoreContractsSchema,
     createRollupFetchCoreContracts,
   ),
-  getBridgeUiConfig: cmd(getBridgeUiConfigSchema, getBridgeUiConfig),
-  upgradeExecutorFetchPrivilegedAccounts: cmd(
+  command('getBridgeUiConfig', getBridgeUiConfigSchema, getBridgeUiConfig),
+  command(
+    'upgradeExecutorFetchPrivilegedAccounts',
     upgradeExecutorFetchPrivilegedAccountsSchema,
     upgradeExecutorFetchPrivilegedAccounts,
   ),
-  fetchAllowance: cmd(fetchAllowanceSchema, fetchAllowance),
-  fetchDecimals: cmd(fetchDecimalsSchema, fetchDecimals),
-
-  setAnyTrustFastConfirmer: cmd(
+  command('fetchAllowance', fetchAllowanceSchema, fetchAllowance),
+  command('fetchDecimals', fetchDecimalsSchema, fetchDecimals),
+  command(
+    'setAnyTrustFastConfirmer',
     setAnyTrustFastConfirmerSchema,
     setAnyTrustFastConfirmerPrepareTransactionRequest,
   ),
-  setValidKeyset: cmd(setValidKeysetSchema, setValidKeyset),
-  createRollup: cmd(createRollupSchema, createRollup),
-  createTokenBridge: cmd(createTokenBridgeSchema, createTokenBridge),
-  createTokenBridgePrepareTransactionRequest: cmd(
+  command('setValidKeyset', setValidKeysetSchema, setValidKeyset),
+  command('createRollup', createRollupSchema, createRollup),
+  command('createTokenBridge', createTokenBridgeSchema, createTokenBridge),
+  command(
+    'createTokenBridgePrepareTransactionRequest',
     createTokenBridgePrepareTransactionRequestSchema,
     createTokenBridgePrepareTransactionRequest,
   ),
-  createTokenBridgePrepareSetWethGatewayTransactionRequest: cmd(
+  command(
+    'createTokenBridgePrepareSetWethGatewayTransactionRequest',
     createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
     createTokenBridgePrepareSetWethGatewayTransactionRequest,
   ),
-  setValidKeysetPrepareTransactionRequest: cmd(
+  command(
+    'setValidKeysetPrepareTransactionRequest',
     setValidKeysetPrepareTransactionRequestSchema,
     setValidKeysetPrepareTransactionRequest,
   ),
-  createRollupPrepareTransactionRequest: cmd(
+  command(
+    'createRollupPrepareTransactionRequest',
     createRollupPrepareTransactionRequestSchema,
     createRollupPrepareTransactionRequest,
   ),
-  createSafePrepareTransactionRequest: cmd(
+  command(
+    'createSafePrepareTransactionRequest',
     createSafePrepareTransactionRequestSchema,
     createSafePrepareTransactionRequest,
   ),
-  upgradeExecutorPrepareAddExecutor: cmd(
+  command(
+    'upgradeExecutorPrepareAddExecutor',
     upgradeExecutorPrepareTransactionRequestSchema,
     upgradeExecutorPrepareAddExecutorTransactionRequest,
   ),
-  upgradeExecutorPrepareRemoveExecutor: cmd(
+  command(
+    'upgradeExecutorPrepareRemoveExecutor',
     upgradeExecutorPrepareTransactionRequestSchema,
     upgradeExecutorPrepareRemoveExecutorTransactionRequest,
   ),
-  createRollupEnoughCustomFeeTokenAllowance: cmd(
+  command(
+    'createRollupEnoughCustomFeeTokenAllowance',
     createRollupEnoughCustomFeeTokenAllowanceSchema,
     createRollupEnoughCustomFeeTokenAllowance,
   ),
-  createRollupPrepareCustomFeeTokenApprovalTransactionRequest: cmd(
+  command(
+    'createRollupPrepareCustomFeeTokenApprovalTransactionRequest',
     createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
     createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
   ),
-  createTokenBridgeEnoughCustomFeeTokenAllowance: cmd(
+  command(
+    'createTokenBridgeEnoughCustomFeeTokenAllowance',
     createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
     createTokenBridgeEnoughCustomFeeTokenAllowance,
   ),
-  createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest: cmd(
+  command(
+    'createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest',
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
   ),
-  feeRouterDeployRewardDistributor: cmd(
+  command(
+    'feeRouterDeployRewardDistributor',
     feeRouterDeployRewardDistributorSchema,
     feeRouterDeployRewardDistributor,
   ),
-  feeRouterDeployChildToParentRewardRouter: cmd(
+  command(
+    'feeRouterDeployChildToParentRewardRouter',
     feeRouterDeployChildToParentRewardRouterSchema,
     feeRouterDeployChildToParentRewardRouter,
   ),
-
-  prepareChainConfig: cmd(prepareChainConfigParamsSchema, prepareChainConfig),
-  prepareNodeConfig: cmd(prepareNodeConfigSchema, prepareNodeConfig),
-  prepareKeyset: cmd(prepareKeysetSchema, prepareKeyset),
-  prepareKeysetHash: cmd(prepareKeysetHashSchema, prepareKeysetHash),
-  prepareDeploymentParamsConfigV21: cmd(
+  command('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
+  command('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
+  command('prepareKeyset', prepareKeysetSchema, prepareKeyset),
+  command('prepareKeysetHash', prepareKeysetHashSchema, prepareKeysetHash),
+  command(
+    'prepareDeploymentParamsConfigV21',
     prepareDeploymentParamsConfigV21Schema,
     createRollupPrepareDeploymentParamsConfig,
   ),
-  prepareDeploymentParamsConfigV32: cmd(
+  command(
+    'prepareDeploymentParamsConfigV32',
     prepareDeploymentParamsConfigV32Schema,
     createRollupPrepareDeploymentParamsConfig,
   ),
-  createRollupGetRetryablesFees: cmd(
+  command(
+    'createRollupGetRetryablesFees',
     createRollupGetRetryablesFeesSchema,
     createRollupGetRetryablesFees,
   ),
-
-  getDefaultConfirmPeriodBlocks: cmd(getDefaultsSchema, getDefaultConfirmPeriodBlocks),
-  getDefaultChallengeGracePeriodBlocks: cmd(
+  command('getDefaultConfirmPeriodBlocks', getDefaultsSchema, getDefaultConfirmPeriodBlocks),
+  command(
+    'getDefaultChallengeGracePeriodBlocks',
     getDefaultsSchema,
     getDefaultChallengeGracePeriodBlocks,
   ),
-  getDefaultMinimumAssertionPeriod: cmd(getDefaultsSchema, getDefaultMinimumAssertionPeriod),
-  getDefaultValidatorAfkBlocks: cmd(getDefaultsSchema, getDefaultValidatorAfkBlocks),
-  getDefaultSequencerInboxMaxTimeVariation: cmd(
+  command('getDefaultMinimumAssertionPeriod', getDefaultsSchema, getDefaultMinimumAssertionPeriod),
+  command('getDefaultValidatorAfkBlocks', getDefaultsSchema, getDefaultValidatorAfkBlocks),
+  command(
+    'getDefaultSequencerInboxMaxTimeVariation',
     getDefaultsSchema,
     getDefaultSequencerInboxMaxTimeVariation,
   ),
-
-  buildSetIsBatchPoster: cmd(buildSetIsBatchPosterSchema, buildSetIsBatchPoster),
-  buildSetValidKeyset: cmd(buildSetValidKeysetSchema, buildSetValidKeyset),
-  buildInvalidateKeysetHash: cmd(buildInvalidateKeysetHashSchema, buildInvalidateKeysetHash),
-  buildSetMaxTimeVariation: cmd(buildSetMaxTimeVariationSchema, buildSetMaxTimeVariation),
-  buildScheduleArbOSUpgrade: cmd(buildScheduleArbOSUpgradeSchema, buildScheduleArbOSUpgrade),
-  isBatchPoster: cmd(isBatchPosterSchema, isBatchPoster),
-  isValidKeysetHash: cmd(isValidKeysetHashSchema, isValidKeysetHash),
-  getMaxTimeVariation: cmd(getMaxTimeVariationSchema, getMaxTimeVariation),
-
-  createRollupPrepareDeploymentParamsConfigDefaults: cmd(
+  command('buildSetIsBatchPoster', buildSetIsBatchPosterSchema, buildSetIsBatchPoster),
+  command('buildSetValidKeyset', buildSetValidKeysetSchema, buildSetValidKeyset),
+  command('buildInvalidateKeysetHash', buildInvalidateKeysetHashSchema, buildInvalidateKeysetHash),
+  command('buildSetMaxTimeVariation', buildSetMaxTimeVariationSchema, buildSetMaxTimeVariation),
+  command('buildScheduleArbOSUpgrade', buildScheduleArbOSUpgradeSchema, buildScheduleArbOSUpgrade),
+  command('buildSetAllowList', buildSetAllowListSchema, buildSetAllowList),
+  command('buildSetAllowListEnabled', buildSetAllowListEnabledSchema, buildSetAllowListEnabled),
+  command('isAllowListEnabled', isAllowListEnabledSchema, isAllowListEnabled),
+  command('isAllowed', isAllowedSchema, isAllowed),
+  command('isBatchPoster', isBatchPosterSchema, isBatchPoster),
+  command('isValidKeysetHash', isValidKeysetHashSchema, isValidKeysetHash),
+  command('getMaxTimeVariation', getMaxTimeVariationSchema, getMaxTimeVariation),
+  command(
+    'createRollupPrepareDeploymentParamsConfigDefaults',
     createRollupPrepareDeploymentParamsConfigDefaultsSchema,
     createRollupPrepareDeploymentParamsConfigDefaults as (
       version?: 'v2.1' | 'v3.2',
     ) => ReturnType<typeof createRollupPrepareDeploymentParamsConfigDefaults>,
   ),
-  parentChainIsArbitrum: cmd(parentChainIsArbitrumSchema, parentChainIsArbitrum),
-  getConsensusReleaseByVersion: cmd(
+  command('parentChainIsArbitrum', parentChainIsArbitrumSchema, parentChainIsArbitrum),
+  command(
+    'getConsensusReleaseByVersion',
     getConsensusReleaseByVersionSchema,
     getConsensusReleaseByVersion,
   ),
-  getConsensusReleaseByWasmModuleRoot: cmd(
+  command(
+    'getConsensusReleaseByWasmModuleRoot',
     getConsensusReleaseByWasmModuleRootSchema,
     getConsensusReleaseByWasmModuleRoot,
   ),
-  isKnownWasmModuleRoot: cmd(isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
+  command('isKnownWasmModuleRoot', isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
 
-  buildSetAllowList: cmd(buildSetAllowListSchema, buildSetAllowList),
-  buildSetAllowListEnabled: cmd(buildSetAllowListEnabledSchema, buildSetAllowListEnabled),
-  isAllowListEnabled: cmd(isAllowListEnabledSchema, isAllowListEnabled),
-  isAllowed: cmd(isAllowedSchema, isAllowed),
-});
-=======
-runCli('chain-sdk', commands);
->>>>>>> origin/feat/schema-coverage
+  command(
+    'deployNewChain',
+    deployNewChainSchema.transform((i) => [i] as const),
+    deployNewChainExecute,
+  ),
+  command(
+    'transferOwnership',
+    transferOwnershipSchema.transform((i) => [i] as const),
+    transferOwnershipExecute,
+  ),
+];
