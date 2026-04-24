@@ -44,16 +44,6 @@ export function runScript<TSchema extends ZodType>(
   })().catch(handleError);
 }
 
-export function cmd<TSchema extends ZodType<readonly unknown[]>>(
-  input: TSchema,
-  run: (...args: z.output<TSchema>) => unknown,
-) {
-  return {
-    input,
-    run: (parsed: unknown) => run(...(parsed as z.output<TSchema>)),
-  };
-}
-
 export function runCli(
   cliName: string,
   commands: Record<string, { input: ZodType; run: (parsed: unknown) => unknown }>,

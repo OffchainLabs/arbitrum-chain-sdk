@@ -117,7 +117,7 @@ import {
  * to build `runCli` commands) and `schemaCoverage.unit.test.ts` (iterates to
  * generate `it` blocks).
  */
-export type RegistryEntry = {
+export type Command = {
   /** The CLI subcommand name and the coverage test label. */
   name: string;
   /**
@@ -125,175 +125,183 @@ export type RegistryEntry = {
    * into `func`'s positional arguments.
    */
   schema: ZodType<readonly unknown[]>;
-  /** The SDK function this entry wraps. */
+  /** The SDK function this command wraps. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   func: (...args: any[]) => unknown;
 };
 
-const entry = <S extends ZodType<readonly unknown[]>>(
+/**
+ * Factory that ties each command's `schema` to its `func` at the call site
+ * so TypeScript rejects mismatched pairings. A plain object literal typed
+ * as `Command` would widen `func` to `(...args: any[]) => unknown`,
+ * silently accepting a function whose arguments don't line up with
+ * `z.output<schema>`. Captures the specific `S` here, then returns the
+ * widened `Command` so all entries share one array type.
+ */
+const command = <S extends ZodType<readonly unknown[]>>(
   name: string,
   schema: S,
   func: (...args: z.output<S>) => unknown,
-): RegistryEntry => ({ name, schema, func });
+): Command => ({ name, schema, func });
 
-export const registry: readonly RegistryEntry[] = [
-  entry('getValidators', getValidatorsSchema, getValidators),
-  entry('getBatchPosters', getBatchPostersSchema, getBatchPosters),
-  entry('getKeysets', getKeysetsSchema, getKeysets),
-  entry('isAnyTrust', isAnyTrustSchema, isAnyTrust),
-  entry(
+export const commands: readonly Command[] = [
+  command('getValidators', getValidatorsSchema, getValidators),
+  command('getBatchPosters', getBatchPostersSchema, getBatchPosters),
+  command('getKeysets', getKeysetsSchema, getKeysets),
+  command('isAnyTrust', isAnyTrustSchema, isAnyTrust),
+  command(
     'createRollupFetchTransactionHash',
     createRollupFetchTransactionHashSchema,
     createRollupFetchTransactionHash,
   ),
-  entry(
+  command(
     'createRollupFetchCoreContracts',
     createRollupFetchCoreContractsSchema,
     createRollupFetchCoreContracts,
   ),
-  entry('getBridgeUiConfig', getBridgeUiConfigSchema, getBridgeUiConfig),
-  entry(
+  command('getBridgeUiConfig', getBridgeUiConfigSchema, getBridgeUiConfig),
+  command(
     'upgradeExecutorFetchPrivilegedAccounts',
     upgradeExecutorFetchPrivilegedAccountsSchema,
     upgradeExecutorFetchPrivilegedAccounts,
   ),
-  entry('fetchAllowance', fetchAllowanceSchema, fetchAllowance),
-  entry('fetchDecimals', fetchDecimalsSchema, fetchDecimals),
-  entry(
+  command('fetchAllowance', fetchAllowanceSchema, fetchAllowance),
+  command('fetchDecimals', fetchDecimalsSchema, fetchDecimals),
+  command(
     'setAnyTrustFastConfirmer',
     setAnyTrustFastConfirmerSchema,
     setAnyTrustFastConfirmerPrepareTransactionRequest,
   ),
-  entry('setValidKeyset', setValidKeysetSchema, setValidKeyset),
-  entry('createRollup', createRollupSchema, createRollup),
-  entry('createTokenBridge', createTokenBridgeSchema, createTokenBridge),
-  entry(
+  command('setValidKeyset', setValidKeysetSchema, setValidKeyset),
+  command('createRollup', createRollupSchema, createRollup),
+  command('createTokenBridge', createTokenBridgeSchema, createTokenBridge),
+  command(
     'createTokenBridgePrepareTransactionRequest',
     createTokenBridgePrepareTransactionRequestSchema,
     createTokenBridgePrepareTransactionRequest,
   ),
-  entry(
+  command(
     'createTokenBridgePrepareSetWethGatewayTransactionRequest',
     createTokenBridgePrepareSetWethGatewayTransactionRequestSchema,
     createTokenBridgePrepareSetWethGatewayTransactionRequest,
   ),
-  entry(
+  command(
     'setValidKeysetPrepareTransactionRequest',
     setValidKeysetPrepareTransactionRequestSchema,
     setValidKeysetPrepareTransactionRequest,
   ),
-  entry(
+  command(
     'createRollupPrepareTransactionRequest',
     createRollupPrepareTransactionRequestSchema,
     createRollupPrepareTransactionRequest,
   ),
-  entry(
+  command(
     'createSafePrepareTransactionRequest',
     createSafePrepareTransactionRequestSchema,
     createSafePrepareTransactionRequest,
   ),
-  entry(
+  command(
     'upgradeExecutorPrepareAddExecutor',
     upgradeExecutorPrepareTransactionRequestSchema,
     upgradeExecutorPrepareAddExecutorTransactionRequest,
   ),
-  entry(
+  command(
     'upgradeExecutorPrepareRemoveExecutor',
     upgradeExecutorPrepareTransactionRequestSchema,
     upgradeExecutorPrepareRemoveExecutorTransactionRequest,
   ),
-  entry(
+  command(
     'createRollupEnoughCustomFeeTokenAllowance',
     createRollupEnoughCustomFeeTokenAllowanceSchema,
     createRollupEnoughCustomFeeTokenAllowance,
   ),
-  entry(
+  command(
     'createRollupPrepareCustomFeeTokenApprovalTransactionRequest',
     createRollupPrepareCustomFeeTokenApprovalTransactionRequestSchema,
     createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
   ),
-  entry(
+  command(
     'createTokenBridgeEnoughCustomFeeTokenAllowance',
     createTokenBridgeEnoughCustomFeeTokenAllowanceSchema,
     createTokenBridgeEnoughCustomFeeTokenAllowance,
   ),
-  entry(
+  command(
     'createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest',
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
     createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
   ),
-  entry(
+  command(
     'feeRouterDeployRewardDistributor',
     feeRouterDeployRewardDistributorSchema,
     feeRouterDeployRewardDistributor,
   ),
-  entry(
+  command(
     'feeRouterDeployChildToParentRewardRouter',
     feeRouterDeployChildToParentRewardRouterSchema,
     feeRouterDeployChildToParentRewardRouter,
   ),
-  entry('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
-  entry('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
-  entry('prepareKeyset', prepareKeysetSchema, prepareKeyset),
-  entry('prepareKeysetHash', prepareKeysetHashSchema, prepareKeysetHash),
-  entry(
+  command('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
+  command('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
+  command('prepareKeyset', prepareKeysetSchema, prepareKeyset),
+  command('prepareKeysetHash', prepareKeysetHashSchema, prepareKeysetHash),
+  command(
     'prepareDeploymentParamsConfigV21',
     prepareDeploymentParamsConfigV21Schema,
     createRollupPrepareDeploymentParamsConfig,
   ),
-  entry(
+  command(
     'prepareDeploymentParamsConfigV32',
     prepareDeploymentParamsConfigV32Schema,
     createRollupPrepareDeploymentParamsConfig,
   ),
-  entry(
+  command(
     'createRollupGetRetryablesFees',
     createRollupGetRetryablesFeesSchema,
     createRollupGetRetryablesFees,
   ),
-  entry('getDefaultConfirmPeriodBlocks', getDefaultsSchema, getDefaultConfirmPeriodBlocks),
-  entry(
+  command('getDefaultConfirmPeriodBlocks', getDefaultsSchema, getDefaultConfirmPeriodBlocks),
+  command(
     'getDefaultChallengeGracePeriodBlocks',
     getDefaultsSchema,
     getDefaultChallengeGracePeriodBlocks,
   ),
-  entry('getDefaultMinimumAssertionPeriod', getDefaultsSchema, getDefaultMinimumAssertionPeriod),
-  entry('getDefaultValidatorAfkBlocks', getDefaultsSchema, getDefaultValidatorAfkBlocks),
-  entry(
+  command('getDefaultMinimumAssertionPeriod', getDefaultsSchema, getDefaultMinimumAssertionPeriod),
+  command('getDefaultValidatorAfkBlocks', getDefaultsSchema, getDefaultValidatorAfkBlocks),
+  command(
     'getDefaultSequencerInboxMaxTimeVariation',
     getDefaultsSchema,
     getDefaultSequencerInboxMaxTimeVariation,
   ),
-  entry('buildSetIsBatchPoster', buildSetIsBatchPosterSchema, buildSetIsBatchPoster),
-  entry('buildSetValidKeyset', buildSetValidKeysetSchema, buildSetValidKeyset),
-  entry('buildInvalidateKeysetHash', buildInvalidateKeysetHashSchema, buildInvalidateKeysetHash),
-  entry('buildSetMaxTimeVariation', buildSetMaxTimeVariationSchema, buildSetMaxTimeVariation),
-  entry('buildScheduleArbOSUpgrade', buildScheduleArbOSUpgradeSchema, buildScheduleArbOSUpgrade),
-  entry('isBatchPoster', isBatchPosterSchema, isBatchPoster),
-  entry('isValidKeysetHash', isValidKeysetHashSchema, isValidKeysetHash),
-  entry('getMaxTimeVariation', getMaxTimeVariationSchema, getMaxTimeVariation),
-  entry(
+  command('buildSetIsBatchPoster', buildSetIsBatchPosterSchema, buildSetIsBatchPoster),
+  command('buildSetValidKeyset', buildSetValidKeysetSchema, buildSetValidKeyset),
+  command('buildInvalidateKeysetHash', buildInvalidateKeysetHashSchema, buildInvalidateKeysetHash),
+  command('buildSetMaxTimeVariation', buildSetMaxTimeVariationSchema, buildSetMaxTimeVariation),
+  command('buildScheduleArbOSUpgrade', buildScheduleArbOSUpgradeSchema, buildScheduleArbOSUpgrade),
+  command('isBatchPoster', isBatchPosterSchema, isBatchPoster),
+  command('isValidKeysetHash', isValidKeysetHashSchema, isValidKeysetHash),
+  command('getMaxTimeVariation', getMaxTimeVariationSchema, getMaxTimeVariation),
+  command(
     'createRollupPrepareDeploymentParamsConfigDefaults',
     createRollupPrepareDeploymentParamsConfigDefaultsSchema,
     createRollupPrepareDeploymentParamsConfigDefaults as (
       version?: 'v2.1' | 'v3.2',
     ) => ReturnType<typeof createRollupPrepareDeploymentParamsConfigDefaults>,
   ),
-  entry('parentChainIsArbitrum', parentChainIsArbitrumSchema, parentChainIsArbitrum),
-  entry(
+  command('parentChainIsArbitrum', parentChainIsArbitrumSchema, parentChainIsArbitrum),
+  command(
     'getConsensusReleaseByVersion',
     getConsensusReleaseByVersionSchema,
     getConsensusReleaseByVersion,
   ),
-  entry(
+  command(
     'getConsensusReleaseByWasmModuleRoot',
     getConsensusReleaseByWasmModuleRootSchema,
     getConsensusReleaseByWasmModuleRoot,
   ),
-  entry('isKnownWasmModuleRoot', isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
+  command('isKnownWasmModuleRoot', isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
 
-  entry('deployNewChain', deployNewChainSchema.transform((i) => [i] as const), deployNewChainExecute),
-  entry(
+  command('deployNewChain', deployNewChainSchema.transform((i) => [i] as const), deployNewChainExecute),
+  command(
     'transferOwnership',
     transferOwnershipSchema.transform((i) => [i] as const),
     transferOwnershipExecute,

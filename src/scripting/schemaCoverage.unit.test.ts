@@ -7,13 +7,13 @@ import {
   getVariantLabel,
   type CoverageOverride,
 } from './schemaCoverage';
-import { registry } from './registry';
+import { commands } from './commands';
 
 /** consensus-v10 wasm module root -- a real value from the known list. */
 const CONSENSUS_V10_WASM_MODULE_ROOT =
   '0x6b94a7fc388fd8ef3def759297828dc311761e88d8179c7ee8d3887dc554f3c3';
 
-/** Per-registry-entry coverage configuration. Keyed by registry entry name. */
+/** Per-command coverage configuration. Keyed by command name. */
 type CoverageConfig = {
   /**
    * Realistic values keyed by dotted leaf path. Applied to `valuesA` (the
@@ -87,7 +87,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
 };
 
 describe('schema coverage', () => {
-  for (const { name, schema, func } of registry) {
+  for (const { name, schema, func } of commands) {
     const variants = getSchemaVariants(schema);
     variants.forEach((variant, i) => {
       const label =

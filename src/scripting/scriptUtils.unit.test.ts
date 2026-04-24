@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
-import { runScript, runCli, cmd } from './scriptUtils';
+import { runScript, runCli } from './scriptUtils';
 
 let stdoutData: string;
 let stderrData: string;
@@ -108,10 +108,7 @@ it('outputs raw string without JSON quotes', async () => {
 describe('runCli', () => {
   const testSchema = z.object({ value: z.string() });
   const testCommands = {
-    echo: cmd(
-      testSchema.transform((input) => [input]),
-      (input: { value: string }) => input,
-    ),
+    echo: { input: testSchema, run: (parsed: unknown) => parsed },
   };
 
   it('prints usage and exits 1 for unknown command', () => {
@@ -166,10 +163,7 @@ describe('runCli', () => {
 
   it('outputs raw string without JSON quotes', async () => {
     const stringCommands = {
-      greet: cmd(
-        z.object({}).transform((input) => [input]),
-        () => 'hello world',
-      ),
+      greet: { input: z.object({}), run: () => 'hello world' },
     };
     process.argv[2] = 'greet';
     process.argv[3] = '{}';
