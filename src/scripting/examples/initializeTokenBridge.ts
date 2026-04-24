@@ -17,7 +17,6 @@ import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../
 
 export const schema = parentChainPublicClientSchema
   .extend({
-    account: addressSchema,
     params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
     gasOverrides: gasLimitSchema.optional(),
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
@@ -27,10 +26,14 @@ export const schema = parentChainPublicClientSchema
   })
   .strict()
   .transform((input) => {
-    const [createTokenBridgeParams] = withParentChainPublicClient(input);
+    const signer = toAccount(input.privateKey);
+    const [createTokenBridgeParams] = withParentChainPublicClient({
+      ...input,
+      account: signer.address,
+    });
     return {
       createTokenBridgeParams,
-      signer: toAccount(input.privateKey),
+      signer,
       nativeToken: input.nativeToken,
     };
   });
@@ -46,6 +49,7 @@ export const execute = async (input: z.output<typeof schema>) => {
       nativeToken: nativeToken,
       owner: deployer.address,
       publicClient: parentChainPublicClient,
+      tokenBridgeCreatorAddressOverride: createTokenBridgeParams.tokenBridgeCreatorAddressOverride,
     };
     if (!(await createTokenBridgeEnoughCustomFeeTokenAllowance(allowanceParams))) {
       const approvalTxRequest =
