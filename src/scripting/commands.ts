@@ -105,19 +105,19 @@ import {
 import {
   schema as deployNewChainSchema,
   execute as deployNewChainExecute,
-} from './examples/deployNewChain';
+} from './workflows/deployNewChain';
 import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
-} from './examples/transferOwnership';
+} from './workflows/transferOwnership';
 import {
   schema as initializeTokenBridgeSchema,
   execute as initializeTokenBridgeExecute,
-} from './examples/initializeTokenBridge';
+} from './workflows/initializeTokenBridge';
 import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
-} from './examples/deployFullChain';
+} from './workflows/deployFullChain';
 
 /**
  * A scripting entry point: one schema + function pair exposed both as a CLI
