@@ -17,7 +17,7 @@ import { getArbOSVersion } from '../../utils/getArbOSVersion';
 import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { execute as deployNewChainExecute } from './deployNewChain';
-import { execute as createTokenBridgeExecute } from './createTokenBridge';
+import { execute as initializeTokenBridgeExecute } from './initializeTokenBridge';
 import { execute as transferOwnershipExecute } from './transferOwnership';
 
 export const schema = createRollupDefaultSchema
@@ -133,7 +133,7 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // Step 2: Create token bridge
-  const tokenBridgeContracts = await createTokenBridgeExecute({
+  const tokenBridgeContracts = await initializeTokenBridgeExecute({
     createTokenBridgeParams: {
       params: {
         rollup: coreContracts.rollup,

@@ -111,9 +111,9 @@ import {
   execute as transferOwnershipExecute,
 } from './examples/transferOwnership';
 import {
-  schema as createTokenBridgeExampleSchema,
-  execute as createTokenBridgeExampleExecute,
-} from './examples/createTokenBridge';
+  schema as initializeTokenBridgeSchema,
+  execute as initializeTokenBridgeExecute,
+} from './examples/initializeTokenBridge';
 import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
@@ -319,9 +319,9 @@ export const commands: readonly Command[] = [
     transferOwnershipExecute,
   ),
   command(
-    'createTokenBridgeExample',
-    createTokenBridgeExampleSchema.transform((i) => [i] as const),
-    createTokenBridgeExampleExecute,
+    'initializeTokenBridge',
+    initializeTokenBridgeSchema.transform((i) => [i] as const),
+    initializeTokenBridgeExecute,
   ),
   command(
     'deployFullChain',
