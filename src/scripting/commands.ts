@@ -300,7 +300,11 @@ export const commands: readonly Command[] = [
   ),
   command('isKnownWasmModuleRoot', isKnownWasmModuleRootSchema, isKnownWasmModuleRoot),
 
-  command('deployNewChain', deployNewChainSchema.transform((i) => [i] as const), deployNewChainExecute),
+  command(
+    'deployNewChain',
+    deployNewChainSchema.transform((i) => [i] as const),
+    deployNewChainExecute,
+  ),
   command(
     'transferOwnership',
     transferOwnershipSchema.transform((i) => [i] as const),

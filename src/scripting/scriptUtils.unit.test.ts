@@ -107,9 +107,7 @@ it('outputs raw string without JSON quotes', async () => {
 
 describe('runCli', () => {
   const testSchema = z.object({ value: z.string() });
-  const testCommands = [
-    { name: 'echo', schema: testSchema, func: (parsed: unknown) => parsed },
-  ];
+  const testCommands = [{ name: 'echo', schema: testSchema, func: (parsed: unknown) => parsed }];
 
   it('prints usage and exits 1 for unknown command', () => {
     process.argv[2] = 'nope';
@@ -162,9 +160,7 @@ describe('runCli', () => {
   });
 
   it('outputs raw string without JSON quotes', async () => {
-    const stringCommands = [
-      { name: 'greet', schema: z.object({}), func: () => 'hello world' },
-    ];
+    const stringCommands = [{ name: 'greet', schema: z.object({}), func: () => 'hello world' }];
     process.argv[2] = 'greet';
     process.argv[3] = '{}';
     runCli('test-cli', stringCommands);
