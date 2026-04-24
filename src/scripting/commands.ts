@@ -110,6 +110,14 @@ import {
   schema as transferOwnershipSchema,
   execute as transferOwnershipExecute,
 } from './examples/transferOwnership';
+import {
+  schema as initializeTokenBridgeSchema,
+  execute as initializeTokenBridgeExecute,
+} from './examples/initializeTokenBridge';
+import {
+  schema as deployFullChainSchema,
+  execute as deployFullChainExecute,
+} from './examples/deployFullChain';
 
 /**
  * A scripting entry point: one schema + function pair exposed both as a CLI
@@ -309,5 +317,15 @@ export const commands: readonly Command[] = [
     'transferOwnership',
     transferOwnershipSchema.transform((i) => [i] as const),
     transferOwnershipExecute,
+  ),
+  command(
+    'initializeTokenBridge',
+    initializeTokenBridgeSchema.transform((i) => [i] as const),
+    initializeTokenBridgeExecute,
+  ),
+  command(
+    'deployFullChain',
+    deployFullChainSchema.transform((i) => [i] as const),
+    deployFullChainExecute,
   ),
 ];
