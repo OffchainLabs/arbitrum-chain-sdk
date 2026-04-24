@@ -41,7 +41,7 @@ export const execute = async (input: z.output<typeof schema>) => {
   const createTokenBridgeParams = input.createTokenBridgeParams;
   const parentChainPublicClient = createTokenBridgeParams.parentChainPublicClient;
 
-  if (nativeToken != zeroAddress) {
+  if (nativeToken !== zeroAddress) {
     const allowanceParams = {
       nativeToken: nativeToken,
       owner: deployer.address,
@@ -78,7 +78,7 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // If the nativeToken is the zero address, we also set the WETH gateway
-  if (nativeToken == zeroAddress) {
+  if (nativeToken === zeroAddress) {
     const setWethGatewayTransactionRequest =
       await createTokenBridgePrepareSetWethGatewayTransactionRequest({
         rollup: createTokenBridgeParams.params.rollup,
