@@ -22,6 +22,8 @@ import { getParentChainLayer } from '../../utils/getParentChainLayer';
 import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { ParentChainId } from '../../types/ParentChain';
+import { buildSetAllowList } from '../../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../../actions/buildSetAllowListEnabled';
 import { execute as deployNewChainExecute } from './deployNewChain';
 import {
   inputSchema as initializeTokenBridgeInputSchema,
@@ -74,6 +76,13 @@ export const inputSchema = z
         newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
         maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
         refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+      })
+      .strict()
+      .optional(),
+    allowListParams: z
+      .object({
+        enabled: z.boolean().optional(),
+        addresses: z.array(addressSchema).optional(),
       })
       .strict()
       .optional(),
@@ -206,6 +215,7 @@ export const schema = inputSchema
           }
         : undefined,
       nodeConfigParams: input.nodeConfigParams,
+      allowListParams: input.allowListParams,
       parentChainRpcUrl: input.parentChainRpcUrl,
     };
   });
@@ -226,6 +236,7 @@ export const execute = async (input: z.output<typeof schema>) => {
     tokenBridgeCreatorAddressOverride,
     ownershipTransfer,
     nodeConfigParams,
+    allowListParams,
     parentChainRpcUrl,
   } = input;
 
@@ -266,7 +277,44 @@ export const execute = async (input: z.output<typeof schema>) => {
       : undefined,
   });
 
-  // Step 3: Transfer ownership (optional)
+  // Step 3: Configure inbox allow-list (optional)
+  if (allowListParams) {
+    if (allowListParams.addresses && allowListParams.addresses.length > 0) {
+      const req = await buildSetAllowList(parentChainPublicClient, {
+        inbox: coreContracts.inbox,
+        upgradeExecutor: coreContracts.upgradeExecutor,
+        account: account.address,
+        params: {
+          addresses: allowListParams.addresses,
+          allowed: allowListParams.addresses.map(() => true),
+        },
+      });
+      const hash = await parentChainPublicClient.sendRawTransaction({
+        serializedTransaction: await account.signTransaction({
+          ...req,
+          chainId: parentChainPublicClient.chain!.id,
+        }),
+      });
+      await parentChainPublicClient.waitForTransactionReceipt({ hash });
+    }
+    if (allowListParams.enabled === true) {
+      const req = await buildSetAllowListEnabled(parentChainPublicClient, {
+        inbox: coreContracts.inbox,
+        upgradeExecutor: coreContracts.upgradeExecutor,
+        account: account.address,
+        params: { enabled: true },
+      });
+      const hash = await parentChainPublicClient.sendRawTransaction({
+        serializedTransaction: await account.signTransaction({
+          ...req,
+          chainId: parentChainPublicClient.chain!.id,
+        }),
+      });
+      await parentChainPublicClient.waitForTransactionReceipt({ hash });
+    }
+  }
+
+  // Step 4: Transfer ownership (optional)
   if (ownershipTransfer) {
     const childUpgradeExecutorAddress = tokenBridgeContracts.orbitChainContracts.upgradeExecutor;
     await transferOwnershipExecute({

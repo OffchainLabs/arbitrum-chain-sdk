@@ -238,6 +238,20 @@ const coverageConfig: Record<string, CoverageConfig> = {
           };
         },
       },
+      // Anchor-presence and leaf-mutation tests on `allowListParams.*` need a
+      // coherent fixture so the fuzzer exercises both the setAllowList and
+      // setAllowListEnabled branches in execute (otherwise the harness might
+      // toggle `enabled` true with addresses absent, hitting only one branch).
+      {
+        matches: (k) => k === 'allowListParams' || k.startsWith('allowListParams.'),
+        apply: (base) => ({
+          ...(base as object),
+          allowListParams: {
+            enabled: true,
+            addresses: ['0x' + 'a'.repeat(40)],
+          },
+        }),
+      },
     ],
   },
 };
