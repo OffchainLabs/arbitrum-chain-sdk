@@ -133,8 +133,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
     // refineV3Dot2CustomGenesis. chainConfig here is the strict full schema.
     overrides: [
       {
-        matches: (k) =>
-          k === 'genesisAssertionState' || k.startsWith('genesisAssertionState.'),
+        matches: (k) => k === 'genesisAssertionState' || k.startsWith('genesisAssertionState.'),
         apply: (base) => ({
           ...(base as object),
           dataCostEstimate: '1000000000',
