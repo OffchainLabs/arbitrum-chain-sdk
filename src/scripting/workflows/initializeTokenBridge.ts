@@ -6,6 +6,7 @@ import { createTokenBridgePrepareSetWethGatewayTransactionReceipt } from '../../
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import {
   addressSchema,
+  bigintSchema,
   privateKeySchema,
   parentChainPublicClientSchema,
   gasLimitSchema,
@@ -15,31 +16,32 @@ import { zeroAddress } from 'viem';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-export const schema = parentChainPublicClientSchema
-  .extend({
-    params: z.object({ rollup: addressSchema, rollupOwner: addressSchema }),
-    gasOverrides: gasLimitSchema.optional(),
-    retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
-    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-    privateKey: privateKeySchema,
-    nativeToken: addressSchema.default(zeroAddress),
-  })
-  .strict()
-  .transform((input) => {
-    const { privateKey, nativeToken, ...rest } = input;
-    const signer = toAccount(privateKey);
-    const [createTokenBridgeParams] = withParentChainPublicClient({
-      ...rest,
-      account: signer.address,
-    });
-    return { createTokenBridgeParams, signer, nativeToken };
+export const inputSchema = parentChainPublicClientSchema.extend({
+  params: z.strictObject({ rollup: addressSchema, rollupOwner: addressSchema }),
+  rollupDeploymentBlockNumber: bigintSchema.optional(),
+  gasOverrides: gasLimitSchema.optional(),
+  retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
+  tokenBridgeCreatorAddressOverride: addressSchema.optional(),
+  privateKey: privateKeySchema,
+  nativeToken: addressSchema.default(zeroAddress),
+});
+
+export const schema = inputSchema.strict().transform((input) => {
+  const { privateKey, nativeToken, rollupDeploymentBlockNumber, ...rest } = input;
+  const signer = toAccount(privateKey);
+  const [createTokenBridgeParams] = withParentChainPublicClient({
+    ...rest,
+    account: signer.address,
   });
+  return { createTokenBridgeParams, signer, nativeToken, rollupDeploymentBlockNumber };
+});
 
 export const execute = async (input: z.output<typeof schema>) => {
   const deployer = input.signer;
   const nativeToken = input.nativeToken;
   const createTokenBridgeParams = input.createTokenBridgeParams;
   const parentChainPublicClient = createTokenBridgeParams.parentChainPublicClient;
+  const rollupDeploymentBlockNumber = input.rollupDeploymentBlockNumber;
 
   if (nativeToken !== zeroAddress) {
     const allowanceParams = {
@@ -85,7 +87,7 @@ export const execute = async (input: z.output<typeof schema>) => {
         rollup: createTokenBridgeParams.params.rollup,
         account: deployer.address,
         parentChainPublicClient,
-        rollupDeploymentBlockNumber: txReceipt.blockNumber,
+        rollupDeploymentBlockNumber,
       });
 
     const setWethGatewayTxHash = await parentChainPublicClient.sendRawTransaction({

@@ -1,8 +1,15 @@
 import { z } from 'zod';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
-import { hexSchema, bigintSchema, addressSchema } from '../schemas/common';
-import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigParamsBaseSchema } from '../schemas/prepareChainConfig';
+import {
+  hexSchema,
+  bigintSchema,
+  addressSchema,
+  prepareChainConfigArbitrumParamsSchema,
+} from '../schemas/common';
+import {
+  paramsV3Dot2Schema,
+  refineV3Dot2CustomGenesis,
+} from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
@@ -11,17 +18,28 @@ import { zeroAddress } from 'viem';
 import { setValidKeyset } from '../../setValidKeyset';
 import { generateChainId } from '../../utils/generateChainId';
 
-export const schema = createRollupDefaultSchema
-  .extend({
-    params: createRollupDefaultSchema.shape.params.extend({
-      config: paramsV3Dot2Schema.extend({
-        chainId: bigintSchema.prefault(() => String(generateChainId())),
-        chainConfig: prepareChainConfigParamsBaseSchema.optional(),
-      }),
-      nativeToken: addressSchema.default(zeroAddress),
-      keyset: hexSchema.optional(),
+// InitialChainOwner defaults to the deployer address in the workflow transform.
+const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
+  chainId: z.number(),
+  arbitrum: prepareChainConfigArbitrumParamsSchema
+    .omit({ InitialChainOwner: true })
+    .extend({ InitialChainOwner: addressSchema.optional() })
+    .optional(),
+});
+
+export const inputSchema = createRollupDefaultSchema.extend({
+  params: createRollupDefaultSchema.shape.params.extend({
+    config: paramsV3Dot2Schema.extend({
+      owner: addressSchema.optional(),
+      chainId: bigintSchema.prefault(() => String(generateChainId())),
+      chainConfig: chainConfigInputSchemaWithOptionalOwner.optional(),
     }),
-  })
+    nativeToken: addressSchema.default(zeroAddress),
+    keyset: hexSchema.optional(),
+  }),
+});
+
+export const schema = inputSchema
   .superRefine((data, ctx) => {
     const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.params.keyset && !isAnytrust) {
@@ -32,17 +50,29 @@ export const schema = createRollupDefaultSchema
           'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
       });
     }
+    refineV3Dot2CustomGenesis(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
     const parentChainPublicClient = toPublicClient(
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
     );
+    const account = toAccount(input.privateKey);
     const {
-      config: { chainConfig: chainConfigParams, ...restConfig },
+      config: { chainConfig: rawChainConfigParams, owner: rawOwner, ...restConfigRest },
       keyset,
       ...params
     } = input.params;
+    const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
+    const chainConfigParams = rawChainConfigParams
+      ? {
+          ...rawChainConfigParams,
+          arbitrum: {
+            ...rawChainConfigParams.arbitrum,
+            InitialChainOwner: rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
+          },
+        }
+      : undefined;
     const chainConfig = chainConfigParams ? prepareChainConfig(chainConfigParams) : undefined;
     const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
     const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
@@ -55,7 +85,7 @@ export const schema = createRollupDefaultSchema
 
     return {
       params: { config, ...params },
-      account: toAccount(input.privateKey),
+      account,
       parentChainPublicClient,
       walletClient: toWalletClient(
         input.parentChainRpcUrl,

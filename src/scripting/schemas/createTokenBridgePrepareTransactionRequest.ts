@@ -10,7 +10,7 @@ import {
 export const createTokenBridgePrepareTransactionRequestSchema = parentChainPublicClientSchema
   .extend({
     account: addressSchema,
-    params: z.object({
+    params: z.strictObject({
       rollup: addressSchema,
       rollupOwner: addressSchema,
     }),
