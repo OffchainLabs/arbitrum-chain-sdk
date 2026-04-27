@@ -13,6 +13,40 @@ import { commands } from './commands';
 const CONSENSUS_V10_WASM_MODULE_ROOT =
   '0x6b94a7fc388fd8ef3def759297828dc311761e88d8179c7ee8d3887dc554f3c3';
 
+/**
+ * A fully-populated `chainConfigSchema`-shaped fixture, used by the override
+ * for `prepareDeploymentParamsConfigV32` where chainConfig must satisfy the
+ * strict schema (deployFullChain/deployNewChain use a relaxed shape).
+ */
+const FULL_CHAIN_CONFIG = {
+  chainId: 99999,
+  homesteadBlock: 0,
+  daoForkBlock: null,
+  daoForkSupport: true,
+  eip150Block: 0,
+  eip150Hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  eip155Block: 0,
+  eip158Block: 0,
+  byzantiumBlock: 0,
+  constantinopleBlock: 0,
+  petersburgBlock: 0,
+  istanbulBlock: 0,
+  muirGlacierBlock: 0,
+  berlinBlock: 0,
+  londonBlock: 0,
+  clique: { period: 0, epoch: 0 },
+  arbitrum: {
+    EnableArbOS: true,
+    AllowDebugPrecompiles: false,
+    DataAvailabilityCommittee: false,
+    InitialArbOSVersion: 51,
+    InitialChainOwner: '0x' + '1'.repeat(40),
+    GenesisBlockNum: 0,
+    MaxCodeSize: 24576,
+    MaxInitCodeSize: 49152,
+  },
+};
+
 /** Per-command coverage configuration. Keyed by command name. */
 type CoverageConfig = {
   /**
@@ -68,6 +102,44 @@ const coverageConfig: Record<string, CoverageConfig> = {
             },
           };
         },
+      },
+      // Custom genesis (populated genesisAssertionState) requires both a
+      // non-zero dataCostEstimate and a supplied chainConfig per
+      // refineV3Dot2CustomGenesis.
+      {
+        matches: (k) =>
+          k === 'params.config.genesisAssertionState' ||
+          k.startsWith('params.config.genesisAssertionState.'),
+        apply: (base) => {
+          const b = base as { params: { config: Record<string, unknown> } };
+          return {
+            ...b,
+            params: {
+              ...b.params,
+              config: {
+                ...b.params.config,
+                dataCostEstimate: '1000000000',
+                chainConfig: { chainId: 99999 },
+              },
+            },
+          };
+        },
+      },
+    ],
+  },
+  prepareDeploymentParamsConfigV32: {
+    // Custom genesis (populated genesisAssertionState) requires both a
+    // non-zero dataCostEstimate and a supplied chainConfig per
+    // refineV3Dot2CustomGenesis. chainConfig here is the strict full schema.
+    overrides: [
+      {
+        matches: (k) =>
+          k === 'genesisAssertionState' || k.startsWith('genesisAssertionState.'),
+        apply: (base) => ({
+          ...(base as object),
+          dataCostEstimate: '1000000000',
+          chainConfig: FULL_CHAIN_CONFIG,
+        }),
       },
     ],
   },
@@ -137,6 +209,29 @@ const coverageConfig: Record<string, CoverageConfig> = {
               ...b.createRollupParams,
               config: {
                 ...b.createRollupParams.config,
+                chainConfig: { chainId: 99999 },
+              },
+            },
+          };
+        },
+      },
+      // A populated `genesisAssertionState` (custom genesis) requires both a
+      // non-zero `dataCostEstimate` and a supplied `chainConfig` per
+      // refineV3Dot2CustomGenesis. Anchor presence tests for
+      // genesisAssertionState don't auto-populate either, so inject both.
+      {
+        matches: (k) =>
+          k === 'createRollupParams.config.genesisAssertionState' ||
+          k.startsWith('createRollupParams.config.genesisAssertionState.'),
+        apply: (base) => {
+          const b = base as { createRollupParams: { config: Record<string, unknown> } };
+          return {
+            ...b,
+            createRollupParams: {
+              ...b.createRollupParams,
+              config: {
+                ...b.createRollupParams.config,
+                dataCostEstimate: '1000000000',
                 chainConfig: { chainId: 99999 },
               },
             },

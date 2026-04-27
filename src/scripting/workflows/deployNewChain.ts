@@ -6,7 +6,10 @@ import {
   addressSchema,
   prepareChainConfigArbitrumParamsSchema,
 } from '../schemas/common';
-import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
+import {
+  paramsV3Dot2Schema,
+  refineV3Dot2CustomGenesis,
+} from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
@@ -47,6 +50,7 @@ export const schema = inputSchema
           'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
       });
     }
+    refineV3Dot2CustomGenesis(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
     const parentChainPublicClient = toPublicClient(
