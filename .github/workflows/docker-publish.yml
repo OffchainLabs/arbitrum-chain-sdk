@@ -29,22 +29,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Compute tags
-        id: tags
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "tags=arbitrum-chain-sdk:pr" >> "$GITHUB_OUTPUT"
-          else
-            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-            echo "tags=offchainlabs/arbitrum-chain-sdk:$SHORT_SHA" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: ${{ github.event_name == 'pull_request' && 'Build' || 'Build and push' }}
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: offchainlabs/arbitrum-chain-sdk:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
