@@ -122,7 +122,13 @@ const ZERO_HASH = '0x00000000000000000000000000000000000000000000000000000000000
 // can paste their full chainConfig directly from a genesis.json without filtering
 // down to the tunable subset. They're validated against the single value Arbitrum
 // requires (z.literal) and otherwise rejected; missing fields are filled by
-// prepareChainConfig from its defaults. Unknown fields are silently dropped.
+// prepareChainConfig from its defaults.
+//
+// Unknown top-level fields are silently dropped so future Nitro/Ethereum genesis
+// additions (new fork timestamps, etc.) don't break paste-from-genesis. The
+// `arbitrum` sub-object is .strict(): it's a small SDK-controlled surface and
+// the place users hand-edit values, so unknown keys there are almost always
+// typos (InitialChainOnwer, MaxCodSize) and should fail loudly.
 export const chainConfigInputSchema = z
   .object({
     chainId: z.number(),
@@ -137,6 +143,7 @@ export const chainConfigInputSchema = z
         AllowDebugPrecompiles: z.literal(false).optional(),
         GenesisBlockNum: z.literal(0).optional(),
       })
+      .strict()
       .optional(),
     homesteadBlock: z.literal(0).optional(),
     daoForkBlock: z.null().optional(),

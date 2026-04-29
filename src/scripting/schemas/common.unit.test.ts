@@ -207,17 +207,12 @@ describe('chainConfigInputSchema', () => {
     if (result.success) expect((result.data as Record<string, unknown>).futureField).toBeUndefined();
   });
 
-  it('drops unknown arbitrum fields silently', () => {
+  it('rejects unknown arbitrum fields (catches typos like InitialChainOnwer)', () => {
     const result = chainConfigInputSchema.safeParse({
       chainId: 42,
       arbitrum: { InitialChainOwner: OWNER, FutureArbField: 1 },
     });
-    expect(result.success).toBe(true);
-    if (result.success) {
-      expect(
-        (result.data.arbitrum as Record<string, unknown>).FutureArbField,
-      ).toBeUndefined();
-    }
+    expect(result.success).toBe(false);
   });
 
   it('rejects missing chainId', () => {
