@@ -4,11 +4,21 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from './chains';
 import { rollupAdminLogicPublicActions } from './decorators/rollupAdminLogicPublicActions';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  testHelper_getRollupCreatorVersionFromEnv,
+} from './testHelpers';
 import { getValidators } from './getValidators';
 
 const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 const { l3Rollup, l3UpgradeExecutor } = getInformationFromTestnode();
+
+const rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv();
+// https://github.com/OffchainLabs/nitro-testnode/blob/release/test-node.bash#L634
+// https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/scripts/rollupCreation.ts#L254-L261
+// https://github.com/OffchainLabs/nitro-contracts/blob/v2.1.3/scripts/rollupCreation.ts#L237-L243
+const expectedInitialValidators = rollupCreatorVersion === 'v3.2' ? 11 : 10;
 
 const client = createPublicClient({
   chain: nitroTestnodeL2,
@@ -38,8 +48,8 @@ async function setValidator(validator: Address, state: boolean) {
 }
 
 // Tests can be enabled once we run one node per integration test
-describe.skip('successfully get validators', () => {
-  it('when disabling the same validator multiple time', async () => {
+describe('successfully get validators', () => {
+  it('when disabling the same validator multiple times', async () => {
     const randomAccount = privateKeyToAccount(generatePrivateKey()).address;
 
     const { isAccurate: isAccurateInitially, validators: initialValidators } = await getValidators(
@@ -48,8 +58,8 @@ describe.skip('successfully get validators', () => {
         rollup: l3Rollup,
       },
     );
-    // By default, chains from nitro testnode has 10 validators
-    expect(initialValidators).toHaveLength(10);
+
+    expect(initialValidators).toHaveLength(expectedInitialValidators);
     expect(isAccurateInitially).toBeTruthy();
 
     await setValidator(randomAccount, false);
@@ -79,7 +89,7 @@ describe.skip('successfully get validators', () => {
     expect(isAccurateFinal).toBeTruthy();
   });
 
-  it('when enabling the same validators multiple time', async () => {
+  it('when enabling the same validators multiple times', async () => {
     const randomAccount = privateKeyToAccount(generatePrivateKey()).address;
 
     const { isAccurate: isAccurateInitially, validators: initialValidators } = await getValidators(
@@ -88,8 +98,8 @@ describe.skip('successfully get validators', () => {
         rollup: l3Rollup,
       },
     );
-    // By default, chains from nitro testnode has 10 validators
-    expect(initialValidators).toHaveLength(10);
+
+    expect(initialValidators).toHaveLength(expectedInitialValidators);
     expect(isAccurateInitially).toBeTruthy();
 
     await setValidator(randomAccount, true);
@@ -113,7 +123,8 @@ describe.skip('successfully get validators', () => {
       client,
       { rollup: l3Rollup },
     );
-    expect(initialValidators).toHaveLength(10);
+
+    expect(initialValidators).toHaveLength(expectedInitialValidators);
     expect(isAccurateInitially).toBeTruthy();
 
     const firstValidator = initialValidators[0];
@@ -129,7 +140,8 @@ describe.skip('successfully get validators', () => {
       client,
       { rollup: l3Rollup },
     );
-    expect(initialValidators).toHaveLength(10);
+
+    expect(initialValidators).toHaveLength(expectedInitialValidators);
     expect(isAccurateInitially).toBeTruthy();
 
     const lastValidator = initialValidators[initialValidators.length - 1];

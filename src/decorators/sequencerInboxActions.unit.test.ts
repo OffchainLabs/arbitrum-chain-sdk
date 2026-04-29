@@ -61,7 +61,7 @@ describe('SequencerInbox parameter:', () => {
 });
 
 it('Infer parameters based on function name', async () => {
-  expect(
+  await expect(
     client.sequencerInboxPrepareTransactionRequest({
       functionName: 'setIsBatchPoster',
       // @ts-expect-error Args are missing
@@ -71,7 +71,7 @@ it('Infer parameters based on function name', async () => {
     }),
   ).rejects.toThrowError(AbiEncodingLengthMismatchError);
 
-  expect(
+  await expect(
     client.sequencerInboxPrepareTransactionRequest({
       functionName: 'setIsBatchPoster',
       // @ts-expect-error Args are of the wrong type
@@ -81,7 +81,7 @@ it('Infer parameters based on function name', async () => {
     }),
   ).rejects.toThrowError(InvalidAddressError);
 
-  expect(
+  await expect(
     client
       // @ts-expect-error Args are required for `setIsBatchPoster`
       .sequencerInboxPrepareTransactionRequest({
@@ -101,7 +101,7 @@ it('Infer parameters based on function name', async () => {
   });
 
   // Function doesn't exist
-  expect(
+  await expect(
     client.sequencerInboxPrepareTransactionRequest({
       // @ts-expect-error Function not available
       functionName: 'notExisting',

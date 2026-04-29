@@ -17,5 +17,8 @@ export function publicClientToProvider<TChain extends Chain | undefined>(
     ensAddress: chain.contracts?.ensRegistry?.address,
   };
 
-  return new providers.StaticJsonRpcProvider(chain.rpcUrls.default.http[0], network);
+  const transportUrl = publicClient.transport.url as string | undefined;
+  const url = transportUrl ?? chain.rpcUrls.default.http[0];
+
+  return new providers.StaticJsonRpcProvider(url, network);
 }

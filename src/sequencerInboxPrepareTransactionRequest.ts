@@ -7,12 +7,12 @@ import {
   Chain,
 } from 'viem';
 
-import { sequencerInbox } from './contracts';
+import { sequencerInboxABI } from './contracts/SequencerInbox';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { GetFunctionName } from './types/utils';
-import { validateParentChainPublicClient } from './types/ParentChain';
+import { validateParentChain } from './types/ParentChain';
 
-export type SequencerInboxAbi = typeof sequencerInbox.abi;
+export type SequencerInboxAbi = typeof sequencerInboxABI;
 export type SequencerInboxFunctionName = GetFunctionName<SequencerInboxAbi>;
 
 type SequencerInboxEncodeFunctionDataParameters<TFunctionName extends SequencerInboxFunctionName> =
@@ -30,13 +30,15 @@ function sequencerInboxEncodeFunctionData<TFunctionName extends SequencerInboxFu
   });
 }
 
-type SequencerInboxPrepareFunctionDataParameters<TFunctionName extends SequencerInboxFunctionName> =
-  SequencerInboxEncodeFunctionDataParameters<TFunctionName> & {
-    upgradeExecutor: Address | false;
-    abi: SequencerInboxAbi;
-    sequencerInbox: Address;
-  };
-function sequencerInboxPrepareFunctionData<TFunctionName extends SequencerInboxFunctionName>(
+export type SequencerInboxPrepareFunctionDataParameters<
+  TFunctionName extends SequencerInboxFunctionName,
+> = SequencerInboxEncodeFunctionDataParameters<TFunctionName> & {
+  upgradeExecutor: Address | false;
+  abi: SequencerInboxAbi;
+  sequencerInbox: Address;
+};
+
+export function sequencerInboxPrepareFunctionData<TFunctionName extends SequencerInboxFunctionName>(
   params: SequencerInboxPrepareFunctionDataParameters<TFunctionName>,
 ) {
   const { upgradeExecutor } = params;
@@ -80,15 +82,15 @@ export async function sequencerInboxPrepareTransactionRequest<
   client: PublicClient<TTransport, TChain>,
   params: SequencerInboxPrepareTransactionRequestParameters<TFunctionName>,
 ) {
-  const validatedPublicClient = validateParentChainPublicClient(client);
+  const { chainId } = validateParentChain(client);
 
   // params is extending SequencerInboxPrepareFunctionDataParameters, it's safe to cast
   const { to, data, value } = sequencerInboxPrepareFunctionData({
     ...params,
-    abi: sequencerInbox.abi,
+    abi: sequencerInboxABI,
   } as unknown as SequencerInboxPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,
@@ -97,5 +99,5 @@ export async function sequencerInboxPrepareTransactionRequest<
     account: params.account,
   });
 
-  return { ...request, chainId: validatedPublicClient.chain.id };
+  return { ...request, chainId };
 }

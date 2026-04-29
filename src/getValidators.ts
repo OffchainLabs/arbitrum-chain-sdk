@@ -8,29 +8,44 @@ import {
   getAbiItem,
   getFunctionSelector,
 } from 'viem';
-import { rollupCreator, upgradeExecutor } from './contracts';
-import { rollupAdminLogicABI, safeL2ABI } from './abi';
+
+import { rollupCreatorABI as rollupCreatorV2Dot1ABI } from './contracts/RollupCreator/v2.1';
+import { rollupCreatorABI as rollupCreatorV1Dot1ABI } from './contracts/RollupCreator/v1.1';
+import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
+import { gnosisSafeL2ABI } from './contracts/GnosisSafeL2';
+import { rollupABI as rollupV3Dot1ABI } from './contracts/Rollup';
+import { rollupABI as rollupV2Dot1ABI } from './contracts/Rollup/v2.1';
+
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
+import { getLogsWithBatching } from './utils/getLogsWithBatching';
 
-const createRollupABI = getAbiItem({ abi: rollupCreator.abi, name: 'createRollup' });
-const createRollupFunctionSelector = getFunctionSelector(createRollupABI);
+const createRollupV2Dot1ABI = getAbiItem({ abi: rollupCreatorV2Dot1ABI, name: 'createRollup' });
+const createRollupV2Dot1FunctionSelector = getFunctionSelector(createRollupV2Dot1ABI);
 
-const setValidatorABI = getAbiItem({ abi: rollupAdminLogicABI, name: 'setValidator' });
+const createRollupV1Dot1ABI = getAbiItem({ abi: rollupCreatorV1Dot1ABI, name: 'createRollup' });
+const createRollupV1Dot1FunctionSelector = getFunctionSelector(createRollupV1Dot1ABI);
+
+const setValidatorABI = getAbiItem({ abi: rollupV3Dot1ABI, name: 'setValidator' });
 const setValidatorFunctionSelector = getFunctionSelector(setValidatorABI);
 
-const executeCallABI = getAbiItem({ abi: upgradeExecutor.abi, name: 'executeCall' });
+const executeCallABI = getAbiItem({ abi: upgradeExecutorABI, name: 'executeCall' });
 const upgradeExecutorExecuteCallFunctionSelector = getFunctionSelector(executeCallABI);
 
-const execTransactionABI = getAbiItem({ abi: safeL2ABI, name: 'execTransaction' });
+const execTransactionABI = getAbiItem({ abi: gnosisSafeL2ABI, name: 'execTransaction' });
 const safeL2FunctionSelector = getFunctionSelector(execTransactionABI);
 
 const ownerFunctionCalledEventAbi = getAbiItem({
-  abi: rollupAdminLogicABI,
+  abi: rollupV2Dot1ABI,
   name: 'OwnerFunctionCalled',
 });
 
+const validatorsSetEventAbi = getAbiItem({ abi: rollupV3Dot1ABI, name: 'ValidatorsSet' });
+
 function getValidatorsFromFunctionData<
-  TAbi extends (typeof createRollupABI)[] | (typeof setValidatorABI)[],
+  TAbi extends
+    | (typeof createRollupV2Dot1ABI)[]
+    | (typeof createRollupV1Dot1ABI)[]
+    | (typeof setValidatorABI)[],
 >({ abi, data }: { abi: TAbi; data: Hex }) {
   const { args } = decodeFunctionData({
     abi,
@@ -39,22 +54,36 @@ function getValidatorsFromFunctionData<
   return args;
 }
 
+function iterateThroughValidatorsList(
+  acc: Set<Address>,
+  validators: Readonly<Address[]> | undefined,
+  enabled: Readonly<boolean[]> | undefined,
+) {
+  if (typeof validators === 'undefined' || typeof enabled === 'undefined') {
+    return acc;
+  }
+
+  const copy = new Set<Address>(acc);
+
+  validators.forEach((validator, i) => {
+    const isAdd = enabled[i];
+    if (isAdd) {
+      copy.add(validator);
+    } else {
+      copy.delete(validator);
+    }
+  });
+
+  return copy;
+}
+
 function updateAccumulator(acc: Set<Address>, input: Hex) {
-  const [validators, states] = getValidatorsFromFunctionData({
+  const [validators, enabled] = getValidatorsFromFunctionData({
     abi: [setValidatorABI],
     data: input,
   });
 
-  validators.forEach((validator, i) => {
-    const isAdd = states[i];
-    if (isAdd) {
-      acc.add(validator);
-    } else {
-      acc.delete(validator);
-    }
-  });
-
-  return acc;
+  return iterateThroughValidatorsList(acc, validators, enabled);
 }
 
 export type GetValidatorsParams = {
@@ -71,6 +100,99 @@ export type GetValidatorsReturnType = {
   /** List of validators for the given rollup */
   validators: Address[];
 };
+
+async function getValidatorsPreV3Dot1<TChain extends Chain>(
+  publicClient: PublicClient<Transport, TChain>,
+  { rollup }: GetValidatorsParams,
+  blockNumber: bigint,
+): Promise<GetValidatorsReturnType> {
+  const preV3Dot1Events = await getLogsWithBatching(publicClient, {
+    address: rollup,
+    event: ownerFunctionCalledEventAbi,
+    args: { id: 6n },
+    fromBlock: blockNumber,
+  });
+
+  /** For pre v3.1, the OwnerFunctionCalled event is emitted when the validators list is updated
+   * the event is emitted without the validators list and the new states in the event args
+   * so we have to grab the tx and decode the calldata to get the validators list
+   */
+  const preV3Dot1Txs = await Promise.all(
+    preV3Dot1Events.map((event) =>
+      publicClient.getTransaction({
+        hash: event.transactionHash,
+      }),
+    ),
+  );
+
+  let isAccurate = true;
+  const validators = preV3Dot1Txs.reduce((acc, tx) => {
+    const txSelectedFunction = tx.input.slice(0, 10);
+
+    switch (txSelectedFunction) {
+      case createRollupV2Dot1FunctionSelector: {
+        const [{ validators }] = getValidatorsFromFunctionData({
+          abi: [createRollupV2Dot1ABI],
+          data: tx.input,
+        });
+
+        return new Set([...acc, ...validators]);
+      }
+      case createRollupV1Dot1FunctionSelector: {
+        const [{ validators }] = getValidatorsFromFunctionData({
+          abi: [createRollupV1Dot1ABI],
+          data: tx.input,
+        });
+
+        return new Set([...acc, ...validators]);
+      }
+      case setValidatorFunctionSelector: {
+        return updateAccumulator(acc, tx.input);
+      }
+      case upgradeExecutorExecuteCallFunctionSelector: {
+        const { args: executeCallCalldata } = decodeFunctionData({
+          abi: [executeCallABI],
+          data: tx.input,
+        });
+        return updateAccumulator(acc, executeCallCalldata[1]);
+      }
+      case safeL2FunctionSelector: {
+        const { args: execTransactionCalldata } = decodeFunctionData({
+          abi: [execTransactionABI],
+          data: tx.input,
+        });
+
+        const execTransactionCalldataData = execTransactionCalldata[2];
+        const execTransactionCalldataDataFnSelector = execTransactionCalldataData.slice(0, 10);
+
+        if (execTransactionCalldataDataFnSelector !== upgradeExecutorExecuteCallFunctionSelector) {
+          console.warn(
+            `[getValidators] unable to decode "execTransaction" calldata, tx id: ${tx.hash}`,
+          );
+          isAccurate = false;
+          return acc;
+        }
+
+        const { args: executeCallCalldata } = decodeFunctionData({
+          abi: [executeCallABI],
+          data: execTransactionCalldataData,
+        });
+
+        return updateAccumulator(acc, executeCallCalldata[1]);
+      }
+      default: {
+        console.warn(`[getValidators] unknown 4bytes, tx id: ${tx.hash}`);
+        isAccurate = false;
+        return acc;
+      }
+    }
+  }, new Set<Address>());
+
+  return {
+    isAccurate,
+    validators: [...validators],
+  };
+}
 
 /**
  *
@@ -92,11 +214,11 @@ export type GetValidatorsReturnType = {
  *   // Validators list is not guaranteed to be accurate
  * }
  */
-export async function getValidators<TChain extends Chain | undefined>(
+export async function getValidators<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
   { rollup }: GetValidatorsParams,
 ): Promise<GetValidatorsReturnType> {
-  let blockNumber: bigint | 'earliest';
+  let blockNumber: bigint;
   try {
     const createRollupTransactionHash = await createRollupFetchTransactionHash({
       rollup,
@@ -106,70 +228,29 @@ export async function getValidators<TChain extends Chain | undefined>(
       hash: createRollupTransactionHash,
     });
     blockNumber = receipt.blockNumber;
-  } catch (e) {
-    blockNumber = 'earliest';
+  } catch {
+    blockNumber = 0n;
   }
 
-  const events = await publicClient.getLogs({
+  const validatorsSetEvents = await getLogsWithBatching(publicClient, {
     address: rollup,
-    event: ownerFunctionCalledEventAbi,
-    args: { id: 6n },
+    event: validatorsSetEventAbi,
     fromBlock: blockNumber,
-    toBlock: 'latest',
   });
 
-  const txs = await Promise.all(
-    events.map((event) =>
-      publicClient.getTransaction({
-        hash: event.transactionHash,
-      }),
-    ),
-  );
+  const validatorsFromEvents = validatorsSetEvents
+    .filter((event) => event.eventName === 'ValidatorsSet')
+    .reduce((acc, event) => {
+      const { validators: _validators, enabled: _enabled } = event.args;
+      return iterateThroughValidatorsList(acc, _validators, _enabled);
+    }, new Set<Address>());
 
-  let isAccurate = true;
-  const validators = txs.reduce((acc, tx) => {
-    const txSelectedFunction = tx.input.slice(0, 10);
+  if (validatorsFromEvents.size > 0) {
+    return {
+      isAccurate: true,
+      validators: [...validatorsFromEvents],
+    };
+  }
 
-    switch (txSelectedFunction) {
-      case createRollupFunctionSelector: {
-        const [{ validators }] = getValidatorsFromFunctionData({
-          abi: [createRollupABI],
-          data: tx.input,
-        });
-
-        return new Set([...acc, ...validators]);
-      }
-      case setValidatorFunctionSelector: {
-        return updateAccumulator(acc, tx.input);
-      }
-      case upgradeExecutorExecuteCallFunctionSelector: {
-        const { args: executeCallCalldata } = decodeFunctionData({
-          abi: [executeCallABI],
-          data: tx.input,
-        });
-        return updateAccumulator(acc, executeCallCalldata[1]);
-      }
-      case safeL2FunctionSelector: {
-        const { args: execTransactionCalldata } = decodeFunctionData({
-          abi: [execTransactionABI],
-          data: tx.input,
-        });
-        const { args: executeCallCalldata } = decodeFunctionData({
-          abi: [executeCallABI],
-          data: execTransactionCalldata[2],
-        });
-        return updateAccumulator(acc, executeCallCalldata[1]);
-      }
-      default: {
-        console.warn(`[getValidators] unknown 4bytes, tx id: ${tx.hash}`);
-        isAccurate = false;
-        return acc;
-      }
-    }
-  }, new Set<Address>());
-
-  return {
-    isAccurate,
-    validators: [...validators],
-  };
+  return getValidatorsPreV3Dot1(publicClient, { rollup }, blockNumber);
 }

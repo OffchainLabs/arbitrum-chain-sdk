@@ -1,17 +1,52 @@
 import { Transaction, decodeFunctionData } from 'viem';
+import { DecodeFunctionDataReturnType } from 'viem/_types/utils/abi/decodeFunctionData';
 
-import { rollupCreator } from './contracts';
-import { CreateRollupFunctionInputs } from './types/createRollupTypes';
+import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator/v3.2';
+import { rollupCreatorABI as rollupCreatorV3Dot1ABI } from './contracts/RollupCreator/v3.1';
+import { rollupCreatorABI as rollupCreatorV2Dot1ABI } from './contracts/RollupCreator/v2.1';
+import { rollupCreatorABI as rollupCreatorV1Dot1ABI } from './contracts/RollupCreator/v1.1';
 
-function createRollupDecodeFunctionData(data: `0x${string}`) {
-  return decodeFunctionData({
-    abi: rollupCreator.abi,
-    data,
+import {
+  CreateRollupFunctionInputs,
+  RollupCreatorABI,
+  RollupCreatorVersion,
+  RollupCreatorLatestVersion,
+} from './types/createRollupTypes';
+
+function createRollupDecodeFunctionData<TAbi extends RollupCreatorABI<RollupCreatorVersion>>(
+  data: `0x${string}`,
+): DecodeFunctionDataReturnType<TAbi> {
+  let result: DecodeFunctionDataReturnType<TAbi> | null = null;
+
+  // try parsing from multiple RollupCreator versions
+  [
+    // v3.2
+    rollupCreatorV3Dot2ABI,
+    // v3.1
+    rollupCreatorV3Dot1ABI,
+    // v2.1
+    rollupCreatorV2Dot1ABI,
+    // v1.1
+    rollupCreatorV1Dot1ABI,
+  ].forEach((abi) => {
+    try {
+      result = decodeFunctionData({ abi, data }) as DecodeFunctionDataReturnType<TAbi>;
+    } catch {
+      // do nothing
+    }
   });
+
+  if (result === null) {
+    throw new Error(`[createRollupPrepareTransaction] failed to decode function data`);
+  }
+
+  return result;
 }
 
 export type CreateRollupTransaction = Transaction & {
-  getInputs(): CreateRollupFunctionInputs;
+  getInputs<
+    TVersion extends RollupCreatorVersion = RollupCreatorLatestVersion,
+  >(): CreateRollupFunctionInputs<TVersion>;
 };
 
 export function createRollupPrepareTransaction(tx: Transaction): CreateRollupTransaction {

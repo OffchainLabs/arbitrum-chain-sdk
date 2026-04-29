@@ -1,0 +1,42 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`successfully generates bridge UI config from deployment transaction 1`] = `
+{
+  "chainInfo": {
+    "chainId": 421614,
+    "chainName": "My Orbit Chain",
+    "explorerUrl": "http://localhost:4000",
+    "nativeToken": "0x0000000000000000000000000000000000000000",
+    "parentChainId": 11155111,
+    "rpcUrl": "http://localhost:8449",
+  },
+  "coreContracts": {
+    "bridge": "0x683aa7Bf1E4346d8896720c1E51901DCE83cE96b",
+    "inbox": "0x407b7C32eD620b37F60BBCd9a746B5a575c9FfaB",
+    "nativeToken": "0x0000000000000000000000000000000000000000",
+    "outbox": "0x3b7B4020AA8d20C565a7B1d2475db34F2b00D396",
+    "rollup": "0x8D31CB7e6A630F3732614d382c7EB9F3833DBb86",
+    "sequencerInbox": "0xc4b2140fD7B513148E9C1C0c53cA5C7AEefdc87A",
+  },
+  "tokenBridgeContracts": {
+    "l2Contracts": {
+      "customGateway": "0xB59dD42cC815FdA12B8b40A410164D49Fd2E96Fc",
+      "multicall": "0x73465577E9FD7Cd585E4270F23A9eBa99B92b6eD",
+      "proxyAdmin": "0x7618B3d4d8C71132BfCd33fDD98424a060F37470",
+      "router": "0xFb4ea97964A04D0Dd367Bd69ffF03e66dfDB55b8",
+      "standardGateway": "0x6b6f76e5D2A2C8Ee2cc2964ccaAFf570835B003a",
+      "weth": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+      "wethGateway": "0x350Ac26Db427d820cEFaF7Cf50Ae92046217bF06",
+    },
+    "l3Contracts": {
+      "customGateway": "0x8399A1F530Ea292Fb3669cDa56b11bD87938b5d7",
+      "multicall": "0xb4FBb198D9308126d9A3cdbff9d986836d53A894",
+      "proxyAdmin": "0x7618B3d4d8C71132BfCd33fDD98424a060F37470",
+      "router": "0x301987Bb8fAA1bB19411A7Bb3F74D387A7916b8c",
+      "standardGateway": "0x0eA2d857a49CfF06c45271a970396D2B1dBd1382",
+      "weth": "0x4787961Dd15d9B278Cb8a8E9c3e3ef079f1849cB",
+      "wethGateway": "0xBabc9E20db02c8E9E0556826b0A1eF6c24F4C049",
+    },
+  },
+}
+`;

@@ -117,7 +117,7 @@ describe('RollupAdminLogic parameter:', () => {
 });
 
 it('Infer parameters based on function name', async () => {
-  expect(
+  await expect(
     client.rollupAdminLogicPrepareTransactionRequest({
       functionName: 'setLoserStakeEscrow',
       // @ts-expect-error Args are missing
@@ -127,7 +127,7 @@ it('Infer parameters based on function name', async () => {
     }),
   ).rejects.toThrowError(AbiEncodingLengthMismatchError);
 
-  expect(
+  await expect(
     client.rollupAdminLogicPrepareTransactionRequest({
       functionName: 'setLoserStakeEscrow',
       // @ts-expect-error Args are of the wrong type
@@ -137,7 +137,7 @@ it('Infer parameters based on function name', async () => {
     }),
   ).rejects.toThrowError(InvalidAddressError);
 
-  expect(
+  await expect(
     client
       // @ts-expect-error Args are required for `setLoserStakeEscrow`
       .rollupAdminLogicPrepareTransactionRequest({
@@ -157,7 +157,7 @@ it('Infer parameters based on function name', async () => {
   });
 
   // Function doesn't exist
-  expect(
+  await expect(
     client.rollupAdminLogicPrepareTransactionRequest({
       // @ts-expect-error Function not available
       functionName: 'notExisting',

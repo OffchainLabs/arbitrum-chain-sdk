@@ -1,0 +1,71 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`successfully parses core contracts from a tx receipt on RollupCreator v1.1 1`] = `
+{
+  "adminProxy": "0x38E3258488C2341606230E27c4a440e81c987fCF",
+  "bridge": "0xac51D5f4B14f520D111D14777e8965b224CE2919",
+  "challengeManager": "0x5f4273F26836B3Def34Bc11274Dd7D38200E8E2d",
+  "deployedAtBlockNumber": 49500532,
+  "inbox": "0x6fDBF2541c1168E6D9f7A3A131204a33Ace085df",
+  "nativeToken": "0x0000000000000000000000000000000000000000",
+  "outbox": "0x2732C86946c20b9Eba0d7fA0beCcfd7517FCD285",
+  "rollup": "0x1644590Fd2223264ea8Cda8927B038CcCFE0Da76",
+  "rollupEventInbox": "0x60F938D87f929D1B413BA6bc9d8cA8310710BF1a",
+  "sequencerInbox": "0x96bA492C55Af83dfC88D52A1e584e4061716e9e8",
+  "upgradeExecutor": "0x5FbdF85F9be59A8084dbD8a7BD457AD3c13C95aE",
+  "validatorUtils": "0xB11EB62DD2B352886A4530A9106fE427844D515f",
+  "validatorWalletCreator": "0xEb9885B6c0e117D339F47585cC06a2765AaE2E0b",
+}
+`;
+
+exports[`successfully parses core contracts from a tx receipt on RollupCreator v2.1 1`] = `
+{
+  "adminProxy": "0x4c6f9229f13cD1922B0E237c5A01CA6466217B11",
+  "bridge": "0xFa35d3bEaCE95bfaaDC91EbA202821e952354C54",
+  "challengeManager": "0xE1F48151c01B2861365bA22A8F1E676ceBD145Dd",
+  "deployedAtBlockNumber": 71259460,
+  "inbox": "0x83fac80e23863bAdA976Bddf1aF02B53402e4829",
+  "nativeToken": "0x0000000000000000000000000000000000000000",
+  "outbox": "0xC062C937CE2f4f7Abb6998bF958B7D67A4348926",
+  "rollup": "0x66d0e72952f4f69aF9D33C1B7C31Fa9aCDbCAF63",
+  "rollupEventInbox": "0xD75c19D04476dF0B6367b064CBA084EC00038f7d",
+  "sequencerInbox": "0x43528b8Be52e8D084F147d167487f361553463b5",
+  "upgradeExecutor": "0xcC86ED288eD5DC90Ef9b0e58A12f354840a0B659",
+  "validatorUtils": "0x7C100c97a54e2D309a194752Df2f66922A802be3",
+  "validatorWalletCreator": "0xFAd2C6Cb969Ab7B18d78BD63e512b650bb70B570",
+}
+`;
+
+exports[`successfully parses core contracts from a tx receipt on RollupCreator v3.1 1`] = `
+{
+  "adminProxy": "0xf58519b0A94fd7a12C99c30f6FE984EFea1ac1de",
+  "bridge": "0x633dE45a02bB399fA519B8F91f62F9Ef57ACDE52",
+  "challengeManager": "0x0938581d28E37EbD23Ef448fd02F8beB206e0383",
+  "deployedAtBlockNumber": 8131558,
+  "inbox": "0x05F27c4F65abBe0c59a13A924148Da3eafF91C53",
+  "nativeToken": "0x0000000000000000000000000000000000000000",
+  "outbox": "0x5F54ebfC67fa30565b725e709A5712dcD67C2880",
+  "rollup": "0x6677e09F9475Bb66C320Cd50C5db8Ae75D9E42b7",
+  "rollupEventInbox": "0x12d28390eB4515e98cd467Cec394BE1a2c79E481",
+  "sequencerInbox": "0xdddbBeD40a93985DDC1fbeaF8d588804919eF707",
+  "upgradeExecutor": "0x96Eb6Da3FA34494AfDdc3466ffdc9DFc194008c3",
+  "validatorWalletCreator": "0x1cB01EA4b15884DEf0e64201C342681B897Db38F",
+}
+`;
+
+exports[`successfully parses core contracts from a tx receipt on RollupCreator v3.2 1`] = `
+{
+  "adminProxy": "0xAEFa6C60E66678C91fc4A15723827964a34F0E03",
+  "bridge": "0xc7990794EA47F0332748EFd638C0B631E1f64Bd3",
+  "challengeManager": "0x55910b7a9c0D07A13a0a8A276069300E3Aa9f34f",
+  "deployedAtBlockNumber": 10058902,
+  "inbox": "0xbBAcfDA0025d482A038bD52F4A38e23FA705ff83",
+  "nativeToken": "0x0000000000000000000000000000000000000000",
+  "outbox": "0x54085e0511401c41560B9f442214E8066173B4cF",
+  "rollup": "0x4b189f98B181eAB46337Cae2941223700F73AB7c",
+  "rollupEventInbox": "0x0E2b2a053476fFDDd64EA66fE00Bb0Fcab902552",
+  "sequencerInbox": "0xA801fc784147C698ccB733de6fD927483Aa28580",
+  "upgradeExecutor": "0x7CFfb250Ce68450a3eE4fbbd9f54EfDF03378338",
+  "validatorWalletCreator": "0xB7FE37712e46F28C8f22Ec4bAA33A09fb8B52BD0",
+}
+`;

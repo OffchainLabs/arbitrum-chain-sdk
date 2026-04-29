@@ -11,7 +11,7 @@ export type CoreContracts = {
   sequencerInbox: Address;
   bridge: Address;
   upgradeExecutor: Address;
-  validatorUtils: Address;
+  validatorUtils?: Address;
   validatorWalletCreator: Address;
   deployedAtBlockNumber: number;
 };

@@ -7,10 +7,13 @@ import {
   encodeFunctionData,
   http,
 } from 'viem';
-import { arbitrum } from 'viem/chains';
+import { arbitrum, arbitrumSepolia, sepolia } from 'viem/chains';
 import { it, expect, vi, describe } from 'vitest';
+
+import { gnosisSafeL2ABI } from './contracts/GnosisSafeL2';
+import { rollupABI } from './contracts/Rollup';
+
 import { getValidators } from './getValidators';
-import { rollupAdminLogicABI, safeL2ABI } from './abi';
 import { rollupAdminLogicPrepareFunctionData } from './rollupAdminLogicPrepareTransactionRequest';
 
 const client = createPublicClient({
@@ -18,12 +21,22 @@ const client = createPublicClient({
   transport: http(),
 });
 
+const arbitrumSepoliaClient = createPublicClient({
+  chain: arbitrumSepolia,
+  transport: http(),
+});
+
+const sepoliaClient = createPublicClient({
+  chain: sepolia,
+  transport: http('https://sepolia.gateway.tenderly.co'),
+});
+
 function mockLog(transactionHash: string) {
   return {
     address: '0x193e2887031c148ab54f5e856ea51ae521661200',
     args: { id: 6n },
     blockHash: '0x3bafb9574d8a3a7c09070935dc3ca936a5df06e2abd09cbd2a3cd489562e748f',
-    blockNumber: 36723964n,
+    blockNumber: 35635757n,
     data: '0x',
     eventName: 'OwnerFunctionCalled',
     logIndex: 42,
@@ -40,7 +53,7 @@ function mockTransaction(data: Hex) {
   return {
     accessList: [],
     blockHash: '0x3bafb9574d8a3a7c09070935dc3ca936a5df06e2abd09cbd2a3cd489562e748f',
-    blockNumber: 36723964n,
+    blockNumber: 35635757n,
     chainId: 421614,
     from: '0xfd5735380689a53e6b048e980f34cb94be9fd0c7',
     gas: 7149526n,
@@ -69,7 +82,11 @@ function mockData({
   logs: {
     [transactionHash: string]: Hex;
   };
-  method: 'eth_getLogs' | 'eth_getTransactionByHash';
+  method:
+    | 'eth_getLogs'
+    | 'eth_getTransactionByHash'
+    | 'eth_getTransactionReceipt'
+    | 'eth_blockNumber';
   params: string;
 }) {
   if (method === 'eth_getLogs') {
@@ -78,6 +95,16 @@ function mockData({
 
   if (method === 'eth_getTransactionByHash') {
     return mockTransaction(logs[params]);
+  }
+
+  if (method === 'eth_getTransactionReceipt') {
+    return {
+      blockNumber: 35635757,
+    };
+  }
+
+  if (method === 'eth_blockNumber') {
+    return 35635757;
   }
 
   return null;
@@ -90,7 +117,7 @@ const rollupAddress = '0xe0875cbd144fe66c015a95e5b2d2c15c3b612179';
 
 function setValidatorHelper(args: [Address[], boolean[]]) {
   return encodeFunctionData({
-    abi: rollupAdminLogicABI,
+    abi: rollupABI,
     functionName: 'setValidator',
     args,
   });
@@ -100,14 +127,14 @@ function upgradeExecutorSetValidatorHelper(args: [Address[], boolean[]]) {
     rollup: rollupAddress,
     functionName: 'setValidator',
     args,
-    abi: rollupAdminLogicABI,
+    abi: rollupABI,
     upgradeExecutor: upgradeExecutorAddress,
   }).data;
 }
 function safeSetValidatorHelper(args: [Address[], boolean[]]) {
   const bytes = upgradeExecutorSetValidatorHelper(args);
   return encodeFunctionData({
-    abi: safeL2ABI,
+    abi: gnosisSafeL2ABI,
     functionName: 'execTransaction',
     args: [
       rollupAddress,
@@ -129,11 +156,56 @@ it('getValidators return all validators (Xai)', async () => {
     rollup: '0xc47dacfbaa80bd9d8112f4e8069482c2a3221336',
   });
   expect(validators).toEqual(['0x25EA41f0bDa921a0eBf48291961B1F10b59BC6b8']);
+  expect(isAccurate).toBeFalsy();
+});
+
+// https://sepolia.arbiscan.io/tx/0x5b0b49e0259289fc89949a55a5ad35a8939440a55065d29b14e5e7ef7494efff
+it('getValidators returns validators for a chain created with RollupCreator v1.1', async () => {
+  const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
+    rollup: '0x1644590Fd2223264ea8Cda8927B038CcCFE0Da76',
+  });
+  expect(validators).toEqual(['0x8E842599F71ABD661737bb3108a53E5b1787c791']);
+  expect(isAccurate).toBeTruthy();
+});
+
+// https://sepolia.arbiscan.io/tx/0x77db43157182a69ce0e6d2a0564d2dabb43b306d48ea7b4d877160d6a1c9b66d
+it('getValidators returns validators for a chain created with RollupCreator v2.1', async () => {
+  const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
+    rollup: '0x66d0e72952f4f69aF9D33C1B7C31Fa9aCDbCAF63',
+  });
+  expect(validators).toEqual([
+    '0xDBb2c9923b5DE18B151bC55Ed571EDcd1fC7EeB9',
+    '0x84B2EFFDd54aA5dce861440Ae9B9D320b043a64c',
+    '0x39B4Ce32E557225a401917a701ac4d267648635a',
+    '0xe2D0cC872647B1A129B942BbFC980B31E8e94Df2',
+  ]);
+  expect(isAccurate).toBeTruthy();
+});
+
+// https://sepolia.etherscan.io/tx/0xd79a80b7300df1bcb14e2e3ea83521d1ae37e5f171a787fb0f5377ea7f5003ad
+it('getValidators returns validators for a chain created with RollupCreator v3.1', async () => {
+  const { isAccurate, validators } = await getValidators(sepoliaClient, {
+    rollup: '0x5D65e18b873dD978EeE4704BC6033436aA253936',
+  });
+  expect(validators).toEqual(['0x776C1B18cde829C020ce1a3f75ae3B82F6a9108a']);
+  expect(isAccurate).toBeTruthy();
+});
+
+// https://sepolia.arbiscan.io/tx/0x67bb216d4dd1b1807d9f0e226e4da754bdf643e2788f9e515b37c6dd890be331
+it('getValidators returns validators for a chain created with RollupCreator v3.2', async () => {
+  const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
+    rollup: '0x80630e3776E445c256E82D5ACcA2Bbb4b0c95a98',
+  });
+  expect(validators).toEqual([
+    '0xd0E7B8f304461d57E8b49b660DbD46e34E877A81',
+    '0x7C6F07e8c7Cb8d4e4574f1E346B53f330B60c00f',
+    '0x300E8715236B5e0aEefb0Af16315a1e729E6A002',
+  ]);
   expect(isAccurate).toBeTruthy();
 });
 
 describe('createRollupFunctionSelector', () => {
-  it('getValidators return all validators with complete flag set to true', async () => {
+  it('getValidators return all validators with isAccurate flag set to true', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -152,6 +224,7 @@ describe('createRollupFunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -162,7 +235,7 @@ describe('createRollupFunctionSelector', () => {
     expect(isAccurate).toBeTruthy();
   });
 
-  it('getValidators return all validators with complete flag set to false', async () => {
+  it('getValidators return all validators with isAccurate flag set to false', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -182,6 +255,7 @@ describe('createRollupFunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -194,7 +268,7 @@ describe('createRollupFunctionSelector', () => {
 });
 
 describe('setValidatorFunctionSelector', () => {
-  it('getValidators return all validators with complete flag set to true', async () => {
+  it('getValidators return all validators with isAccurate flag set to true', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -222,6 +296,7 @@ describe('setValidatorFunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -235,7 +310,7 @@ describe('setValidatorFunctionSelector', () => {
     expect(isAccurate).toBeTruthy();
   });
 
-  it('getValidators return all validators with complete flag set to false', async () => {
+  it('getValidators return all validators with isAccurate flag set to false', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -264,6 +339,7 @@ describe('setValidatorFunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -279,7 +355,7 @@ describe('setValidatorFunctionSelector', () => {
 });
 
 describe('upgradeExecutorExecuteCallFunctionSelector', () => {
-  it('getValidators return all validators with complete flag set to true', async () => {
+  it('getValidators return all validators with isAccurate flag set to true', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -310,6 +386,7 @@ describe('upgradeExecutorExecuteCallFunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -324,7 +401,7 @@ describe('upgradeExecutorExecuteCallFunctionSelector', () => {
     expect(isAccurate).toBeTruthy();
   });
 
-  it('getValidators return all validators with complete flag set to false', async () => {
+  it('getValidators return all validators with isAccurate flag set to false', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -356,6 +433,7 @@ describe('upgradeExecutorExecuteCallFunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -368,7 +446,7 @@ describe('upgradeExecutorExecuteCallFunctionSelector', () => {
 });
 
 describe('safeL2FunctionSelector', () => {
-  it('getValidators return all validators with complete flag set to true', async () => {
+  it('getValidators return all validators with isAccurate flag set to true', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -396,6 +474,7 @@ describe('safeL2FunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -409,7 +488,7 @@ describe('safeL2FunctionSelector', () => {
     expect(isAccurate).toBeTruthy();
   });
 
-  it('getValidators return all validators with complete flag set to false', async () => {
+  it('getValidators return all validators with isAccurate flag set to false', async () => {
     const mockTransport = () =>
       createTransport({
         key: 'mock',
@@ -438,6 +517,7 @@ describe('safeL2FunctionSelector', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -480,6 +560,7 @@ describe('Detect validators added or removed multiple times', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -514,6 +595,7 @@ describe('Detect validators added or removed multiple times', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -546,6 +628,7 @@ describe('Detect validators added or removed multiple times', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {
@@ -580,6 +663,7 @@ describe('Detect validators added or removed multiple times', () => {
 
     const mockClient = createPublicClient({
       transport: mockTransport,
+      chain: arbitrumSepolia,
     });
 
     const { validators, isAccurate } = await getValidators(mockClient, {

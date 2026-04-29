@@ -3,9 +3,9 @@ import { Address } from 'viem';
 export type ChainConfigArbitrumParams = {
   EnableArbOS: boolean;
   AllowDebugPrecompiles: boolean;
-  DataAvailabilityCommittee: boolean;
   InitialArbOSVersion: number;
   InitialChainOwner: Address;
+  DataAvailabilityCommittee: boolean;
   GenesisBlockNum: number;
   MaxCodeSize: number;
   MaxInitCodeSize: number;

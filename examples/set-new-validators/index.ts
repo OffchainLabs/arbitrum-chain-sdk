@@ -5,8 +5,10 @@ import {
   createRollupFetchTransactionHash,
   createRollupPrepareTransactionReceipt,
   rollupAdminLogicPublicActions,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey } from '@arbitrum/orbit-sdk/utils';
+  // Uncomment it when you want to use getValidators() to get validator status
+  // getValidators,
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 
@@ -20,6 +22,12 @@ if (typeof process.env.ROLLUP_OWNER_PRIVATE_KEY === 'undefined') {
 
 if (typeof process.env.NEW_VALIDATOR_ADDRESS === 'undefined') {
   throw new Error(`Please provide the "NEW_VALIDATOR_ADDRESS" environment variable`);
+}
+
+if (typeof process.env.PARENT_CHAIN_RPC === 'undefined' || process.env.PARENT_CHAIN_RPC === '') {
+  console.warn(
+    `Warning: you may encounter timeout errors while running the script with the default rpc endpoint. Please provide the "PARENT_CHAIN_RPC" environment variable instead.`,
+  );
 }
 
 function getBlockExplorerUrl(chain: Chain) {
@@ -69,6 +77,17 @@ async function main() {
   console.log(
     `Before executing, the address ${newValidators[0]} status in validator list is ${beforeStatus}`,
   );
+
+  /*
+   You can also use the following code to check validator status, it will return a list 
+   of whitelist validators.
+
+   console.log('Fetching current validator address list in the parent chain...');
+   const beforeValidatorList = await getValidators(parentChainPublicClient, {
+    rollup: coreContracts.rollup,
+   });
+   console.log(`Before executing, the validator list is ${beforeValidatorList.validators}`);
+  */
 
   // prepare set validator transaction request
   const setValidatorTransactionRequest =

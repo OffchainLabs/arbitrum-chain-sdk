@@ -1,9 +1,9 @@
 import { Chain, GetFunctionArgs, PublicClient, ReadContractReturnType, Transport } from 'viem';
 
-import { arbAggregator } from './contracts';
+import { arbAggregatorABI, arbAggregatorAddress } from './contracts/ArbAggregator';
 import { GetFunctionName } from './types/utils';
 
-export type ArbAggregatorAbi = typeof arbAggregator.abi;
+export type ArbAggregatorAbi = typeof arbAggregatorABI;
 export type ArbAggregatorFunctionName = GetFunctionName<ArbAggregatorAbi>;
 
 export type ArbAggregatorReadContractParameters<TFunctionName extends ArbAggregatorFunctionName> = {
@@ -20,10 +20,10 @@ export function arbAggregatorReadContract<
   client: PublicClient<Transport, TChain>,
   params: ArbAggregatorReadContractParameters<TFunctionName>,
 ): Promise<ArbAggregatorReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
-    address: arbAggregator.address,
-    abi: arbAggregator.abi,
+    address: arbAggregatorAddress,
+    abi: arbAggregatorABI,
     functionName: params.functionName,
     args: params.args,
   });

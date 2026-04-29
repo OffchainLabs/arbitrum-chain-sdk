@@ -1,53 +1,68 @@
-import { Address, PublicClient, Transport, Chain, encodeFunctionData, zeroAddress } from 'viem';
+import { Address, PublicClient, Transport, Chain, zeroAddress } from 'viem';
 
 import { defaults } from './createRollupDefaults';
 import { createRollupGetCallValue } from './createRollupGetCallValue';
 import { createRollupGetMaxDataSize } from './createRollupGetMaxDataSize';
-import { rollupCreator } from './contracts';
+import { createRollupEncodeFunctionData } from './createRollupEncodeFunctionData';
 import { validateParentChain } from './types/ParentChain';
-import { isCustomFeeTokenAddress } from './utils/isCustomFeeTokenAddress';
+import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { ChainConfig } from './types/ChainConfig';
-import { isAnyTrustChainConfig } from './utils/isAnyTrustChainConfig';
-import { getRollupCreatorAddress } from './utils/getters';
+import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 import { fetchDecimals } from './utils/erc20';
 import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
+import { isDisabledWasmModuleRoot } from './wasmModuleRoot';
 
-import { Prettify } from './types/utils';
 import {
-  CreateRollupFunctionInputs,
   CreateRollupParams,
-  WithRollupCreatorAddressOverride,
+  CreateRollupFunctionInputs,
+  RollupCreatorSupportedVersion,
 } from './types/createRollupTypes';
 
-function createRollupEncodeFunctionData(args: CreateRollupFunctionInputs) {
-  return encodeFunctionData({
-    abi: rollupCreator.abi,
-    functionName: 'createRollup',
-    args,
-  });
-}
+import { isKnownWasmModuleRoot, getConsensusReleaseByWasmModuleRoot } from './wasmModuleRoot';
 
 export type CreateRollupPrepareTransactionRequestParams<TChain extends Chain | undefined> =
-  Prettify<
-    WithRollupCreatorAddressOverride<{
-      params: CreateRollupParams;
+  | {
+      params: CreateRollupParams<'v2.1'>;
       account: Address;
+      value?: bigint;
       publicClient: PublicClient<Transport, TChain>;
       gasOverrides?: TransactionRequestGasOverrides;
-    }>
-  >;
+      rollupCreatorAddressOverride?: Address;
+      rollupCreatorVersion: 'v2.1';
+    }
+  | {
+      params: CreateRollupParams<'v3.2'>;
+      account: Address;
+      value?: bigint;
+      publicClient: PublicClient<Transport, TChain>;
+      gasOverrides?: TransactionRequestGasOverrides;
+      rollupCreatorAddressOverride?: Address;
+      rollupCreatorVersion: 'v3.2';
+    }
+  | {
+      params: CreateRollupParams<'v3.2'>;
+      account: Address;
+      value?: bigint;
+      publicClient: PublicClient<Transport, TChain>;
+      gasOverrides?: TransactionRequestGasOverrides;
+      rollupCreatorAddressOverride?: Address;
+      rollupCreatorVersion?: never;
+    };
 
 export async function createRollupPrepareTransactionRequest<TChain extends Chain | undefined>({
   params,
   account,
+  value,
   publicClient,
   gasOverrides,
   rollupCreatorAddressOverride,
+  rollupCreatorVersion = 'v3.2',
 }: CreateRollupPrepareTransactionRequestParams<TChain>) {
-  const chainId = validateParentChain(publicClient);
+  const { chainId: parentChainId, isCustom: parentChainIsCustom } =
+    validateParentChain(publicClient);
 
-  if (params.batchPoster === zeroAddress) {
-    throw new Error(`"params.batchPoster" can't be set to the zero address.`);
+  if (params.batchPosters.length === 0 || params.batchPosters.includes(zeroAddress)) {
+    throw new Error(`"params.batchPosters" can't be empty or contain the zero address.`);
   }
 
   if (params.validators.length === 0 || params.validators.includes(zeroAddress)) {
@@ -56,31 +71,96 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
 
   const chainConfig: ChainConfig = JSON.parse(params.config.chainConfig);
 
-  if (isCustomFeeTokenAddress(params.nativeToken)) {
-    // custom fee token is only allowed for anytrust chains
-    if (!isAnyTrustChainConfig(chainConfig)) {
-      throw new Error(
-        `"params.nativeToken" can only be used on AnyTrust chains. Set "arbitrum.DataAvailabilityCommittee" to "true" in the chain config.`,
-      );
+  if (isNonZeroAddress(params.nativeToken)) {
+    const isRollupChain = chainConfig.arbitrum.DataAvailabilityCommittee === false;
+
+    switch (rollupCreatorVersion) {
+      case 'v2.1': {
+        if (isRollupChain) {
+          throw new Error(
+            `"params.nativeToken" can only be used on AnyTrust chains. Set "arbitrum.DataAvailabilityCommittee" to "true" in the chain config.`,
+          );
+        }
+
+        break;
+      }
+
+      case 'v3.2': {
+        const isFeeTokenPricerMissing = !isNonZeroAddress(
+          (params as CreateRollupParams<'v3.2'>).feeTokenPricer,
+        );
+
+        // fee token pricer is mandatory for custom gas token rollup chains
+        if (isRollupChain && isFeeTokenPricerMissing) {
+          throw new Error(
+            `"params.feeTokenPricer" must be provided for a custom gas token rollup chain.`,
+          );
+        }
+      }
     }
 
-    // custom fee token is only allowed to have 18 decimals
-    if ((await fetchDecimals({ address: params.nativeToken, publicClient })) !== 18) {
+    if ((await fetchDecimals({ address: params.nativeToken, publicClient })) > 36) {
       throw new Error(
-        `"params.nativeToken" can only be configured with a token that uses 18 decimals.`,
+        `"params.nativeToken" can only be configured with a token that uses 36 decimals or less.`,
       );
     }
   }
 
-  const maxDataSize = createRollupGetMaxDataSize(chainId);
-  const paramsWithDefaults = { ...defaults, ...params, maxDataSize };
+  let maxDataSize: bigint;
 
-  // @ts-ignore (todo: fix viem type issue)
+  if (parentChainIsCustom) {
+    if (typeof params.maxDataSize === 'undefined') {
+      throw new Error(`"params.maxDataSize" must be provided when using a custom parent chain.`);
+    }
+
+    maxDataSize = params.maxDataSize;
+  } else {
+    maxDataSize = params.maxDataSize ?? createRollupGetMaxDataSize(parentChainId);
+  }
+
+  const arbOSVersion = chainConfig.arbitrum.InitialArbOSVersion;
+  const wasmModuleRoot = params.config.wasmModuleRoot;
+
+  if (arbOSVersion === 30 || arbOSVersion === 31) {
+    throw new Error(
+      `ArbOS ${arbOSVersion} is not supported. Please set the ArbOS version to 32 or later by updating "arbitrum.InitialArbOSVersion" in your chain config.`,
+    );
+  }
+
+  if (isKnownWasmModuleRoot(wasmModuleRoot)) {
+    const consensusRelease = getConsensusReleaseByWasmModuleRoot(wasmModuleRoot);
+
+    if (arbOSVersion > consensusRelease.maxArbOSVersion) {
+      throw new Error(
+        `Consensus v${consensusRelease.version} does not support ArbOS ${arbOSVersion}. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
+      );
+    }
+  }
+
+  if (isDisabledWasmModuleRoot(wasmModuleRoot)) {
+    throw new Error(
+      `Wasm module root ${wasmModuleRoot} is not supported. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
+    );
+  }
+
+  const paramsWithDefaults = { ...defaults, ...params, maxDataSize };
+  const createRollupGetCallValueParams = { ...paramsWithDefaults, account };
+
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
     chain: publicClient.chain,
-    to: rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient),
-    data: createRollupEncodeFunctionData([paramsWithDefaults]),
-    value: createRollupGetCallValue(paramsWithDefaults),
+    to: rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    data: createRollupEncodeFunctionData(
+      [paramsWithDefaults] as CreateRollupFunctionInputs<RollupCreatorSupportedVersion>,
+      rollupCreatorVersion,
+    ),
+    value:
+      value ??
+      (await createRollupGetCallValue(
+        publicClient,
+        createRollupGetCallValueParams,
+        rollupCreatorVersion,
+      )),
     account,
     // if the base gas limit override was provided, hardcode gas to 0 to skip estimation
     // we'll set the actual value in the code below
@@ -96,5 +176,5 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
     });
   }
 
-  return { ...request, chainId };
+  return { ...request, chainId: parentChainId };
 }

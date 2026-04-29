@@ -1,110 +1,32 @@
-import { erc, etherscan } from '@wagmi/cli/plugins';
-import { hashMessage } from 'viem';
-import dotenv from 'dotenv';
+import { Config } from '@wagmi/cli';
+import { erc } from '@wagmi/cli/plugins';
 
-import { ParentChainId } from './src';
 import {
   mainnet,
   arbitrumOne,
   arbitrumNova,
   base,
   sepolia,
-  holesky,
   arbitrumSepolia,
   baseSepolia,
   nitroTestnodeL1,
   nitroTestnodeL2,
-  nitroTestnodeL3,
 } from './src/chains';
+import { generate, ContractConfig } from './wagmi.generate';
 
-dotenv.config();
-
-function loadApiKey(key: string): string {
-  const apiKey = process.env[key];
-
-  if (typeof apiKey === 'undefined' || apiKey.length === 0) {
-    throw new Error(`Missing the ${key} environment variable!`);
-  }
-
-  return apiKey;
-}
-
-function sleep(ms: number = 1_000) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-const arbiscanApiKey = loadApiKey('ARBISCAN_API_KEY');
-const etherscanApiKey = loadApiKey('ETHERSCAN_API_KEY');
-const basescanApikey = loadApiKey('BASESCAN_API_KEY');
-
-const blockExplorerApiUrls: Record<ParentChainId, { url: string; apiKey: string }> = {
-  // mainnet L1
-  [mainnet.id]: {
-    url: 'https://api.etherscan.io/api',
-    apiKey: etherscanApiKey,
-  },
-  // mainnet L2
-  [arbitrumOne.id]: {
-    url: 'https://api.arbiscan.io/api',
-    apiKey: arbiscanApiKey,
-  },
-  [arbitrumNova.id]: {
-    url: 'https://api-nova.arbiscan.io/api',
-    apiKey: arbiscanApiKey,
-  },
-  [base.id]: {
-    url: 'https://api.basescan.org/api',
-    apiKey: basescanApikey,
-  },
-  // testnet L1
-  [sepolia.id]: {
-    url: 'https://api-sepolia.etherscan.io/api',
-    apiKey: etherscanApiKey,
-  },
-  [holesky.id]: {
-    url: 'https://api-holesky.etherscan.io/api',
-    apiKey: etherscanApiKey,
-  },
-  // testnet L2
-  [arbitrumSepolia.id]: {
-    url: 'https://api-sepolia.arbiscan.io/api',
-    apiKey: arbiscanApiKey,
-  },
-  [baseSepolia.id]: {
-    url: 'https://api-sepolia.basescan.org/api',
-    apiKey: basescanApikey,
-  },
-  // local nitro-testnode / fine to omit these as we skip abi fetch
-  [nitroTestnodeL1.id]: { url: '', apiKey: '' },
-  [nitroTestnodeL2.id]: { url: '', apiKey: '' },
-};
-
-export async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
-  const { url, apiKey } = blockExplorerApiUrls[chainId];
-
-  const responseJson = await (
-    await fetch(
-      `${url}?module=contract&action=getabi&format=raw&address=${address}&apikey=${apiKey}`,
-    )
-  ).json();
-
-  if (responseJson.message === 'NOTOK') {
-    throw new Error(`Failed to fetch ABI for ${chainId}: ${responseJson.result}`);
-  }
-
-  return responseJson;
-}
-
-type ContractConfig = {
-  name: string;
-  version?: string;
-  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
-};
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
+mainnet.rpcUrls.default.http[0] = 'https://mainnet.gateway.tenderly.co';
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
+mainnet.rpcUrls.public.http[0] = 'https://mainnet.gateway.tenderly.co';
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
+sepolia.rpcUrls.default.http[0] = 'https://sepolia.gateway.tenderly.co';
+// @ts-expect-error -- viem chain rpcUrls are typed as readonly
+sepolia.rpcUrls.public.http[0] = 'https://sepolia.gateway.tenderly.co';
 
 const contracts: ContractConfig[] = [
   {
     name: 'RollupCreator',
-    version: '1.1.0',
+    version: '1.1',
     address: {
       // mainnet L1
       [mainnet.id]: '0x90d68b056c411015eae3ec0b98ad94e2c91419f1',
@@ -114,7 +36,6 @@ const contracts: ContractConfig[] = [
       [base.id]: '0x850F050C65B34966895AdA26a4D06923901916DB',
       // testnet L1
       [sepolia.id]: '0xfbd0b034e6305788007f6e0123cc5eae701a5751',
-      [holesky.id]: '0xB512078282F462Ba104231ad856464Ceb0a7747e',
       // testnet L2
       [arbitrumSepolia.id]: '0x06E341073b2749e0Bb9912461351f716DeCDa9b0',
       [baseSepolia.id]: '0x1E0921818df948c338380e722C8aE91Bb285763C',
@@ -124,8 +45,68 @@ const contracts: ContractConfig[] = [
     },
   },
   {
+    name: 'RollupCreator',
+    version: '2.1',
+    address: {
+      // mainnet L1
+      [mainnet.id]: '0x8c88430658a03497D13cDff7684D37b15aA2F3e1',
+      // mainnet L2
+      [arbitrumOne.id]: '0x79607f00e61E6d7C0E6330bd7E9c4AC320D50FC9',
+      [arbitrumNova.id]: '0x9B523BF5F77e8d90e0E9eb0924aEA6E40B081aE6',
+      [base.id]: '0x091b8FC0F48613b191f81009797ce55Cf97Af7C8',
+      // testnet L1
+      [sepolia.id]: '0xfb774ea8a92ae528a596c8d90cbcf1bdbc4cee79',
+      // testnet L2
+      [arbitrumSepolia.id]: '0xd2Ec8376B1dF436fAb18120E416d3F2BeC61275b',
+      [baseSepolia.id]: '0x6e244cD02BBB8a6dbd7F626f05B2ef82151Ab502',
+      // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
+      [nitroTestnodeL1.id]: '0x82a3c114b40ecf1fc34745400a1b9b9115c33d31',
+      [nitroTestnodeL2.id]: '0x4287839696d650a0cf93b98351e85199102335d0',
+    },
+  },
+  {
+    name: 'RollupCreator',
+    version: '3.1',
+    address: {
+      // mainnet L1
+      [mainnet.id]: '0x43698080f40dB54DEE6871540037b8AB8fD0AB44',
+      // mainnet L2
+      [arbitrumOne.id]: '0xB90e53fd945Cd28Ec4728cBfB566981dD571eB8b',
+      [arbitrumNova.id]: '0xF916Bfe431B7A7AaE083273F5b862e00a15d60F4',
+      [base.id]: '0xDbe3e840569a0446CDfEbc65D7d429c5Da5537b7',
+      // testnet L1
+      [sepolia.id]: '0x687Bc1D23390875a868Db158DA1cDC8998E31640',
+      // testnet L2
+      [arbitrumSepolia.id]: '0x5F45675AC8DDF7d45713b2c7D191B287475C16cF',
+      [baseSepolia.id]: '0x70cA29dA3B116A2c4A267c549bf7947d47f41e22',
+      // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
+      [nitroTestnodeL1.id]: '0xb562622f2D76F355D673560CB88c1dF6088702f1',
+      [nitroTestnodeL2.id]: '0x1E08B9c3f94E9aBcc531f67F949d796eC76963b9',
+    },
+  },
+  {
+    name: 'RollupCreator',
+    version: '3.2',
+    address: {
+      // mainnet L1
+      [mainnet.id]: '0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7',
+      // mainnet L2
+      [arbitrumOne.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
+      [arbitrumNova.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
+      [base.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
+      // testnet L1
+      [sepolia.id]: '0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7',
+      // testnet L2
+      [arbitrumSepolia.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
+      [baseSepolia.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
+      // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
+      [nitroTestnodeL1.id]: '0xe6D50099f4d891240435143193d46581A1447202',
+      [nitroTestnodeL2.id]: '0xbcF51F3AAb5D5Efa025b4A2B235BDc9F3f69b4d2',
+    },
+  },
+  {
     name: 'TokenBridgeCreator',
-    version: '1.2.0',
+    version: '1.2',
     address: {
       // mainnet L1
       [mainnet.id]: '0x60D9A46F24D5a35b95A78Dd3E793e55D94EE0660',
@@ -135,14 +116,76 @@ const contracts: ContractConfig[] = [
       [base.id]: '0x4C240987d6fE4fa8C7a0004986e3db563150CA55',
       // testnet L1
       [sepolia.id]: '0x7edb2dfBeEf9417e0454A80c51EE0C034e45a570',
-      [holesky.id]: '0xac890ED9bC2494C053cE701F138958df95966d94',
       // testnet L2
       [arbitrumSepolia.id]: '0x56C486D3786fA26cc61473C499A36Eb9CC1FbD8E',
       [baseSepolia.id]: '0xFC71d21a4FE10Cc0d34745ba9c713836f82f8DE3',
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
-      [nitroTestnodeL1.id]: '0x54B4D4e578E10178a6cA602bdb6df0F213296Af4',
-      [nitroTestnodeL2.id]: '0x38f35af53bf913c439eab06a367e09d6eb253492',
+      [nitroTestnodeL1.id]: '0x4Af567288e68caD4aA93A272fe6139Ca53859C70',
+      [nitroTestnodeL2.id]: '0x38F35Af53bF913c439eaB06A367e09D6eb253492',
     },
+  },
+  {
+    name: 'Rollup',
+    version: '1.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xb2df7e9658eceb2c94567ad537a34892e093ce06f3d4234a9899b4315167cb71
+    address: '0xDCb63cfb74EE8F66c6188EdCB886B10FF0B7a75a',
+  },
+  {
+    name: 'Rollup',
+    version: '2.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x72d481d03556fb831b505cf7d9695bd7da96fce2c4a282868be0384d580e6902
+    address: '0xF847994AC56799D7dE2F5e51B9E5d1d001cAc3c3',
+  },
+  {
+    name: 'Rollup',
+    version: '3.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x20c5ef96d3d30c252ce9e6b76b25ffcbb44dfc2564d9e17179ecceef09272ee2
+    address: '0x07F6Fa22Bf5F3AFbcE2594396F2B943c5720F40d',
+  },
+  {
+    name: 'Rollup',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x285EC466b4b7ac52246436ab1224618fA500b489',
+  },
+  {
+    name: 'SequencerInbox',
+    version: '1.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xb2df7e9658eceb2c94567ad537a34892e093ce06f3d4234a9899b4315167cb71
+    address: '0x9276C725191D71D30855D7E20a291962B4392704',
+  },
+  {
+    name: 'SequencerInbox',
+    version: '2.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x72d481d03556fb831b505cf7d9695bd7da96fce2c4a282868be0384d580e6902
+    address: '0x3D915f1cDB4DdA7049db0ec85a82cf243D118100',
+  },
+  {
+    name: 'SequencerInbox',
+    version: '3.1',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0x20c5ef96d3d30c252ce9e6b76b25ffcbb44dfc2564d9e17179ecceef09272ee2
+    address: '0x6862a3667cb1aDfF76fEa9FbD9bBB02488Ce0981',
+  },
+  {
+    name: 'SequencerInbox',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x68FF3d308F3a9Bc321c499eeE85c897D4B351f64',
+  },
+  {
+    name: 'Inbox',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x2529cdc3ce14e6881ae03f144b7a05a68b0e97d4',
   },
   {
     name: 'ArbOwner',
@@ -162,73 +205,30 @@ const contracts: ContractConfig[] = [
   },
 ];
 
-function allEqual<T>(array: T[]) {
-  return array.every((value) => value === array[0]);
-}
-
-export async function assertContractAbisMatch(contract: ContractConfig) {
-  // skip check when single address is provided
-  if (typeof contract.address === 'string') {
-    console.log(`- ${contract.name} ✔\n`);
-    return;
-  }
-
-  console.log(`- ${contract.name}`);
-
-  const abiHashes = await Promise.all(
-    Object.entries(contract.address)
-      // don't fetch abis for testnode
-      .filter(([chainIdString]) => {
-        const chainId = Number(chainIdString);
-        return (
-          chainId !== nitroTestnodeL1.id &&
-          chainId !== nitroTestnodeL2.id &&
-          chainId !== nitroTestnodeL3.id
-        );
-      })
-      // fetch abis for all chains and hash them
-      .map(async ([chainId, address]) => {
-        const abi = await fetchAbi(Number(chainId) as ParentChainId, address);
-        const abiHash = hashMessage(JSON.stringify(abi));
-
-        console.log(`- ${abiHash} (${chainId})`);
-
-        return abiHash;
-      }),
-  );
-
-  // make sure all abis hashes are the same
-  if (!allEqual(abiHashes)) {
-    throw new Error(`- ${contract.name}`);
-  }
-
-  console.log(`- ${contract.name} ✔\n`);
-}
-
 export default async function () {
-  console.log(`Checking if contracts match by comparing hashed JSON ABIs.\n`);
+  const configs: Config[] = [
+    {
+      out: 'src/contracts/ERC20.ts',
+      plugins: [erc({ 20: true, 721: false, 4626: false })],
+    },
+  ];
 
   for (const contract of contracts) {
-    await assertContractAbisMatch(contract);
-    await sleep(); // sleep to avoid rate limiting
+    const filePath =
+      typeof contract.version !== 'undefined'
+        ? `${contract.name}/v${contract.version}`
+        : contract.name;
+
+    configs.push({
+      out: `src/contracts/${filePath}.ts`,
+      plugins: [
+        generate({
+          name: contract.name,
+          address: contract.address,
+        }),
+      ],
+    });
   }
 
-  console.log(`Done.\n`);
-
-  return {
-    out: 'src/generated.ts',
-    plugins: [
-      erc({
-        20: true,
-        721: false,
-        4626: false,
-      }),
-      etherscan({
-        chainId: arbitrumSepolia.id,
-        apiKey: arbiscanApiKey,
-        contracts,
-        cacheDuration: 0,
-      }),
-    ],
-  };
+  return configs;
 }

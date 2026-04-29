@@ -30,9 +30,12 @@ export type PrepareNodeConfigParams = {
   coreContracts: CoreContracts;
   batchPosterPrivateKey: string;
   validatorPrivateKey: string;
+  stakeToken: string;
   parentChainId: ParentChainId;
+  parentChainIsArbitrum?: boolean;
   parentChainRpcUrl: string;
   parentChainBeaconRpcUrl?: string;
+  dasServerUrl?: string;
 };
 
 function getDisableBlobReader(parentChainId: ParentChainId): boolean {
@@ -49,13 +52,25 @@ export function prepareNodeConfig({
   coreContracts,
   batchPosterPrivateKey,
   validatorPrivateKey,
+  stakeToken,
   parentChainId,
+  parentChainIsArbitrum: parentChainIsArbitrumParam,
   parentChainRpcUrl,
   parentChainBeaconRpcUrl,
+  dasServerUrl,
 }: PrepareNodeConfigParams): NodeConfig {
   // For L2 Orbit chains settling to Ethereum mainnet or testnet, a parentChainBeaconRpcUrl is enforced
   if (getParentChainLayer(parentChainId) === 1 && !parentChainBeaconRpcUrl) {
     throw new Error(`"parentChainBeaconRpcUrl" is required for L2 Orbit chains.`);
+  }
+
+  const { chainId: parentChainIdValidated, isCustom: parentChainIsCustom } =
+    validateParentChain(parentChainId);
+
+  if (parentChainIsCustom && typeof parentChainIsArbitrumParam === 'undefined') {
+    throw new Error(
+      `"params.parentChainIsArbitrum" must be provided when using a custom parent chain.`,
+    );
   }
 
   const config: NodeConfig = {
@@ -64,7 +79,9 @@ export function prepareNodeConfig({
         {
           'chain-id': chainConfig.chainId,
           'parent-chain-id': parentChainId,
-          'parent-chain-is-arbitrum': parentChainIsArbitrum(validateParentChain(parentChainId)),
+          'parent-chain-is-arbitrum': parentChainIsCustom
+            ? parentChainIsArbitrumParam!
+            : parentChainIsArbitrum(parentChainIdValidated),
           'chain-name': chainName,
           'chain-config': chainConfig,
           'rollup': {
@@ -74,6 +91,7 @@ export function prepareNodeConfig({
             'rollup': coreContracts.rollup,
             'validator-utils': coreContracts.validatorUtils,
             'validator-wallet-creator': coreContracts.validatorWalletCreator,
+            'stake-token': stakeToken,
             'deployed-at': coreContracts.deployedAtBlockNumber,
           },
         },
@@ -137,6 +155,8 @@ export function prepareNodeConfig({
     };
   }
 
+  const dasServerUrlWithFallback = dasServerUrl ?? 'http://localhost';
+
   if (chainConfig.arbitrum.DataAvailabilityCommittee) {
     config.node!['data-availability'] = {
       'enable': true,
@@ -144,14 +164,14 @@ export function prepareNodeConfig({
       'parent-chain-node-url': parentChainRpcUrl,
       'rest-aggregator': {
         enable: true,
-        urls: ['http://localhost:9877'],
+        urls: [`${dasServerUrlWithFallback}:9877`],
       },
       'rpc-aggregator': {
         'enable': true,
         'assumed-honest': 1,
         'backends': stringifyBackendsJson([
           {
-            url: 'http://localhost:9876',
+            url: `${dasServerUrlWithFallback}:9876`,
             pubkey:
               'YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
             signermask: 1,

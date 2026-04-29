@@ -1,6 +1,6 @@
 import { PublicClient, Transport, Chain, WalletClient } from 'viem';
 
-import { upgradeExecutor } from './contracts';
+import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
 import { validateParentChain } from './types/ParentChain';
 import { CoreContracts } from './types/CoreContracts';
 import { setValidKeysetEncodeFunctionData } from './setValidKeysetEncodeFunctionData';
@@ -25,10 +25,10 @@ export async function setValidKeyset<TChain extends Chain | undefined>({
     throw new Error('account is undefined');
   }
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const { request } = await publicClient.simulateContract({
     address: coreContracts.upgradeExecutor,
-    abi: upgradeExecutor.abi,
+    abi: upgradeExecutorABI,
     functionName: 'executeCall',
     args: [
       coreContracts.sequencerInbox, // target

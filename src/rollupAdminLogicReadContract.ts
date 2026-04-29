@@ -7,12 +7,12 @@ import {
   ReadContractReturnType,
   Transport,
 } from 'viem';
+import { RollupAdminLogic__factory } from '@arbitrum/sdk/dist/lib/abi/factories/RollupAdminLogic__factory';
 
 import { GetFunctionName } from './types/utils';
-import { RollupAdminLogic__factory } from '@arbitrum/sdk/dist/lib/abi/factories/RollupAdminLogic__factory';
-import { rollupAdminLogicABI } from './abi/rollupAdminLogicABI';
+import { rollupABI } from './contracts/Rollup';
 
-export type RollupAdminLogicAbi = typeof rollupAdminLogicABI;
+export type RollupAdminLogicAbi = typeof rollupABI;
 export type RollupAdminLogicFunctionName = GetFunctionName<RollupAdminLogicAbi>;
 
 export type RollupAdminLogicReadContractParameters<

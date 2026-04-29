@@ -7,11 +7,11 @@ import {
   Transport,
 } from 'viem';
 
-import { arbAggregator } from './contracts';
+import { arbAggregatorABI, arbAggregatorAddress } from './contracts/ArbAggregator';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { GetFunctionName } from './types/utils';
 
-type ArbAggregatorAbi = typeof arbAggregator.abi;
+type ArbAggregatorAbi = typeof arbAggregatorABI;
 export type ArbAggregatorPrepareTransactionRequestFunctionName = GetFunctionName<ArbAggregatorAbi>;
 export type ArbAggregatorEncodeFunctionDataParameters<
   TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
@@ -27,20 +27,21 @@ function arbAggregatorEncodeFunctionData<
   });
 }
 
-type ArbAggregatorPrepareFunctionDataParameters<
+export type ArbAggregatorPrepareFunctionDataParameters<
   TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
 > = ArbAggregatorEncodeFunctionDataParameters<TFunctionName> & {
   upgradeExecutor: Address | false;
   abi: ArbAggregatorAbi;
 };
-function arbAggregatorPrepareFunctionData<
+
+export function arbAggregatorPrepareFunctionData<
   TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
 >(params: ArbAggregatorPrepareFunctionDataParameters<TFunctionName>) {
   const { upgradeExecutor } = params;
 
   if (!upgradeExecutor) {
     return {
-      to: arbAggregator.address,
+      to: arbAggregatorAddress,
       data: arbAggregatorEncodeFunctionData(
         params as ArbAggregatorEncodeFunctionDataParameters<TFunctionName>,
       ),
@@ -53,7 +54,7 @@ function arbAggregatorPrepareFunctionData<
     data: upgradeExecutorEncodeFunctionData({
       functionName: 'executeCall',
       args: [
-        arbAggregator.address, // target
+        arbAggregatorAddress, // target
         arbAggregatorEncodeFunctionData(
           params as ArbAggregatorEncodeFunctionDataParameters<TFunctionName>,
         ), // targetCallData
@@ -82,10 +83,10 @@ export async function arbAggregatorPrepareTransactionRequest<
   // params is extending ArbAggregatorPrepareFunctionDataParameters, it's safe to cast
   const { to, data, value } = arbAggregatorPrepareFunctionData({
     ...params,
-    abi: arbAggregator.abi,
+    abi: arbAggregatorABI,
   } as unknown as ArbAggregatorPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,

@@ -1,9 +1,9 @@
 import { Chain, GetFunctionArgs, PublicClient, ReadContractReturnType, Transport } from 'viem';
 
-import { arbGasInfo } from './contracts';
+import { arbGasInfoABI, arbGasInfoAddress } from './contracts/ArbGasInfo';
 import { GetFunctionName } from './types/utils';
 
-export type ArbGasInfoAbi = typeof arbGasInfo.abi;
+export type ArbGasInfoAbi = typeof arbGasInfoABI;
 export type ArbGasInfoFunctionName = GetFunctionName<ArbGasInfoAbi>;
 
 export type ArbGasInfoReadContractParameters<TFunctionName extends ArbGasInfoFunctionName> = {
@@ -20,10 +20,10 @@ export function arbGasInfoReadContract<
   client: PublicClient<Transport, TChain>,
   params: ArbGasInfoReadContractParameters<TFunctionName>,
 ): Promise<ArbGasInfoReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
-    address: arbGasInfo.address,
-    abi: arbGasInfo.abi,
+    address: arbGasInfoAddress,
+    abi: arbGasInfoABI,
     functionName: params.functionName,
     args: params.args,
   });

@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`returns default value for validatorAfkBlocks based on parent chain 1`] = `
+{
+  "1": 201600n,
+  "11155111": 201600n,
+  "1337": 201600n,
+  "412346": 201600n,
+  "42161": 201600n,
+  "421614": 201600n,
+  "42170": 201600n,
+  "8453": 1209600n,
+  "84532": 1209600n,
+}
+`;

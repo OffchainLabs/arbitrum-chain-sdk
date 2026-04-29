@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`returns default value for minimumAssertionPeriod based on parent chain 1`] = `
+{
+  "1": 75n,
+  "11155111": 75n,
+  "1337": 75n,
+  "412346": 75n,
+  "42161": 75n,
+  "421614": 75n,
+  "42170": 75n,
+  "8453": 450n,
+  "84532": 450n,
+}
+`;

@@ -1,0 +1,67 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prepareArbitrumNetwork > should create orbit chain network object for ETH gas token chain (Proof of Play Apex) 1`] = `
+{
+  "chainId": 70700,
+  "confirmPeriodBlocks": 40320,
+  "ethBridge": {
+    "bridge": "0x074fFD20C6D8865752C997f4980Cf70F2a3Fbac6",
+    "inbox": "0xC3874bE54E3f25BBC6B4fB582654fd9294f485a1",
+    "outbox": "0x0cD85675897B7020d7121e63AB250d3F47ff3Ff2",
+    "rollup": "0x65AD139061B3f6DDb16170a07b925337ddf42407",
+    "sequencerInbox": "0xa58F38102579dAE7C584850780dDA55744f67DF1",
+  },
+  "isCustom": true,
+  "isTestnet": false,
+  "name": "70700-arbitrum-network",
+  "nativeToken": "0x0000000000000000000000000000000000000000",
+  "parentChainId": 42161,
+  "tokenBridge": {
+    "childCustomGateway": "0x1a4ba648Ddc0E726085A847178eBff204411EB1A",
+    "childErc20Gateway": "0x7aEdD5a2F3bBd4841711D017Edf90d611aD96a9e",
+    "childGatewayRouter": "0x33e59640CD7E5C5E8D43fd46d995efDdDd0Fc930",
+    "childMultiCall": "0xEB4150a4F26Cf3563B3a86965E269C8873D48527",
+    "childWeth": "0x77684A04145a5924eFCE0D92A7c4a2A2E8C359de",
+    "childWethGateway": "0x6e965dd667cb08f09DE8285317f012Ac889507b4",
+    "parentCustomGateway": "0x653f8D34a86207569069164d45a031eE552A4729",
+    "parentErc20Gateway": "0x298eb8d9f2F046AC60c01535fad40320CCdeB7c0",
+    "parentGatewayRouter": "0x2f883c5997Cf60B4d52a2fD4039918E1f9D1147c",
+    "parentMultiCall": "0x90B02D9F861017844F30dFbdF725b6aa84E63822",
+    "parentWeth": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    "parentWethGateway": "0xEB2Ae03709f63CEa9E5eC6ab25C1838c4A5634BA",
+  },
+}
+`;
+
+exports[`prepareArbitrumNetwork > should create orbit chain network object for custom gas token chain (Xai) 1`] = `
+{
+  "chainId": 660279,
+  "confirmPeriodBlocks": 45818,
+  "ethBridge": {
+    "bridge": "0x7dd8A76bdAeBE3BBBaCD7Aa87f1D4FDa1E60f94f",
+    "inbox": "0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9",
+    "outbox": "0x1E400568AD4840dbE50FB32f306B842e9ddeF726",
+    "rollup": "0xc47dacfbaa80bd9d8112f4e8069482c2a3221336",
+    "sequencerInbox": "0x995a9d3ca121D48d21087eDE20bc8acb2398c8B1",
+  },
+  "isCustom": true,
+  "isTestnet": false,
+  "name": "660279-arbitrum-network",
+  "nativeToken": "0x4Cb9a7AE498CEDcBb5EAe9f25736aE7d428C9D66",
+  "parentChainId": 42161,
+  "tokenBridge": {
+    "childCustomGateway": "0x96551194230725c72ACF8E9573B1382CCBC70635",
+    "childErc20Gateway": "0x0c71417917D24F4A6A6A55559B98c5cCEcb33F7a",
+    "childGatewayRouter": "0xd096e8dE90D34de758B0E0bA4a796eA2e1e272cF",
+    "childMultiCall": "0xEEC168551A85911Ec3A905e0561b656979f3ea67",
+    "childWeth": "0x0000000000000000000000000000000000000000",
+    "childWethGateway": "0x0000000000000000000000000000000000000000",
+    "parentCustomGateway": "0xb15A0826d65bE4c2fDd961b72636168ee70Af030",
+    "parentErc20Gateway": "0xb591cE747CF19cF30e11d656EB94134F523A9e77",
+    "parentGatewayRouter": "0x22CCA5Dc96a4Ac1EC32c9c7C5ad4D66254a24C35",
+    "parentMultiCall": "0x90B02D9F861017844F30dFbdF725b6aa84E63822",
+    "parentWeth": "0x0000000000000000000000000000000000000000",
+    "parentWethGateway": "0x0000000000000000000000000000000000000000",
+  },
+}
+`;

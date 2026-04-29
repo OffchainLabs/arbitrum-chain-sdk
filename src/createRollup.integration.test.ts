@@ -1,8 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { Address, createPublicClient, http, parseGwei, zeroAddress } from 'viem';
+import { createPublicClient, http, parseGwei, zeroAddress } from 'viem';
 
 import { nitroTestnodeL2 } from './chains';
-import { getNitroTestnodePrivateKeyAccounts, createRollupHelper } from './testHelpers';
+import {
+  createRollupHelper,
+  getNitroTestnodePrivateKeyAccounts,
+  getInformationFromTestnode,
+} from './testHelpers';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
 const parentChainPublicClient = createPublicClient({
@@ -13,13 +17,13 @@ const parentChainPublicClient = createPublicClient({
 // test inputs
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
 const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
-const batchPoster = testnodeAccounts.deployer.address;
-const validators: [Address] = [testnodeAccounts.deployer.address];
+const batchPosters = [testnodeAccounts.deployer.address];
+const validators = [testnodeAccounts.deployer.address];
 
 describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
   const { createRollupConfig, createRollupInformation } = await createRollupHelper({
     deployer: l3TokenBridgeDeployer,
-    batchPoster,
+    batchPosters,
     validators,
     nativeToken: zeroAddress,
     client: parentChainPublicClient,
@@ -29,7 +33,7 @@ describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
     // assert all inputs are correct
     const [arg] = createRollupInformation.transaction.getInputs();
     expect(arg.config).toEqual(createRollupConfig);
-    expect(arg.batchPoster).toEqual(batchPoster);
+    expect(arg.batchPosters).toEqual(batchPosters);
     expect(arg.validators).toEqual(validators);
     expect(arg.maxDataSize).toEqual(104_857n);
     expect(arg.nativeToken).toEqual(zeroAddress);
@@ -54,14 +58,13 @@ describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
 });
 
 describe(`create an AnyTrust chain that uses a custom gas token`, async () => {
-  // deployed during nitro testnode running process
-  const customGasTokenAddress = '0xc57a290f65F1D433f081381B2A7A523Ea70f1134';
+  const nativeToken = getInformationFromTestnode().l3NativeToken;
 
   const { createRollupConfig, createRollupInformation } = await createRollupHelper({
     deployer: l3TokenBridgeDeployer,
-    batchPoster,
+    batchPosters,
     validators,
-    nativeToken: customGasTokenAddress,
+    nativeToken,
     client: parentChainPublicClient,
   });
 
@@ -69,10 +72,10 @@ describe(`create an AnyTrust chain that uses a custom gas token`, async () => {
     // assert all inputs are correct
     const [arg] = createRollupInformation.transaction.getInputs();
     expect(arg.config).toEqual(createRollupConfig);
-    expect(arg.batchPoster).toEqual(batchPoster);
+    expect(arg.batchPosters).toEqual(batchPosters);
     expect(arg.validators).toEqual(validators);
     expect(arg.maxDataSize).toEqual(104_857n);
-    expect(arg.nativeToken).toEqual(customGasTokenAddress);
+    expect(arg.nativeToken).toEqual(nativeToken);
     expect(arg.deployFactoriesToL2).toEqual(true);
     expect(arg.maxFeePerGasForRetryables).toEqual(parseGwei('0.1'));
 

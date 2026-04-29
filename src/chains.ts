@@ -1,11 +1,10 @@
-import { defineChain } from 'viem';
+import { defineChain, Chain, ChainContract, isAddress, zeroAddress } from 'viem';
 import {
   mainnet,
   arbitrum as arbitrumOne,
   arbitrumNova,
   base,
   sepolia,
-  holesky,
   arbitrumSepolia,
   baseSepolia,
 } from 'viem/chains';
@@ -59,16 +58,84 @@ const nitroTestnodeL3 = defineChain({
   testnet: true,
 });
 
-export const chains = [
+const customParentChains: Record<number, Chain> = {};
+
+export function getCustomParentChains(): Chain[] {
+  return Object.values(customParentChains);
+}
+
+/**
+ * Registers a custom parent chain.
+ *
+ * @param {Chain} chain Regular `Chain` object with mandatory `contracts.rollupCreator` and `contracts.tokenBridgeCreator` fields.
+ *
+ * @example
+ * registerCustomParentChain({
+ *   id: 123_456,
+ *   name: `My Chain`,
+ *   network: `my-chain`,
+ *   nativeCurrency: {
+ *     name: 'Ether',
+ *     symbol: 'ETH',
+ *     decimals: 18,
+ *   },
+ *   rpcUrls: {
+ *     public: {
+ *       http: ['http://localhost:8080'],
+ *     },
+ *     default: {
+ *       http: ['http://localhost:8080'],
+ *     },
+ *   },
+ *   // these are mandatory
+ *   contracts: {
+ *     rollupCreator: {
+ *       address: '0x0000000000000000000000000000000000000001',
+ *     },
+ *     tokenBridgeCreator: {
+ *       address: '0x0000000000000000000000000000000000000002',
+ *     },
+ *   },
+ * });
+ */
+export function registerCustomParentChain(
+  chain: Chain & {
+    contracts: {
+      rollupCreator: ChainContract;
+      tokenBridgeCreator: ChainContract;
+    };
+  },
+) {
+  const rollupCreator = chain.contracts.rollupCreator.address;
+  const tokenBridgeCreator = chain.contracts.tokenBridgeCreator.address;
+
+  if (!isAddress(rollupCreator) || rollupCreator === zeroAddress) {
+    throw new Error(
+      `"contracts.rollupCreator.address" is invalid for custom parent chain with id ${chain.id}`,
+    );
+  }
+
+  if (!isAddress(tokenBridgeCreator) || tokenBridgeCreator === zeroAddress) {
+    throw new Error(
+      `"contracts.tokenBridgeCreator.address" is invalid for custom parent chain with id ${chain.id}`,
+    );
+  }
+
+  customParentChains[chain.id] = chain;
+}
+
+export const mainnets = [
   // mainnet L1
   mainnet,
   // mainnet L2
   arbitrumOne,
   arbitrumNova,
   base,
+];
+
+export const testnets = [
   // testnet L1
   sepolia,
-  holesky,
   // testnet L2
   arbitrumSepolia,
   baseSepolia,
@@ -76,7 +143,9 @@ export const chains = [
   nitroTestnodeL1,
   nitroTestnodeL2,
   nitroTestnodeL3,
-] as const;
+];
+
+export const chains = [...mainnets, ...testnets] as const;
 
 export {
   // mainnet L1
@@ -87,7 +156,6 @@ export {
   base,
   // testnet L1
   sepolia,
-  holesky,
   // testnet L2
   arbitrumSepolia,
   baseSepolia,

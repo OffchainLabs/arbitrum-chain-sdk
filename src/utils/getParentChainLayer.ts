@@ -1,7 +1,6 @@
 import {
   mainnet,
   sepolia,
-  holesky,
   nitroTestnodeL1,
   arbitrumOne,
   arbitrumNova,
@@ -19,7 +18,6 @@ export function getParentChainLayer(parentChainId: ParentChainId): 1 | 2 {
     case mainnet.id:
     // testnet L1
     case sepolia.id:
-    case holesky.id:
     // local nitro-testnode L1
     case nitroTestnodeL1.id:
       return 1;

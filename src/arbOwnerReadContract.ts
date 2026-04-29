@@ -1,9 +1,9 @@
 import { Chain, GetFunctionArgs, PublicClient, ReadContractReturnType, Transport } from 'viem';
 
-import { arbOwnerPublic } from './contracts';
+import { arbOwnerPublicABI, arbOwnerPublicAddress } from './contracts/ArbOwnerPublic';
 import { GetFunctionName } from './types/utils';
 
-export type ArbOwnerPublicAbi = typeof arbOwnerPublic.abi;
+export type ArbOwnerPublicAbi = typeof arbOwnerPublicABI;
 export type ArbOwnerPublicFunctionName = GetFunctionName<ArbOwnerPublicAbi>;
 
 export type ArbOwnerReadContractParameters<TFunctionName extends ArbOwnerPublicFunctionName> = {
@@ -20,10 +20,10 @@ export function arbOwnerReadContract<
   client: PublicClient<Transport, TChain>,
   params: ArbOwnerReadContractParameters<TFunctionName>,
 ): Promise<ArbOwnerReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
-    address: arbOwnerPublic.address,
-    abi: arbOwnerPublic.abi,
+    address: arbOwnerPublicAddress,
+    abi: arbOwnerPublicABI,
     functionName: params.functionName,
     args: params.args,
   });

@@ -5,7 +5,7 @@ import { chains } from '../chains';
 type ChainId = (typeof chains)[number]['id'];
 
 function isValidChainId(chainId: number | undefined): chainId is ChainId {
-  const ids = chains.map((chain) => chain.id) as Number[];
+  const ids = chains.map((chain) => chain.id) as number[];
   return ids.includes(Number(chainId));
 }
 

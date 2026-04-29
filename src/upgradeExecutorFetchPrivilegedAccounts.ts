@@ -100,7 +100,7 @@ export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chai
   const roleGrantedEvents = await publicClient.getLogs({
     address: upgradeExecutorAddress,
     event: RoleGrantedEventAbi,
-    fromBlock: 'earliest',
+    fromBlock: 0n,
     toBlock: 'latest',
   });
   if (!roleGrantedEvents || roleGrantedEvents.length <= 0) {
@@ -123,7 +123,7 @@ export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chai
   const roleRevokedEvents = await publicClient.getLogs({
     address: upgradeExecutorAddress,
     event: RoleRevokedEventAbi,
-    fromBlock: 'earliest',
+    fromBlock: 0n,
     toBlock: 'latest',
   });
   if (!roleRevokedEvents || roleRevokedEvents.length <= 0) {

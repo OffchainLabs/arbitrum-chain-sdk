@@ -1,7 +1,7 @@
 {
-  "name": "@arbitrum/orbit-sdk",
-  "description": "TypeScript SDK for building Arbitrum Orbit chains",
-  "version": "0.15.0",
+  "name": "@arbitrum/chain-sdk",
+  "description": "TypeScript SDK for building Arbitrum chains",
+  "version": "0.26.0",
   "main": "./dist/index.js",
   "files": [
     "./dist"
@@ -15,10 +15,6 @@
       "types": "./dist/chains.d.ts",
       "default": "./dist/chains.js"
     },
-    "./contracts": {
-      "types": "./dist/contracts.d.ts",
-      "default": "./dist/contracts.js"
-    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "default": "./dist/utils/index.js"
@@ -26,6 +22,10 @@
     "./constants": {
       "types": "./dist/constants.d.ts",
       "default": "./dist/constants.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*",
+      "default": "./dist/contracts/*"
     }
   },
   "typesVersions": {
@@ -33,26 +33,35 @@
       "chains": [
         "./dist/chains.d.ts"
       ],
-      "contracts": [
-        "./dist/contracts.d.ts"
-      ],
       "utils": [
         "./dist/utils/index.d.ts"
       ],
       "constants": [
         "./dist/constants.d.ts"
+      ],
+      "contracts/*": [
+        "./dist/contracts/*"
       ]
     }
   },
-  "repository": "git+https://github.com/OffchainLabs/arbitrum-orbit-sdk.git",
+  "repository": "git+https://github.com/OffchainLabs/arbitrum-chain-sdk.git",
   "author": "Offchain Labs, Inc.",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
   "peerDependencies": {
     "viem": "^1.20.0"
   },
   "dependencies": {
-    "@arbitrum/sdk": "^3.3.2",
-    "@arbitrum/token-bridge-contracts": "^1.2.1",
-    "ethers": "^5.7.2"
+    "@arbitrum/sdk": "^4.0.4",
+    "@arbitrum/token-bridge-contracts": "^1.2.2",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@offchainlabs/fund-distribution-contracts": "^1.0.1",
+    "@safe-global/protocol-kit": "^4.1.7",
+    "abitype": "^0.9.8",
+    "ethers": "^5.7.2",
+    "zod": "^4.3.6"
   }
 }

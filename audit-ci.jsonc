@@ -1,0 +1,76 @@
+{
+  "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
+  "low": true,
+  "allowlist": [
+    // OpenZeppelin
+    ////////////
+    // https://github.com/advisories/GHSA-4g63-c64m-25w9
+    // OpenZeppelin Contracts's SignatureChecker may revert on invalid EIP-1271 signers
+    // We dont use EIP-1271
+    "GHSA-4g63-c64m-25w9",
+    // https://github.com/advisories/GHSA-qh9x-gcfh-pcrw
+    // OpenZeppelin Contracts's ERC165Checker may revert instead of returning false
+    // We don't use ERC165Checker
+    "GHSA-qh9x-gcfh-pcrw",
+    // https://github.com/advisories/GHSA-7grf-83vw-6f5x
+    // OpenZeppelin Contracts ERC165Checker unbounded gas consumption
+    // We don't use ERC165Checker
+    "GHSA-7grf-83vw-6f5x",
+    // https://github.com/advisories/GHSA-xrc4-737v-9q75
+    // OpenZeppelin Contracts's GovernorVotesQuorumFraction updates to quorum may affect past defeated proposals
+    // We don't use GovernorVotesQuorumFraction
+    "GHSA-xrc4-737v-9q75",
+    // https://github.com/advisories/GHSA-4h98-2769-gh6h
+    // OpenZeppelin Contracts vulnerable to ECDSA signature malleability
+    // We don’t use signatures for replay protection anywhere
+    "GHSA-4h98-2769-gh6h",
+    // https://github.com/advisories/GHSA-mx2q-35m2-x2rh
+    // OpenZeppelin Contracts TransparentUpgradeableProxy clashing selector calls may not be delegated
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts-upgradeable
+    // from: arb-bridge-peripherals>@openzeppelin/contracts-upgradeable
+    // from: arb-bridge-peripherals>arb-bridge-eth>@openzeppelin/contracts-upgradeable
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts
+    // from: arb-bridge-peripherals>@openzeppelin/contracts
+    // from: arb-bridge-peripherals>arb-bridge-eth>@openzeppelin/contracts
+    // Clashing selector between proxy and implementation can only be caused deliberately
+    "GHSA-mx2q-35m2-x2rh",
+    // https://github.com/advisories/GHSA-93hq-5wgc-jc82
+    // GovernorCompatibilityBravo may trim proposal calldata
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts-upgradeable
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts
+    // We don't use GovernorCompatibilityBravo
+    "GHSA-93hq-5wgc-jc82",
+    // https://github.com/advisories/GHSA-5h3x-9wvq-w4m2
+    // OpenZeppelin Contracts's governor proposal creation may be blocked by frontrunning
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts-upgradeable
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts
+    // We don't use Governor or GovernorCompatibilityBravo
+    "GHSA-5h3x-9wvq-w4m2",
+    // https://github.com/advisories/GHSA-g4vp-m682-qqmp
+    // OpenZeppelin Contracts vulnerable to Improper Escaping of Output
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts-upgradeable
+    // from @arbitrum/nitro-contracts>@openzeppelin/contracts
+    // We don't use ERC2771Context
+    "GHSA-g4vp-m682-qqmp",
+    // https://github.com/advisories/GHSA-wprv-93r4-jj2p
+    // OpenZeppelin Contracts using MerkleProof multiproofs may allow proving arbitrary leaves for specific trees
+    // we don't use oz/merkle-trees anywhere
+    // from @arbitrum/nitro-contracts>@offchainlabs/upgrade-executor>@openzeppelin/contracts-upgradeable
+    // from @arbitrum/nitro-contracts>@offchainlabs/upgrade-executor>@openzeppelin/contracts
+    "GHSA-wprv-93r4-jj2p",
+    // https://github.com/advisories/GHSA-9vx6-7xxf-x967
+    // OpenZeppelin Contracts base64 encoding may read from potentially dirty memory
+    // we don't use the base64 functions
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts-upgradeable
+    // from: @arbitrum/token-bridge-contracts>@openzeppelin/contracts-upgradeable
+    // from: @arbitrum/nitro-contracts>@openzeppelin/contracts
+    // from: @arbitrum/token-bridge-contracts>@openzeppelin/contracts
+    "GHSA-9vx6-7xxf-x967",
+    // https://github.com/advisories/GHSA-848j-6mx2-7j84
+    // elliptic has no patched release yet (affected: <=6.6.1)
+    // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
+    // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
+    "GHSA-848j-6mx2-7j84"
+
+  ]
+}

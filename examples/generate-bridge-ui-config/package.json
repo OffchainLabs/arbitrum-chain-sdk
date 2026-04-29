@@ -1,0 +1,13 @@
+{
+  "name": "generate-bridge-ui-config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc --outDir dist && node ./dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.9.0",
+    "typescript": "^5.2.2"
+  }
+}

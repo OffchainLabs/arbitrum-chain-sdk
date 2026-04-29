@@ -18,9 +18,9 @@ export async function setValidKeysetPrepareTransactionRequest<TChain extends Cha
   account,
   publicClient,
 }: SetValidKeysetPrepareTransactionRequestParams<TChain>) {
-  const chainId = validateParentChain(publicClient);
+  const { chainId } = validateParentChain(publicClient);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await publicClient.prepareTransactionRequest({
     chain: publicClient.chain,
     to: coreContracts.upgradeExecutor,

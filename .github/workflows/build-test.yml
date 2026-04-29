@@ -9,97 +9,216 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-env:
-  ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
-
 jobs:
-  install:
-    name: 'Install'
+  audit:
+    name: 'Audit'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 18
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
 
       - name: Install node_modules
         uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Run audit
+        run: pnpm audit:ci
 
   check-formatting:
     name: 'Check Formatting'
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Restore node_modules
-        uses: OffchainLabs/actions/node-modules/restore@main
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Check formatting with Prettier
-        run: yarn prettier:check
+        run: pnpm prettier:check
+
+  check-linting:
+    name: 'Check Linting'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Check linting
+        run: pnpm lint
+
+  test-type:
+    name: Test (Type)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Copy .env
+        run: cp ./.env.example ./.env
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test:type
 
   test-unit:
     name: Test (Unit)
     runs-on: ubuntu-latest
-    needs: install
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 18
+          version: 10.30.3
+          run_install: false
 
-      - name: Restore node_modules
-        uses: OffchainLabs/actions/node-modules/restore@main
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Copy .env
         run: cp ./.env.example ./.env
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Test
-        run: yarn test:unit
+        run: pnpm test:unit
 
   test-integration:
-    name: Test (Integration)
+    name: Test (Integration) - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
-    needs: install
+    strategy:
+      matrix:
+        config:
+          - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
+            nitro-contracts-branch: v3.2.0
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
+            decimals: 18
+
+          - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
+            nitro-contracts-branch: v3.2.0
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
+            decimals: 6
+
+          - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
+            nitro-contracts-branch: v2.1.3
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
+            decimals: 18
+
+          - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
+            nitro-contracts-branch: v2.1.3
+            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
+            decimals: 6
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          node-version: 18
+          version: 10.30.3
+          run_install: false
 
-      - name: Restore node_modules
-        uses: OffchainLabs/actions/node-modules/restore@main
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Set up the local node
-        uses: OffchainLabs/actions/run-nitro-test-node@main
+        uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
         with:
-          nitro-testnode-ref: 1647de2c5f75ee0fbe5986e3f20d35bc75191ea6 # https://github.com/OffchainLabs/nitro-testnode/pull/42
-          # Use simple mode
-          no-simple: false
-          # RollupCreator on L1 is deployed by default
-          # RollupCreator on L2 is deployed with --l3node
-          l3-node: true
-          # L3 node with custom fee token when using --l3-fee-token
-          args: --l3-fee-token
+          nitro-testnode-ref: release
+          nitro-contracts-branch: ${{ matrix.config.nitro-contracts-branch }}
+          args: ${{ matrix.config.args }}
 
       - name: Copy .env
         run: cp ./.env.example ./.env
 
       - name: Build
-        run: yarn build
+        run: pnpm build
 
       - name: Test
-        run: yarn test:integration
+        run: |
+          INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
+          INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
+          pnpm test:integration

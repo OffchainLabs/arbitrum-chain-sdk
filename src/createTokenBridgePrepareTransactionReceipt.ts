@@ -8,18 +8,21 @@ import {
   getAbiItem,
   getEventSelector,
 } from 'viem';
-import { L1ToL2MessageStatus, L1TransactionReceipt } from '@arbitrum/sdk';
-import { TransactionReceipt as EthersTransactionReceipt } from '@ethersproject/abstract-provider';
+import {
+  ParentToChildMessageStatus,
+  ParentToChildMessageWaitForStatusResult,
+  ParentTransactionReceipt,
+} from '@arbitrum/sdk';
 
 import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 import { viemTransactionReceiptToEthersTransactionReceipt } from './ethers-compat/viemTransactionReceiptToEthersTransactionReceipt';
 import { ethersTransactionReceiptToViemTransactionReceipt } from './ethers-compat/ethersTransactionReceiptToViemTransactionReceipt';
 import { TokenBridgeContracts } from './types/TokenBridgeContracts';
-import { tokenBridgeCreator } from './contracts';
+import { tokenBridgeCreatorABI } from './contracts/TokenBridgeCreator';
 import { createTokenBridgeFetchTokenBridgeContracts } from './createTokenBridgeFetchTokenBridgeContracts';
 
 function findOrbitTokenBridgeCreatedEventLog(txReceipt: TransactionReceipt) {
-  const abiItem = getAbiItem({ abi: tokenBridgeCreator.abi, name: 'OrbitTokenBridgeCreated' });
+  const abiItem = getAbiItem({ abi: tokenBridgeCreatorABI, name: 'OrbitTokenBridgeCreated' });
   const eventSelector = getEventSelector(abiItem);
   const log = txReceipt.logs.find((log) => log.topics[0] === eventSelector);
 
@@ -33,7 +36,7 @@ function findOrbitTokenBridgeCreatedEventLog(txReceipt: TransactionReceipt) {
 }
 
 function decodeOrbitTokenBridgeCreatedEventLog(log: Log<bigint, number>) {
-  const decodedEventLog = decodeEventLog({ ...log, abi: tokenBridgeCreator.abi });
+  const decodedEventLog = decodeEventLog({ ...log, abi: tokenBridgeCreatorABI });
 
   if (decodedEventLog.eventName !== 'OrbitTokenBridgeCreated') {
     throw new Error(
@@ -44,10 +47,10 @@ function decodeOrbitTokenBridgeCreatedEventLog(log: Log<bigint, number>) {
   return decodedEventLog;
 }
 
-type RedeemedRetryableTicket = {
-  status: L1ToL2MessageStatus.REDEEMED;
-  l2TxReceipt: EthersTransactionReceipt;
-};
+type RedeemedRetryableTicket = Extract<
+  ParentToChildMessageWaitForStatusResult,
+  { status: ParentToChildMessageStatus.REDEEMED }
+>;
 
 export type WaitForRetryablesParameters<TOrbitChain extends Chain | undefined> = {
   orbitPublicClient: PublicClient<Transport, TOrbitChain>;
@@ -79,20 +82,20 @@ export function createTokenBridgePrepareTransactionReceipt<
     ...txReceipt,
     waitForRetryables: async function ({ orbitPublicClient }) {
       const ethersTxReceipt = viemTransactionReceiptToEthersTransactionReceipt(txReceipt);
-      const l1TxReceipt = new L1TransactionReceipt(ethersTxReceipt);
+      const l1TxReceipt = new ParentTransactionReceipt(ethersTxReceipt);
       const orbitProvider = publicClientToProvider(orbitPublicClient);
-      const messages = await l1TxReceipt.getL1ToL2Messages(orbitProvider);
+      const messages = await l1TxReceipt.getParentToChildMessages(orbitProvider);
       const messagesResults = await Promise.all(messages.map((message) => message.waitForStatus()));
 
       if (messagesResults.length !== 2) {
         throw Error(`Unexpected number of retryable tickets: ${messagesResults.length}`);
       }
 
-      if (messagesResults[0].status !== L1ToL2MessageStatus.REDEEMED) {
+      if (messagesResults[0].status !== ParentToChildMessageStatus.REDEEMED) {
         throw Error(`Unexpected status for retryable ticket: ${messages[0].retryableCreationId}`);
       }
 
-      if (messagesResults[1].status !== L1ToL2MessageStatus.REDEEMED) {
+      if (messagesResults[1].status !== ParentToChildMessageStatus.REDEEMED) {
         throw Error(`Unexpected status for retryable ticket: ${messages[1].retryableCreationId}`);
       }
 
@@ -101,7 +104,7 @@ export function createTokenBridgePrepareTransactionReceipt<
         (messagesResults as unknown as [RedeemedRetryableTicket, RedeemedRetryableTicket])
           //
           .map((result) =>
-            ethersTransactionReceiptToViemTransactionReceipt(result.l2TxReceipt),
+            ethersTransactionReceiptToViemTransactionReceipt(result.childTxReceipt),
           ) as WaitForRetryablesResult
       );
     },

@@ -1,0 +1,218 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`successfully parses input calldata for a chain created with RollupCreator v1.1 1`] = `
+[
+  {
+    "batchPoster": "0x3C3A5b44FAB0e2025160a765348c21C08e41d1Af",
+    "config": {
+      "baseStake": 100000000000000000n,
+      "chainConfig": "{\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":true,\\"InitialArbOSVersion\\":20,\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152,\\"InitialChainOwner\\":\\"0x41C966f99De0cA6F6531fbcAc9Db7eaBDF119744\\"},\\"chainId\\":30046249195}",
+      "chainId": 30046249195n,
+      "confirmPeriodBlocks": 150n,
+      "extraChallengeTimeBlocks": 0n,
+      "genesisBlockNum": 0n,
+      "loserStakeEscrow": "0x0000000000000000000000000000000000000000",
+      "owner": "0x41C966f99De0cA6F6531fbcAc9Db7eaBDF119744",
+      "sequencerInboxMaxTimeVariation": {
+        "delayBlocks": 28800n,
+        "delaySeconds": 345600n,
+        "futureBlocks": 300n,
+        "futureSeconds": 3600n,
+      },
+      "stakeToken": "0x0000000000000000000000000000000000000000",
+      "wasmModuleRoot": "0x8b104a2e80ac6165dc58b9048de12f301d70b02a0ab51396c22b4b4b802a16a4",
+    },
+    "deployFactoriesToL2": true,
+    "maxDataSize": 104857n,
+    "maxFeePerGasForRetryables": 100000000n,
+    "nativeToken": "0x0000000000000000000000000000000000000000",
+    "validators": [
+      "0x8E842599F71ABD661737bb3108a53E5b1787c791",
+    ],
+  },
+]
+`;
+
+exports[`successfully parses input calldata for a chain created with RollupCreator v2.1 1`] = `
+[
+  {
+    "batchPosterManager": "0x0000000000000000000000000000000000000000",
+    "batchPosters": [
+      "0x9464aD09CE0d157Efc6c7EefE577C5AA6dEc804D",
+      "0xC02386B2D10a37e71145B6A7f5569e1db4604213",
+      "0x6C4483f6DCEDb5a758b28D28E11F805bdACFE245",
+      "0xf89836dc33f58394fB34B3e690D3829A65C74286",
+      "0xd1d25Aeb44E99B35E2d5E7Db961c73ec94f92a24",
+      "0xDc4ECA04032b9178020Ff0c6154A7e87309a429f",
+      "0xe122F9838A4C8e6834F24D1b9dCa92eb52a8E17e",
+      "0xB280Fd59090f3D95588d94BACD22b336dE2278e0",
+    ],
+    "config": {
+      "baseStake": 100000000000000000n,
+      "chainConfig": "{\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":true,\\"InitialArbOSVersion\\":20,\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152,\\"InitialChainOwner\\":\\"0x31bAC660fBB4eF1B91409dB42CB4C6e75527d004\\"},\\"chainId\\":32902132974}",
+      "chainId": 32902132974n,
+      "confirmPeriodBlocks": 150n,
+      "extraChallengeTimeBlocks": 0n,
+      "genesisBlockNum": 0n,
+      "loserStakeEscrow": "0x0000000000000000000000000000000000000000",
+      "owner": "0x31bAC660fBB4eF1B91409dB42CB4C6e75527d004",
+      "sequencerInboxMaxTimeVariation": {
+        "delayBlocks": 28800n,
+        "delaySeconds": 345600n,
+        "futureBlocks": 300n,
+        "futureSeconds": 3600n,
+      },
+      "stakeToken": "0x0000000000000000000000000000000000000000",
+      "wasmModuleRoot": "0x260f5fa5c3176a856893642e149cf128b5a8de9f828afec8d11184415dd8dc69",
+    },
+    "deployFactoriesToL2": false,
+    "maxDataSize": 104857n,
+    "maxFeePerGasForRetryables": 100000000n,
+    "nativeToken": "0x0000000000000000000000000000000000000000",
+    "validators": [
+      "0xDBb2c9923b5DE18B151bC55Ed571EDcd1fC7EeB9",
+      "0x84B2EFFDd54aA5dce861440Ae9B9D320b043a64c",
+      "0x39B4Ce32E557225a401917a701ac4d267648635a",
+      "0xe2D0cC872647B1A129B942BbFC980B31E8e94Df2",
+    ],
+  },
+]
+`;
+
+exports[`successfully parses input calldata for a chain created with RollupCreator v3.1 1`] = `
+[
+  {
+    "batchPosterManager": "0x0000000000000000000000000000000000000000",
+    "batchPosters": [
+      "0x4C27Ea80668AffE69B535bFA2Eadb4BE6FD5d7A1",
+    ],
+    "config": {
+      "anyTrustFastConfirmer": "0x0000000000000000000000000000000000000000",
+      "baseStake": 1000000000000000000n,
+      "bufferConfig": {
+        "max": 14400n,
+        "replenishRateInBasis": 500n,
+        "threshold": 600n,
+      },
+      "chainConfig": "{\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":32,\\"GenesisBlockNum\\":0,\\"MaxCodeSize\\":24576,\\"MaxInitCodeSize\\":49152,\\"InitialChainOwner\\":\\"0x31bAC660fBB4eF1B91409dB42CB4C6e75527d004\\"},\\"chainId\\":98149501215}",
+      "chainId": 98149501215n,
+      "challengeGracePeriodBlocks": 14400n,
+      "confirmPeriodBlocks": 150n,
+      "genesisAssertionState": {
+        "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "globalState": {
+          "bytes32Vals": [
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          ],
+          "u64Vals": [
+            0n,
+            0n,
+          ],
+        },
+        "machineStatus": 1,
+      },
+      "genesisInboxCount": 0n,
+      "layerZeroBigStepEdgeHeight": 524288n,
+      "layerZeroBlockEdgeHeight": 67108864n,
+      "layerZeroSmallStepEdgeHeight": 8388608n,
+      "loserStakeEscrow": "0x31bAC660fBB4eF1B91409dB42CB4C6e75527d004",
+      "miniStakeValues": [
+        0n,
+        1n,
+        1n,
+      ],
+      "minimumAssertionPeriod": 75n,
+      "numBigStepLevel": 1,
+      "owner": "0x31bAC660fBB4eF1B91409dB42CB4C6e75527d004",
+      "sequencerInboxMaxTimeVariation": {
+        "delayBlocks": 28800n,
+        "delaySeconds": 345600n,
+        "futureBlocks": 300n,
+        "futureSeconds": 3600n,
+      },
+      "stakeToken": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+      "validatorAfkBlocks": 201600n,
+      "wasmModuleRoot": "0x184884e1eb9fefdc158f6c8ac912bb183bf3cf83f0090317e0bc4ac5860baa39",
+    },
+    "deployFactoriesToL2": true,
+    "feeTokenPricer": "0x0000000000000000000000000000000000000000",
+    "maxDataSize": 117964n,
+    "maxFeePerGasForRetryables": 100000000n,
+    "nativeToken": "0x0000000000000000000000000000000000000000",
+    "validators": [
+      "0xEf084323610Bd2368591F7effCA237E847748228",
+    ],
+  },
+]
+`;
+
+exports[`successfully parses input calldata for a chain created with RollupCreator v3.2 1`] = `
+[
+  {
+    "batchPosterManager": "0x784FB06549C5Ebc20A82FFE251FF3B45C963D8df",
+    "batchPosters": [
+      "0x784FB06549C5Ebc20A82FFE251FF3B45C963D8df",
+    ],
+    "config": {
+      "anyTrustFastConfirmer": "0x0000000000000000000000000000000000000000",
+      "baseStake": 2500000000000000n,
+      "bufferConfig": {
+        "max": 14400n,
+        "replenishRateInBasis": 833n,
+        "threshold": 600n,
+      },
+      "chainConfig": "{\\"chainId\\":2026011651,\\"homesteadBlock\\":0,\\"daoForkBlock\\":null,\\"daoForkSupport\\":true,\\"eip150Block\\":0,\\"eip150Hash\\":\\"0x0000000000000000000000000000000000000000000000000000000000000000\\",\\"eip155Block\\":0,\\"eip158Block\\":0,\\"byzantiumBlock\\":0,\\"constantinopleBlock\\":0,\\"petersburgBlock\\":0,\\"istanbulBlock\\":0,\\"muirGlacierBlock\\":0,\\"berlinBlock\\":0,\\"londonBlock\\":0,\\"clique\\":{\\"period\\":0,\\"epoch\\":0},\\"arbitrum\\":{\\"EnableArbOS\\":true,\\"AllowDebugPrecompiles\\":false,\\"DataAvailabilityCommittee\\":false,\\"InitialArbOSVersion\\":51,\\"InitialChainOwner\\":\\"0x93a3B783Bd697b384Bfc6C01a2d2831E42536975\\",\\"GenesisBlockNum\\":0}}",
+      "chainId": 2026011651n,
+      "challengeGracePeriodBlocks": 10n,
+      "confirmPeriodBlocks": 128n,
+      "dataCostEstimate": 0n,
+      "genesisAssertionState": {
+        "endHistoryRoot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+        "globalState": {
+          "bytes32Vals": [
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          ],
+          "u64Vals": [
+            0n,
+            0n,
+          ],
+        },
+        "machineStatus": 1,
+      },
+      "genesisInboxCount": 0n,
+      "layerZeroBigStepEdgeHeight": 524288n,
+      "layerZeroBlockEdgeHeight": 67108864n,
+      "layerZeroSmallStepEdgeHeight": 8388608n,
+      "loserStakeEscrow": "0x93a3B783Bd697b384Bfc6C01a2d2831E42536975",
+      "miniStakeValues": [
+        0n,
+        500000000000000n,
+        250000000000000n,
+      ],
+      "minimumAssertionPeriod": 75n,
+      "numBigStepLevel": 1,
+      "owner": "0x93a3B783Bd697b384Bfc6C01a2d2831E42536975",
+      "sequencerInboxMaxTimeVariation": {
+        "delayBlocks": 7200n,
+        "delaySeconds": 86400n,
+        "futureBlocks": 12n,
+        "futureSeconds": 3600n,
+      },
+      "stakeToken": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+      "validatorAfkBlocks": 201600n,
+      "wasmModuleRoot": "0x8a7513bf7bb3e3db04b0d982d0e973bcf57bf8b88aef7c6d03dba3a81a56a499",
+    },
+    "customOsp": "0x0000000000000000000000000000000000000000",
+    "deployFactoriesToL2": true,
+    "feeTokenPricer": "0x0000000000000000000000000000000000000000",
+    "maxDataSize": 117964n,
+    "maxFeePerGasForRetryables": 1000000000n,
+    "nativeToken": "0x0000000000000000000000000000000000000000",
+    "validators": [
+      "0xe6AB2c18Ce552fE5fcf43667133776d6337359Df",
+    ],
+  },
+]
+`;

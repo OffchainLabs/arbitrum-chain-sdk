@@ -1,0 +1,15 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`returns default value for challengeGracePeriodBlocks based on parent chain 1`] = `
+{
+  "1": 14400n,
+  "11155111": 14400n,
+  "1337": 14400n,
+  "412346": 14400n,
+  "42161": 14400n,
+  "421614": 14400n,
+  "42170": 14400n,
+  "8453": 86400n,
+  "84532": 86400n,
+}
+`;

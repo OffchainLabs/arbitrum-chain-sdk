@@ -7,12 +7,13 @@ import {
   Chain,
 } from 'viem';
 
-import { rollupAdminLogicABI } from './abi/rollupAdminLogicABI';
+import { rollupABI } from './contracts/Rollup';
+
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { GetFunctionName } from './types/utils';
-import { validateParentChainPublicClient } from './types/ParentChain';
+import { validateParentChain } from './types/ParentChain';
 
-export type RollupAdminLogicAbi = typeof rollupAdminLogicABI;
+export type RollupAdminLogicAbi = typeof rollupABI;
 export type RollupAdminLogicFunctionName = GetFunctionName<RollupAdminLogicAbi>;
 
 type RollupAdminLogicEncodeFunctionDataParameters<
@@ -31,13 +32,14 @@ function rollupAdminLogicEncodeFunctionData<TFunctionName extends RollupAdminLog
   });
 }
 
-type RollupAdminLogicPrepareFunctionDataParameters<
+export type RollupAdminLogicPrepareFunctionDataParameters<
   TFunctionName extends RollupAdminLogicFunctionName,
 > = RollupAdminLogicEncodeFunctionDataParameters<TFunctionName> & {
   upgradeExecutor: Address | false;
   abi: RollupAdminLogicAbi;
   rollup: Address;
 };
+
 export function rollupAdminLogicPrepareFunctionData<
   TFunctionName extends RollupAdminLogicFunctionName,
 >(params: RollupAdminLogicPrepareFunctionDataParameters<TFunctionName>) {
@@ -82,15 +84,15 @@ export async function rollupAdminLogicPrepareTransactionRequest<
   client: PublicClient<TTransport, TChain>,
   params: RollupAdminLogicPrepareTransactionRequestParameters<TFunctionName>,
 ) {
-  const validatedPublicClient = validateParentChainPublicClient(client);
+  const { chainId } = validateParentChain(client);
 
   // params is extending RollupAdminLogicPrepareFunctionDataParameters, it's safe to cast
   const { to, data, value } = rollupAdminLogicPrepareFunctionData({
     ...params,
-    abi: rollupAdminLogicABI,
+    abi: rollupABI,
   } as unknown as RollupAdminLogicPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,
@@ -99,5 +101,5 @@ export async function rollupAdminLogicPrepareTransactionRequest<
     account: params.account,
   });
 
-  return { ...request, chainId: validatedPublicClient.chain.id };
+  return { ...request, chainId };
 }

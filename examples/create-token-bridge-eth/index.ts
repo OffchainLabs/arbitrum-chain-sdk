@@ -6,8 +6,8 @@ import {
   createTokenBridgePrepareSetWethGatewayTransactionRequest,
   createTokenBridgePrepareTransactionReceipt,
   createTokenBridgePrepareTransactionRequest,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 
@@ -31,9 +31,18 @@ if (typeof process.env.ORBIT_CHAIN_RPC === 'undefined') {
   throw new Error(`Please provide the "ORBIT_CHAIN_RPC" environment variable`);
 }
 
+if (typeof process.env.PARENT_CHAIN_RPC === 'undefined' || process.env.PARENT_CHAIN_RPC === '') {
+  console.warn(
+    `Warning: you may encounter timeout errors while running the script with the default rpc endpoint. Please provide the "PARENT_CHAIN_RPC" environment variable instead.`,
+  );
+}
+
 // set the parent chain and create a public client for it
 const parentChain = arbitrumSepolia;
-const parentChainPublicClient = createPublicClient({ chain: parentChain, transport: http() });
+const parentChainPublicClient = createPublicClient({
+  chain: parentChain,
+  transport: http(process.env.PARENT_CHAIN_RPC),
+});
 
 // define chain config for the orbit chain
 const orbitChain = defineChain({
@@ -64,8 +73,13 @@ async function main() {
       rollupOwner: rollupOwner.address,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: rollupOwner.address,
+    retryableGasOverrides: {
+      maxSubmissionCostForFactory: { percentIncrease: 100n },
+      maxGasForFactory: { percentIncrease: 100n },
+      maxSubmissionCostForContracts: { percentIncrease: 100n },
+      maxGasForContracts: { percentIncrease: 100n },
+    },
   });
 
   // sign and send the transaction
@@ -124,7 +138,6 @@ async function main() {
   const setWethGatewayTxRequest = await createTokenBridgePrepareSetWethGatewayTransactionRequest({
     rollup: process.env.ROLLUP_ADDRESS as `0x${string}`,
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: rollupOwner.address,
     retryableGasOverrides: {
       gasLimit: {

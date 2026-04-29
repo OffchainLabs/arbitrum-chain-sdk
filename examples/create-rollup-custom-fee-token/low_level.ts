@@ -8,8 +8,8 @@ import {
   createRollupPrepareCustomFeeTokenApprovalTransactionRequest,
   createRollupPrepareTransactionRequest,
   createRollupPrepareTransactionReceipt,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey, generateChainId } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey, generateChainId } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 
@@ -33,6 +33,12 @@ if (typeof process.env.CUSTOM_FEE_TOKEN_ADDRESS === 'undefined') {
   throw new Error(`Please provide the "CUSTOM_FEE_TOKEN_ADDRESS" environment variable`);
 }
 
+if (typeof process.env.PARENT_CHAIN_RPC === 'undefined' || process.env.PARENT_CHAIN_RPC === '') {
+  console.warn(
+    `Warning: you may encounter timeout errors while running the script with the default rpc endpoint. Please provide the "PARENT_CHAIN_RPC" environment variable instead.`,
+  );
+}
+
 // load or generate a random batch poster account
 const batchPosterPrivateKey = withFallbackPrivateKey(process.env.BATCH_POSTER_PRIVATE_KEY);
 const batchPoster = privateKeyToAccount(batchPosterPrivateKey).address;
@@ -45,7 +51,7 @@ const validator = privateKeyToAccount(validatorPrivateKey).address;
 const parentChain = arbitrumSepolia;
 const parentChainPublicClient = createPublicClient({
   chain: parentChain,
-  transport: http(),
+  transport: http(process.env.PARENT_CHAIN_RPC),
 });
 
 // load the deployer account
@@ -104,7 +110,7 @@ async function main() {
         owner: deployer.address,
         chainConfig,
       }),
-      batchPoster,
+      batchPosters: [batchPoster],
       validators: [validator],
       nativeToken,
     },

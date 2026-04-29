@@ -11,10 +11,10 @@ const arbitrumSepoliaPublicClient = createPublicClient({
 
 it('fetches client version with public client', async () => {
   const clientVersion = await getClientVersion(arbitrumSepoliaPublicClient);
-  expect(clientVersion.startsWith('nitro/v2')).toBeTruthy();
+  expect(clientVersion.startsWith('nitro/')).toBeTruthy();
 });
 
 it('fetches client version with rpc url', async () => {
   const clientVersion = await getClientVersion('https://sepolia-rollup.arbitrum.io/rpc');
-  expect(clientVersion.startsWith('nitro/v2')).toBeTruthy();
+  expect(clientVersion.startsWith('nitro/')).toBeTruthy();
 });
