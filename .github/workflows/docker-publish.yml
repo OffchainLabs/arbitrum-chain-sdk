@@ -16,6 +16,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -33,12 +36,7 @@ jobs:
             echo "tags=arbitrum-chain-sdk:pr" >> "$GITHUB_OUTPUT"
           else
             SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
-            {
-              echo "tags<<EOF"
-              echo "offchainlabs/arbitrum-chain-sdk:latest"
-              echo "offchainlabs/arbitrum-chain-sdk:$SHORT_SHA"
-              echo "EOF"
-            } >> "$GITHUB_OUTPUT"
+            echo "tags=offchainlabs/arbitrum-chain-sdk:$SHORT_SHA" >> "$GITHUB_OUTPUT"
           fi
 
       - name: ${{ github.event_name == 'pull_request' && 'Build' || 'Build and push' }}
