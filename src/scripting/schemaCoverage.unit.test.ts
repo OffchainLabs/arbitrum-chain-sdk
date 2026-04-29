@@ -147,9 +147,10 @@ const coverageConfig: Record<string, CoverageConfig> = {
           };
         },
       },
-      // Custom genesis (populated genesisAssertionState) requires both a
-      // non-zero dataCostEstimate and a supplied chainConfig per
-      // refineV3Dot2CustomGenesis.
+      // Custom genesis (populated genesisAssertionState) requires non-zero
+      // dataCostEstimate, a supplied chainConfig, and explicit values for the
+      // tunable arbitrum fields (per refineV3Dot2CustomGenesis -- letting any
+      // fall through to SDK defaults breaks the precomputed genesis hash).
       {
         matches: (k) =>
           k === 'params.config.genesisAssertionState' ||
@@ -163,7 +164,16 @@ const coverageConfig: Record<string, CoverageConfig> = {
               config: {
                 ...b.params.config,
                 dataCostEstimate: '1000000000',
-                chainConfig: { chainId: 99999 },
+                chainConfig: {
+                  chainId: 99999,
+                  arbitrum: {
+                    InitialChainOwner: '0x' + '1'.repeat(40),
+                    InitialArbOSVersion: 51,
+                    DataAvailabilityCommittee: false,
+                    MaxCodeSize: 24576,
+                    MaxInitCodeSize: 49152,
+                  },
+                },
               },
             },
           };
@@ -275,10 +285,10 @@ const coverageConfig: Record<string, CoverageConfig> = {
           };
         },
       },
-      // A populated `genesisAssertionState` (custom genesis) requires both a
-      // non-zero `dataCostEstimate` and a supplied `chainConfig` per
-      // refineV3Dot2CustomGenesis. Anchor presence tests for
-      // genesisAssertionState don't auto-populate either, so inject both.
+      // A populated `genesisAssertionState` (custom genesis) requires non-zero
+      // `dataCostEstimate`, a supplied `chainConfig`, and explicit values for
+      // the tunable arbitrum fields (per refineV3Dot2CustomGenesis -- letting
+      // any fall through to SDK defaults breaks the precomputed genesis hash).
       {
         matches: (k) =>
           k === 'createRollupParams.config.genesisAssertionState' ||
@@ -292,7 +302,16 @@ const coverageConfig: Record<string, CoverageConfig> = {
               config: {
                 ...b.createRollupParams.config,
                 dataCostEstimate: '1000000000',
-                chainConfig: { chainId: 99999 },
+                chainConfig: {
+                  chainId: 99999,
+                  arbitrum: {
+                    InitialChainOwner: '0x' + '1'.repeat(40),
+                    InitialArbOSVersion: 51,
+                    DataAvailabilityCommittee: false,
+                    MaxCodeSize: 24576,
+                    MaxInitCodeSize: 49152,
+                  },
+                },
               },
             },
           };

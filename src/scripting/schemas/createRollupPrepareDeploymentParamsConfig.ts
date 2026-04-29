@@ -52,6 +52,18 @@ export const paramsV2Dot1Schema = z.strictObject({
   sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema.optional(),
 });
 
+// chainConfig fields the user must supply explicitly (cannot fall through to
+// SDK defaults) when custom genesis is used. Anything that varies from
+// genesis-file-generator's run alters the serialized chainConfig and breaks
+// the precomputed genesis hash.
+const REQUIRED_ARBITRUM_FIELDS_FOR_CUSTOM_GENESIS = [
+  'InitialChainOwner',
+  'InitialArbOSVersion',
+  'DataAvailabilityCommittee',
+  'MaxCodeSize',
+  'MaxInitCodeSize',
+] as const;
+
 /**
  * Custom genesis (non-default `genesisAssertionState`) bakes a precomputed L2
  * genesis block hash into the assertion. Reproducing that hash at validator
@@ -61,24 +73,25 @@ export const paramsV2Dot1Schema = z.strictObject({
  *
  * - dataCostEstimate must be non-zero. The contract treats 0 as a sentinel and
  *   substitutes block.basefee.
- * - chainConfig must be supplied. Falling through to the SDK default produces
- *   a chainConfig that won't match the one genesis-file-generator used.
+ * - chainConfig must be supplied AND its tunable arbitrum fields must be set
+ *   explicitly. Letting any of them fall through to the SDK's
+ *   prepareChainConfig defaults produces a serializedChainConfig that won't
+ *   match the one genesis-file-generator used.
  */
 export function refineV3Dot2CustomGenesis(
   config: {
     genesisAssertionState?: z.output<typeof assertionStateSchema>;
     dataCostEstimate?: bigint;
-    chainConfig?: unknown;
+    chainConfig?: { arbitrum?: Record<string, unknown> } | undefined;
   },
   ctx: z.RefinementCtx,
   pathToConfig: readonly (string | number)[],
 ): void {
-  const gas = config.genesisAssertionState;
-  if (!gas) return;
+  if (!config.genesisAssertionState) return;
   const isCustomGenesis =
-    gas.globalState.bytes32Vals[0] !== zeroHash ||
-    gas.globalState.bytes32Vals[1] !== zeroHash ||
-    gas.globalState.u64Vals[0] !== BigInt(0);
+    config.genesisAssertionState.globalState.bytes32Vals[0] !== zeroHash ||
+    config.genesisAssertionState.globalState.bytes32Vals[1] !== zeroHash ||
+    config.genesisAssertionState.globalState.u64Vals[0] !== BigInt(0);
   if (!isCustomGenesis) return;
 
   if (config.dataCostEstimate === undefined || config.dataCostEstimate === BigInt(0)) {
@@ -96,6 +109,17 @@ export function refineV3Dot2CustomGenesis(
       message:
         'chainConfig must be supplied when genesisAssertionState is provided. It must match the serializedChainConfig used by genesis-file-generator; otherwise validators will revert with ASSERTION_NOT_EXIST when staking on the first assertion.',
     });
+    return;
+  }
+  const arb = config.chainConfig.arbitrum;
+  for (const f of REQUIRED_ARBITRUM_FIELDS_FOR_CUSTOM_GENESIS) {
+    if (arb?.[f] === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [...pathToConfig, 'chainConfig', 'arbitrum', f],
+        message: `chainConfig.arbitrum.${f} must be set when genesisAssertionState is provided; it must equal the value used by genesis-file-generator, otherwise validators will revert with ASSERTION_NOT_EXIST when staking on the first assertion.`,
+      });
+    }
   }
 }
 
