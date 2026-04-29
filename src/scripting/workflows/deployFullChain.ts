@@ -73,7 +73,7 @@ export const inputSchema = z
       })
       .strict()
       .optional(),
-    allowListParams: z
+    inboxAllowListParams: z
       .object({
         enabled: z.boolean().optional(),
         addresses: z.array(addressSchema).optional(),
@@ -211,7 +211,7 @@ export const schema = inputSchema
           }
         : undefined,
       nodeConfigParams: input.nodeConfigParams,
-      allowListParams: input.allowListParams,
+      inboxAllowListParams: input.inboxAllowListParams,
       parentChainRpcUrl: input.parentChainRpcUrl,
     };
   });
@@ -232,7 +232,7 @@ export const execute = async (input: z.output<typeof schema>) => {
     tokenBridgeCreatorAddressOverride,
     ownershipTransfer,
     nodeConfigParams,
-    allowListParams,
+    inboxAllowListParams,
     parentChainRpcUrl,
   } = input;
 
@@ -274,15 +274,15 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // Step 3: Configure inbox allow-list (optional)
-  if (allowListParams) {
-    if (allowListParams.addresses && allowListParams.addresses.length > 0) {
+  if (inboxAllowListParams) {
+    if (inboxAllowListParams.addresses && inboxAllowListParams.addresses.length > 0) {
       const req = await buildSetAllowList(parentChainPublicClient, {
         inbox: coreContracts.inbox,
         upgradeExecutor: coreContracts.upgradeExecutor,
         account: account.address,
         params: {
-          addresses: allowListParams.addresses,
-          allowed: allowListParams.addresses.map(() => true),
+          addresses: inboxAllowListParams.addresses,
+          allowed: inboxAllowListParams.addresses.map(() => true),
         },
       });
       const hash = await parentChainPublicClient.sendRawTransaction({
@@ -293,7 +293,7 @@ export const execute = async (input: z.output<typeof schema>) => {
       });
       await parentChainPublicClient.waitForTransactionReceipt({ hash });
     }
-    if (allowListParams.enabled === true) {
+    if (inboxAllowListParams.enabled === true) {
       const req = await buildSetAllowListEnabled(parentChainPublicClient, {
         inbox: coreContracts.inbox,
         upgradeExecutor: coreContracts.upgradeExecutor,

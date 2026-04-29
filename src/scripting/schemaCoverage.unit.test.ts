@@ -282,15 +282,15 @@ const coverageConfig: Record<string, CoverageConfig> = {
           };
         },
       },
-      // Anchor-presence and leaf-mutation tests on `allowListParams.*` need a
+      // Anchor-presence and leaf-mutation tests on `inboxAllowListParams.*` need a
       // coherent fixture so the fuzzer exercises both the setAllowList and
       // setAllowListEnabled branches in execute (otherwise the harness might
       // toggle `enabled` true with addresses absent, hitting only one branch).
       {
-        matches: (k) => k === 'allowListParams' || k.startsWith('allowListParams.'),
+        matches: (k) => k === 'inboxAllowListParams' || k.startsWith('inboxAllowListParams.'),
         apply: (base) => ({
           ...(base as object),
-          allowListParams: {
+          inboxAllowListParams: {
             enabled: true,
             addresses: ['0x' + 'a'.repeat(40)],
           },
