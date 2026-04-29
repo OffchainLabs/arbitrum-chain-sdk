@@ -35,8 +35,8 @@ jobs:
             SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
             {
               echo "tags<<EOF"
-              echo "offchainlabs/arbitrum-chain-sdk:cli-rc"
-              echo "offchainlabs/arbitrum-chain-sdk:cli-rc-$SHORT_SHA"
+              echo "offchainlabs/arbitrum-chain-sdk:latest"
+              echo "offchainlabs/arbitrum-chain-sdk:$SHORT_SHA"
               echo "EOF"
             } >> "$GITHUB_OUTPUT"
           fi
@@ -45,7 +45,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.tags.outputs.tags }}
           cache-from: type=gha
