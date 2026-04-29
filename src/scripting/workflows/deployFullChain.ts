@@ -7,10 +7,11 @@ import {
   bigintSchema,
   addressSchema,
   privateKeySchema,
-  prepareChainConfigArbitrumParamsSchema,
+  chainConfigInputSchema,
 } from '../schemas/common';
 import {
   paramsV3Dot2Schema,
+  refineChainIdMatch,
   refineV3Dot2CustomGenesis,
 } from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
@@ -19,7 +20,6 @@ import { prepareChainConfig } from '../../prepareChainConfig';
 import { prepareNodeConfig } from '../../prepareNodeConfig';
 import { getArbOSVersion } from '../../utils/getArbOSVersion';
 import { getParentChainLayer } from '../../utils/getParentChainLayer';
-import { generateChainId } from '../../utils/generateChainId';
 import { ChainConfig } from '../../types/ChainConfig';
 import { ParentChainId } from '../../types/ParentChain';
 import { buildSetAllowList } from '../../actions/buildSetAllowList';
@@ -36,15 +36,6 @@ import {
 
 const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSchema.shape;
 
-// InitialChainOwner defaults to the deployer address in the workflow transform.
-const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
-  chainId: z.number(),
-  arbitrum: prepareChainConfigArbitrumParamsSchema
-    .omit({ InitialChainOwner: true })
-    .extend({ InitialChainOwner: addressSchema.optional() })
-    .optional(),
-});
-
 export const inputSchema = z
   .object({
     ...baseFields,
@@ -54,8 +45,11 @@ export const inputSchema = z
         config: paramsV3Dot2Schema
           .extend({
             owner: addressSchema.optional(),
-            chainId: bigintSchema.prefault(() => String(generateChainId())),
-            chainConfig: chainConfigInputSchemaWithOptionalOwner.optional(),
+            chainId: bigintSchema,
+            // chainConfig accepts either the tunable subset or a full ChainConfig
+            // pasted from genesis.json; see chainConfigInputSchema for details.
+            // InitialChainOwner defaults to the deployer address in the workflow transform.
+            chainConfig: chainConfigInputSchema.optional(),
           })
           .strict(),
         nativeToken: addressSchema.default(zeroAddress),
@@ -114,6 +108,8 @@ export const schema = inputSchema
       'createRollupParams',
       'config',
     ]);
+
+    refineChainIdMatch(data.createRollupParams.config, ctx, ['createRollupParams', 'config']);
 
     if (
       data.nodeConfigParams &&

@@ -4,10 +4,11 @@ import {
   hexSchema,
   bigintSchema,
   addressSchema,
-  prepareChainConfigArbitrumParamsSchema,
+  chainConfigInputSchema,
 } from '../schemas/common';
 import {
   paramsV3Dot2Schema,
+  refineChainIdMatch,
   refineV3Dot2CustomGenesis,
 } from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
@@ -16,23 +17,16 @@ import { prepareChainConfig } from '../../prepareChainConfig';
 import { createRollup } from '../../createRollup';
 import { zeroAddress } from 'viem';
 import { setValidKeyset } from '../../setValidKeyset';
-import { generateChainId } from '../../utils/generateChainId';
-
-// InitialChainOwner defaults to the deployer address in the workflow transform.
-const chainConfigInputSchemaWithOptionalOwner = z.strictObject({
-  chainId: z.number(),
-  arbitrum: prepareChainConfigArbitrumParamsSchema
-    .omit({ InitialChainOwner: true })
-    .extend({ InitialChainOwner: addressSchema.optional() })
-    .optional(),
-});
 
 export const inputSchema = createRollupDefaultSchema.extend({
   params: createRollupDefaultSchema.shape.params.extend({
     config: paramsV3Dot2Schema.extend({
       owner: addressSchema.optional(),
-      chainId: bigintSchema.prefault(() => String(generateChainId())),
-      chainConfig: chainConfigInputSchemaWithOptionalOwner.optional(),
+      chainId: bigintSchema,
+      // chainConfig accepts either the tunable subset or a full ChainConfig
+      // pasted from genesis.json; see chainConfigInputSchema for details.
+      // InitialChainOwner defaults to the deployer address in the workflow transform.
+      chainConfig: chainConfigInputSchema.optional(),
     }),
     nativeToken: addressSchema.default(zeroAddress),
     keyset: hexSchema.optional(),
@@ -51,6 +45,7 @@ export const schema = inputSchema
       });
     }
     refineV3Dot2CustomGenesis(data.params.config, ctx, ['params', 'config']);
+    refineChainIdMatch(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
     const parentChainPublicClient = toPublicClient(

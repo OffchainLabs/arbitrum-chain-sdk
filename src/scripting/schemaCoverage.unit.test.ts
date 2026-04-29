@@ -64,7 +64,41 @@ type CoverageConfig = {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   overrides?: readonly CoverageOverride<ZodType<any>>[];
+  /**
+   * Dead-field strings (in the error-message format) to skip -- typically
+   * `z.literal(...)` validation gates whose only role is rejecting wrong
+   * values, not carrying data through the transform.
+   */
+  skip?: readonly string[];
 };
+
+// Validator-only fields on `chainConfigInputSchema` -- accepted (so callers can
+// paste a full chainConfig from genesis.json without filtering) but validated
+// against the single value Arbitrum requires and otherwise dropped. Their
+// presence/absence cannot affect the transform output, which the coverage
+// fuzzer correctly identifies; we list them here as expected-dead.
+const CHAIN_CONFIG_VALIDATOR_FIELDS = [
+  'arbitrum.EnableArbOS',
+  'arbitrum.AllowDebugPrecompiles',
+  'arbitrum.GenesisBlockNum',
+  'homesteadBlock',
+  'daoForkBlock',
+  'daoForkSupport',
+  'eip150Block',
+  'eip150Hash',
+  'eip155Block',
+  'eip158Block',
+  'byzantiumBlock',
+  'constantinopleBlock',
+  'petersburgBlock',
+  'istanbulBlock',
+  'muirGlacierBlock',
+  'berlinBlock',
+  'londonBlock',
+  'clique',
+] as const;
+const chainConfigGateSkips = (chainConfigPath: string): readonly string[] =>
+  CHAIN_CONFIG_VALIDATOR_FIELDS.map((f) => `${chainConfigPath}.${f} (presence)`);
 
 const coverageConfig: Record<string, CoverageConfig> = {
   getConsensusReleaseByVersion: {
@@ -77,6 +111,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
     samples: { wasmModuleRoot: CONSENSUS_V10_WASM_MODULE_ROOT },
   },
   deployNewChain: {
+    skip: chainConfigGateSkips('params.config.chainConfig'),
     // `execute` only consults `keyset` when `chainConfig.arbitrum.DataAvailabilityCommittee`
     // is true; the schema enforces that via a superRefine. Supply both so
     // toggling `params.keyset` actually exercises the function's keyset path.
@@ -126,6 +161,15 @@ const coverageConfig: Record<string, CoverageConfig> = {
         },
       },
     ],
+    // refineChainIdMatch requires the two chainIds to agree. samples sets
+    // matching values for the base fixture; mutation tests on either chainId
+    // necessarily break the pair, and the harness counts the resulting parse
+    // failure as observable behavior (the field stays correctly classified
+    // as live).
+    samples: {
+      'params.config.chainId': '99999',
+      'params.config.chainConfig.chainId': 99999,
+    },
   },
   prepareDeploymentParamsConfigV32: {
     // Custom genesis (populated genesisAssertionState) requires both a
@@ -170,6 +214,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
     ],
   },
   deployFullChain: {
+    skip: chainConfigGateSkips('createRollupParams.config.chainConfig'),
     overrides: [
       // `execute` only exercises keyset when DAC=true; schema enforces via
       // superRefine. Supply both so toggling keyset hits the branch.
@@ -252,6 +297,12 @@ const coverageConfig: Record<string, CoverageConfig> = {
         }),
       },
     ],
+    // refineChainIdMatch requires the two chainIds to agree. See sibling
+    // comment in deployNewChain for the rationale.
+    samples: {
+      'createRollupParams.config.chainId': '99999',
+      'createRollupParams.config.chainConfig.chainId': 99999,
+    },
   },
 };
 
@@ -263,7 +314,14 @@ describe('schema coverage', () => {
         variants.length > 1 ? `${name} (${getVariantLabel(variant) ?? `variant ${i}`})` : name;
       const config = coverageConfig[name];
       it(label, async () => {
-        await assertSchemaCoverage(variant, func, mocks, config?.overrides, config?.samples);
+        await assertSchemaCoverage(
+          variant,
+          func,
+          mocks,
+          config?.overrides,
+          config?.samples,
+          config?.skip,
+        );
       });
     });
   }

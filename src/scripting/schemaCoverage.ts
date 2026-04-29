@@ -721,6 +721,13 @@ export async function assertSchemaCoverage<T extends ZodType>(
   // mutated land in different code-path buckets, letting the harness observe
   // the field as live.
   samples?: Readonly<Record<string, unknown>>,
+  // Dead-field strings (matching the error-message format, e.g.
+  // `'foo.bar (presence)'`) to skip. Use for schema fields whose only role is
+  // rejecting wrong values -- e.g. `z.literal(true)` gates that validate but
+  // don't carry data through the transform. The harness still fails if a
+  // listed entry is *not* dead, so the list stays accurate as the schema
+  // evolves.
+  skip?: readonly string[],
 ): Promise<void> {
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
   const walk: SchemaWalk = { leaves: [], anchors: [] };
@@ -761,7 +768,16 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
   const runSnapshot = async (input: Record<string, unknown>): Promise<string> => {
     registry.clear();
-    const parsed = schema.parse(input) as any;
+    // A parse failure is a meaningful, observable difference: it proves the
+    // field carries a constraint that distinguishes valid inputs from invalid
+    // ones (e.g. a cross-field refine that the mutation breaks). Surface the
+    // error message so the dead-field detector treats it as a live behavior.
+    let parsed;
+    try {
+      parsed = schema.parse(input);
+    } catch (err) {
+      return `__PARSE_ERROR__:${(err as Error).message}`;
+    }
     const result = await (Array.isArray(parsed) ? execute(...parsed) : execute(parsed));
     return registry.snapshot() + JSON.stringify(result, replacer);
   };
@@ -803,9 +819,19 @@ export async function assertSchemaCoverage<T extends ZodType>(
     }
   }
 
-  if (deadFields.length > 0) {
+  const skipped = new Set(skip ?? []);
+  const unexpectedDead = deadFields.filter((f) => !skipped.has(f));
+  const unusedSkips = [...skipped].filter((e) => !deadFields.includes(e));
+
+  if (unusedSkips.length > 0) {
     throw new Error(
-      `Dead schema fields detected (no effect on transform output):\n  ${deadFields.join('\n  ')}`,
+      `skip lists fields that are not actually dead (remove them):\n  ${unusedSkips.join('\n  ')}`,
+    );
+  }
+
+  if (unexpectedDead.length > 0) {
+    throw new Error(
+      `Dead schema fields detected (no effect on transform output):\n  ${unexpectedDead.join('\n  ')}`,
     );
   }
 }

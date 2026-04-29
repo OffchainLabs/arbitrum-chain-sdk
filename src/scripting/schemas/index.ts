@@ -9,6 +9,7 @@ export {
   tokenBridgeRetryableGasOverridesSchema,
   setWethGatewayGasOverridesSchema,
   chainConfigSchema,
+  chainConfigInputSchema,
   prepareChainConfigArbitrumParamsSchema,
   privateKeySchema,
   rollupCreatorVersionSchema,

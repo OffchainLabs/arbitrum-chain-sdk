@@ -99,6 +99,26 @@ export function refineV3Dot2CustomGenesis(
   }
 }
 
+/**
+ * Top-level `chainId` (uint256, on the RollupCreator call) and
+ * `chainConfig.chainId` (number, baked into Nitro's runtime config) identify
+ * the same chain. If they disagree, the rollup contract and Nitro would
+ * launch with mismatched identities -- broken state, hard-to-diagnose.
+ */
+export function refineChainIdMatch(
+  config: { chainId: bigint; chainConfig?: { chainId: number } | undefined },
+  ctx: z.RefinementCtx,
+  pathToConfig: readonly (string | number)[],
+): void {
+  if (config.chainConfig?.chainId === undefined) return;
+  if (config.chainId === BigInt(config.chainConfig.chainId)) return;
+  ctx.addIssue({
+    code: 'custom',
+    path: [...pathToConfig, 'chainConfig', 'chainId'],
+    message: `chainConfig.chainId (${config.chainConfig.chainId}) must equal config.chainId (${config.chainId}); both identify the same chain.`,
+  });
+}
+
 export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSchema
   .extend(paramsV2Dot1Schema.shape)
   .strict()
