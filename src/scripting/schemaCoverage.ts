@@ -728,6 +728,14 @@ export async function assertSchemaCoverage<T extends ZodType>(
   // listed entry is *not* dead, so the list stays accurate as the schema
   // evolves.
   skip?: readonly string[],
+  // Paired-mutation map for leaves with cross-field invariants. When the
+  // harness mutates a listed leaf, it also updates the named sibling leaves
+  // to values derived from the mutated value. This lets the new value flow
+  // through `parse` and into the SDK call so coverage is observed by SDK
+  // output diffing rather than parse failure.
+  mutations?: Readonly<
+    Record<string, Readonly<Record<string, (mutatedValue: unknown) => unknown>>>
+  >,
 ): Promise<void> {
   const replacer = (_k: string, v: unknown) => (typeof v === 'bigint' ? `__bigint__${v}` : v);
   const walk: SchemaWalk = { leaves: [], anchors: [] };
@@ -768,16 +776,7 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
   const runSnapshot = async (input: Record<string, unknown>): Promise<string> => {
     registry.clear();
-    // A parse failure is a meaningful, observable difference: it proves the
-    // field carries a constraint that distinguishes valid inputs from invalid
-    // ones (e.g. a cross-field refine that the mutation breaks). Surface the
-    // error message so the dead-field detector treats it as a live behavior.
-    let parsed;
-    try {
-      parsed = schema.parse(input);
-    } catch (err) {
-      return `__PARSE_ERROR__:${(err as Error).message}`;
-    }
+    const parsed = schema.parse(input) as any;
     const result = await (Array.isArray(parsed) ? execute(...parsed) : execute(parsed));
     return registry.snapshot() + JSON.stringify(result, replacer);
   };
@@ -812,7 +811,14 @@ export async function assertSchemaCoverage<T extends ZodType>(
     const anchor = leaf.optional ? outermostAnchor(leaf.path, anchors) : null;
     const minimal = anchor ? materializeSubtree(baseFixture, leaves, anchor, valuesA) : baseFixture;
     const base = applyOverride(minimal, key);
-    const mutated = setNestedField(base, leaf.path, valuesB.get(key));
+    const mutationValue = valuesB.get(key);
+    let mutated = setNestedField(base, leaf.path, mutationValue);
+    const paired = mutations?.[key];
+    if (paired) {
+      for (const [otherPath, derive] of Object.entries(paired)) {
+        mutated = setNestedField(mutated, otherPath.split('.'), derive(mutationValue));
+      }
+    }
 
     if ((await runSnapshot(base)) === (await runSnapshot(mutated))) {
       deadFields.push(leaf.optional ? `${key} (value)` : key);

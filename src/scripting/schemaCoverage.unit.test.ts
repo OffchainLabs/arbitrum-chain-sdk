@@ -70,6 +70,15 @@ type CoverageConfig = {
    * values, not carrying data through the transform.
    */
   skip?: readonly string[];
+  /**
+   * Paired-mutation entries for leaves with cross-field invariants. When the
+   * harness mutates a key listed here, it also updates the named sibling
+   * leaves to values derived from the mutated value, so the new value
+   * survives `parse` and the SDK actually sees it.
+   */
+  mutations?: Readonly<
+    Record<string, Readonly<Record<string, (mutatedValue: unknown) => unknown>>>
+  >;
 };
 
 // Validator-only fields on `chainConfigInputSchema` -- accepted (so callers can
@@ -162,13 +171,20 @@ const coverageConfig: Record<string, CoverageConfig> = {
       },
     ],
     // refineChainIdMatch requires the two chainIds to agree. samples sets
-    // matching values for the base fixture; mutation tests on either chainId
-    // necessarily break the pair, and the harness counts the resulting parse
-    // failure as observable behavior (the field stays correctly classified
-    // as live).
+    // matching values for the base fixture; mutations keeps them paired when
+    // either is mutated so the new value reaches the SDK call instead of
+    // failing parse.
     samples: {
       'params.config.chainId': '99999',
       'params.config.chainConfig.chainId': 99999,
+    },
+    mutations: {
+      'params.config.chainId': {
+        'params.config.chainConfig.chainId': (v) => Number(v),
+      },
+      'params.config.chainConfig.chainId': {
+        'params.config.chainId': (v) => String(v),
+      },
     },
   },
   prepareDeploymentParamsConfigV32: {
@@ -303,6 +319,14 @@ const coverageConfig: Record<string, CoverageConfig> = {
       'createRollupParams.config.chainId': '99999',
       'createRollupParams.config.chainConfig.chainId': 99999,
     },
+    mutations: {
+      'createRollupParams.config.chainId': {
+        'createRollupParams.config.chainConfig.chainId': (v) => Number(v),
+      },
+      'createRollupParams.config.chainConfig.chainId': {
+        'createRollupParams.config.chainId': (v) => String(v),
+      },
+    },
   },
 };
 
@@ -321,6 +345,7 @@ describe('schema coverage', () => {
           config?.overrides,
           config?.samples,
           config?.skip,
+          config?.mutations,
         );
       });
     });
