@@ -269,12 +269,12 @@ export const execute = async (input: z.output<typeof schema>) => {
   const step3TxHash = await sendL2Message(input, arbOwnerAddress, addChainOwnerCalldata, 0);
 
   // Step 4: Remove deployer as chain owner (via sendL2Message)
-  const removeChainOwnerCalldata = encodeFunctionData({
-    abi: arbOwnerABI,
-    functionName: 'removeChainOwner',
-    args: [account.address],
-  });
-  const step4TxHash = await sendL2Message(input, arbOwnerAddress, removeChainOwnerCalldata, 1);
+  // const removeChainOwnerCalldata = encodeFunctionData({
+  //   abi: arbOwnerABI,
+  //   functionName: 'removeChainOwner',
+  //   args: [account.address],
+  // });
+  // const step4TxHash = await sendL2Message(input, arbOwnerAddress, removeChainOwnerCalldata, 1);
 
   // Step 5: Revoke deployer's executor role on child-chain UpgradeExecutor (via retryable)
   // const revokeRoleCalldata = encodeFunctionData({
@@ -309,7 +309,7 @@ export const execute = async (input: z.output<typeof schema>) => {
     step1TxHash,
     step2TxHash,
     step3TxHash,
-    step4TxHash,
+    // step4TxHash,
     // step5TxHash,
     // step6TxHash,
   };
