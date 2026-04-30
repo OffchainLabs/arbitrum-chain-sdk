@@ -277,40 +277,40 @@ export const execute = async (input: z.output<typeof schema>) => {
   const step4TxHash = await sendL2Message(input, arbOwnerAddress, removeChainOwnerCalldata, 1);
 
   // Step 5: Revoke deployer's executor role on child-chain UpgradeExecutor (via retryable)
-  const revokeRoleCalldata = encodeFunctionData({
-    abi: upgradeExecutorABI,
-    functionName: 'revokeRole',
-    args: [UPGRADE_EXECUTOR_ROLE_EXECUTOR, account.address],
-  });
-  const removeChildExecutorData = upgradeExecutorEncodeFunctionData({
-    functionName: 'executeCall',
-    args: [childUpgradeExecutorAddress, revokeRoleCalldata],
-  });
-  const step5TxHash = await sendRetryableViaUpgradeExecutor(
-    input,
-    childUpgradeExecutorAddress,
-    removeChildExecutorData,
-  );
+  // const revokeRoleCalldata = encodeFunctionData({
+  //   abi: upgradeExecutorABI,
+  //   functionName: 'revokeRole',
+  //   args: [UPGRADE_EXECUTOR_ROLE_EXECUTOR, account.address],
+  // });
+  // const removeChildExecutorData = upgradeExecutorEncodeFunctionData({
+  //   functionName: 'executeCall',
+  //   args: [childUpgradeExecutorAddress, revokeRoleCalldata],
+  // });
+  // const step5TxHash = await sendRetryableViaUpgradeExecutor(
+  //   input,
+  //   childUpgradeExecutorAddress,
+  //   removeChildExecutorData,
+  // );
 
-  // Step 6: Remove deployer as executor on parent-chain UpgradeExecutor
-  const removeParentExecutorTxRequest =
-    await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
-      account: account.address,
-      upgradeExecutorAddress,
-      executorAccountAddress: account.address,
-      publicClient,
-    });
-  const step6TxHash = await publicClient.sendRawTransaction({
-    serializedTransaction: await account.signTransaction(removeParentExecutorTxRequest),
-  });
-  await publicClient.waitForTransactionReceipt({ hash: step6TxHash });
+  // // Step 6: Remove deployer as executor on parent-chain UpgradeExecutor
+  // const removeParentExecutorTxRequest =
+  //   await upgradeExecutorPrepareRemoveExecutorTransactionRequest({
+  //     account: account.address,
+  //     upgradeExecutorAddress,
+  //     executorAccountAddress: account.address,
+  //     publicClient,
+  //   });
+  // const step6TxHash = await publicClient.sendRawTransaction({
+  //   serializedTransaction: await account.signTransaction(removeParentExecutorTxRequest),
+  // });
+  // await publicClient.waitForTransactionReceipt({ hash: step6TxHash });
 
   return {
     step1TxHash,
     step2TxHash,
     step3TxHash,
     step4TxHash,
-    step5TxHash,
-    step6TxHash,
+    // step5TxHash,
+    // step6TxHash,
   };
 };
