@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { zeroHash } from 'viem';
 import { toPublicClient, findChain } from '../viemTransforms';
 import {
   addressSchema,
@@ -12,7 +13,7 @@ import {
 } from './common';
 import { CreateRollupPrepareDeploymentParamsConfigParams } from '../../createRollupPrepareDeploymentParamsConfig';
 
-export const paramsV3Dot2Schema = z.object({
+export const paramsV3Dot2Schema = z.strictObject({
   chainId: bigintSchema,
   owner: addressSchema,
   chainConfig: chainConfigSchema.optional(),
@@ -37,7 +38,7 @@ export const paramsV3Dot2Schema = z.object({
   dataCostEstimate: bigintSchema.optional(),
 });
 
-export const paramsV2Dot1Schema = z.object({
+export const paramsV2Dot1Schema = z.strictObject({
   chainId: bigintSchema,
   owner: addressSchema,
   chainConfig: chainConfigSchema.optional(),
@@ -50,6 +51,97 @@ export const paramsV2Dot1Schema = z.object({
   genesisBlockNum: bigintSchema.optional(),
   sequencerInboxMaxTimeVariation: sequencerInboxMaxTimeVariationSchema.optional(),
 });
+
+// chainConfig fields the user must supply explicitly (cannot fall through to
+// SDK defaults) when custom genesis is used. Anything that varies from
+// genesis-file-generator's run alters the serialized chainConfig and breaks
+// the precomputed genesis hash.
+const REQUIRED_ARBITRUM_FIELDS_FOR_CUSTOM_GENESIS = [
+  'InitialChainOwner',
+  'InitialArbOSVersion',
+  'DataAvailabilityCommittee',
+  'MaxCodeSize',
+  'MaxInitCodeSize',
+] as const;
+
+/**
+ * Custom genesis (non-default `genesisAssertionState`) bakes a precomputed L2
+ * genesis block hash into the assertion. Reproducing that hash at validator
+ * boot requires both the on-chain init message's currentDataCost and the
+ * serialized chainConfig to match what genesis-file-generator used. Otherwise
+ * the validator's first stakeOnNewAssertion reverts with ASSERTION_NOT_EXIST.
+ *
+ * - dataCostEstimate must be non-zero. The contract treats 0 as a sentinel and
+ *   substitutes block.basefee.
+ * - chainConfig must be supplied AND its tunable arbitrum fields must be set
+ *   explicitly. Letting any of them fall through to the SDK's
+ *   prepareChainConfig defaults produces a serializedChainConfig that won't
+ *   match the one genesis-file-generator used.
+ */
+export function refineV3Dot2CustomGenesis(
+  config: {
+    genesisAssertionState?: z.output<typeof assertionStateSchema>;
+    dataCostEstimate?: bigint;
+    chainConfig?: { arbitrum?: Record<string, unknown> } | undefined;
+  },
+  ctx: z.RefinementCtx,
+  pathToConfig: readonly (string | number)[],
+): void {
+  if (!config.genesisAssertionState) return;
+  const isCustomGenesis =
+    config.genesisAssertionState.globalState.bytes32Vals[0] !== zeroHash ||
+    config.genesisAssertionState.globalState.bytes32Vals[1] !== zeroHash ||
+    config.genesisAssertionState.globalState.u64Vals[0] !== BigInt(0);
+  if (!isCustomGenesis) return;
+
+  if (config.dataCostEstimate === undefined || config.dataCostEstimate === BigInt(0)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: [...pathToConfig, 'dataCostEstimate'],
+      message:
+        'dataCostEstimate must be set to a non-zero value when genesisAssertionState is provided. It must equal arbOSInit.initialL1BaseFee from your genesis.json; otherwise validators will revert with ASSERTION_NOT_EXIST when staking on the first assertion.',
+    });
+  }
+  if (config.chainConfig === undefined) {
+    ctx.addIssue({
+      code: 'custom',
+      path: [...pathToConfig, 'chainConfig'],
+      message:
+        'chainConfig must be supplied when genesisAssertionState is provided. It must match the serializedChainConfig used by genesis-file-generator; otherwise validators will revert with ASSERTION_NOT_EXIST when staking on the first assertion.',
+    });
+    return;
+  }
+  const arb = config.chainConfig.arbitrum;
+  for (const f of REQUIRED_ARBITRUM_FIELDS_FOR_CUSTOM_GENESIS) {
+    if (arb?.[f] === undefined) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [...pathToConfig, 'chainConfig', 'arbitrum', f],
+        message: `chainConfig.arbitrum.${f} must be set when genesisAssertionState is provided; it must equal the value used by genesis-file-generator, otherwise validators will revert with ASSERTION_NOT_EXIST when staking on the first assertion.`,
+      });
+    }
+  }
+}
+
+/**
+ * Top-level `chainId` (uint256, on the RollupCreator call) and
+ * `chainConfig.chainId` (number, baked into Nitro's runtime config) identify
+ * the same chain. If they disagree, the rollup contract and Nitro would
+ * launch with mismatched identities -- broken state, hard-to-diagnose.
+ */
+export function refineChainIdMatch(
+  config: { chainId: bigint; chainConfig?: { chainId: number } | undefined },
+  ctx: z.RefinementCtx,
+  pathToConfig: readonly (string | number)[],
+): void {
+  if (config.chainConfig?.chainId === undefined) return;
+  if (config.chainId === BigInt(config.chainConfig.chainId)) return;
+  ctx.addIssue({
+    code: 'custom',
+    path: [...pathToConfig, 'chainConfig', 'chainId'],
+    message: `chainConfig.chainId (${config.chainConfig.chainId}) must equal config.chainId (${config.chainId}); both identify the same chain.`,
+  });
+}
 
 export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSchema
   .extend(paramsV2Dot1Schema.shape)
@@ -69,6 +161,9 @@ export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSch
 export const prepareDeploymentParamsConfigV32Schema = parentChainPublicClientSchema
   .extend(paramsV3Dot2Schema.shape)
   .strict()
+  .superRefine((data, ctx) => {
+    refineV3Dot2CustomGenesis(data, ctx, []);
+  })
   .transform(
     (
       input,

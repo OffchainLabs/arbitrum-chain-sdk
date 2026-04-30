@@ -10,7 +10,7 @@ import {
   zeroAddress,
 } from 'viem';
 import { addressSchema, bigintSchema, privateKeySchema } from '../schemas/common';
-import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
+import { toPublicClient, toAccount, findChain } from '../viemTransforms';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorPrepareRemoveExecutorTransactionRequest } from '../../upgradeExecutorPrepareRemoveExecutorTransactionRequest';
 import {
@@ -60,7 +60,6 @@ async function sendRetryableViaUpgradeExecutor(
 ) {
   const {
     publicClient,
-    walletClient,
     account,
     upgradeExecutorAddress,
     inboxAddress,
@@ -95,7 +94,7 @@ async function sendRetryableViaUpgradeExecutor(
     args: retryableArgs as never,
   });
 
-  const { request } = await publicClient.simulateContract({
+  await publicClient.simulateContract({
     account: account.address,
     address: upgradeExecutorAddress,
     abi: upgradeExecutorABI,
@@ -105,13 +104,32 @@ async function sendRetryableViaUpgradeExecutor(
     ...(!isErc20 && { value: deposit }),
   } as Parameters<typeof publicClient.simulateContract>[0]);
 
-  const txHash = await walletClient.writeContract(request);
+  const executeCallData = encodeFunctionData({
+    abi: upgradeExecutorABI,
+    functionName: 'executeCall',
+    args: [inboxAddress, createRetryableTicketData],
+  });
+
+  const txRequest = await publicClient.prepareTransactionRequest({
+    account,
+    to: upgradeExecutorAddress,
+    data: executeCallData,
+    ...(!isErc20 && { value: deposit }),
+    chain: publicClient.chain,
+  });
+
+  const txHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await account.signTransaction({
+      ...txRequest,
+      chainId: publicClient.chain!.id,
+    }),
+  });
   await publicClient.waitForTransactionReceipt({ hash: txHash });
   return txHash;
 }
 
 async function sendL2Message(
-  { publicClient, walletClient, account, inboxAddress, childChainId, maxGasPrice }: Input,
+  { publicClient, account, inboxAddress, childChainId, maxGasPrice }: Input,
   to: `0x${string}`,
   data: `0x${string}`,
   nonce: number,
@@ -150,7 +168,7 @@ async function sendL2Message(
   // InboxMessageKind.L2MessageType_signedTx = 4
   const message = concatHex([toHex(4, { size: 1 }), signedTx]);
 
-  const { request } = await publicClient.simulateContract({
+  await publicClient.simulateContract({
     account: account.address,
     address: inboxAddress,
     abi: sendL2MessageABI,
@@ -158,33 +176,52 @@ async function sendL2Message(
     args: [message],
   });
 
-  const txHash = await walletClient.writeContract(request);
+  const sendL2MessageData = encodeFunctionData({
+    abi: sendL2MessageABI,
+    functionName: 'sendL2Message',
+    args: [message],
+  });
+
+  const txRequest = await publicClient.prepareTransactionRequest({
+    account,
+    to: inboxAddress,
+    data: sendL2MessageData,
+    chain: publicClient.chain,
+  });
+
+  const txHash = await publicClient.sendRawTransaction({
+    serializedTransaction: await account.signTransaction({
+      ...txRequest,
+      chainId: publicClient.chain!.id,
+    }),
+  });
   await publicClient.waitForTransactionReceipt({ hash: txHash });
   return txHash;
 }
 
-export const schema = z
-  .object({
-    rpcUrl: z.url(),
-    chainId: z.number(),
-    privateKey: privateKeySchema,
-    upgradeExecutorAddress: addressSchema,
-    newOwnerAddress: addressSchema,
-    inboxAddress: addressSchema,
-    childUpgradeExecutorAddress: addressSchema,
-    childChainId: z.number(),
-    nativeToken: addressSchema.default(zeroAddress),
-    maxGasPrice: bigintSchema,
-    refundAddress: addressSchema.optional(),
-  })
-  .transform(({ rpcUrl, chainId, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
+export const inputSchema = z.strictObject({
+  rpcUrl: z.url(),
+  chainId: z.number(),
+  privateKey: privateKeySchema,
+  upgradeExecutorAddress: addressSchema,
+  newOwnerAddress: addressSchema,
+  inboxAddress: addressSchema,
+  childUpgradeExecutorAddress: addressSchema,
+  childChainId: z.number(),
+  nativeToken: addressSchema.default(zeroAddress),
+  maxGasPrice: bigintSchema,
+  refundAddress: addressSchema.optional(),
+});
+
+export const schema = inputSchema.transform(
+  ({ rpcUrl, chainId, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
     ...rest,
     publicClient: toPublicClient(rpcUrl, findChain(chainId)),
     account: toAccount(privateKey),
-    walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)),
     refundAddress: refundAddress ?? newOwnerAddress,
     newOwnerAddress,
-  }));
+  }),
+);
 
 export const execute = async (input: z.output<typeof schema>) => {
   const {

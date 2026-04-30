@@ -1,55 +1,157 @@
 import { z } from 'zod';
-import { parseAbi, zeroAddress } from 'viem';
+import { parseAbi, zeroAddress, isAddressEqual } from 'viem';
+
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import {
   hexSchema,
   bigintSchema,
   addressSchema,
-  gasLimitSchema,
-  tokenBridgeRetryableGasOverridesSchema,
+  privateKeySchema,
+  chainConfigInputSchema,
 } from '../schemas/common';
-import { paramsV3Dot2Schema } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { prepareChainConfigParamsBaseSchema } from '../schemas/prepareChainConfig';
+import {
+  paramsV3Dot2Schema,
+  refineChainIdMatch,
+  refineV3Dot2CustomGenesis,
+} from '../schemas/createRollupPrepareDeploymentParamsConfig';
 import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
+import { prepareNodeConfig } from '../../prepareNodeConfig';
 import { getArbOSVersion } from '../../utils/getArbOSVersion';
-import { generateChainId } from '../../utils/generateChainId';
+import { getParentChainLayer } from '../../utils/getParentChainLayer';
 import { ChainConfig } from '../../types/ChainConfig';
+import { ParentChainId } from '../../types/ParentChain';
+import { buildSetAllowList } from '../../actions/buildSetAllowList';
+import { buildSetAllowListEnabled } from '../../actions/buildSetAllowListEnabled';
 import { execute as deployNewChainExecute } from './deployNewChain';
-import { execute as initializeTokenBridgeExecute } from './initializeTokenBridge';
-import { execute as transferOwnershipExecute } from './transferOwnership';
+import {
+  inputSchema as initializeTokenBridgeInputSchema,
+  execute as initializeTokenBridgeExecute,
+} from './initializeTokenBridge';
+import {
+  inputSchema as transferOwnershipInputSchema,
+  execute as transferOwnershipExecute,
+} from './transferOwnership';
 
-export const schema = createRollupDefaultSchema
-  .extend({
-    params: createRollupDefaultSchema.shape.params.extend({
-      config: paramsV3Dot2Schema.extend({
-        chainId: bigintSchema.prefault(() => String(generateChainId())),
-        chainConfig: prepareChainConfigParamsBaseSchema.optional(),
-      }),
-      nativeToken: addressSchema.default(zeroAddress),
-      keyset: hexSchema.optional(),
-    }),
+const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSchema.shape;
+
+export const inputSchema = z
+  .object({
+    ...baseFields,
     chainName: z.string(),
-    // createTokenBridge options
-    gasOverrides: gasLimitSchema.optional(),
-    retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
-    tokenBridgeCreatorAddressOverride: addressSchema.optional(),
-    // transferOwnership fields
-    newOwnerAddress: addressSchema,
-    childUpgradeExecutorAddress: addressSchema,
-    maxGasPrice: bigintSchema,
-    refundAddress: addressSchema.optional(),
+    createRollupParams: createRollupBaseParams
+      .extend({
+        config: paramsV3Dot2Schema
+          .extend({
+            owner: addressSchema.optional(),
+            chainId: bigintSchema,
+            // chainConfig accepts either the tunable subset or a full ChainConfig
+            // pasted from genesis.json; see chainConfigInputSchema for details.
+            // InitialChainOwner defaults to the deployer address in the workflow transform.
+            chainConfig: chainConfigInputSchema.optional(),
+          })
+          .strict(),
+        nativeToken: addressSchema.default(zeroAddress),
+        keyset: hexSchema.optional(),
+      })
+      .strict(),
+    tokenBridgeParams: z
+      .object({
+        gasOverrides: initializeTokenBridgeInputSchema.shape.gasOverrides,
+        retryableGasOverrides: initializeTokenBridgeInputSchema.shape.retryableGasOverrides,
+        tokenBridgeCreatorAddressOverride:
+          initializeTokenBridgeInputSchema.shape.tokenBridgeCreatorAddressOverride,
+      })
+      .strict()
+      .default({}),
+    ownershipTransferParams: z
+      .object({
+        newOwnerAddress: transferOwnershipInputSchema.shape.newOwnerAddress,
+        maxGasPrice: transferOwnershipInputSchema.shape.maxGasPrice,
+        refundAddress: transferOwnershipInputSchema.shape.refundAddress,
+      })
+      .strict()
+      .optional(),
+    inboxAllowListParams: z
+      .object({
+        enabled: z.boolean().optional(),
+        addresses: z.array(addressSchema).optional(),
+      })
+      .strict()
+      .optional(),
+    nodeConfigParams: z
+      .object({
+        batchPosterPrivateKey: privateKeySchema.optional(),
+        validatorPrivateKey: privateKeySchema.optional(),
+        parentChainBeaconRpcUrl: z.url().optional(),
+      })
+      .strict()
+      .optional(),
   })
+  .strict();
+
+export const schema = inputSchema
   .superRefine((data, ctx) => {
-    const isAnytrust = data.params.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
-    if (data.params.keyset && !isAnytrust) {
+    const isAnytrust =
+      data.createRollupParams.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
+    if (data.createRollupParams.keyset && !isAnytrust) {
       ctx.addIssue({
         code: 'custom',
-        path: ['params', 'keyset'],
+        path: ['createRollupParams', 'keyset'],
         message:
           'keyset provided but chain is not AnyTrust (DataAvailabilityCommittee is not true)',
       });
+    }
+
+    refineV3Dot2CustomGenesis(data.createRollupParams.config, ctx, [
+      'createRollupParams',
+      'config',
+    ]);
+
+    refineChainIdMatch(data.createRollupParams.config, ctx, ['createRollupParams', 'config']);
+
+    if (
+      data.nodeConfigParams &&
+      getParentChainLayer(data.parentChainId as ParentChainId) === 1 &&
+      !data.nodeConfigParams.parentChainBeaconRpcUrl
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['nodeConfigParams', 'parentChainBeaconRpcUrl'],
+        message: 'parentChainBeaconRpcUrl is required when parent chain is L1',
+      });
+    }
+
+    // ownershipTransferParams assumes the deployer holds both the parent-chain EXECUTOR
+    // role and the child-chain ArbOwner role. Supplying a non-deployer owner breaks that
+    // assumption -- the transfer step would attempt to sign as deployer and revert.
+    if (data.ownershipTransferParams) {
+      const deployerAddress = toAccount(data.privateKey).address;
+      const explicitOwner = data.createRollupParams.config.owner;
+      const explicitInitialChainOwner =
+        data.createRollupParams.config.chainConfig?.arbitrum?.InitialChainOwner;
+
+      if (explicitOwner && !isAddressEqual(explicitOwner, deployerAddress)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['createRollupParams', 'config', 'owner'],
+          message:
+            'createRollupParams.config.owner is incompatible with ownershipTransferParams: leave it unset (defaults to the deployer) or omit ownershipTransferParams',
+        });
+      }
+
+      if (
+        explicitInitialChainOwner &&
+        !isAddressEqual(explicitInitialChainOwner, deployerAddress)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['createRollupParams', 'config', 'chainConfig', 'arbitrum', 'InitialChainOwner'],
+          message:
+            'chainConfig.arbitrum.InitialChainOwner is incompatible with ownershipTransferParams: leave it unset (defaults to the deployer) or omit ownershipTransferParams',
+        });
+      }
     }
   })
   .transform((input) => {
@@ -57,18 +159,29 @@ export const schema = createRollupDefaultSchema
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
     );
+    const account = toAccount(input.privateKey);
     const {
-      config: { chainConfig: chainConfigParams, ...restConfig },
+      config: { chainConfig: rawChainConfigParams, owner: rawOwner, ...restConfigRest },
       keyset,
       ...restParams
-    } = input.params;
+    } = input.createRollupParams;
+
+    const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
+    const chainConfigParams = rawChainConfigParams
+      ? {
+          ...rawChainConfigParams,
+          arbitrum: {
+            ...rawChainConfigParams.arbitrum,
+            InitialChainOwner: rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
+          },
+        }
+      : undefined;
 
     const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
 
     const DEFAULT_KEYSET: `0x${string}` =
       '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
-    const account = toAccount(input.privateKey);
     const walletClient = toWalletClient(
       input.parentChainRpcUrl,
       input.privateKey,
@@ -85,13 +198,21 @@ export const schema = createRollupDefaultSchema
       parentChainId: input.parentChainId,
       walletClient,
       chainName: input.chainName,
-      gasOverrides: input.gasOverrides,
-      retryableGasOverrides: input.retryableGasOverrides,
-      tokenBridgeCreatorAddressOverride: input.tokenBridgeCreatorAddressOverride,
-      newOwnerAddress: input.newOwnerAddress,
-      childUpgradeExecutorAddress: input.childUpgradeExecutorAddress,
-      maxGasPrice: input.maxGasPrice,
-      refundAddress: input.refundAddress ?? input.newOwnerAddress,
+      gasOverrides: input.tokenBridgeParams.gasOverrides,
+      retryableGasOverrides: input.tokenBridgeParams.retryableGasOverrides,
+      tokenBridgeCreatorAddressOverride: input.tokenBridgeParams.tokenBridgeCreatorAddressOverride,
+      ownershipTransfer: input.ownershipTransferParams
+        ? {
+            newOwnerAddress: input.ownershipTransferParams.newOwnerAddress,
+            maxGasPrice: input.ownershipTransferParams.maxGasPrice,
+            refundAddress:
+              input.ownershipTransferParams.refundAddress ??
+              input.ownershipTransferParams.newOwnerAddress,
+          }
+        : undefined,
+      nodeConfigParams: input.nodeConfigParams,
+      inboxAllowListParams: input.inboxAllowListParams,
+      parentChainRpcUrl: input.parentChainRpcUrl,
     };
   });
 
@@ -109,10 +230,10 @@ export const execute = async (input: z.output<typeof schema>) => {
     gasOverrides,
     retryableGasOverrides,
     tokenBridgeCreatorAddressOverride,
-    newOwnerAddress,
-    childUpgradeExecutorAddress,
-    maxGasPrice,
-    refundAddress,
+    ownershipTransfer,
+    nodeConfigParams,
+    inboxAllowListParams,
+    parentChainRpcUrl,
   } = input;
 
   const chainConfig: ChainConfig | undefined = chainConfigParams
@@ -147,24 +268,65 @@ export const execute = async (input: z.output<typeof schema>) => {
     },
     signer: account,
     nativeToken: restParams.nativeToken,
+    rollupDeploymentBlockNumber: coreContracts.deployedAtBlockNumber
+      ? BigInt(coreContracts.deployedAtBlockNumber)
+      : undefined,
   });
 
-  // Step 3: Transfer ownership
-  await transferOwnershipExecute({
-    upgradeExecutorAddress: coreContracts.upgradeExecutor,
-    newOwnerAddress,
-    inboxAddress: coreContracts.inbox,
-    childUpgradeExecutorAddress,
-    childChainId: Number(rawConfig.chainId),
-    nativeToken: restParams.nativeToken,
-    maxGasPrice,
-    publicClient: parentChainPublicClient,
-    account,
-    walletClient,
-    refundAddress,
-  });
+  // Step 3: Configure inbox allow-list (optional)
+  if (inboxAllowListParams) {
+    if (inboxAllowListParams.addresses && inboxAllowListParams.addresses.length > 0) {
+      const req = await buildSetAllowList(parentChainPublicClient, {
+        inbox: coreContracts.inbox,
+        upgradeExecutor: coreContracts.upgradeExecutor,
+        account: account.address,
+        params: {
+          addresses: inboxAllowListParams.addresses,
+          allowed: inboxAllowListParams.addresses.map(() => true),
+        },
+      });
+      const hash = await parentChainPublicClient.sendRawTransaction({
+        serializedTransaction: await account.signTransaction({
+          ...req,
+          chainId: parentChainPublicClient.chain!.id,
+        }),
+      });
+      await parentChainPublicClient.waitForTransactionReceipt({ hash });
+    }
+    if (inboxAllowListParams.enabled === true) {
+      const req = await buildSetAllowListEnabled(parentChainPublicClient, {
+        inbox: coreContracts.inbox,
+        upgradeExecutor: coreContracts.upgradeExecutor,
+        account: account.address,
+        params: { enabled: true },
+      });
+      const hash = await parentChainPublicClient.sendRawTransaction({
+        serializedTransaction: await account.signTransaction({
+          ...req,
+          chainId: parentChainPublicClient.chain!.id,
+        }),
+      });
+      await parentChainPublicClient.waitForTransactionReceipt({ hash });
+    }
+  }
 
-  // Build getChainDeploymentInfo-shaped output
+  // Step 4: Transfer ownership (optional)
+  if (ownershipTransfer) {
+    const childUpgradeExecutorAddress = tokenBridgeContracts.orbitChainContracts.upgradeExecutor;
+    await transferOwnershipExecute({
+      upgradeExecutorAddress: coreContracts.upgradeExecutor,
+      newOwnerAddress: ownershipTransfer.newOwnerAddress,
+      inboxAddress: coreContracts.inbox,
+      childUpgradeExecutorAddress,
+      childChainId: Number(rawConfig.chainId),
+      nativeToken: restParams.nativeToken,
+      maxGasPrice: ownershipTransfer.maxGasPrice,
+      publicClient: parentChainPublicClient,
+      account,
+      refundAddress: ownershipTransfer.refundAddress,
+    });
+  }
+
   const [stakeToken, parentChainIsArbitrum] = await Promise.all([
     parentChainPublicClient.readContract({
       address: coreContracts.rollup,
@@ -176,23 +338,30 @@ export const execute = async (input: z.output<typeof schema>) => {
       .catch(() => false),
   ]);
 
+  const nodeConfig =
+    nodeConfigParams && chainConfig
+      ? prepareNodeConfig({
+          chainName,
+          chainConfig,
+          coreContracts: { ...coreContracts, nativeToken: restParams.nativeToken },
+          batchPosterPrivateKey: nodeConfigParams.batchPosterPrivateKey,
+          validatorPrivateKey: nodeConfigParams.validatorPrivateKey,
+          stakeToken,
+          parentChainId: parentChainId as ParentChainId,
+          parentChainIsArbitrum,
+          parentChainRpcUrl,
+          parentChainBeaconRpcUrl: nodeConfigParams.parentChainBeaconRpcUrl,
+        })
+      : undefined;
+
   return {
-    chainInfo: {
-      chainId: chainConfig?.chainId ?? 0,
-      parentChainId,
-      parentChainIsArbitrum,
-      chainName,
-      chainConfig,
-      rollup: {
-        rollup: coreContracts.rollup,
-        bridge: coreContracts.bridge,
-        inbox: coreContracts.inbox,
-        sequencerInbox: coreContracts.sequencerInbox,
-        validatorWalletCreator: coreContracts.validatorWalletCreator,
-        stakeToken,
-        deployedAtBlockNumber: coreContracts.deployedAtBlockNumber,
-      },
-    },
+    chainName,
+    chainId: chainConfig?.chainId ?? 0,
+    chainConfig,
+    parentChainId,
+    parentChainIsArbitrum,
+    coreContracts: { ...coreContracts, stakeToken },
     tokenBridgeContracts,
+    nodeConfig,
   };
 };
