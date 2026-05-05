@@ -126,6 +126,8 @@ import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
+import { getChainContractVersions } from '../getChainContractVersions';
+import { getChainContractVersionsSchema } from './schemas/getChainContractVersions';
 
 /**
  * A scripting entry point: one schema + function pair exposed both as a CLI
@@ -340,4 +342,5 @@ export const commands: readonly Command[] = [
     deployFullChainSchema.transform((i) => [i] as const),
     deployFullChainExecute,
   ),
+  command('getChainContractVersions', getChainContractVersionsSchema, getChainContractVersions),
 ];
