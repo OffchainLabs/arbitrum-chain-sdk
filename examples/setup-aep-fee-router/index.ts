@@ -52,7 +52,7 @@ const chainOwner = privateKeyToAccount(sanitizePrivateKey(process.env.CHAIN_OWNE
 const parentChain = getParentChainFromId(Number(process.env.PARENT_CHAIN_ID));
 const parentChainPublicClient = createPublicClient({
   chain: parentChain,
-  transport: http(),
+  transport: http(process.env.PARENT_CHAIN_RPC),
 });
 
 // define chain config for the orbit chain
