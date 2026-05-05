@@ -4,6 +4,7 @@ import { runChainVersioner } from '@arbitrum/chain-actions';
 
 import { DEFAULT_CHAIN_ACTIONS_IMAGE } from './constants';
 import { runDockerCommand } from './runDockerCommand';
+import { verifyFoundryBinaries } from './utils/verifyFoundry';
 
 export type GetChainContractVersionsResult = {
   versions: Record<string, string | null>;
@@ -82,6 +83,8 @@ async function getChainContractVersionsWithNative(
   inboxAddress: Address,
   parentChainRpc: string,
 ): Promise<GetChainContractVersionsResult> {
+  await verifyFoundryBinaries();
+
   const result = await runChainVersioner(inboxAddress, parentChainRpc, true);
 
   return parseChainContractVersionsResult(result);
