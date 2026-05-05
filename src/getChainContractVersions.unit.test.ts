@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
-import { getOrbitChainContractVersions } from './getOrbitChainContractVersions';
+import { DEFAULT_CHAIN_ACTIONS_IMAGE } from './constants';
+import { getChainContractVersions } from './getChainContractVersions';
 import { runDockerCommand } from './runDockerCommand';
 import { runChainVersioner } from '@arbitrum/chain-actions';
 
@@ -31,10 +31,7 @@ describe('getOrbitChainContractVersions', () => {
     });
 
     await expect(
-      getOrbitChainContractVersions(
-        '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
-        'https://rpc.example',
-      ),
+      getChainContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
     ).resolves.toEqual({
       versions: {
         Inbox: 'v1.1.1',
@@ -63,7 +60,7 @@ describe('getOrbitChainContractVersions', () => {
     });
 
     await expect(
-      getOrbitChainContractVersions(
+      getChainContractVersions(
         '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
         'https://arb-sepolia.example/rpc',
         'docker',
@@ -99,14 +96,14 @@ describe('getOrbitChainContractVersions', () => {
       exitCode: 0,
     });
 
-    await getOrbitChainContractVersions(
+    await getChainContractVersions(
       '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
       'http://127.0.0.1:8545',
       'docker',
     );
 
     expect(runDockerCommand).toHaveBeenCalledWith({
-      image: DEFAULT_ORBIT_ACTIONS_IMAGE,
+      image: DEFAULT_CHAIN_ACTIONS_IMAGE,
       entrypoint: 'yarn',
       dockerRunArgs: ['--add-host', 'host.docker.internal:host-gateway'],
       command: ['--silent', 'orbit:contracts:version'],
@@ -127,7 +124,7 @@ describe('getOrbitChainContractVersions', () => {
     });
 
     await expect(
-      getOrbitChainContractVersions(
+      getChainContractVersions(
         '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
         'https://rpc.example',
         'docker',
@@ -146,7 +143,7 @@ describe('getOrbitChainContractVersions', () => {
       });
 
       await expect(
-        getOrbitChainContractVersions(
+        getChainContractVersions(
           '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
           'https://rpc.example',
           'docker',
@@ -164,7 +161,7 @@ describe('getOrbitChainContractVersions', () => {
     });
 
     await expect(
-      getOrbitChainContractVersions(
+      getChainContractVersions(
         '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
         'https://rpc.example',
         'docker',
@@ -181,7 +178,7 @@ describe('getOrbitChainContractVersions', () => {
     });
 
     await expect(
-      getOrbitChainContractVersions(
+      getChainContractVersions(
         '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
         'https://rpc.example',
         'docker',

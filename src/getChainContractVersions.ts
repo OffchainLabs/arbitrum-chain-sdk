@@ -2,10 +2,10 @@ import type { Address } from 'viem';
 
 import { runChainVersioner } from '@arbitrum/chain-actions';
 
-import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
+import { DEFAULT_CHAIN_ACTIONS_IMAGE } from './constants';
 import { runDockerCommand } from './runDockerCommand';
 
-export type GetOrbitChainContractVersionsResult = {
+export type GetChainContractVersionsResult = {
   versions: Record<string, string | null>;
   upgradeRecommendation: unknown;
 };
@@ -30,9 +30,9 @@ function getDockerNetworkConfig(parentChainRpc: string): {
   };
 }
 
-function parseOrbitChainContractVersionsResult(
-  result: string | GetOrbitChainContractVersionsResult,
-): GetOrbitChainContractVersionsResult {
+function parseChainContractVersionsResult(
+  result: string | GetChainContractVersionsResult,
+): GetChainContractVersionsResult {
   const parsed =
     typeof result === 'string'
       ? (() => {
@@ -53,14 +53,14 @@ function parseOrbitChainContractVersionsResult(
     throw new Error('Failed to parse Orbit chain contract versions');
   }
 
-  return parsed as GetOrbitChainContractVersionsResult;
+  return parsed as GetChainContractVersionsResult;
 }
 
-async function getOrbitChainContractVersionsWithDocker(
+async function getChainContractVersionsWithDocker(
   inboxAddress: Address,
   parentChainRpc: string,
   image: string,
-): Promise<GetOrbitChainContractVersionsResult> {
+): Promise<GetChainContractVersionsResult> {
   const dockerConfig = getDockerNetworkConfig(parentChainRpc);
 
   const { stdout } = await runDockerCommand({
@@ -75,27 +75,27 @@ async function getOrbitChainContractVersionsWithDocker(
     },
   });
 
-  return parseOrbitChainContractVersionsResult(stdout);
+  return parseChainContractVersionsResult(stdout);
 }
 
-async function getOrbitChainContractVersionsWithNative(
+async function getChainContractVersionsWithNative(
   inboxAddress: Address,
   parentChainRpc: string,
-): Promise<GetOrbitChainContractVersionsResult> {
+): Promise<GetChainContractVersionsResult> {
   const result = await runChainVersioner(inboxAddress, parentChainRpc, true);
 
-  return parseOrbitChainContractVersionsResult(result);
+  return parseChainContractVersionsResult(result);
 }
 
-export async function getOrbitChainContractVersions(
+export async function getChainContractVersions(
   inboxAddress: Address,
   parentChainRpc: string,
   executionMode = 'native',
-  image = DEFAULT_ORBIT_ACTIONS_IMAGE,
-): Promise<GetOrbitChainContractVersionsResult> {
+  image = DEFAULT_CHAIN_ACTIONS_IMAGE,
+): Promise<GetChainContractVersionsResult> {
   if (executionMode.toLowerCase() === 'docker') {
-    return getOrbitChainContractVersionsWithDocker(inboxAddress, parentChainRpc, image);
+    return getChainContractVersionsWithDocker(inboxAddress, parentChainRpc, image);
   }
 
-  return getOrbitChainContractVersionsWithNative(inboxAddress, parentChainRpc);
+  return getChainContractVersionsWithNative(inboxAddress, parentChainRpc);
 }
