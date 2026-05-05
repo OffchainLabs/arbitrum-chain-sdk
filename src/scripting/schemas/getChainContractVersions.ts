@@ -11,9 +11,11 @@ export const getChainContractVersionsSchema = z
     image: z.string().optional(),
   })
   .strict()
-  .transform((input): Parameters<typeof getChainContractVersions> => [
-    input.inboxAddress,
-    input.parentChainRpc,
-    input.executionMode,
-    input.image,
-  ]);
+  .transform(
+    (input): Parameters<typeof getChainContractVersions> => [
+      input.inboxAddress,
+      input.parentChainRpc,
+      input.executionMode,
+      input.image,
+    ],
+  );
