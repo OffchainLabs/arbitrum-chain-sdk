@@ -3,24 +3,24 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
 import { getOrbitChainContractVersions } from './getOrbitChainContractVersions';
 import { runDockerCommand } from './runDockerCommand';
-import { runOrbitVersioner } from 'orbit-actions';
+import { runChainVersioner } from '@arbitrum/chain-actions';
 
 vi.mock('./runDockerCommand', () => ({
   runDockerCommand: vi.fn(),
 }));
 
-vi.mock('orbit-actions', () => ({
-  runOrbitVersioner: vi.fn(),
+vi.mock('@arbitrum/chain-actions', () => ({
+  runChainVersioner: vi.fn(),
 }));
 
 describe('getOrbitChainContractVersions', () => {
   beforeEach(() => {
     vi.mocked(runDockerCommand).mockReset();
-    vi.mocked(runOrbitVersioner).mockReset();
+    vi.mocked(runChainVersioner).mockReset();
   });
 
   it('uses the native orbit-actions versioner by default', async () => {
-    vi.mocked(runOrbitVersioner).mockResolvedValueOnce({
+    vi.mocked(runChainVersioner).mockResolvedValueOnce({
       versions: {
         Inbox: 'v1.1.1',
         RollupProxy: 'v1.1.1',
@@ -45,7 +45,7 @@ describe('getOrbitChainContractVersions', () => {
       },
     });
 
-    expect(runOrbitVersioner).toHaveBeenCalledWith(
+    expect(runChainVersioner).toHaveBeenCalledWith(
       '0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9',
       'https://rpc.example',
       true,

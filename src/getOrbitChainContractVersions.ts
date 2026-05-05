@@ -1,6 +1,6 @@
 import type { Address } from 'viem';
 
-import { runOrbitVersioner } from 'orbit-actions';
+import { runChainVersioner } from '@arbitrum/chain-actions';
 
 import { DEFAULT_ORBIT_ACTIONS_IMAGE } from './constants';
 import { runDockerCommand } from './runDockerCommand';
@@ -82,7 +82,7 @@ async function getOrbitChainContractVersionsWithNative(
   inboxAddress: Address,
   parentChainRpc: string,
 ): Promise<GetOrbitChainContractVersionsResult> {
-  const result = await runOrbitVersioner(inboxAddress, parentChainRpc, true);
+  const result = await runChainVersioner(inboxAddress, parentChainRpc, true);
 
   return parseOrbitChainContractVersionsResult(result);
 }

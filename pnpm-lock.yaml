@@ -66,7 +66,7 @@ importers:
         version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
       vitest:
         specifier: ^3.2.4
-        version: 3.2.4(@types/node@20.9.0)
+        version: 3.2.4(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3)
 
   examples/create-rollup-custom-fee-token:
     devDependencies:
@@ -191,6 +191,9 @@ importers:
 
   src:
     dependencies:
+      '@arbitrum/chain-actions':
+        specifier: 1.0.0-alpha.1
+        version: 1.0.0-alpha.1
       '@arbitrum/sdk':
         specifier: ^4.0.4
         version: 4.0.4
@@ -215,9 +218,6 @@ importers:
       ethers:
         specifier: ^5.7.2
         version: 5.7.2
-      orbit-actions:
-        specifier: file:../../orbit-actions/orbit-actions-v1.0.0.tgz
-        version: file:../orbit-actions/orbit-actions-v1.0.0.tgz
       viem:
         specifier: 1.20.0
         version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
@@ -232,6 +232,9 @@ packages:
 
   '@adraffy/ens-normalize@1.10.1':
     resolution: {integrity: sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==}
+
+  '@arbitrum/chain-actions@1.0.0-alpha.1':
+    resolution: {integrity: sha512-xAg2C8Mh4eiv0+5NE/b1vRlsJNLgXUEPL08OgO3/F1d/neh/O3E7m71iMUY/yNXbBIwy4TjpNJ2vH0GVTgVk8Q==}
 
   '@arbitrum/nitro-contracts@1.1.1':
     resolution: {integrity: sha512-4Tyk3XVHz+bm8UujUC78LYSw3xAxyYvBCxfEX4z3qE4/ww7Qck/rmce5gbHMzQjArEAzAP2YSfYIFuIFuRXtfg==}
@@ -2176,10 +2179,6 @@ packages:
     resolution: {integrity: sha512-ERAyNnZOfqM+Ao3RAvIXkYh5joP220yf59gVe2X/cI6SiCxIdi4c9HZKZD8R6q/RDXEje1THBju6iExiSsgJaQ==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
-  orbit-actions@file:../orbit-actions/orbit-actions-v1.0.0.tgz:
-    resolution: {integrity: sha512-T1IZj8dqXqquJDaL9YHwjHAlzUVy+BV22jSiRBwIoE1b56OR4A4eNtV0S7k5m2uabJgR8WW8UrXJOR15fEcmtQ==, tarball: file:../orbit-actions/orbit-actions-v1.0.0.tgz}
-    version: 1.0.0
-
   p-limit@3.1.0:
     resolution: {integrity: sha512-TYOanM3wGwNGsZN2cVTYPArw454xnXj5qmWF1bEoAc4+cU/ol7GVh7odevjp1FNHduHc3KZMcFduxU5Xc6uJRQ==}
     engines: {node: '>=10'}
@@ -2639,8 +2638,8 @@ packages:
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
-  vite@7.3.2:
-    resolution: {integrity: sha512-Bby3NOsna2jsjfLVOHKes8sGwgl4TT0E6vvpYgnAYDIF/tie7MRaFthmKuHx1NSXjiTueXH3do80FMQgvEktRg==}
+  vite@7.3.1:
+    resolution: {integrity: sha512-w+N7Hifpc3gRjZ63vYBXA56dvvRlNWRczTdmCBBa+CotUzAPf5b7YMdMR/8CQoeYE5LX3W4wj6RYTgonm1b9DA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -2807,6 +2806,13 @@ snapshots:
   '@adraffy/ens-normalize@1.10.0': {}
 
   '@adraffy/ens-normalize@1.10.1': {}
+
+  '@arbitrum/chain-actions@1.0.0-alpha.1':
+    dependencies:
+      ethers: 6.13.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@arbitrum/nitro-contracts@1.1.1':
     dependencies:
@@ -3622,13 +3628,13 @@ snapshots:
       chai: 5.2.0
       tinyrainbow: 2.0.0
 
-  '@vitest/mocker@3.2.4(vite@7.3.1(@types/node@20.9.0))':
+  '@vitest/mocker@3.2.4(vite@7.3.1(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3))':
     dependencies:
       '@vitest/spy': 3.2.4
       estree-walker: 3.0.3
       magic-string: 0.30.17
     optionalDependencies:
-      vite: 7.3.1(@types/node@20.9.0)
+      vite: 7.3.1(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3)
 
   '@vitest/pretty-format@3.2.4':
     dependencies:
@@ -5030,13 +5036,6 @@ snapshots:
       strip-ansi: 7.1.0
       wcwidth: 1.0.1
 
-  orbit-actions@file:../orbit-actions/orbit-actions-v1.0.0.tgz:
-    dependencies:
-      ethers: 6.13.1
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-
   p-limit@3.1.0:
     dependencies:
       yocto-queue: 0.1.0
@@ -5567,13 +5566,13 @@ snapshots:
       - utf-8-validate
       - zod
 
-  vite-node@3.2.4(@types/node@20.9.0):
+  vite-node@3.2.4(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3):
     dependencies:
       cac: 6.7.14
       debug: 4.4.3
       es-module-lexer: 1.7.0
       pathe: 2.0.3
-      vite: 7.3.1(@types/node@20.9.0)
+      vite: 7.3.1(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3)
     transitivePeerDependencies:
       - '@types/node'
       - jiti
@@ -5588,7 +5587,7 @@ snapshots:
       - tsx
       - yaml
 
-  vite@7.3.1(@types/node@20.9.0):
+  vite@7.3.1(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3):
     dependencies:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.4)
@@ -5602,11 +5601,11 @@ snapshots:
       lightningcss: 1.32.0
       yaml: 2.8.3
 
-  vitest@3.2.4(@types/node@20.9.0):
+  vitest@3.2.4(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3):
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
-      '@vitest/mocker': 3.2.4(vite@7.3.1(@types/node@20.9.0))
+      '@vitest/mocker': 3.2.4(vite@7.3.1(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3))
       '@vitest/pretty-format': 3.2.4
       '@vitest/runner': 3.2.4
       '@vitest/snapshot': 3.2.4
@@ -5624,8 +5623,8 @@ snapshots:
       tinyglobby: 0.2.15
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
-      vite: 7.3.1(@types/node@20.9.0)
-      vite-node: 3.2.4(@types/node@20.9.0)
+      vite: 7.3.1(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3)
+      vite-node: 3.2.4(@types/node@20.9.0)(lightningcss@1.32.0)(yaml@2.8.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.9.0
