@@ -14,7 +14,7 @@
 .env.*
 
 # Git
-**/.git
+.git
 .gitignore
 .github
 
@@ -31,3 +31,8 @@
 # Docker
 Dockerfile
 .dockerignore
+README.md
+
+# Temp
+*.log
+.DS_Store
