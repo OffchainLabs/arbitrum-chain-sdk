@@ -1,0 +1,28 @@
+# Dependencies (will be installed fresh in container)
+node_modules/
+
+# Build artifacts (will be built fresh in container)
+out/
+cache_forge/
+cache/
+artifacts/
+typechain-types/
+
+# Environment files (contain secrets)
+/.env
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Test artifacts
+broadcast/
+coverage/
+
+# Docker
+Dockerfile
+.dockerignore
