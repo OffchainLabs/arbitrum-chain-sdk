@@ -113,6 +113,19 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  examples/get-chain-contract-versions:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
+    devDependencies:
+      '@types/node':
+        specifier: ^20.9.0
+        version: 20.9.0
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+
   examples/prepare-node-config:
     devDependencies:
       '@types/node':
@@ -178,6 +191,9 @@ importers:
 
   src:
     dependencies:
+      '@arbitrum/chain-actions':
+        specifier: 1.0.0-alpha.1
+        version: 1.0.0-alpha.1
       '@arbitrum/sdk':
         specifier: ^4.0.4
         version: 4.0.4
@@ -216,6 +232,9 @@ packages:
 
   '@adraffy/ens-normalize@1.10.1':
     resolution: {integrity: sha512-96Z2IP3mYmF1Xg2cDm8f1gWGf/HUVedQ3FMifV4kG/PQ4yEP51xDtRAEfhVNt5f/uzpNkZHwWQuUcu6D6K+Ekw==}
+
+  '@arbitrum/chain-actions@1.0.0-alpha.1':
+    resolution: {integrity: sha512-xAg2C8Mh4eiv0+5NE/b1vRlsJNLgXUEPL08OgO3/F1d/neh/O3E7m71iMUY/yNXbBIwy4TjpNJ2vH0GVTgVk8Q==}
 
   '@arbitrum/nitro-contracts@1.1.1':
     resolution: {integrity: sha512-4Tyk3XVHz+bm8UujUC78LYSw3xAxyYvBCxfEX4z3qE4/ww7Qck/rmce5gbHMzQjArEAzAP2YSfYIFuIFuRXtfg==}
@@ -2787,6 +2806,13 @@ snapshots:
   '@adraffy/ens-normalize@1.10.0': {}
 
   '@adraffy/ens-normalize@1.10.1': {}
+
+  '@arbitrum/chain-actions@1.0.0-alpha.1':
+    dependencies:
+      ethers: 6.13.1
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   '@arbitrum/nitro-contracts@1.1.1':
     dependencies:
