@@ -15,7 +15,13 @@ function runVersionCommand(binary: 'forge' | 'cast'): Promise<string> {
   });
 }
 
-export async function verifyFoundryBinaries() {
+export type VerifyFoundryBinariesParams = {
+  throwIfMissing?: boolean;
+};
+
+export async function verifyFoundryBinaries({
+  throwIfMissing = true,
+}: VerifyFoundryBinariesParams = {}) {
   const results = await Promise.allSettled(
     FOUNDRY_BINARIES.map((binary) => runVersionCommand(binary)),
   );
@@ -25,6 +31,12 @@ export async function verifyFoundryBinaries() {
   const stableReleaseInstalled = results.every(
     (result) => result.status === 'fulfilled' && result.value.includes('-stable'),
   );
+
+  if (throwIfMissing && !binariesPresent) {
+    throw new Error(
+      'Foundry is required to run this operation. Install Foundry and make sure forge and cast are available on PATH.',
+    );
+  }
 
   return {
     binariesPresent,

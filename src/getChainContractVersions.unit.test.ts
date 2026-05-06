@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_CHAIN_ACTIONS_IMAGE } from './constants';
 import { getChainContractVersions } from './getChainContractVersions';
 import { runDockerCommand } from './runDockerCommand';
+import { verifyFoundryBinaries } from './utils/verifyFoundry';
 import { runChainVersioner } from '@arbitrum/chain-actions';
 
 vi.mock('./runDockerCommand', () => ({
@@ -13,10 +14,19 @@ vi.mock('@arbitrum/chain-actions', () => ({
   runChainVersioner: vi.fn(),
 }));
 
+vi.mock('./utils/verifyFoundry', () => ({
+  verifyFoundryBinaries: vi.fn(),
+}));
+
 describe('getOrbitChainContractVersions', () => {
   beforeEach(() => {
     vi.mocked(runDockerCommand).mockReset();
     vi.mocked(runChainVersioner).mockReset();
+    vi.mocked(verifyFoundryBinaries).mockReset();
+    vi.mocked(verifyFoundryBinaries).mockResolvedValue({
+      binariesPresent: true,
+      stableReleaseInstalled: true,
+    });
   });
 
   it('uses the native orbit-actions versioner by default', async () => {
@@ -47,6 +57,24 @@ describe('getOrbitChainContractVersions', () => {
       'https://rpc.example',
       true,
     );
+    expect(verifyFoundryBinaries).toHaveBeenCalledWith();
+    expect(runDockerCommand).not.toHaveBeenCalled();
+  });
+
+  it('throws a clear error before running the native versioner when Foundry is unavailable', async () => {
+    vi.mocked(verifyFoundryBinaries).mockRejectedValueOnce(
+      new Error(
+        'Foundry is required to run this operation. Install Foundry and make sure forge and cast are available on PATH.',
+      ),
+    );
+
+    await expect(
+      getChainContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
+    ).rejects.toThrow(
+      'Foundry is required to run this operation. Install Foundry and make sure forge and cast are available on PATH.',
+    );
+
+    expect(runChainVersioner).not.toHaveBeenCalled();
     expect(runDockerCommand).not.toHaveBeenCalled();
   });
 
@@ -85,6 +113,7 @@ describe('getOrbitChainContractVersions', () => {
         JSON_OUTPUT: 'true',
       },
     });
+    expect(verifyFoundryBinaries).not.toHaveBeenCalled();
   });
 
   it('rewrites a local RPC so Docker can reach the host', async () => {
