@@ -1,17 +1,33 @@
-.git
-.github
+# Dependencies (will be installed fresh in container)
 **/node_modules
+
+# Build artifacts (will be built fresh in container)
+**/cache_forge
+**/cache
+**/artifacts
+**/typechain-types
 **/dist
 **/tsconfig.tsbuildinfo
 
+# Environment files (contain secrets)
+.env
+.env.*
+
+# Git
+**/.git
+.gitignore
+.github
+
+# IDE
+.vscode/
+.idea/
+
+# Test artifacts
+**/broadcast
+**/coverage
 **/*.test.ts
 **/__snapshots__
 
-.env
-.env.*
-*.log
-.DS_Store
-
+# Docker
 Dockerfile
 .dockerignore
-README.md
