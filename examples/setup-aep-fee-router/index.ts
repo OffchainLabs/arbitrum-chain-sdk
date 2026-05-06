@@ -38,6 +38,12 @@ if (
   );
 }
 
+if (typeof process.env.PARENT_CHAIN_RPC === 'undefined' || process.env.PARENT_CHAIN_RPC === '') {
+  console.warn(
+    `Warning: you may encounter timeout errors while running the script with the default rpc endpoint. Please provide the "PARENT_CHAIN_RPC" environment variable instead.`,
+  );
+}
+
 // Mandatory recipient addresses
 const recipients = {
   infraFeeDistributorRecipient: getAddress(process.env.INFRA_FEE_DISTRIBUTOR_RECIPIENT),
