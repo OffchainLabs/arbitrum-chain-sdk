@@ -162,24 +162,10 @@ export const chainConfigInputSchema = z
     clique: z.object({ period: z.literal(0), epoch: z.literal(0) }).optional(),
   })
   .transform((input) => {
-    // Build only from supplied fields. Including a key with `undefined` here
-    // would later spread over and clobber prepareChainConfig's defaults
-    // (InitialArbOSVersion, MaxCodeSize, MaxInitCodeSize, DataAvailabilityCommittee).
-    const arb = input.arbitrum;
-    return {
-      chainId: input.chainId,
-      arbitrum: {
-        ...(arb?.InitialChainOwner !== undefined && { InitialChainOwner: arb.InitialChainOwner }),
-        ...(arb?.InitialArbOSVersion !== undefined && {
-          InitialArbOSVersion: arb.InitialArbOSVersion,
-        }),
-        ...(arb?.DataAvailabilityCommittee !== undefined && {
-          DataAvailabilityCommittee: arb.DataAvailabilityCommittee,
-        }),
-        ...(arb?.MaxCodeSize !== undefined && { MaxCodeSize: arb.MaxCodeSize }),
-        ...(arb?.MaxInitCodeSize !== undefined && { MaxInitCodeSize: arb.MaxInitCodeSize }),
-      },
-    };
+    if (!input.arbitrum) return { chainId: input.chainId, arbitrum: {} };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { EnableArbOS, AllowDebugPrecompiles, GenesisBlockNum, ...arbitrum } = input.arbitrum;
+    return { chainId: input.chainId, arbitrum };
   });
 
 const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema.required().extend({

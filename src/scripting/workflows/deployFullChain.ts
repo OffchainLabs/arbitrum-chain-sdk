@@ -167,10 +167,6 @@ export const schema = inputSchema
     } = input.createRollupParams;
 
     const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
-    // Always produce chainConfigParams. When the caller omits chainConfig, fall
-    // back to the same shape createRollupPrepareDeploymentParamsConfig would
-    // synthesize internally -- hoisting it here guarantees the local chainConfig
-    // matches the deployed one and is available for prepareNodeConfig below.
     const chainConfigParams = rawChainConfigParams
       ? {
           ...rawChainConfigParams,
