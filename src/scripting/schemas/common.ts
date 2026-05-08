@@ -159,9 +159,7 @@ export const chainConfigInputSchema = z
     muirGlacierBlock: z.literal(0).optional(),
     berlinBlock: z.literal(0).optional(),
     londonBlock: z.literal(0).optional(),
-    clique: z
-      .object({ period: z.literal(0), epoch: z.literal(0) })
-      .optional(),
+    clique: z.object({ period: z.literal(0), epoch: z.literal(0) }).optional(),
   })
   .transform((input) => {
     // Build only from supplied fields. Including a key with `undefined` here

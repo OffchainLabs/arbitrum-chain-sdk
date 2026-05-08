@@ -837,7 +837,9 @@ export async function assertSchemaCoverage<T extends ZodType>(
 
   if (unexpectedDead.length > 0) {
     throw new Error(
-      `Dead schema fields detected (no effect on transform output):\n  ${unexpectedDead.join('\n  ')}`,
+      `Dead schema fields detected (no effect on transform output):\n  ${unexpectedDead.join(
+        '\n  ',
+      )}`,
     );
   }
 }

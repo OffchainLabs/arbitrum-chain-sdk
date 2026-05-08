@@ -224,7 +224,8 @@ describe('chainConfigInputSchema', () => {
   it('drops unknown top-level fields silently', () => {
     const result = chainConfigInputSchema.safeParse({ chainId: 42, futureField: 'whatever' });
     expect(result.success).toBe(true);
-    if (result.success) expect((result.data as Record<string, unknown>).futureField).toBeUndefined();
+    if (result.success)
+      expect((result.data as Record<string, unknown>).futureField).toBeUndefined();
   });
 
   it('rejects unknown arbitrum fields (catches typos like InitialChainOnwer)', () => {
