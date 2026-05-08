@@ -140,6 +140,16 @@ importers:
         version: 5.2.2
 
   examples/setup-aep-fee-router:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
+      dotenv:
+        specifier: ^16.3.1
+        version: 16.3.1
+      viem:
+        specifier: 1.20.0
+        version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
