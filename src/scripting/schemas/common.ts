@@ -163,16 +163,26 @@ export const chainConfigInputSchema = z
       .object({ period: z.literal(0), epoch: z.literal(0) })
       .optional(),
   })
-  .transform((input) => ({
-    chainId: input.chainId,
-    arbitrum: {
-      InitialChainOwner: input.arbitrum?.InitialChainOwner,
-      InitialArbOSVersion: input.arbitrum?.InitialArbOSVersion,
-      DataAvailabilityCommittee: input.arbitrum?.DataAvailabilityCommittee,
-      MaxCodeSize: input.arbitrum?.MaxCodeSize,
-      MaxInitCodeSize: input.arbitrum?.MaxInitCodeSize,
-    },
-  }));
+  .transform((input) => {
+    // Build only from supplied fields. Including a key with `undefined` here
+    // would later spread over and clobber prepareChainConfig's defaults
+    // (InitialArbOSVersion, MaxCodeSize, MaxInitCodeSize, DataAvailabilityCommittee).
+    const arb = input.arbitrum;
+    return {
+      chainId: input.chainId,
+      arbitrum: {
+        ...(arb?.InitialChainOwner !== undefined && { InitialChainOwner: arb.InitialChainOwner }),
+        ...(arb?.InitialArbOSVersion !== undefined && {
+          InitialArbOSVersion: arb.InitialArbOSVersion,
+        }),
+        ...(arb?.DataAvailabilityCommittee !== undefined && {
+          DataAvailabilityCommittee: arb.DataAvailabilityCommittee,
+        }),
+        ...(arb?.MaxCodeSize !== undefined && { MaxCodeSize: arb.MaxCodeSize }),
+        ...(arb?.MaxInitCodeSize !== undefined && { MaxInitCodeSize: arb.MaxInitCodeSize }),
+      },
+    };
+  });
 
 const chainConfigArbitrumParamsSchema = prepareChainConfigArbitrumParamsSchema.required().extend({
   EnableArbOS: z.boolean(),

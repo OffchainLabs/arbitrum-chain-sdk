@@ -88,10 +88,18 @@ export function refineV3Dot2CustomGenesis(
   pathToConfig: readonly (string | number)[],
 ): void {
   if (!config.genesisAssertionState) return;
+  // Any deviation from the default assertion state means a custom genesis was
+  // used. Comparing the full state (not just bytes32Vals + u64Vals[0]) closes
+  // gaps where machineStatus, endHistoryRoot, or u64Vals[1] are populated --
+  // those would otherwise skip the dataCostEstimate / chainConfig validation.
+  const s = config.genesisAssertionState;
   const isCustomGenesis =
-    config.genesisAssertionState.globalState.bytes32Vals[0] !== zeroHash ||
-    config.genesisAssertionState.globalState.bytes32Vals[1] !== zeroHash ||
-    config.genesisAssertionState.globalState.u64Vals[0] !== BigInt(0);
+    s.globalState.bytes32Vals[0] !== zeroHash ||
+    s.globalState.bytes32Vals[1] !== zeroHash ||
+    s.globalState.u64Vals[0] !== BigInt(0) ||
+    s.globalState.u64Vals[1] !== BigInt(0) ||
+    s.machineStatus !== 1 ||
+    s.endHistoryRoot !== zeroHash;
   if (!isCustomGenesis) return;
 
   if (config.dataCostEstimate === undefined || config.dataCostEstimate === BigInt(0)) {

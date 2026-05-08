@@ -167,6 +167,10 @@ export const schema = inputSchema
     } = input.createRollupParams;
 
     const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
+    // Always produce chainConfigParams. When the caller omits chainConfig, fall
+    // back to the same shape createRollupPrepareDeploymentParamsConfig would
+    // synthesize internally -- hoisting it here guarantees the local chainConfig
+    // matches the deployed one and is available for prepareNodeConfig below.
     const chainConfigParams = rawChainConfigParams
       ? {
           ...rawChainConfigParams,
@@ -175,9 +179,12 @@ export const schema = inputSchema
             InitialChainOwner: rawChainConfigParams.arbitrum?.InitialChainOwner ?? account.address,
           },
         }
-      : undefined;
+      : {
+          chainId: Number(restConfigRest.chainId),
+          arbitrum: { InitialChainOwner: account.address },
+        };
 
-    const isAnytrust = chainConfigParams?.arbitrum?.DataAvailabilityCommittee === true;
+    const isAnytrust = chainConfigParams.arbitrum.DataAvailabilityCommittee === true;
 
     const DEFAULT_KEYSET: `0x${string}` =
       '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
@@ -236,9 +243,7 @@ export const execute = async (input: z.output<typeof schema>) => {
     parentChainRpcUrl,
   } = input;
 
-  const chainConfig: ChainConfig | undefined = chainConfigParams
-    ? prepareChainConfig(chainConfigParams)
-    : undefined;
+  const chainConfig: ChainConfig = prepareChainConfig(chainConfigParams);
   const config = createRollupPrepareDeploymentParamsConfig(parentChainPublicClient, {
     ...rawConfig,
     chainConfig,
@@ -338,25 +343,24 @@ export const execute = async (input: z.output<typeof schema>) => {
       .catch(() => false),
   ]);
 
-  const nodeConfig =
-    nodeConfigParams && chainConfig
-      ? prepareNodeConfig({
-          chainName,
-          chainConfig,
-          coreContracts: { ...coreContracts, nativeToken: restParams.nativeToken },
-          batchPosterPrivateKey: nodeConfigParams.batchPosterPrivateKey,
-          validatorPrivateKey: nodeConfigParams.validatorPrivateKey,
-          stakeToken,
-          parentChainId: parentChainId as ParentChainId,
-          parentChainIsArbitrum,
-          parentChainRpcUrl,
-          parentChainBeaconRpcUrl: nodeConfigParams.parentChainBeaconRpcUrl,
-        })
-      : undefined;
+  const nodeConfig = nodeConfigParams
+    ? prepareNodeConfig({
+        chainName,
+        chainConfig,
+        coreContracts: { ...coreContracts, nativeToken: restParams.nativeToken },
+        batchPosterPrivateKey: nodeConfigParams.batchPosterPrivateKey,
+        validatorPrivateKey: nodeConfigParams.validatorPrivateKey,
+        stakeToken,
+        parentChainId: parentChainId as ParentChainId,
+        parentChainIsArbitrum,
+        parentChainRpcUrl,
+        parentChainBeaconRpcUrl: nodeConfigParams.parentChainBeaconRpcUrl,
+      })
+    : undefined;
 
   return {
     chainName,
-    chainId: chainConfig?.chainId ?? 0,
+    chainId: chainConfig.chainId,
     chainConfig,
     parentChainId,
     parentChainIsArbitrum,

@@ -96,6 +96,26 @@ describe('chainConfigInputSchema', () => {
     if (result.success) expect(result.data).toEqual({ chainId: 42, arbitrum: {} });
   });
 
+  // toEqual treats {x: undefined} and {} as equal -- assert on Object.keys to
+  // catch undefined own-property keys that would clobber prepareChainConfig
+  // defaults (InitialArbOSVersion, MaxCodeSize, MaxInitCodeSize) when spread.
+  it('omits arbitrum fields the caller did not supply (no undefined own-props)', () => {
+    const result = chainConfigInputSchema.safeParse({ chainId: 42 });
+    expect(result.success).toBe(true);
+    if (result.success) expect(Object.keys(result.data.arbitrum)).toEqual([]);
+  });
+
+  it('only includes supplied tunable arbitrum keys', () => {
+    const result = chainConfigInputSchema.safeParse({
+      chainId: 42,
+      arbitrum: { InitialChainOwner: OWNER },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(Object.keys(result.data.arbitrum)).toEqual(['InitialChainOwner']);
+    }
+  });
+
   it('accepts the tunable arbitrum fields and forwards them', () => {
     const result = chainConfigInputSchema.safeParse({
       chainId: 42,
