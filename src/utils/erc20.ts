@@ -50,7 +50,7 @@ export async function approve<TChain extends Chain | undefined>({
   publicClient,
   walletClient,
 }: ApproveProps<TChain>) {
-  const account = walletClient.account?.address;
+  const account = walletClient.account;
 
   if (typeof account === 'undefined') {
     throw new Error('[utils/erc20::approve] account is undefined');

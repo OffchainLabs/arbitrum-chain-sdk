@@ -7,7 +7,7 @@ import {
   privateKeySchema,
 } from './common';
 
-const recipientSchema = z.object({
+const recipientSchema = z.strictObject({
   account: addressSchema,
   weight: bigintSchema,
 });

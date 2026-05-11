@@ -13,6 +13,40 @@ import { commands } from './commands';
 const CONSENSUS_V10_WASM_MODULE_ROOT =
   '0x6b94a7fc388fd8ef3def759297828dc311761e88d8179c7ee8d3887dc554f3c3';
 
+/**
+ * A fully-populated `chainConfigSchema`-shaped fixture, used by the override
+ * for `prepareDeploymentParamsConfigV32` where chainConfig must satisfy the
+ * strict schema (deployFullChain/deployNewChain use a relaxed shape).
+ */
+const FULL_CHAIN_CONFIG = {
+  chainId: 99999,
+  homesteadBlock: 0,
+  daoForkBlock: null,
+  daoForkSupport: true,
+  eip150Block: 0,
+  eip150Hash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+  eip155Block: 0,
+  eip158Block: 0,
+  byzantiumBlock: 0,
+  constantinopleBlock: 0,
+  petersburgBlock: 0,
+  istanbulBlock: 0,
+  muirGlacierBlock: 0,
+  berlinBlock: 0,
+  londonBlock: 0,
+  clique: { period: 0, epoch: 0 },
+  arbitrum: {
+    EnableArbOS: true,
+    AllowDebugPrecompiles: false,
+    DataAvailabilityCommittee: false,
+    InitialArbOSVersion: 51,
+    InitialChainOwner: '0x' + '1'.repeat(40),
+    GenesisBlockNum: 0,
+    MaxCodeSize: 24576,
+    MaxInitCodeSize: 49152,
+  },
+};
+
 /** Per-command coverage configuration. Keyed by command name. */
 type CoverageConfig = {
   /**
@@ -30,7 +64,50 @@ type CoverageConfig = {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   overrides?: readonly CoverageOverride<ZodType<any>>[];
+  /**
+   * Dead-field strings (in the error-message format) to skip -- typically
+   * `z.literal(...)` validation gates whose only role is rejecting wrong
+   * values, not carrying data through the transform.
+   */
+  skip?: readonly string[];
+  /**
+   * Paired-mutation entries for leaves with cross-field invariants. When the
+   * harness mutates a key listed here, it also updates the named sibling
+   * leaves to values derived from the mutated value, so the new value
+   * survives `parse` and the SDK actually sees it.
+   */
+  mutations?: Readonly<
+    Record<string, Readonly<Record<string, (mutatedValue: unknown) => unknown>>>
+  >;
 };
+
+// Validator-only fields on `chainConfigInputSchema` -- accepted (so callers can
+// paste a full chainConfig from genesis.json without filtering) but validated
+// against the single value Arbitrum requires and otherwise dropped. Their
+// presence/absence cannot affect the transform output, which the coverage
+// fuzzer correctly identifies; we list them here as expected-dead.
+const CHAIN_CONFIG_VALIDATOR_FIELDS = [
+  'arbitrum.EnableArbOS',
+  'arbitrum.AllowDebugPrecompiles',
+  'arbitrum.GenesisBlockNum',
+  'homesteadBlock',
+  'daoForkBlock',
+  'daoForkSupport',
+  'eip150Block',
+  'eip150Hash',
+  'eip155Block',
+  'eip158Block',
+  'byzantiumBlock',
+  'constantinopleBlock',
+  'petersburgBlock',
+  'istanbulBlock',
+  'muirGlacierBlock',
+  'berlinBlock',
+  'londonBlock',
+  'clique',
+] as const;
+const chainConfigGateSkips = (chainConfigPath: string): readonly string[] =>
+  CHAIN_CONFIG_VALIDATOR_FIELDS.map((f) => `${chainConfigPath}.${f} (presence)`);
 
 const coverageConfig: Record<string, CoverageConfig> = {
   getConsensusReleaseByVersion: {
@@ -43,6 +120,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
     samples: { wasmModuleRoot: CONSENSUS_V10_WASM_MODULE_ROOT },
   },
   deployNewChain: {
+    skip: chainConfigGateSkips('params.config.chainConfig'),
     // `execute` only consults `keyset` when `chainConfig.arbitrum.DataAvailabilityCommittee`
     // is true; the schema enforces that via a superRefine. Supply both so
     // toggling `params.keyset` actually exercises the function's keyset path.
@@ -69,6 +147,69 @@ const coverageConfig: Record<string, CoverageConfig> = {
           };
         },
       },
+      // Custom genesis (populated genesisAssertionState) requires non-zero
+      // dataCostEstimate, a supplied chainConfig, and explicit values for the
+      // tunable arbitrum fields (per refineV3Dot2CustomGenesis -- letting any
+      // fall through to SDK defaults breaks the precomputed genesis hash).
+      {
+        matches: (k) =>
+          k === 'params.config.genesisAssertionState' ||
+          k.startsWith('params.config.genesisAssertionState.'),
+        apply: (base) => {
+          const b = base as { params: { config: Record<string, unknown> } };
+          return {
+            ...b,
+            params: {
+              ...b.params,
+              config: {
+                ...b.params.config,
+                dataCostEstimate: '1000000000',
+                chainConfig: {
+                  chainId: 99999,
+                  arbitrum: {
+                    InitialChainOwner: '0x' + '1'.repeat(40),
+                    InitialArbOSVersion: 51,
+                    DataAvailabilityCommittee: false,
+                    MaxCodeSize: 24576,
+                    MaxInitCodeSize: 49152,
+                  },
+                },
+              },
+            },
+          };
+        },
+      },
+    ],
+    // refineChainIdMatch requires the two chainIds to agree. samples sets
+    // matching values for the base fixture; mutations keeps them paired when
+    // either is mutated so the new value reaches the SDK call instead of
+    // failing parse.
+    samples: {
+      'params.config.chainId': '99999',
+      'params.config.chainConfig.chainId': 99999,
+    },
+    mutations: {
+      'params.config.chainId': {
+        'params.config.chainConfig.chainId': (v) => Number(v),
+      },
+      'params.config.chainConfig.chainId': {
+        'params.config.chainId': (v) => String(v),
+      },
+    },
+  },
+  prepareDeploymentParamsConfigV32: {
+    // Custom genesis (populated genesisAssertionState) requires both a
+    // non-zero dataCostEstimate and a supplied chainConfig per
+    // refineV3Dot2CustomGenesis. chainConfig here is the strict full schema.
+    overrides: [
+      {
+        matches: (k) => k === 'genesisAssertionState' || k.startsWith('genesisAssertionState.'),
+        apply: (base) => ({
+          ...(base as object),
+          dataCostEstimate: '1000000000',
+          chainConfig: FULL_CHAIN_CONFIG,
+        }),
+      },
     ],
   },
   transferOwnership: {
@@ -85,9 +226,12 @@ const coverageConfig: Record<string, CoverageConfig> = {
     ],
   },
   initializeTokenBridge: {
+    // `rollupDeploymentBlockNumber` is only read inside the
+    // `nativeToken === zeroAddress` branch (the WETH-gateway path), so it
+    // needs the same zero-address context that the nativeToken test uses.
     overrides: [
       {
-        matches: (k) => k === 'nativeToken',
+        matches: (k) => k === 'nativeToken' || k === 'rollupDeploymentBlockNumber',
         apply: (base) => ({
           ...(base as object),
           nativeToken: '0x0000000000000000000000000000000000000000',
@@ -96,19 +240,20 @@ const coverageConfig: Record<string, CoverageConfig> = {
     ],
   },
   deployFullChain: {
-    // `execute` only exercises keyset when DAC=true; schema enforces via
-    // superRefine. Supply both so toggling `params.keyset` hits the branch.
+    skip: chainConfigGateSkips('createRollupParams.config.chainConfig'),
     overrides: [
+      // `execute` only exercises keyset when DAC=true; schema enforces via
+      // superRefine. Supply both so toggling keyset hits the branch.
       {
-        matches: (k) => k === 'params.keyset',
+        matches: (k) => k === 'createRollupParams.keyset',
         apply: (base) => {
-          const b = base as { params: { config: Record<string, unknown> } };
+          const b = base as { createRollupParams: { config: Record<string, unknown> } };
           return {
             ...b,
-            params: {
-              ...b.params,
+            createRollupParams: {
+              ...b.createRollupParams,
               config: {
-                ...b.params.config,
+                ...b.createRollupParams.config,
                 chainConfig: {
                   chainId: 99999,
                   arbitrum: {
@@ -121,7 +266,86 @@ const coverageConfig: Record<string, CoverageConfig> = {
           };
         },
       },
+      // `prepareNodeConfig` runs only when both `nodeConfigParams` and
+      // `chainConfig` are set. Inject chainConfig whenever any nodeConfig
+      // leaf is tested.
+      {
+        matches: (k) => k === 'nodeConfigParams' || k.startsWith('nodeConfigParams.'),
+        apply: (base) => {
+          const b = base as { createRollupParams: { config: Record<string, unknown> } };
+          return {
+            ...b,
+            createRollupParams: {
+              ...b.createRollupParams,
+              config: {
+                ...b.createRollupParams.config,
+                chainConfig: { chainId: 99999 },
+              },
+            },
+          };
+        },
+      },
+      // A populated `genesisAssertionState` (custom genesis) requires non-zero
+      // `dataCostEstimate`, a supplied `chainConfig`, and explicit values for
+      // the tunable arbitrum fields (per refineV3Dot2CustomGenesis -- letting
+      // any fall through to SDK defaults breaks the precomputed genesis hash).
+      {
+        matches: (k) =>
+          k === 'createRollupParams.config.genesisAssertionState' ||
+          k.startsWith('createRollupParams.config.genesisAssertionState.'),
+        apply: (base) => {
+          const b = base as { createRollupParams: { config: Record<string, unknown> } };
+          return {
+            ...b,
+            createRollupParams: {
+              ...b.createRollupParams,
+              config: {
+                ...b.createRollupParams.config,
+                dataCostEstimate: '1000000000',
+                chainConfig: {
+                  chainId: 99999,
+                  arbitrum: {
+                    InitialChainOwner: '0x' + '1'.repeat(40),
+                    InitialArbOSVersion: 51,
+                    DataAvailabilityCommittee: false,
+                    MaxCodeSize: 24576,
+                    MaxInitCodeSize: 49152,
+                  },
+                },
+              },
+            },
+          };
+        },
+      },
+      // Anchor-presence and leaf-mutation tests on `inboxAllowListParams.*` need a
+      // coherent fixture so the fuzzer exercises both the setAllowList and
+      // setAllowListEnabled branches in execute (otherwise the harness might
+      // toggle `enabled` true with addresses absent, hitting only one branch).
+      {
+        matches: (k) => k === 'inboxAllowListParams' || k.startsWith('inboxAllowListParams.'),
+        apply: (base) => ({
+          ...(base as object),
+          inboxAllowListParams: {
+            enabled: true,
+            addresses: ['0x' + 'a'.repeat(40)],
+          },
+        }),
+      },
     ],
+    // refineChainIdMatch requires the two chainIds to agree. See sibling
+    // comment in deployNewChain for the rationale.
+    samples: {
+      'createRollupParams.config.chainId': '99999',
+      'createRollupParams.config.chainConfig.chainId': 99999,
+    },
+    mutations: {
+      'createRollupParams.config.chainId': {
+        'createRollupParams.config.chainConfig.chainId': (v) => Number(v),
+      },
+      'createRollupParams.config.chainConfig.chainId': {
+        'createRollupParams.config.chainId': (v) => String(v),
+      },
+    },
   },
 };
 
@@ -133,7 +357,15 @@ describe('schema coverage', () => {
         variants.length > 1 ? `${name} (${getVariantLabel(variant) ?? `variant ${i}`})` : name;
       const config = coverageConfig[name];
       it(label, async () => {
-        await assertSchemaCoverage(variant, func, mocks, config?.overrides, config?.samples);
+        await assertSchemaCoverage(
+          variant,
+          func,
+          mocks,
+          config?.overrides,
+          config?.samples,
+          config?.skip,
+          config?.mutations,
+        );
       });
     });
   }

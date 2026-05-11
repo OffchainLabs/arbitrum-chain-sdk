@@ -15,7 +15,7 @@ export const configV2Dot1Schema = prepareParamsV2Dot1Schema
   .required()
   .extend({ chainConfig: z.string() });
 
-export const paramsV3Dot2Schema = z.object({
+export const paramsV3Dot2Schema = z.strictObject({
   config: configV3Dot2Schema,
   batchPosters: z.array(addressSchema).min(1),
   validators: z.array(addressSchema).min(1),
@@ -28,7 +28,7 @@ export const paramsV3Dot2Schema = z.object({
   customOsp: addressSchema.optional(),
 });
 
-export const paramsV2Dot1Schema = z.object({
+export const paramsV2Dot1Schema = z.strictObject({
   config: configV2Dot1Schema,
   batchPosters: z.array(addressSchema).min(1),
   validators: z.array(addressSchema).min(1),
