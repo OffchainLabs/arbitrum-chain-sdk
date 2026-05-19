@@ -1,5 +1,6 @@
 import type { Address, Abi, Hex } from 'viem';
 import { encodeFunctionData } from 'viem';
+import { formatAbiItem } from 'viem/utils';
 import type { AbiFunction } from 'abitype';
 
 import { upgradeExecutorABI } from '../contracts/UpgradeExecutor';
@@ -16,27 +17,11 @@ export type ParsedContractCommand = {
   value?: bigint;
 };
 
-function bareName(key: string): string {
-  const paren = key.indexOf('(');
-  return paren === -1 ? key : key.slice(0, paren);
-}
-
-function findAbiFunction(abi: Abi, key: string): AbiFunction {
-  const name = bareName(key);
-  const candidates = abi.filter((e): e is AbiFunction => e.type === 'function' && e.name === name);
-  if (candidates.length === 0) {
-    throw new Error(`Function ${JSON.stringify(key)} not found in ABI`);
+function findAbiFunction(abi: Abi, signature: string): AbiFunction {
+  for (const e of abi) {
+    if (e.type === 'function' && formatAbiItem(e) === signature) return e;
   }
-  if (candidates.length === 1) return candidates[0];
-  // Overloaded — disambiguate by full canonical signature.
-  const match = candidates.find((fn) => {
-    const sig = `${fn.name}(${fn.inputs.map((p) => p.type).join(',')})`;
-    return sig === key;
-  });
-  if (!match) {
-    throw new Error(`Overloaded function ${JSON.stringify(key)} did not match any ABI entry`);
-  }
-  return match;
+  throw new Error(`Function ${JSON.stringify(signature)} not found in ABI`);
 }
 
 export async function runContractCommand({
@@ -47,28 +32,21 @@ export async function runContractCommand({
   parsed: ParsedContractCommand;
 }): Promise<unknown> {
   const fn = findAbiFunction(abi, parsed.function);
-  const functionName = fn.name;
-  const args = parsed.args as readonly unknown[];
-
   const client = toPublicClient(parsed.rpcUrl, findChain(parsed.chainId));
 
   if (fn.stateMutability === 'view' || fn.stateMutability === 'pure') {
     return client.readContract({
       abi,
       address: parsed.address,
-      functionName,
-      args,
+      functionName: fn.name,
+      args: parsed.args,
     } as Parameters<typeof client.readContract>[0]);
-  }
-
-  if (!parsed.account) {
-    throw new Error(`Write function ${functionName} requires an "account" field`);
   }
 
   const callData: Hex = encodeFunctionData({
     abi,
-    functionName,
-    args,
+    functionName: fn.name,
+    args: parsed.args,
   } as Parameters<typeof encodeFunctionData>[0]);
 
   const { to, data } = parsed.upgradeExecutor
@@ -84,7 +62,7 @@ export async function runContractCommand({
 
   return client.prepareTransactionRequest({
     chain: client.chain,
-    account: parsed.account,
+    account: parsed.account!,
     to,
     data,
     value: parsed.value,
