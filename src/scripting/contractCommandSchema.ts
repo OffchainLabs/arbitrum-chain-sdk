@@ -62,9 +62,6 @@ function pickBase(fn: AbiFunction) {
   return baseWriteFields;
 }
 
-// One variant per ABI function entry, keyed by canonical signature. Callers
-// always specify the full signature (e.g. `getBatchPosters()`) so the
-// discriminator is unambiguous regardless of overloads.
 export function buildContractCommandSchema(
   abi: Abi,
   fnSchemas: Record<string, ZodType>,
