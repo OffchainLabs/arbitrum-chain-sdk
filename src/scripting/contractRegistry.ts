@@ -55,46 +55,44 @@ export type ContractRegistryEntry = {
   schemas: Record<string, ZodType>;
 };
 
-const s = (raw: unknown) => raw as Record<string, ZodType>;
-
 export const contractRegistry: readonly ContractRegistryEntry[] = [
-  { name: 'ArbAggregator', abi: arbAggregatorABI, schemas: s(arbAggregatorSchemas) },
-  { name: 'ArbGasInfo', abi: arbGasInfoABI, schemas: s(arbGasInfoSchemas) },
-  { name: 'ArbOwner', abi: arbOwnerABI, schemas: s(arbOwnerSchemas) },
-  { name: 'ArbOwnerPublic', abi: arbOwnerPublicABI, schemas: s(arbOwnerPublicSchemas) },
-  { name: 'ERC20', abi: erc20ABI, schemas: s(erc20Schemas) },
-  { name: 'GnosisSafeL2', abi: gnosisSafeL2ABI, schemas: s(gnosisSafeL2Schemas) },
-  { name: 'UpgradeExecutor', abi: upgradeExecutorABI, schemas: s(upgradeExecutorSchemas) },
+  { name: 'ArbAggregator', abi: arbAggregatorABI, schemas: arbAggregatorSchemas },
+  { name: 'ArbGasInfo', abi: arbGasInfoABI, schemas: arbGasInfoSchemas },
+  { name: 'ArbOwner', abi: arbOwnerABI, schemas: arbOwnerSchemas },
+  { name: 'ArbOwnerPublic', abi: arbOwnerPublicABI, schemas: arbOwnerPublicSchemas },
+  { name: 'ERC20', abi: erc20ABI, schemas: erc20Schemas },
+  { name: 'GnosisSafeL2', abi: gnosisSafeL2ABI, schemas: gnosisSafeL2Schemas },
+  { name: 'UpgradeExecutor', abi: upgradeExecutorABI, schemas: upgradeExecutorSchemas },
 
-  { name: 'Inbox@v3.2', abi: inboxV32ABI, schemas: s(inboxV32Schemas) },
-  { name: 'Inbox', abi: inboxV32ABI, schemas: s(inboxV32Schemas) },
+  { name: 'Inbox@v3.2', abi: inboxV32ABI, schemas: inboxV32Schemas },
+  { name: 'Inbox', abi: inboxV32ABI, schemas: inboxV32Schemas },
 
-  { name: 'Rollup@v1.1', abi: rollupV11ABI, schemas: s(rollupV11Schemas) },
-  { name: 'Rollup@v2.1', abi: rollupV21ABI, schemas: s(rollupV21Schemas) },
-  { name: 'Rollup@v3.1', abi: rollupV31ABI, schemas: s(rollupV31Schemas) },
-  { name: 'Rollup@v3.2', abi: rollupV32ABI, schemas: s(rollupV32Schemas) },
-  { name: 'Rollup', abi: rollupV32ABI, schemas: s(rollupV32Schemas) },
+  { name: 'Rollup@v1.1', abi: rollupV11ABI, schemas: rollupV11Schemas },
+  { name: 'Rollup@v2.1', abi: rollupV21ABI, schemas: rollupV21Schemas },
+  { name: 'Rollup@v3.1', abi: rollupV31ABI, schemas: rollupV31Schemas },
+  { name: 'Rollup@v3.2', abi: rollupV32ABI, schemas: rollupV32Schemas },
+  { name: 'Rollup', abi: rollupV32ABI, schemas: rollupV32Schemas },
 
-  { name: 'RollupCreator@v1.1', abi: rollupCreatorV11ABI, schemas: s(rollupCreatorV11Schemas) },
-  { name: 'RollupCreator@v2.1', abi: rollupCreatorV21ABI, schemas: s(rollupCreatorV21Schemas) },
-  { name: 'RollupCreator@v3.1', abi: rollupCreatorV31ABI, schemas: s(rollupCreatorV31Schemas) },
-  { name: 'RollupCreator@v3.2', abi: rollupCreatorV32ABI, schemas: s(rollupCreatorV32Schemas) },
-  { name: 'RollupCreator', abi: rollupCreatorV32ABI, schemas: s(rollupCreatorV32Schemas) },
+  { name: 'RollupCreator@v1.1', abi: rollupCreatorV11ABI, schemas: rollupCreatorV11Schemas },
+  { name: 'RollupCreator@v2.1', abi: rollupCreatorV21ABI, schemas: rollupCreatorV21Schemas },
+  { name: 'RollupCreator@v3.1', abi: rollupCreatorV31ABI, schemas: rollupCreatorV31Schemas },
+  { name: 'RollupCreator@v3.2', abi: rollupCreatorV32ABI, schemas: rollupCreatorV32Schemas },
+  { name: 'RollupCreator', abi: rollupCreatorV32ABI, schemas: rollupCreatorV32Schemas },
 
-  { name: 'SequencerInbox@v1.1', abi: sequencerInboxV11ABI, schemas: s(sequencerInboxV11Schemas) },
-  { name: 'SequencerInbox@v2.1', abi: sequencerInboxV21ABI, schemas: s(sequencerInboxV21Schemas) },
-  { name: 'SequencerInbox@v3.1', abi: sequencerInboxV31ABI, schemas: s(sequencerInboxV31Schemas) },
-  { name: 'SequencerInbox@v3.2', abi: sequencerInboxV32ABI, schemas: s(sequencerInboxV32Schemas) },
-  { name: 'SequencerInbox', abi: sequencerInboxV32ABI, schemas: s(sequencerInboxV32Schemas) },
+  { name: 'SequencerInbox@v1.1', abi: sequencerInboxV11ABI, schemas: sequencerInboxV11Schemas },
+  { name: 'SequencerInbox@v2.1', abi: sequencerInboxV21ABI, schemas: sequencerInboxV21Schemas },
+  { name: 'SequencerInbox@v3.1', abi: sequencerInboxV31ABI, schemas: sequencerInboxV31Schemas },
+  { name: 'SequencerInbox@v3.2', abi: sequencerInboxV32ABI, schemas: sequencerInboxV32Schemas },
+  { name: 'SequencerInbox', abi: sequencerInboxV32ABI, schemas: sequencerInboxV32Schemas },
 
   {
     name: 'TokenBridgeCreator@v1.2',
     abi: tokenBridgeCreatorV12ABI,
-    schemas: s(tokenBridgeCreatorV12Schemas),
+    schemas: tokenBridgeCreatorV12Schemas,
   },
   {
     name: 'TokenBridgeCreator',
     abi: tokenBridgeCreatorV12ABI,
-    schemas: s(tokenBridgeCreatorV12Schemas),
+    schemas: tokenBridgeCreatorV12Schemas,
   },
 ];
