@@ -8,6 +8,10 @@ on:
         description: 'Also tag this build as :latest'
         type: boolean
         default: false
+      tag:
+        description: 'Optional additional tag to publish (e.g., v3.0.0). Leave blank to skip.'
+        type: string
+        default: ''
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -46,5 +50,6 @@ jobs:
           tags: |
             offchainlabs/arbitrum-chain-sdk:${{ github.sha }}
             ${{ inputs.latest && 'offchainlabs/arbitrum-chain-sdk:latest' || '' }}
+            ${{ inputs.tag != '' && format('offchainlabs/arbitrum-chain-sdk:{0}', inputs.tag) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
