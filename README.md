@@ -16,7 +16,16 @@ The SDK ships a CLI that exposes its functions, workflows, and contract calls as
 
 ### Install
 
-Build the Docker image locally:
+Pull the published image from Docker Hub:
+
+```bash
+docker pull offchainlabs/arbitrum-chain-sdk:latest
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
+```
+
+The `latest` tag points at the most recent published build. Each build is also published with its commit SHA (`offchainlabs/arbitrum-chain-sdk:<sha>`), which is preferred for production use where you want an immutable image.
+
+Or build the image locally:
 
 ```bash
 docker build -t chain-sdk .
