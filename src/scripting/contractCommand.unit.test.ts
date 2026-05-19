@@ -135,6 +135,16 @@ describe('precompile (fixedAddress)', () => {
     expect(inner.address).toBeUndefined();
   });
 
+  it('defaults args to [] for no-arg functions when omitted', () => {
+    const parsed = schema.parse({
+      function: 'getBatchPosters()',
+      rpcUrl: RPC,
+      chainId: CHAIN_ID,
+    });
+    const inner = (parsed as readonly [unknown])[0] as { args: readonly unknown[] };
+    expect(inner.args).toEqual([]);
+  });
+
   it('rejects an address field passed by the caller', () => {
     expect(() =>
       schema.parse({

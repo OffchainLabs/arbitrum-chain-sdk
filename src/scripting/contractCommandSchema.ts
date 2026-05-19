@@ -28,7 +28,8 @@ export function buildContractCommandSchema(
   const variants = fns.map((fn) => {
     const sig = formatAbiItem(fn);
     const base = isReadable(fn) ? read : isPayable(fn) ? writePayable : write;
-    return base.extend({ function: z.literal(sig), args: fnSchemas[sig] });
+    const args = fn.inputs.length === 0 ? fnSchemas[sig].optional().default([]) : fnSchemas[sig];
+    return base.extend({ function: z.literal(sig), args });
   });
   return z
     .discriminatedUnion(
