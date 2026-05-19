@@ -116,6 +116,38 @@ describe('buildContractCommandSchema', () => {
   });
 });
 
+describe('precompile (fixedAddress)', () => {
+  const schema = buildContractCommandSchema(
+    arbAggregatorABI,
+    arbAggregatorSchemas as Record<string, ZodType>,
+    true,
+  );
+
+  it('parses without an address field', () => {
+    const parsed = schema.parse({
+      function: 'getBatchPosters()',
+      rpcUrl: RPC,
+      chainId: CHAIN_ID,
+      args: [],
+    });
+    const inner = (parsed as readonly [unknown])[0] as { function: string; address?: string };
+    expect(inner.function).toBe('getBatchPosters()');
+    expect(inner.address).toBeUndefined();
+  });
+
+  it('rejects an address field passed by the caller', () => {
+    expect(() =>
+      schema.parse({
+        function: 'getBatchPosters()',
+        address: ADDR,
+        rpcUrl: RPC,
+        chainId: CHAIN_ID,
+        args: [],
+      }),
+    ).toThrow();
+  });
+});
+
 describe('overload disambiguation (Inbox.depositEth)', () => {
   const schema = buildContractCommandSchema(
     inboxV32ABI,

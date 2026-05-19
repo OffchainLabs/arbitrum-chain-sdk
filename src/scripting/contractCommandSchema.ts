@@ -5,17 +5,6 @@ import type { AbiFunction } from 'abitype';
 
 import { addressSchema, bigintSchema, publicClientSchema } from './schemas/common';
 
-const baseReadFields = publicClientSchema.extend({ address: addressSchema });
-
-const baseWriteFields = baseReadFields.extend({
-  account: addressSchema,
-  upgradeExecutor: addressSchema.optional(),
-});
-
-const baseWritePayableFields = baseWriteFields.extend({
-  value: bigintSchema.optional(),
-});
-
 function isReadable(fn: AbiFunction): boolean {
   return fn.stateMutability === 'view' || fn.stateMutability === 'pure';
 }
@@ -24,20 +13,22 @@ function isPayable(fn: AbiFunction): boolean {
   return fn.stateMutability === 'payable';
 }
 
-function pickBase(fn: AbiFunction) {
-  if (isReadable(fn)) return baseReadFields;
-  if (isPayable(fn)) return baseWritePayableFields;
-  return baseWriteFields;
-}
-
 export function buildContractCommandSchema(
   abi: Abi,
   fnSchemas: Record<string, ZodType>,
+  hasFixedAddress = false,
 ): ZodType<readonly unknown[]> {
+  const read = hasFixedAddress
+    ? publicClientSchema
+    : publicClientSchema.extend({ address: addressSchema });
+  const write = read.extend({ account: addressSchema, upgradeExecutor: addressSchema.optional() });
+  const writePayable = write.extend({ value: bigintSchema.optional() });
+
   const fns = abi.filter((e): e is AbiFunction => e.type === 'function');
   const variants = fns.map((fn) => {
     const sig = formatAbiItem(fn);
-    return pickBase(fn).extend({ function: z.literal(sig), args: fnSchemas[sig] });
+    const base = isReadable(fn) ? read : isPayable(fn) ? writePayable : write;
+    return base.extend({ function: z.literal(sig), args: fnSchemas[sig] });
   });
   return z
     .discriminatedUnion(

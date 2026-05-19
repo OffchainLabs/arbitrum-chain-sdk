@@ -1,13 +1,13 @@
-import type { Abi } from 'viem';
+import type { Abi, Address } from 'viem';
 import type { ZodType } from 'zod';
 
-import { arbAggregatorABI } from '../contracts/ArbAggregator';
+import { arbAggregatorABI, arbAggregatorAddress } from '../contracts/ArbAggregator';
 import { schemas as arbAggregatorSchemas } from '../contracts/ArbAggregator.schemas';
-import { arbGasInfoABI } from '../contracts/ArbGasInfo';
+import { arbGasInfoABI, arbGasInfoAddress } from '../contracts/ArbGasInfo';
 import { schemas as arbGasInfoSchemas } from '../contracts/ArbGasInfo.schemas';
-import { arbOwnerABI } from '../contracts/ArbOwner';
+import { arbOwnerABI, arbOwnerAddress } from '../contracts/ArbOwner';
 import { schemas as arbOwnerSchemas } from '../contracts/ArbOwner.schemas';
-import { arbOwnerPublicABI } from '../contracts/ArbOwnerPublic';
+import { arbOwnerPublicABI, arbOwnerPublicAddress } from '../contracts/ArbOwnerPublic';
 import { schemas as arbOwnerPublicSchemas } from '../contracts/ArbOwnerPublic.schemas';
 import { erc20ABI } from '../contracts/ERC20';
 import { schemas as erc20Schemas } from '../contracts/ERC20.schemas';
@@ -53,13 +53,30 @@ export type ContractRegistryEntry = {
   name: string;
   abi: Abi;
   schemas: Record<string, ZodType>;
+  /** Precompile address baked into the command; when set, callers omit `address`. */
+  fixedAddress?: Address;
 };
 
 export const contractRegistry: readonly ContractRegistryEntry[] = [
-  { name: 'ArbAggregator', abi: arbAggregatorABI, schemas: arbAggregatorSchemas },
-  { name: 'ArbGasInfo', abi: arbGasInfoABI, schemas: arbGasInfoSchemas },
-  { name: 'ArbOwner', abi: arbOwnerABI, schemas: arbOwnerSchemas },
-  { name: 'ArbOwnerPublic', abi: arbOwnerPublicABI, schemas: arbOwnerPublicSchemas },
+  {
+    name: 'ArbAggregator',
+    abi: arbAggregatorABI,
+    schemas: arbAggregatorSchemas,
+    fixedAddress: arbAggregatorAddress,
+  },
+  {
+    name: 'ArbGasInfo',
+    abi: arbGasInfoABI,
+    schemas: arbGasInfoSchemas,
+    fixedAddress: arbGasInfoAddress,
+  },
+  { name: 'ArbOwner', abi: arbOwnerABI, schemas: arbOwnerSchemas, fixedAddress: arbOwnerAddress },
+  {
+    name: 'ArbOwnerPublic',
+    abi: arbOwnerPublicABI,
+    schemas: arbOwnerPublicSchemas,
+    fixedAddress: arbOwnerPublicAddress,
+  },
   { name: 'ERC20', abi: erc20ABI, schemas: erc20Schemas },
   { name: 'GnosisSafeL2', abi: gnosisSafeL2ABI, schemas: gnosisSafeL2Schemas },
   { name: 'UpgradeExecutor', abi: upgradeExecutorABI, schemas: upgradeExecutorSchemas },

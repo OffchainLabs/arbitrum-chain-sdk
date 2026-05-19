@@ -165,8 +165,15 @@ const command = <S extends ZodType<readonly unknown[]>>(
 ): Command => ({ name, schema, func });
 
 const contractCommands: readonly Command[] = contractRegistry.map((entry) =>
-  command(entry.name, buildContractCommandSchema(entry.abi, entry.schemas), (parsed) =>
-    runContractCommand({ abi: entry.abi, parsed: parsed as ParsedContractCommand }),
+  command(
+    entry.name,
+    buildContractCommandSchema(entry.abi, entry.schemas, entry.fixedAddress !== undefined),
+    (parsed) => {
+      const merged = entry.fixedAddress
+        ? { ...(parsed as object), address: entry.fixedAddress }
+        : (parsed as object);
+      return runContractCommand({ abi: entry.abi, parsed: merged as ParsedContractCommand });
+    },
   ),
 );
 
