@@ -48,7 +48,7 @@ describe('buildContractCommandSchema', () => {
 
   it('parses a read variant (no account required)', () => {
     const parsed = schema.parse({
-      function: 'getBatchPosters',
+      function: 'getBatchPosters()',
       address: ADDR,
       rpcUrl: RPC,
       chainId: CHAIN_ID,
@@ -56,13 +56,13 @@ describe('buildContractCommandSchema', () => {
     });
     expect(Array.isArray(parsed)).toBe(true);
     const inner = (parsed as readonly [unknown])[0] as { function: string };
-    expect(inner.function).toBe('getBatchPosters');
+    expect(inner.function).toBe('getBatchPosters()');
   });
 
   it('requires account on a write variant', () => {
     expect(() =>
       schema.parse({
-        function: 'addBatchPoster',
+        function: 'addBatchPoster(address)',
         address: ADDR,
         rpcUrl: RPC,
         chainId: CHAIN_ID,
@@ -73,7 +73,7 @@ describe('buildContractCommandSchema', () => {
 
   it('parses a write variant with account + optional upgradeExecutor', () => {
     const parsed = schema.parse({
-      function: 'addBatchPoster',
+      function: 'addBatchPoster(address)',
       address: ADDR,
       rpcUrl: RPC,
       chainId: CHAIN_ID,
@@ -86,15 +86,27 @@ describe('buildContractCommandSchema', () => {
       account: string;
       upgradeExecutor?: string;
     };
-    expect(inner.function).toBe('addBatchPoster');
+    expect(inner.function).toBe('addBatchPoster(address)');
     expect(inner.account).toBe(ACCOUNT);
     expect(inner.upgradeExecutor).toBe(UPGRADE_EXECUTOR);
   });
 
-  it('rejects an unknown function name', () => {
+  it('rejects the bare name (full signature required)', () => {
     expect(() =>
       schema.parse({
-        function: 'thisDoesNotExist',
+        function: 'getBatchPosters',
+        address: ADDR,
+        rpcUrl: RPC,
+        chainId: CHAIN_ID,
+        args: [],
+      }),
+    ).toThrow();
+  });
+
+  it('rejects an unknown function signature', () => {
+    expect(() =>
+      schema.parse({
+        function: 'thisDoesNotExist()',
         address: ADDR,
         rpcUrl: RPC,
         chainId: CHAIN_ID,
