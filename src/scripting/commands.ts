@@ -148,13 +148,6 @@ export type Command = {
   /** The SDK function this command wraps. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   func: (...args: any[]) => unknown;
-  /**
-   * Opt out of schema-coverage fuzzing. Generic contract commands generate a
-   * huge variant surface and don't benefit from field-liveness fuzzing — their
-   * args flow into a mocked viem call where every input is structurally
-   * observable by construction.
-   */
-  skipCoverage?: boolean;
 };
 
 /**
@@ -169,15 +162,11 @@ const command = <S extends ZodType<readonly unknown[]>>(
   name: string,
   schema: S,
   func: (...args: z.output<S>) => unknown,
-  options?: { skipCoverage?: boolean },
-): Command => ({ name, schema, func, skipCoverage: options?.skipCoverage });
+): Command => ({ name, schema, func });
 
 const contractCommands: readonly Command[] = contractRegistry.map((entry) =>
-  command(
-    entry.name,
-    buildContractCommandSchema(entry.abi, entry.schemas),
-    (parsed) => runContractCommand({ abi: entry.abi, parsed: parsed as ParsedContractCommand }),
-    { skipCoverage: true },
+  command(entry.name, buildContractCommandSchema(entry.abi, entry.schemas), (parsed) =>
+    runContractCommand({ abi: entry.abi, parsed: parsed as ParsedContractCommand }),
   ),
 );
 
