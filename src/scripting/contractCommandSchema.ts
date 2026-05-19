@@ -1,41 +1,9 @@
 import { z, ZodType } from 'zod';
 import type { Abi } from 'viem';
-import type { AbiFunction, AbiParameter } from 'abitype';
+import { formatAbiItem } from 'viem/utils';
+import type { AbiFunction } from 'abitype';
 
 import { addressSchema, bigintSchema, publicClientSchema } from './schemas/common';
-
-// Inlined from abi-to-zod (which is ESM-only) so this module stays
-// require()-able from the CJS scripting workspace. Must match abi-to-zod's
-// keying exactly, since we look up function schemas by these strings.
-function canonicalType(param: AbiParameter): string {
-  const { base, suffixes } = splitArraySuffix(param.type);
-  const components = (param as { components?: readonly AbiParameter[] }).components;
-  const normalized =
-    base === 'tuple'
-      ? `(${(components ?? []).map(canonicalType).join(',')})`
-      : base === 'uint'
-      ? 'uint256'
-      : base === 'int'
-      ? 'int256'
-      : base;
-  return normalized + suffixes.join('');
-}
-
-function splitArraySuffix(type: string): { base: string; suffixes: string[] } {
-  const suffixes: string[] = [];
-  let base = type;
-  while (true) {
-    const m = /^(.*)(\[\d*\])$/.exec(base);
-    if (!m) break;
-    base = m[1];
-    suffixes.unshift(m[2]);
-  }
-  return { base, suffixes };
-}
-
-function canonicalSignature(fn: AbiFunction): string {
-  return `${fn.name}(${fn.inputs.map(canonicalType).join(',')})`;
-}
 
 const baseReadFields = publicClientSchema.extend({ address: addressSchema });
 
@@ -68,7 +36,7 @@ export function buildContractCommandSchema(
 ): ZodType<readonly unknown[]> {
   const fns = abi.filter((e): e is AbiFunction => e.type === 'function');
   const variants = fns.map((fn) => {
-    const sig = canonicalSignature(fn);
+    const sig = formatAbiItem(fn);
     return pickBase(fn).extend({ function: z.literal(sig), args: fnSchemas[sig] });
   });
   return z
