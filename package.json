@@ -7,6 +7,9 @@
     "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./src/dist --declaration",
     "dev": "pnpm build --watch",
     "generate": "wagmi generate",
+    "postgenerate": "pnpm generate:schemas",
+    "generate:schemas": "tsx ./src/scripts/generateAbiSchemas.mts",
+    "postgenerate:schemas": "prettier --write 'src/contracts/**/*.schemas.ts'",
     "generate:node-config-type": "pnpm build && node ./src/dist/scripts/generateNodeConfigType.js",
     "postgenerate:node-config-type": "prettier --write ./src/types/NodeConfig.generated.ts",
     "test:type": "vitest --config vitest.type.config.ts",
@@ -23,17 +26,21 @@
     "@offchainlabs/prettier-config": "0.2.1",
     "@types/node": "^20.9.0",
     "@wagmi/cli": "^1.5.2",
+    "abi-to-zod": "^0.2.0",
     "audit-ci": "^7.0.1",
     "dotenv": "^16.3.1",
     "eslint": "^9.39.1",
+    "jsonc-parser": "^3.3.1",
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.8.3",
     "ts-morph": "^21.0.1",
+    "tsx": "^4.22.1",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.56.1",
     "viem": "^1.20.0",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zod": "^4.3.6"
   },
   "pnpm": {
     "overrides": {
