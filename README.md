@@ -23,8 +23,6 @@ docker pull offchainlabs/arbitrum-chain-sdk:latest
 docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
 ```
 
-The `latest` tag points at the most recent published build. Each build is also published with its commit SHA (`offchainlabs/arbitrum-chain-sdk:<sha>`), which is preferred for production use where you want an immutable image.
-
 Or build and run it with Node.js v20 directly:
 
 ```bash
@@ -35,15 +33,15 @@ pnpm cli <command> '<json>'
 ### Usage
 
 ```
-chain-sdk <command> '<json>' [-o <path>]
-chain-sdk <command> --schema   [-o <path>]
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>' [-o <path>]
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> --schema   [-o <path>]
 ```
 
 The JSON argument can be supplied three ways:
 
-- As a literal: `chain-sdk getValidators '{"rpcUrl":"...","chainId":42161,"rollup":"0x..."}'`
-- From a file: `chain-sdk getValidators @input.json`
-- From stdin: `cat input.json | chain-sdk getValidators -`
+- As a literal: `docker run --rm offchainlabs/arbitrum-chain-sdk:latest getValidators '{"rpcUrl":"...","chainId":42161,"rollup":"0x..."}'`
+- From a file: `docker run --rm -v "$(pwd):/work" -w /work offchainlabs/arbitrum-chain-sdk:latest getValidators @input.json`
+- From stdin: `cat input.json | docker run --rm -i offchainlabs/arbitrum-chain-sdk:latest getValidators -`
 
 JSON with comments and trailing commas (JSONC) is accepted.
 
@@ -57,7 +55,7 @@ Flags:
 Run the CLI with no command to print the full command list:
 
 ```bash
-chain-sdk
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest
 ```
 
 Commands fall into three groups:
@@ -69,7 +67,7 @@ Commands fall into three groups:
 To see the input shape for a command:
 
 ```bash
-chain-sdk <command> --schema
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> --schema
 ```
 
 ### Output
@@ -83,7 +81,7 @@ chain-sdk <command> --schema
 Build a Nitro `chainConfig` for a new Arbitrum chain. This is the first call in the deploy-a-new-chain flow — given a chain ID and the chain's initial owner, the SDK fills in the full config:
 
 ```bash
-chain-sdk prepareChainConfig '{
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest prepareChainConfig '{
   "chainId": 12345,
   "arbitrum": {
     "InitialChainOwner": "0x0000000000000000000000000000000000000001"
