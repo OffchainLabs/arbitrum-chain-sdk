@@ -29,7 +29,6 @@ async function main() {
   let written = 0;
 
   for (const file of files) {
-    // @ts-expect-error -- tsc flags dynamic import under the project's default module setting; tsx runs this fine.
     const mod: Record<string, unknown> = await import(pathToFileURL(file).href);
     const exportName = Object.keys(mod).find((k) => k.endsWith('ABI'));
     if (!exportName) {
