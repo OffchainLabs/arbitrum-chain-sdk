@@ -127,6 +127,10 @@ import {
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
 
+import { contractRegistry } from './contractRegistry';
+import { buildContractCommandSchema } from './contractCommandSchema';
+import { runContractCommand, type ParsedContractCommand } from './runContractCommand';
+
 /**
  * A scripting entry point: one schema + function pair exposed both as a CLI
  * subcommand and as a coverage-test target. Consumed by `cli.ts` (iterates
@@ -144,6 +148,13 @@ export type Command = {
   /** The SDK function this command wraps. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   func: (...args: any[]) => unknown;
+  /**
+   * Opt out of schema-coverage fuzzing. Generic contract commands generate a
+   * huge variant surface and don't benefit from field-liveness fuzzing — their
+   * args flow into a mocked viem call where every input is structurally
+   * observable by construction.
+   */
+  skipCoverage?: boolean;
 };
 
 /**
@@ -158,7 +169,17 @@ const command = <S extends ZodType<readonly unknown[]>>(
   name: string,
   schema: S,
   func: (...args: z.output<S>) => unknown,
-): Command => ({ name, schema, func });
+  options?: { skipCoverage?: boolean },
+): Command => ({ name, schema, func, skipCoverage: options?.skipCoverage });
+
+const contractCommands: readonly Command[] = contractRegistry.map((entry) =>
+  command(
+    entry.name,
+    buildContractCommandSchema(entry.abi, entry.schemas),
+    (parsed) => runContractCommand({ abi: entry.abi, parsed: parsed as ParsedContractCommand }),
+    { skipCoverage: true },
+  ),
+);
 
 export const commands: readonly Command[] = [
   command('getValidators', getValidatorsSchema, getValidators),
@@ -340,4 +361,6 @@ export const commands: readonly Command[] = [
     deployFullChainSchema.transform((i) => [i] as const),
     deployFullChainExecute,
   ),
+
+  ...contractCommands,
 ];

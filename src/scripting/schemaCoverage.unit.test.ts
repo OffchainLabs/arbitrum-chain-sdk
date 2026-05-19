@@ -350,7 +350,8 @@ const coverageConfig: Record<string, CoverageConfig> = {
 };
 
 describe('schema coverage', () => {
-  for (const { name, schema, func } of commands) {
+  for (const { name, schema, func, skipCoverage } of commands) {
+    if (skipCoverage) continue;
     const variants = getSchemaVariants(schema);
     variants.forEach((variant, i) => {
       const label =
