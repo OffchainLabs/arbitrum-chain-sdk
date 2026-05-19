@@ -45,9 +45,6 @@ importers:
       eslint:
         specifier: ^9.39.1
         version: 9.39.3
-      jsonc-parser:
-        specifier: ^3.3.1
-        version: 3.3.1
       patch-package:
         specifier: ^8.0.0
         version: 8.0.0
