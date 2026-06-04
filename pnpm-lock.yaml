@@ -6,17 +6,19 @@ settings:
 
 overrides:
   viem: 1.20.0
-  viem>ws: 8.17.1
+  viem>ws: 8.20.1
   '@wagmi/cli>esbuild': 0.25.1
   '@wagmi/cli>bundle-require': 5.1.0
   '@ethersproject/providers>ws': 7.5.10
+  ethers>ws: 8.20.1
   elliptic: 6.6.1
   nanoid: 3.3.8
   base-x: 3.0.11
   pbkdf2: 3.1.3
   sha.js: 2.4.12
   cipher-base: 1.0.5
-  tmp: 0.2.5
+  tmp: 0.2.6
+  brace-expansion@5.0.5: 5.0.6
   zod: 4.3.6
   postcss: 8.5.10
 
@@ -1199,8 +1201,8 @@ packages:
   brace-expansion@2.1.0:
     resolution: {integrity: sha512-TN1kCZAgdgweJhWWpgKYrQaMNHcDULHkWwQIspdtjV4Y5aurRdZpjAqn6yX3FPqTA9ngHCc4hJxMAMgGfve85w==}
 
-  brace-expansion@5.0.5:
-    resolution: {integrity: sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ==}
+  brace-expansion@5.0.6:
+    resolution: {integrity: sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==}
     engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
@@ -2525,8 +2527,8 @@ packages:
     resolution: {integrity: sha512-Bf+ILmBgretUrdJxzXM0SgXLZ3XfiaUuOj/IKQHuTXip+05Xn+uyEYdVg0kYDipTBcLrCVyUzAPz7QmArb0mmw==}
     engines: {node: '>=14.0.0'}
 
-  tmp@0.2.5:
-    resolution: {integrity: sha512-voyz6MApa1rQGUxT3E+BK7/ROe8itEx7vD8/HEvt4xwXucvQ5G5oeEiHkmHZJuBO21RpOf+YYm9MOivj709jow==}
+  tmp@0.2.6:
+    resolution: {integrity: sha512-5sJPdPjfI5Kx+qbrDesxkglRBxW//g7hCsqspEjwkewGvBMGIKMOTKzLt1hFVJzyadba3lDUN20O9qhvbQUSTA==}
     engines: {node: '>=14.14'}
 
   to-buffer@1.2.1:
@@ -2739,8 +2741,8 @@ packages:
       utf-8-validate:
         optional: true
 
-  ws@8.17.1:
-    resolution: {integrity: sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==}
+  ws@8.20.1:
+    resolution: {integrity: sha512-It4dO0K5v//JtTXuPkfEOaI3uUN87iYPnqo/ZzqCoG3g8uhA66QUMs/SrM0YK7/NAu+r4LMh/9dq2A7k+rHs+w==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -3810,7 +3812,7 @@ snapshots:
     dependencies:
       balanced-match: 1.0.2
 
-  brace-expansion@5.0.5:
+  brace-expansion@5.0.6:
     dependencies:
       balanced-match: 4.0.4
 
@@ -4348,7 +4350,7 @@ snapshots:
       '@types/node': 18.15.13
       aes-js: 4.0.0-beta.5
       tslib: 2.4.0
-      ws: 8.17.1
+      ws: 8.20.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -4735,9 +4737,9 @@ snapshots:
 
   isexe@2.0.0: {}
 
-  isows@1.0.3(ws@8.17.1):
+  isows@1.0.3(ws@8.20.1):
     dependencies:
-      ws: 8.17.1
+      ws: 8.20.1
 
   jju@1.4.0: {}
 
@@ -4900,7 +4902,7 @@ snapshots:
 
   minimatch@10.2.4:
     dependencies:
-      brace-expansion: 5.0.5
+      brace-expansion: 5.0.6
 
   minimatch@3.1.5:
     dependencies:
@@ -5051,7 +5053,7 @@ snapshots:
       rimraf: 2.7.1
       semver: 5.7.2
       slash: 2.0.0
-      tmp: 0.2.5
+      tmp: 0.2.6
       yaml: 1.10.3
 
   patch-package@8.0.0:
@@ -5069,7 +5071,7 @@ snapshots:
       rimraf: 2.7.1
       semver: 7.7.4
       slash: 2.0.0
-      tmp: 0.2.5
+      tmp: 0.2.6
       yaml: 2.8.3
 
   path-browserify@1.0.1: {}
@@ -5412,7 +5414,7 @@ snapshots:
 
   tinyrainbow@3.1.0: {}
 
-  tmp@0.2.5: {}
+  tmp@0.2.6: {}
 
   to-buffer@1.2.1:
     dependencies:
@@ -5518,8 +5520,8 @@ snapshots:
       '@scure/bip32': 1.3.2
       '@scure/bip39': 1.2.1
       abitype: 0.9.8(typescript@5.2.2)(zod@4.3.6)
-      isows: 1.0.3(ws@8.17.1)
-      ws: 8.17.1
+      isows: 1.0.3(ws@8.20.1)
+      ws: 8.20.1
     optionalDependencies:
       typescript: 5.2.2
     transitivePeerDependencies:
@@ -5618,7 +5620,7 @@ snapshots:
 
   ws@7.5.10: {}
 
-  ws@8.17.1: {}
+  ws@8.20.1: {}
 
   y18n@5.0.8: {}
 
