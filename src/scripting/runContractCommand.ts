@@ -34,8 +34,6 @@ export async function runContractCommand({
   const fn = findAbiFunction(abi, parsed.function);
   const client = toPublicClient(parsed.rpcUrl, findChain(parsed.chainId));
 
-  // Pass only the resolved overload so viem encodes the exact signature the
-  // schema discriminated on, rather than re-guessing the overload from args.
   if (fn.stateMutability === 'view' || fn.stateMutability === 'pure') {
     return client.readContract({
       abi: [fn],

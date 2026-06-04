@@ -13,8 +13,6 @@ function isPayable(fn: AbiFunction): boolean {
   return fn.stateMutability === 'payable';
 }
 
-// Transaction value is wei (a uint256). bigintSchema accepts a leading minus,
-// so guard non-negativity here rather than letting a negative value reach viem.
 const valueSchema = bigintSchema.refine((v) => v >= 0n, 'Expected a non-negative value');
 
 export function buildContractCommandSchema(
@@ -37,8 +35,6 @@ export function buildContractCommandSchema(
     const args = fn.inputs.length === 0 ? argSchema.optional().default([]) : argSchema;
     return base.extend({ function: z.literal(sig), args });
   });
-  // discriminatedUnion throws an opaque error on an empty members array; fail
-  // with a clear message if a registry ABI exposes no callable functions.
   if (variants.length === 0) throw new Error('buildContractCommandSchema: ABI has no functions');
   return z
     .discriminatedUnion(

@@ -347,8 +347,6 @@ describe('runContractCommand dispatch', () => {
   });
 
   it('encodes the exact same-arity overload chosen by signature', async () => {
-    // uint256/int256 take the same JS arg (1000n), so dispatching on the bare
-    // name would be ambiguous; the resolved overload must drive the selector.
     const overloadedABI = [
       {
         type: 'function',
