@@ -29,28 +29,27 @@ overrides:
   "@wagmi/cli>esbuild": "0.25.1"
   "@wagmi/cli>bundle-require": "5.1.0"
 
-  # Inherited from the yarn->pnpm migration: force vulnerable crypto transitives
-  # up to patched versions to keep audit:ci green. See git history for origin.
+  # elliptic: without this pin @ethersproject/signing-key resolves elliptic to
+  # 6.5.4, which carries unpatched-in-that-line advisories (GHSA-977x-g7h5-7qgw,
+  # GHSA-f7q4-pwc6-w24p, GHSA-fc9h-whq2-v747, GHSA-vjh7-7g9h-fjfh, etc.). 6.6.1 is
+  # the patched 6.x. (The remaining elliptic advisory GHSA-848j-6mx2-7j84, which
+  # affects <=6.6.1 with no fix, is allowlisted in audit-ci.jsonc.)
   "elliptic": "6.6.1"
-  "nanoid": "3.3.8"
-  "base-x": "3.0.11"
+
+  # Inherited crypto pins (yarn->pnpm migration). A clean re-resolve in this repo
+  # currently lands these on the pinned versions anyway and audit:ci stays green
+  # without them, but the resolved version sits *below* the latest the declared
+  # ranges allow (pbkdf2 latest 3.1.6, cipher-base latest 1.0.7) for reasons that
+  # aren't fully explained, so they're kept as explicit deterministic pins rather
+  # than relying on resolver behavior for crypto transitives.
   "pbkdf2": "3.1.3"
-  "sha.js": "2.4.12"
   "cipher-base": "1.0.5"
 
   # GHSA-ph9p-34f9-6g65 (path traversal via unsanitized prefix/postfix):
   # vulnerable <0.2.6, patched in 0.2.6. tmp is used only by patch-package at
   # install time (dev-only). patch-package declares tmp@^0.0.33, so without this
-  # pin it resolves to a vulnerable 0.x; 0.2.6 is a patch bump over the prior pin.
+  # pin it resolves to a vulnerable 0.0.33; 0.2.6 is the patched release.
   "tmp": "0.2.6"
-
-  # GHSA-jxxr-4gwj-5jf2 (ReDoS): a large numeric range defeats brace-expansion's
-  # documented `max` DoS guard. Vulnerable >=5.0.0 <5.0.6, patched in 5.0.6.
-  # The tree also carries brace-expansion 1.1.14 and 2.1.0 (pulled by older
-  # minimatch versions via CommonJS require()). The "@5.0.5" selector scopes the
-  # override to ONLY the already-5.x instance; a plain "brace-expansion" key would
-  # drag the 1.x/2.x copies across four majors and risk breaking those consumers.
-  "brace-expansion@5.0.5": "5.0.6"
 
   # Pinned to a single resolved version (added with the types package, #707).
   "zod": "4.3.6"
