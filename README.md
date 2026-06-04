@@ -23,7 +23,7 @@ docker pull offchainlabs/arbitrum-chain-sdk:latest
 docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
 ```
 
-Or build and run it with Node.js v20 directly:
+Or build and run it directly:
 
 ```bash
 pnpm install && pnpm build
