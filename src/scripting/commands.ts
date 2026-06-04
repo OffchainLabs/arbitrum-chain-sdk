@@ -169,9 +169,10 @@ const contractCommands: readonly Command[] = contractRegistry.map((entry) =>
     entry.name,
     buildContractCommandSchema(entry.abi, entry.schemas, entry.fixedAddress !== undefined),
     (parsed) => {
-      const merged = entry.fixedAddress
-        ? { ...(parsed as object), address: entry.fixedAddress }
-        : (parsed as object);
+      const merged =
+        entry.fixedAddress !== undefined
+          ? { ...(parsed as object), address: entry.fixedAddress }
+          : (parsed as object);
       return runContractCommand({ abi: entry.abi, parsed: merged as ParsedContractCommand });
     },
   ),

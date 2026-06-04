@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { z, type ZodType } from 'zod';
-import { keccak256, toBytes } from 'viem';
+import { keccak256, toBytes, type Abi } from 'viem';
 
 import { buildContractCommandSchema } from './contractCommandSchema';
 import { contractRegistry } from './contractRegistry';
@@ -189,6 +189,36 @@ describe('overload disambiguation (Inbox.depositEth)', () => {
       }),
     ).toThrow();
   });
+
+  it('rejects a negative value on a payable variant', () => {
+    expect(() =>
+      schema.parse({
+        function: 'depositEth(uint256)',
+        address: ADDR,
+        rpcUrl: RPC,
+        chainId: CHAIN_ID,
+        args: ['1000'],
+        account: ACCOUNT,
+        value: '-1',
+      }),
+    ).toThrow();
+  });
+});
+
+describe('build-time guards', () => {
+  it('throws on an ABI with no functions', () => {
+    const eventsOnlyABI = [
+      { type: 'event', name: 'Ping', inputs: [], anonymous: false },
+    ] as unknown as Abi;
+    expect(() => buildContractCommandSchema(eventsOnlyABI, {})).toThrow(/no functions/);
+  });
+
+  it('throws when a function has no matching arg schema', () => {
+    const abi = [
+      { type: 'function', name: 'foo', stateMutability: 'view', inputs: [], outputs: [] },
+    ] as unknown as Abi;
+    expect(() => buildContractCommandSchema(abi, {})).toThrow(/no arg schema for foo\(\)/);
+  });
 });
 
 describe('registry-wide assembly', () => {
@@ -198,6 +228,7 @@ describe('registry-wide assembly', () => {
       const schema = buildContractCommandSchema(
         entry.abi,
         entry.schemas as Record<string, ZodType>,
+        entry.fixedAddress !== undefined,
       );
       expect(() => schema.parse({})).toThrow();
     }
@@ -313,5 +344,40 @@ describe('runContractCommand dispatch', () => {
     // Compute the selector rather than hard-coding so it survives ABI churn.
     const executeCallSelector = keccak256(toBytes('executeCall(address,bytes)')).slice(0, 10);
     expect(call.data.toLowerCase().startsWith(executeCallSelector.toLowerCase())).toBe(true);
+  });
+
+  it('encodes the exact same-arity overload chosen by signature', async () => {
+    // uint256/int256 take the same JS arg (1000n), so dispatching on the bare
+    // name would be ambiguous; the resolved overload must drive the selector.
+    const overloadedABI = [
+      {
+        type: 'function',
+        name: 'foo',
+        stateMutability: 'nonpayable',
+        inputs: [{ name: 'x', type: 'uint256' }],
+        outputs: [],
+      },
+      {
+        type: 'function',
+        name: 'foo',
+        stateMutability: 'nonpayable',
+        inputs: [{ name: 'y', type: 'int256' }],
+        outputs: [],
+      },
+    ] as unknown as Abi;
+    await runContractCommand({
+      abi: overloadedABI,
+      parsed: {
+        rpcUrl: RPC,
+        chainId: CHAIN_ID,
+        address: ADDR as `0x${string}`,
+        function: 'foo(int256)',
+        args: [1000n],
+        account: ACCOUNT as `0x${string}`,
+      },
+    });
+    const call = __viemMocks.prepareTransactionRequest.mock.calls[0][0];
+    const selector = keccak256(toBytes('foo(int256)')).slice(0, 10);
+    expect(call.data.toLowerCase().startsWith(selector.toLowerCase())).toBe(true);
   });
 });
