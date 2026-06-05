@@ -127,6 +127,10 @@ import {
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
 
+import { contractRegistry } from './contractRegistry';
+import { buildContractCommandSchema } from './contractCommandSchema';
+import { runContractCommand, type ParsedContractCommand } from './runContractCommand';
+
 /**
  * A scripting entry point: one schema + function pair exposed both as a CLI
  * subcommand and as a coverage-test target. Consumed by `cli.ts` (iterates
@@ -159,6 +163,20 @@ const command = <S extends ZodType<readonly unknown[]>>(
   schema: S,
   func: (...args: z.output<S>) => unknown,
 ): Command => ({ name, schema, func });
+
+const contractCommands: readonly Command[] = contractRegistry.map((entry) =>
+  command(
+    entry.name,
+    buildContractCommandSchema(entry.abi, entry.schemas, entry.fixedAddress !== undefined),
+    (parsed) => {
+      const merged =
+        entry.fixedAddress !== undefined
+          ? { ...(parsed as object), address: entry.fixedAddress }
+          : (parsed as object);
+      return runContractCommand({ abi: entry.abi, parsed: merged as ParsedContractCommand });
+    },
+  ),
+);
 
 export const commands: readonly Command[] = [
   command('getValidators', getValidatorsSchema, getValidators),
@@ -340,4 +358,6 @@ export const commands: readonly Command[] = [
     deployFullChainSchema.transform((i) => [i] as const),
     deployFullChainExecute,
   ),
+
+  ...contractCommands,
 ];

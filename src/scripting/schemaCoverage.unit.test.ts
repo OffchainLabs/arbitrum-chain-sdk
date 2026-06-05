@@ -8,6 +8,12 @@ import {
   type CoverageOverride,
 } from './schemaCoverage';
 import { commands } from './commands';
+import { contractRegistry } from './contractRegistry';
+
+// Contract commands are generic ABI-derived discriminated unions: every leaf
+// flows structurally into a mocked viem call, so the field-liveness fuzzer has
+// nothing to discover. They'd also explode the it()-block count by ~800.
+const contractCommandNames = new Set(contractRegistry.map((e) => e.name));
 
 /** consensus-v10 wasm module root -- a real value from the known list. */
 const CONSENSUS_V10_WASM_MODULE_ROOT =
@@ -351,6 +357,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
 
 describe('schema coverage', () => {
   for (const { name, schema, func } of commands) {
+    if (contractCommandNames.has(name)) continue;
     const variants = getSchemaVariants(schema);
     variants.forEach((variant, i) => {
       const label =
