@@ -8,6 +8,9 @@
     "cli": "node src/dist/scripting/cli.js",
     "dev": "pnpm build --watch",
     "generate": "wagmi generate",
+    "postgenerate": "pnpm generate:schemas",
+    "generate:schemas": "tsx ./src/scripts/generateAbiSchemas.mts",
+    "postgenerate:schemas": "prettier --write 'src/contracts/**/*.schemas.ts'",
     "generate:node-config-type": "pnpm build && node ./src/dist/scripts/generateNodeConfigType.js",
     "postgenerate:node-config-type": "prettier --write ./src/types/NodeConfig.generated.ts",
     "test:type": "vitest --config vitest.type.config.ts",
@@ -24,6 +27,7 @@
     "@offchainlabs/prettier-config": "0.2.1",
     "@types/node": "^20.9.0",
     "@wagmi/cli": "^1.5.2",
+    "abi-to-zod": "^0.2.0",
     "audit-ci": "^7.0.1",
     "dotenv": "^16.3.1",
     "eslint": "^9.39.1",
@@ -31,27 +35,11 @@
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.8.3",
     "ts-morph": "^21.0.1",
+    "tsx": "^4.22.1",
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.56.1",
     "viem": "^1.20.0",
-    "vitest": "^3.2.4"
-  },
-  "pnpm": {
-    "overrides": {
-      "viem": "1.20.0",
-      "viem>ws": "8.17.1",
-      "@wagmi/cli>esbuild": "0.25.1",
-      "@wagmi/cli>bundle-require": "5.1.0",
-      "@ethersproject/providers>ws": "7.5.10",
-      "elliptic": "6.6.1",
-      "nanoid": "3.3.8",
-      "base-x": "3.0.11",
-      "pbkdf2": "3.1.3",
-      "sha.js": "2.4.12",
-      "cipher-base": "1.0.5",
-      "tmp": "0.2.5",
-      "zod": "4.3.6",
-      "postcss": "8.5.10"
-    }
+    "vitest": "^4.1.0",
+    "zod": "^4.3.6"
   }
 }
