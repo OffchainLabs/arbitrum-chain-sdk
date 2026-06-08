@@ -5,6 +5,7 @@
   "scripts": {
     "prebuild": "rm -rf ./src/dist",
     "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./src/dist --declaration",
+    "cli": "node src/dist/scripting/cli.js",
     "dev": "pnpm build --watch",
     "generate": "wagmi generate",
     "postgenerate": "pnpm generate:schemas",
