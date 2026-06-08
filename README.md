@@ -16,34 +16,44 @@ The SDK ships a CLI that exposes its functions, workflows, and contract calls as
 
 ### Install
 
-Pull the published image from Docker Hub:
+Install it globally from npm to put `arbitrum-chain-sdk` on your PATH:
+
+```bash
+npm i -g @arbitrum/chain-sdk
+arbitrum-chain-sdk <command> '<json>'
+```
+
+Or run it without installing (append `@<version>` to pin a release):
+
+```bash
+npx @arbitrum/chain-sdk <command> '<json>'
+```
+
+Or pull the Docker image for a pinned, reproducible environment:
 
 ```bash
 docker pull offchainlabs/arbitrum-chain-sdk:latest
 docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
 ```
 
-Or build and run it directly:
-
-```bash
-pnpm install && pnpm build
-pnpm cli <command> '<json>'
-```
+The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm offchainlabs/arbitrum-chain-sdk:latest`.
 
 ### Usage
 
 ```
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>' [-o <path>]
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> --schema   [-o <path>]
+arbitrum-chain-sdk <command> '<json>' [-o <path>]
+arbitrum-chain-sdk <command> --schema   [-o <path>]
 ```
 
 The JSON argument can be supplied three ways:
 
-- As a literal: `docker run --rm offchainlabs/arbitrum-chain-sdk:latest getValidators '{"rpcUrl":"...","chainId":42161,"rollup":"0x..."}'`
-- From a file: `docker run --rm -v "$(pwd):/work" -w /work offchainlabs/arbitrum-chain-sdk:latest getValidators @input.json`
-- From stdin: `cat input.json | docker run --rm -i offchainlabs/arbitrum-chain-sdk:latest getValidators -`
+- As a literal: `arbitrum-chain-sdk getValidators '{"rpcUrl":"...","chainId":42161,"rollup":"0x..."}'`
+- From a file: `arbitrum-chain-sdk getValidators @input.json`
+- From stdin: `cat input.json | arbitrum-chain-sdk getValidators -`
 
 JSON with comments and trailing commas (JSONC) is accepted.
+
+Under Docker the file and stdin forms need extra flags: mount the working directory (`-v "$(pwd):/work" -w /work`) for `@file`, and add `-i` for stdin.
 
 Flags:
 
@@ -55,7 +65,7 @@ Flags:
 Run the CLI with no command to print the full command list:
 
 ```bash
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest
+arbitrum-chain-sdk
 ```
 
 Commands fall into three groups:
@@ -67,7 +77,7 @@ Commands fall into three groups:
 To see the input shape for a command:
 
 ```bash
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> --schema
+arbitrum-chain-sdk <command> --schema
 ```
 
 ### Output
@@ -81,7 +91,7 @@ docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> --schema
 Build a Nitro `chainConfig` for a new Arbitrum chain. This is the first call in the deploy-a-new-chain flow — given a chain ID and the chain's initial owner, the SDK fills in the full config:
 
 ```bash
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest prepareChainConfig '{
+arbitrum-chain-sdk prepareChainConfig '{
   "chainId": 12345,
   "arbitrum": {
     "InitialChainOwner": "0x0000000000000000000000000000000000000001"

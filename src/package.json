@@ -3,6 +3,9 @@
   "description": "TypeScript SDK for building Arbitrum chains",
   "version": "0.26.0",
   "main": "./dist/index.js",
+  "bin": {
+    "arbitrum-chain-sdk": "./dist/scripting/cli.js"
+  },
   "files": [
     "./dist"
   ],
