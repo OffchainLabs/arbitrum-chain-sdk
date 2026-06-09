@@ -169,10 +169,7 @@ export async function deployExpressLaneAuction({
 }: DeployExpressLaneAuctionParams): Promise<DeployExpressLaneAuctionResult> {
   const client = orbitChainWalletClient.extend(publicActions);
 
-  // A TransparentUpgradeableProxy stores its admin without ever calling it, so a non-contract
-  // proxyAdmin (an EOA, or the caller's own address) yields a permanently unadministrable proxy --
-  // and if it is the caller's address, admin routing also hides the auction's own methods. Fail fast
-  // before spending gas on the implementation deploy if there is no code at proxyAdmin.
+  // Sanity check the proxy admin isn't an EOA.
   const proxyAdminCode = await client.getBytecode({ address: proxyAdmin });
   if (!proxyAdminCode || proxyAdminCode === '0x') {
     throw new Error(
