@@ -1,4 +1,4 @@
-import { Chain, createPublicClient, createWalletClient, http } from 'viem';
+import { Chain, createPublicClient, createWalletClient, defineChain, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
 import { chains, getCustomParentChains } from '../chains';
@@ -11,6 +11,24 @@ export function findChain(chainId: number): Chain {
     throw new Error(`Unknown chain ID: ${chainId}. Known chain IDs: ${known}`);
   }
   return chain;
+}
+
+// Resolve a chain for CLI use, preferring the rich known/registered Chain (it carries
+// multicall3, native currency and explorer metadata). When the id isn't recognised --
+// e.g. a freshly deployed orbit chain that isn't in the registry -- synthesize a minimal
+// chain from the id and RPC instead of throwing. Only the id matters for EIP-155 signing,
+// and the transport always uses the supplied rpcUrl, so this is enough to deploy/read.
+export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
+  const knownChains = [...chains, ...getCustomParentChains()];
+  const chain = knownChains.find((c) => c.id === chainId);
+  if (chain) return chain;
+  return defineChain({
+    id: chainId,
+    name: `Chain ${chainId}`,
+    network: `chain-${chainId}`,
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: { default: { http: [rpcUrl] }, public: { http: [rpcUrl] } },
+  });
 }
 
 export function toPublicClient<TChain extends Chain | undefined = undefined>(
@@ -129,7 +147,11 @@ export function withChildChainSign<
   const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
   return [
     {
-      orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)),
+      orbitChainWalletClient: toWalletClient(
+        orbitChainRpcUrl,
+        privateKey,
+        findOrDefineChain(orbitChainId, orbitChainRpcUrl),
+      ),
       ...rest,
     },
   ] as WithChildChainSign<T>;
