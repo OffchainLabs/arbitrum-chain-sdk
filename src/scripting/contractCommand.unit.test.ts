@@ -33,6 +33,7 @@ const __viemMocks = vi.hoisted(() => {
 vi.mock('./viemTransforms', () => ({
   toPublicClient: () => __viemMocks.mockClient,
   findChain: (id: number) => ({ id }),
+  findOrDefineChain: (id: number) => ({ id }),
 }));
 
 beforeEach(() => {
