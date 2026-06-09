@@ -11,9 +11,6 @@ import {
 import expressLaneAuction from '@arbitrum/nitro-contracts/build/contracts/src/express-lane-auction/ExpressLaneAuction.sol/ExpressLaneAuction.json';
 import transparentUpgradeableProxy from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json';
 
-/**
- * This type describes the round timing of the ExpressLaneAuction. Durations are in seconds.
- */
 export type ExpressLaneAuctionRoundTimingInfo = {
   offsetTimestamp: bigint;
   roundDurationSeconds: bigint;
@@ -21,9 +18,6 @@ export type ExpressLaneAuctionRoundTimingInfo = {
   reserveSubmissionSeconds: bigint;
 };
 
-/**
- * This type is for the params of the deployExpressLaneAuction function
- */
 export type DeployExpressLaneAuctionParams = {
   orbitChainWalletClient: WalletClient;
   proxyAdmin: Address;
@@ -41,9 +35,6 @@ export type DeployExpressLaneAuctionParams = {
   masterAdmin: Address;
 };
 
-/**
- * This type is for the result of the deployExpressLaneAuction function
- */
 export type DeployExpressLaneAuctionResult = {
   expressLaneAuction: Address;
   implementation: Address;
@@ -60,11 +51,9 @@ export type ExpressLaneAuctionInitArgs = Omit<
 >;
 
 /**
- * Encodes the ExpressLaneAuction `initialize(InitArgs)` calldata. This is the single source of truth
- * for the InitArgs tuple component names: deployExpressLaneAuction encodes it into the proxy
- * constructor's data argument, and the unit test round-trips it so a renamed or dropped key fails in
- * CI here rather than at deploy time. The JSON-imported ABI is cast to Abi, which erases compile-time
- * checking of the 12 near-identical keys, so the round-trip is the only guard against a typo.
+ * Encodes the ExpressLaneAuction `initialize(InitArgs)` calldata. The JSON ABI is cast to `Abi`, so a
+ * renamed or dropped InitArgs key escapes the compiler; the unit test round-trips this encoder so such
+ * a typo fails in CI rather than at deploy time.
  */
 export function encodeExpressLaneAuctionInitData(initArgs: ExpressLaneAuctionInitArgs): Hex {
   return encodeFunctionData({
@@ -177,7 +166,6 @@ export async function deployExpressLaneAuction({
     );
   }
 
-  // The proxy constructor needs the implementation address, so deploy the logic contract first.
   const implementationTransactionHash = await client.deployContract({
     abi: expressLaneAuction.abi,
     account: orbitChainWalletClient.account!,
@@ -187,9 +175,6 @@ export async function deployExpressLaneAuction({
   const implementationReceipt = await client.waitForTransactionReceipt({
     hash: implementationTransactionHash,
   });
-  // waitForTransactionReceipt does not reject on revert in this viem version, so a reverted
-  // deploy yields contractAddress: null; surface it with the tx hash instead of letting
-  // getAddress(null) throw an opaque InvalidAddressError.
   if (implementationReceipt.status === 'reverted' || !implementationReceipt.contractAddress) {
     throw new Error(
       `deployExpressLaneAuction: implementation deployment ${implementationTransactionHash} reverted (status=${implementationReceipt.status})`,
@@ -197,8 +182,6 @@ export async function deployExpressLaneAuction({
   }
   const implementation = getAddress(implementationReceipt.contractAddress);
 
-  // initialize is onlyDelegated, so encode it into the proxy constructor's _data argument: it runs
-  // through the proxy via delegatecall, never against the implementation directly.
   const initData = encodeExpressLaneAuctionInitData({
     auctioneer,
     biddingToken,
@@ -223,9 +206,6 @@ export async function deployExpressLaneAuction({
   });
   const receipt = await client.waitForTransactionReceipt({ hash: transactionHash });
 
-  // The proxy constructor runs initialize via delegatecall, so any initialize revert path
-  // (NegativeOffset, invalid roundTimingInfo, onlyDelegated) reverts the proxy deploy and yields
-  // contractAddress: null. Surface it with the tx hash so the failing validation is identifiable.
   if (receipt.status === 'reverted' || !receipt.contractAddress) {
     throw new Error(
       `deployExpressLaneAuction: proxy deployment ${transactionHash} reverted (status=${receipt.status})`,

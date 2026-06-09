@@ -2,14 +2,6 @@ import { z } from 'zod';
 import { withChildChainSign } from '../viemTransforms';
 import { addressSchema, bigintSchema, privateKeySchema } from './common';
 
-export const deployProxyAdminSchema = z
-  .strictObject({
-    orbitChainRpcUrl: z.url(),
-    orbitChainId: z.number(),
-    privateKey: privateKeySchema,
-  })
-  .transform(withChildChainSign);
-
 export const deployExpressLaneAuctionSchema = z
   .strictObject({
     orbitChainRpcUrl: z.url(),

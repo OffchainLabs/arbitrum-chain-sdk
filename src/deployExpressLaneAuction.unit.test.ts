@@ -5,11 +5,8 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import expressLaneAuction from '@arbitrum/nitro-contracts/build/contracts/src/express-lane-auction/ExpressLaneAuction.sol/ExpressLaneAuction.json';
 import { encodeExpressLaneAuctionInitData } from './deployExpressLaneAuction';
 
-// encodeExpressLaneAuctionInitData is the single source of truth for the InitArgs tuple keys that
-// deployExpressLaneAuction sends on-chain. Because the JSON-imported ABI is cast to Abi, a renamed or
-// dropped key in that encoder is invisible to the compiler; round-tripping the *production* encoder
-// through the real ABI makes such a typo fail here in CI rather than at live deploy time with viem's
-// opaque "Address undefined is invalid" error.
+// The JSON ABI is cast to Abi, so a renamed or dropped InitArgs key is invisible to the compiler.
+// Round-tripping the production encoder through the real ABI makes such a typo fail here, not at deploy.
 describe('deployExpressLaneAuction initialize encoding', () => {
   it('encodes the production InitArgs and decodes back to the same values', () => {
     const randomAddress = () => privateKeyToAccount(generatePrivateKey()).address;

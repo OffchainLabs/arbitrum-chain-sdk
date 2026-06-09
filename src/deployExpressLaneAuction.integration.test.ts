@@ -92,10 +92,8 @@ describe('ExpressLaneAuction deployment tests', () => {
     expect(implementation).not.toEqual('0x0000000000000000000000000000000000000000');
     expect(expressLaneAuction).not.toEqual(implementation);
 
-    // The ProxyAdmin getters are the authoritative source of proxy wiring: prove the proxy's admin
-    // and implementation slots point where deployExpressLaneAuction claims, and that deployProxyAdmin
-    // made the deployer the owner (OZ Ownable sets owner = msg.sender). getProxyAdmin must be queried
-    // through the ProxyAdmin because the TransparentProxy routes admin reads away from the proxy.
+    // Query wiring through the ProxyAdmin: a TransparentProxy routes admin/implementation reads away
+    // from the proxy itself, so these getters are the authoritative source.
     const proxyAdminAbi = parseAbi([
       'function getProxyAdmin(address) view returns (address)',
       'function getProxyImplementation(address) view returns (address)',
@@ -151,9 +149,7 @@ describe('ExpressLaneAuction deployment tests', () => {
       ]),
       functionName: 'roundTimingInfo',
     });
-    // offsetTimestamp is the signed int64 field (reverts NegativeOffset() if < 0) and is stored
-    // verbatim, so it round-trips exactly to the value passed in -- assert it to catch a sign or
-    // tuple-slot encoding mistake on the riskiest field.
+    // offsetTimestamp is the signed int64 field, the riskiest to encode; assert it round-trips.
     expect(onChainRoundTimingInfo[0]).toEqual(roundTimingInfo.offsetTimestamp);
     expect(onChainRoundTimingInfo[1]).toEqual(roundTimingInfo.roundDurationSeconds);
     expect(onChainRoundTimingInfo[2]).toEqual(roundTimingInfo.auctionClosingSeconds);
@@ -166,9 +162,8 @@ describe('ExpressLaneAuction deployment tests', () => {
     });
     expect(onChainMinReservePrice).toEqual(1n);
 
-    // The 8 role addresses are passed but otherwise unobservable; reading them back through the
-    // AccessControl roles is what catches a misordered InitArgs tuple (distinct random addresses
-    // would otherwise produce wrong-but-valid values that no other assertion would notice).
+    // The role addresses are otherwise unobservable; reading them back catches a misordered
+    // InitArgs tuple that distinct-but-valid addresses would otherwise hide.
     const accessControlAbi = parseAbi([
       'function hasRole(bytes32, address) view returns (bool)',
       'function AUCTIONEER_ROLE() view returns (bytes32)',
@@ -211,9 +206,8 @@ describe('ExpressLaneAuction deployment tests', () => {
       orbitChainWalletClient: nitroTestnodeL2WalletClient,
     });
 
-    // auctionClosingSeconds + reserveSubmissionSeconds > roundDurationSeconds makes the atomic
-    // initialize revert inside the proxy constructor. The deploy must surface as an actionable
-    // error mentioning the revert, not an opaque address-parse failure on a null contractAddress.
+    // closing + reserve > duration reverts initialize inside the proxy constructor; the deploy
+    // must surface that as a revert error, not an opaque null-address parse failure.
     await expect(
       deployExpressLaneAuction({
         orbitChainWalletClient: nitroTestnodeL2WalletClient,
