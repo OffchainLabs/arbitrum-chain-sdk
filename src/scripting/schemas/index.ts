@@ -34,6 +34,7 @@ export {
   feeRouterDeployRewardDistributorSchema,
   feeRouterDeployChildToParentRewardRouterSchema,
 } from './feeRouter';
+export { deployProxyAdminSchema, deployExpressLaneAuctionSchema } from './expressLaneAuction';
 export { getBridgeUiConfigSchema } from './getBridgeUiConfig';
 export { isAnyTrustSchema } from './isAnyTrust';
 export { createRollupFetchTransactionHashSchema } from './createRollupFetchTransactionHash';
