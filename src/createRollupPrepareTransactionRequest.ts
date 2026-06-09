@@ -127,6 +127,12 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
     );
   }
 
+  if (isDisabledWasmModuleRoot(wasmModuleRoot)) {
+    throw new Error(
+      `Wasm module root ${wasmModuleRoot} is not supported. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
+    );
+  }
+
   if (isKnownWasmModuleRoot(wasmModuleRoot)) {
     const consensusRelease = getConsensusReleaseByWasmModuleRoot(wasmModuleRoot);
 
@@ -135,12 +141,6 @@ export async function createRollupPrepareTransactionRequest<TChain extends Chain
         `Consensus v${consensusRelease.version} does not support ArbOS ${arbOSVersion}. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
       );
     }
-  }
-
-  if (isDisabledWasmModuleRoot(wasmModuleRoot)) {
-    throw new Error(
-      `Wasm module root ${wasmModuleRoot} is not supported. Please update your "wasmModuleRoot" to that of a Consensus version compatible with ArbOS ${arbOSVersion}.`,
-    );
   }
 
   const paramsWithDefaults = { ...defaults, ...params, maxDataSize };
