@@ -66,47 +66,11 @@
     // from: @arbitrum/nitro-contracts>@openzeppelin/contracts
     // from: @arbitrum/token-bridge-contracts>@openzeppelin/contracts
     "GHSA-9vx6-7xxf-x967",
-    // https://github.com/advisories/GHSA-64vr-g452-qvp3
-    // Vite DOM Clobbering gadget found in vite bundled scripts that leads to XSS
-    // vite is not used in production
-    // from: vitest > vite
-    "GHSA-64vr-g452-qvp3",
-    // https://github.com/advisories/GHSA-9cwx-2883-4wfx
-    // server.fs.deny bypassed when using ?import&raw
-    // vite is not used in production
-    // from: vitest > vite
-    "GHSA-9cwx-2883-4wfx",
-    // https://github.com/advisories/GHSA-584q-6j8j-r5pm
-    // secp256k1-node allows private key extraction over ECDH
-    // We're using eliptic 5.0.7 which doesn't contain the issue
-    // https://github.com/cryptocoinjs/secp256k1-node/commit/dc37f41f2abfe87853b54bcd7d1b556db41b0c64#diff-7ae45ad102eab3b6d7e7896acd08c427a9b25b346470d7bc6507b6481575d519R35
-    // from: @arbitrum/token-bridge-contracts > @openzeppelin/upgrades-core > ethereumjs-util > ethereum-cryptography
-    "GHSA-584q-6j8j-r5pm",
-    // https://github.com/advisories/GHSA-fc9h-whq2-v747
-    // Valid ECDSA signatures erroneously rejected in Elliptic
-    // from: @arbitrum/token-bridge-contracts > @openzeppelin/upgrades-core > ethereumjs-util > ethereum-cryptography > secp256k1
-    // from: ethers > @ethersproject/signing-key
-    "GHSA-fc9h-whq2-v747",
-    // https://github.com/advisories/GHSA-gcx4-mw62-g8wm
-    // DOM Clobbering Gadget found in rollup bundled scripts that leads to XSS
-    // rollup is not used in production
-    // from vite > rollup
-    "GHSA-gcx4-mw62-g8wm",
-    // https://github.com/advisories/GHSA-3xgq-45jj-v275
-    // cross-spawn command injection vulnerability
-    // Only used during development via audit-ci, nyc, and patch-package
-    // from: audit-ci>cross-spawn
-    // from: nyc>foreground-child>cross-spawn
-    // from: nyc>spawn-wrap>foreground-child>cross-spawn
-    // from: @arbitrum/nitro-contracts>patch-package>cross-spawn
-    // from: @arbitrum/token-bridge-contracts>@arbitrum/nitro-contracts>patch-package>cross-spawn
-    // from: @offchainlabs/l1-l3-teleport-contracts>@arbitrum/token-bridge-contracts>@arbitrum/nitro-contracts>patch-package>cross-spawn
-    "GHSA-3xgq-45jj-v275",
-    // https://github.com/advisories/GHSA-vg6x-rcgg-rjx6
-    // Websites were able to send any requests to the development server and read the response in vite
-    // vitest is only used in testing
-    // from: vitest>vite
-    // from: vitest>vite-node>vite
-    "GHSA-vg6x-rcgg-rjx6"
+    // https://github.com/advisories/GHSA-848j-6mx2-7j84
+    // elliptic has no patched release yet (affected: <=6.6.1)
+    // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
+    // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
+    "GHSA-848j-6mx2-7j84"
+
   ]
 }

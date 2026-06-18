@@ -6,6 +6,7 @@ import { getArbOSVersion } from './getArbOSVersion';
 import { getClientVersion } from './getClientVersion';
 import { getRollupCreatorAddress } from './getRollupCreatorAddress';
 import { getTokenBridgeCreatorAddress } from './getTokenBridgeCreatorAddress';
+import { getWethAddress } from './getWethAddress';
 
 export {
   generateChainId,
@@ -16,4 +17,5 @@ export {
   getClientVersion,
   getRollupCreatorAddress,
   getTokenBridgeCreatorAddress,
+  getWethAddress,
 };

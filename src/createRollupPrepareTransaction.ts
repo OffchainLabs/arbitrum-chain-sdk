@@ -1,7 +1,9 @@
 import { Transaction, decodeFunctionData } from 'viem';
 import { DecodeFunctionDataReturnType } from 'viem/_types/utils/abi/decodeFunctionData';
 
-import { rollupCreatorABI } from './contracts/RollupCreator';
+import { rollupCreatorABI as rollupCreatorV3Dot2ABI } from './contracts/RollupCreator/v3.2';
+import { rollupCreatorABI as rollupCreatorV3Dot1ABI } from './contracts/RollupCreator/v3.1';
+import { rollupCreatorABI as rollupCreatorV2Dot1ABI } from './contracts/RollupCreator/v2.1';
 import { rollupCreatorABI as rollupCreatorV1Dot1ABI } from './contracts/RollupCreator/v1.1';
 
 import {
@@ -11,21 +13,25 @@ import {
   RollupCreatorLatestVersion,
 } from './types/createRollupTypes';
 
-function createRollupDecodeFunctionData<TAbi extends RollupCreatorABI<'v2.1' | 'v1.1'>>(
+function createRollupDecodeFunctionData<TAbi extends RollupCreatorABI<RollupCreatorVersion>>(
   data: `0x${string}`,
 ): DecodeFunctionDataReturnType<TAbi> {
   let result: DecodeFunctionDataReturnType<TAbi> | null = null;
 
   // try parsing from multiple RollupCreator versions
   [
+    // v3.2
+    rollupCreatorV3Dot2ABI,
+    // v3.1
+    rollupCreatorV3Dot1ABI,
     // v2.1
-    rollupCreatorABI,
+    rollupCreatorV2Dot1ABI,
     // v1.1
     rollupCreatorV1Dot1ABI,
   ].forEach((abi) => {
     try {
       result = decodeFunctionData({ abi, data }) as DecodeFunctionDataReturnType<TAbi>;
-    } catch (error) {
+    } catch {
       // do nothing
     }
   });

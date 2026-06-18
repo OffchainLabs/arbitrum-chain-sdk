@@ -19,13 +19,13 @@ export async function setValidKeyset<TChain extends Chain | undefined>({
   walletClient,
 }: SetValidKeysetParams<TChain>) {
   validateParentChain(publicClient);
-  const account = walletClient.account?.address;
+  const account = walletClient.account;
 
   if (typeof account === 'undefined') {
     throw new Error('account is undefined');
   }
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const { request } = await publicClient.simulateContract({
     address: coreContracts.upgradeExecutor,
     abi: upgradeExecutorABI,

@@ -20,7 +20,7 @@ export function arbAggregatorReadContract<
   client: PublicClient<Transport, TChain>,
   params: ArbAggregatorReadContractParameters<TFunctionName>,
 ): Promise<ArbAggregatorReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
     address: arbAggregatorAddress,
     abi: arbAggregatorABI,

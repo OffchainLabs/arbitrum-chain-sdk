@@ -5,7 +5,6 @@ import {
   arbitrumNova,
   base,
   sepolia,
-  holesky,
   arbitrumSepolia,
   baseSepolia,
   nitroTestnodeL1,
@@ -22,7 +21,6 @@ const earliestRollupCreatorDeploymentBlockNumber: Record<number, bigint> = {
   [base.id]: 12_978_604n,
   // testnet L1
   [sepolia.id]: 4_741_823n,
-  [holesky.id]: 1_118_493n,
   // testnet L2
   [arbitrumSepolia.id]: 654_628n,
   [baseSepolia.id]: 10_606_961n,

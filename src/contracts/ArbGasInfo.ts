@@ -2,9 +2,6 @@
 // ArbGasInfo
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006c)
- */
 export const arbGasInfoABI = [
   {
     stateMutability: 'view',
@@ -202,12 +199,6 @@ export const arbGasInfoABI = [
   },
 ] as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006c)
- */
-export const arbGasInfoAddress = '0x000000000000000000000000000000000000006C';
+export const arbGasInfoAddress = '0x000000000000000000000000000000000000006C' as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006c)
- */
 export const arbGasInfoConfig = { address: arbGasInfoAddress, abi: arbGasInfoABI } as const;

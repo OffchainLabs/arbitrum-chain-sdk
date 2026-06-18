@@ -1,5 +1,4 @@
 import { PublicClient, Transport, Chain, parseAbi } from 'viem';
-import { ARB_SYS_ADDRESS } from '@arbitrum/sdk/dist/lib/dataEntities/constants';
 
 /**
  * Returns the the ArbOS version from the provider passed in parameter.
@@ -12,7 +11,7 @@ export async function getArbOSVersion<TChain extends Chain | undefined>(
   arbitrumPublicClient: PublicClient<Transport, TChain>,
 ): Promise<number> {
   const arbOSVersion = await arbitrumPublicClient.readContract({
-    address: ARB_SYS_ADDRESS,
+    address: '0x0000000000000000000000000000000000000064',
     abi: parseAbi(['function arbOSVersion() view returns (uint256)']),
     functionName: 'arbOSVersion',
   });

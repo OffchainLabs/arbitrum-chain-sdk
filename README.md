@@ -1,18 +1,107 @@
-# Arbitrum Orbit SDK
+# Arbitrum Chain SDK
 
-TypeScript SDK for building [Arbitrum Orbit](https://arbitrum.io/orbit) chains.
+TypeScript SDK for [building Arbitrum chains](https://docs.arbitrum.io/launch-arbitrum-chain/a-gentle-introduction).
 
 ## Installation
 
 Make sure you are using Node.js v18 or greater.
 
 ```bash
-yarn add @arbitrum/orbit-sdk viem@^1.20.0
+pnpm add @arbitrum/chain-sdk viem@^1.20.0
+```
+
+## CLI
+
+The SDK ships a CLI that exposes its functions, workflows, and contract calls as subcommands. Each command takes a single JSON argument and prints a JSON result. Useful from shell scripts, CI, or any non-TypeScript caller.
+
+### Install
+
+Install it globally from npm to put `arbitrum-chain-sdk` on your PATH:
+
+```bash
+npm i -g @arbitrum/chain-sdk
+arbitrum-chain-sdk <command> '<json>'
+```
+
+Or run it without installing (append `@<version>` to pin a release):
+
+```bash
+npx @arbitrum/chain-sdk <command> '<json>'
+```
+
+Or pull the Docker image for a pinned, reproducible environment:
+
+```bash
+docker pull offchainlabs/arbitrum-chain-sdk:latest
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
+```
+
+The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm offchainlabs/arbitrum-chain-sdk:latest`.
+
+### Usage
+
+```
+arbitrum-chain-sdk <command> '<json>' [-o <path>]
+arbitrum-chain-sdk <command> --schema   [-o <path>]
+```
+
+The JSON argument can be supplied three ways:
+
+- As a literal: `arbitrum-chain-sdk getValidators '{"rpcUrl":"...","chainId":42161,"rollup":"0x..."}'`
+- From a file: `arbitrum-chain-sdk getValidators @input.json`
+- From stdin: `cat input.json | arbitrum-chain-sdk getValidators -`
+
+JSON with comments and trailing commas (JSONC) is accepted.
+
+Under Docker the file and stdin forms need extra flags: mount the working directory (`-v "$(pwd):/work" -w /work`) for `@file`, and add `-i` for stdin.
+
+Flags:
+
+- `-o <path>` — write the result to a file instead of stdout.
+- `--schema` — print the input JSON Schema for the command and exit.
+
+### Discovering commands
+
+Run the CLI with no command to print the full command list:
+
+```bash
+arbitrum-chain-sdk
+```
+
+Commands fall into three groups:
+
+- **SDK functions** — direct wrappers around SDK exports (`getValidators`, `createRollup`, …).
+- **Workflows** — multi-step orchestrations (`deployNewChain`, `deployFullChain`, `transferOwnership`, `initializeTokenBridge`).
+- **Contract calls** — generic read/write/encode against a contract ABI (`ArbOwner`, `Rollup@v3.2`, `Inbox`, …). Versioned entries sit alongside an unversioned alias pointing at the current default.
+
+To see the input shape for a command:
+
+```bash
+arbitrum-chain-sdk <command> --schema
+```
+
+### Output
+
+- **stdout** — the JSON result. `BigInt` values are serialized as decimal strings.
+- **stderr** — SDK progress logs, validation errors, and stack traces.
+- **Exit code** — `0` on success, `1` on any parse, validation, or runtime error.
+
+### Example
+
+Build a Nitro `chainConfig` for a new Arbitrum chain. This is the first call in the deploy-a-new-chain flow — given a chain ID and the chain's initial owner, the SDK fills in the full config:
+
+```bash
+arbitrum-chain-sdk prepareChainConfig '{
+  "chainId": 12345,
+  "arbitrum": {
+    "InitialChainOwner": "0x0000000000000000000000000000000000000001"
+  }
+}'
 ```
 
 ## Run integration tests
 
-Clone the branch `main` of [nitro-testnode](https://github.com/OffchainLabs/nitro-testnode), and run the testnode using the following arguments:
+Clone the branch `release` of [nitro-testnode](https://github.com/OffchainLabs/nitro-testnode), and run the testnode using the following arguments:
 
 ```bash
 ./test-node.bash --init --tokenbridge --l3node --l3-fee-token --l3-token-bridge
@@ -21,7 +110,7 @@ Clone the branch `main` of [nitro-testnode](https://github.com/OffchainLabs/nitr
 Then, run the integration tests:
 
 ```bash
-yarn test:integration
+pnpm test:integration
 ```
 
 ## Examples

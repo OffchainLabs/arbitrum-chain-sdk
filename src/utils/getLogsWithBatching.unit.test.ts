@@ -227,3 +227,106 @@ describe('when stopWhenFound option is set to true', () => {
     expect(rollupInitializedEvents).toEqual([recentCreateRollupEvent]);
   });
 });
+
+describe('when batch size is set', () => {
+  it('getLogsWithBatching should fetch the entire interval if first call is successful', async () => {
+    const client = createPublicClient({
+      transport: http(),
+      chain: arbitrumSepolia,
+    });
+    const blockNumber = await client.getBlockNumber();
+    const getLogsMock = vi.fn();
+    client.getLogs = getLogsMock;
+    const oldCreateRollupEvent = mockCreateRollupEvent(
+      '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
+      blockNumber - 25_000n, // Included in the 3rd block from the last
+    );
+    const recentCreateRollupEvent = mockCreateRollupEvent(
+      '0x448fdaac1651fba39640e2103d83f78ff4695f95727f318f0f9e62c3e2d77a10',
+      blockNumber - 15_000n, // Included in the 2nd block from the last
+    );
+    getLogsMock.mockResolvedValueOnce([oldCreateRollupEvent, recentCreateRollupEvent]);
+
+    const rollupInitializedEvents = await getLogsWithBatching(
+      client,
+      {
+        address: rollupAddress,
+        event: RollupInitializedEventAbi,
+        fromBlock: blockNumber - 35_000n,
+        toBlock: blockNumber,
+      },
+      {
+        batchSize: 1n,
+      },
+    );
+
+    expect(getLogsMock.mock.calls).toHaveLength(1);
+    // First call is trying to fetch the entire interval
+    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
+      fromBlock: blockNumber - 35_000n,
+      toBlock: blockNumber,
+    });
+    expect(rollupInitializedEvents).toEqual([oldCreateRollupEvent, recentCreateRollupEvent]);
+  });
+
+  it('getLogsWithBatching should fetch the interval by batchSize increment if first call is failing', async () => {
+    const client = createPublicClient({
+      transport: http(),
+      chain: arbitrumSepolia,
+    });
+    const blockNumber = await client.getBlockNumber();
+    const getLogsMock = vi.fn();
+    client.getLogs = getLogsMock;
+    const createRollupEvent = mockCreateRollupEvent(
+      '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
+      blockNumber - 25_052n, // Included in the 2nd block from the last
+    );
+    getLogsMock
+      // First call, we simulate a RPC failure, and default to batching
+      .mockRejectedValueOnce(new Error('[mock] RPC limits exceeded'))
+      // First 4 calls from current block don't return any event
+      .mockResolvedValueOnce([]) // current block to - 5 000
+      .mockResolvedValueOnce([]) // -5 000 to -10 000
+      .mockResolvedValueOnce([]) // -10 000 to -15 000
+      .mockResolvedValueOnce([]) // - 15 000 to -20 000
+      // Last call return event
+      .mockResolvedValueOnce([createRollupEvent]); // -25 000 to -30 000
+
+    const rollupInitializedEvents = await getLogsWithBatching(
+      client,
+      {
+        address: rollupAddress,
+        event: RollupInitializedEventAbi,
+        fromBlock: blockNumber - 37_000n,
+        toBlock: blockNumber,
+      },
+      {
+        batchSize: 5_000n,
+      },
+    );
+
+    // First call covering the entire range + 8 for the batched calls
+    expect(getLogsMock.mock.calls).toHaveLength(9);
+
+    // First call is trying to fetch the entire interval
+    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
+      fromBlock: blockNumber - 37_000n,
+      toBlock: blockNumber,
+    });
+
+    // Next calls fetch the range 5_000 by 5_000 block
+    for (let i = 1; i < 8; i++) {
+      expect(getLogsMock.mock.calls[i][0]).toMatchObject({
+        fromBlock: blockNumber - BigInt(i) * 5_000n + 1n,
+        toBlock: blockNumber - BigInt(i - 1) * 5_000n,
+      });
+    }
+
+    // Last call fetch a small number of blocks than the batch size, because we have fromBlock set
+    expect(getLogsMock.mock.calls[8][0]).toMatchObject({
+      fromBlock: blockNumber - 37_000n,
+      toBlock: blockNumber - 7n * 5_000n,
+    });
+    expect(rollupInitializedEvents).toEqual([createRollupEvent]);
+  });
+});

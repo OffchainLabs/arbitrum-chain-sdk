@@ -10,27 +10,15 @@ import {
   parseEther,
 } from 'viem';
 
-import { rollupCreatorABI } from './contracts/RollupCreator';
+import { rollupCreatorABI } from './contracts/RollupCreator/v3.2';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
-import { isCustomFeeTokenAddress } from './utils/isCustomFeeTokenAddress';
+import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { defaults as createRollupDefaults } from './createRollupDefaults';
 import { applyPercentIncrease } from './utils/gasOverrides';
 import { createRollupDefaultRetryablesFees } from './constants';
+import { RollupCreatorSupportedVersion } from './types/createRollupTypes';
 
-const deployHelperABI = [
-  {
-    inputs: [
-      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
-      { internalType: 'uint256', name: 'maxFeePerGas', type: 'uint256' },
-    ],
-    name: 'getDeploymentTotalCost',
-    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
-    stateMutability: 'view',
-    type: 'function',
-  },
-] as const;
-
-const bridgeCreatorABI = [
+export const bridgeCreatorV2Dot1ABI = [
   {
     inputs: [],
     name: 'erc20BasedTemplates',
@@ -59,6 +47,105 @@ const bridgeCreatorABI = [
   },
 ] as const;
 
+export const bridgeCreatorV3Dot2ABI = [
+  {
+    inputs: [],
+    name: 'erc20BasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      {
+        internalType: 'contract ISequencerInbox',
+        name: 'delayBufferableSequencerInbox',
+        type: 'address',
+      },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ethBasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      {
+        internalType: 'contract ISequencerInbox',
+        name: 'delayBufferableSequencerInbox',
+        type: 'address',
+      },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+const deployHelperABI = [
+  {
+    inputs: [
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'uint256', name: 'maxFeePerGas', type: 'uint256' },
+    ],
+    name: 'getDeploymentTotalCost',
+    outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+async function getTemplates<TChain extends Chain | undefined>(
+  publicClient: PublicClient<Transport, TChain>,
+  rollupCreatorVersion: RollupCreatorSupportedVersion,
+) {
+  const bridgeCreatorAddress = await publicClient.readContract({
+    abi: rollupCreatorABI,
+    address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    functionName: 'bridgeCreator',
+  });
+
+  if (rollupCreatorVersion === 'v2.1') {
+    // v2.1 - bridge, sequencerInbox, inbox, rollupEventInbox, outbox
+    // inbox at index 2
+    const [ethBasedTemplates, erc20BasedTemplates] = await Promise.all([
+      publicClient.readContract({
+        abi: bridgeCreatorV2Dot1ABI,
+        address: bridgeCreatorAddress,
+        functionName: 'ethBasedTemplates',
+      }),
+      publicClient.readContract({
+        abi: bridgeCreatorV2Dot1ABI,
+        address: bridgeCreatorAddress,
+        functionName: 'erc20BasedTemplates',
+      }),
+    ]);
+
+    return [ethBasedTemplates[2], erc20BasedTemplates[2]] as const;
+  }
+
+  // v3.1/v3.2 - bridge, sequencerInbox, delayBufferableSequencerInbox, inbox, rollupEventInbox, outbox
+  // inbox at index 3
+  const [ethBasedTemplates, erc20BasedTemplates] = await Promise.all([
+    publicClient.readContract({
+      abi: bridgeCreatorV3Dot2ABI,
+      address: bridgeCreatorAddress,
+      functionName: 'ethBasedTemplates',
+    }),
+    publicClient.readContract({
+      abi: bridgeCreatorV3Dot2ABI,
+      address: bridgeCreatorAddress,
+      functionName: 'erc20BasedTemplates',
+    }),
+  ]);
+
+  return [ethBasedTemplates[3], erc20BasedTemplates[3]] as const;
+}
+
 export type CreateRollupGetRetryablesFeesParams = {
   account: Address;
   nativeToken?: Address;
@@ -72,43 +159,27 @@ export type CreateRollupGetRetryablesFeesParams = {
  * @param params.account Account used for deploying the rollup.
  * @param params.nativeToken (Optional) The native token used for the rollup. Defaults to ETH.
  * @param params.maxFeePerGasForRetryables (Optional) `maxFeePerGas` to use for retryables. Defaults to 0.1 Gwei.
+ * @param rollupCreatorVersion (Optional) Version of RollupCreator to use. Defaults to latest (currently v3.2).
  *
  * @returns Estimated fees.
  */
 export async function createRollupGetRetryablesFees<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
+  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
-  const [deployHelperAddress, bridgeCreatorAddress] = await Promise.all([
-    publicClient.readContract({
-      abi: rollupCreatorABI,
-      address: getRollupCreatorAddress(publicClient),
-      functionName: 'l2FactoriesDeployer',
-    }),
-    publicClient.readContract({
-      abi: rollupCreatorABI,
-      address: getRollupCreatorAddress(publicClient),
-      functionName: 'bridgeCreator',
-    }),
-  ]);
+  const deployHelperAddress = await publicClient.readContract({
+    abi: rollupCreatorABI,
+    address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    functionName: 'l2FactoriesDeployer',
+  });
 
-  const [ethBasedTemplates, erc20BasedTemplates] = await Promise.all([
-    publicClient.readContract({
-      abi: bridgeCreatorABI,
-      address: bridgeCreatorAddress,
-      functionName: 'ethBasedTemplates',
-    }),
-    publicClient.readContract({
-      abi: bridgeCreatorABI,
-      address: bridgeCreatorAddress,
-      functionName: 'erc20BasedTemplates',
-    }),
-  ]);
+  const [ethTemplateInbox, erc20TemplateInbox] = await getTemplates(
+    publicClient,
+    rollupCreatorVersion,
+  );
 
-  const [, , ethTemplateInbox] = ethBasedTemplates;
-  const [, , erc20TemplateInbox] = erc20BasedTemplates;
-
-  const isCustomGasToken = isCustomFeeTokenAddress(nativeToken);
+  const isCustomGasToken = isNonZeroAddress(nativeToken);
 
   const inbox = isCustomGasToken ? erc20TemplateInbox : ethTemplateInbox;
   const maxFeePerGas = maxFeePerGasForRetryables ?? createRollupDefaults.maxFeePerGasForRetryables;
@@ -169,19 +240,25 @@ export async function createRollupGetRetryablesFees<TChain extends Chain | undef
  * @param params.account Account used for deploying the rollup.
  * @param params.nativeToken (Optional) The native token used for the rollup. Defaults to ETH.
  * @param params.maxFeePerGasForRetryables (Optional) `maxFeePerGas` to use for retryables. Defaults to 0.1 Gwei.
+ * @param rollupCreatorVersion (Optional) Version of RollupCreator to use. Defaults to latest (currently v3.2).
  *
  * @returns Estimated fees.
  */
 export async function createRollupGetRetryablesFeesWithDefaults<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
+  rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
   try {
-    return await createRollupGetRetryablesFees(publicClient, {
-      account,
-      nativeToken,
-      maxFeePerGasForRetryables,
-    });
+    return await createRollupGetRetryablesFees(
+      publicClient,
+      {
+        account,
+        nativeToken,
+        maxFeePerGasForRetryables,
+      },
+      rollupCreatorVersion,
+    );
   } catch (error) {
     console.error(
       `[createRollupGetRetryablesFeesWithDefaults] Failed to fetch retryables fees, falling back to defaults.\n\n${error}`,

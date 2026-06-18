@@ -1,40 +1,45 @@
 {
-  "workspaces": [
-    "src",
-    "examples/*"
-  ],
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.30.3",
   "scripts": {
     "prebuild": "rm -rf ./src/dist",
     "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./src/dist --declaration",
-    "dev": "yarn build --watch",
+    "cli": "node src/dist/scripting/cli.js",
+    "dev": "pnpm build --watch",
     "generate": "wagmi generate",
-    "generate:node-config-type": "yarn build && node ./src/dist/scripts/generateNodeConfigType.js",
+    "postgenerate": "pnpm generate:schemas",
+    "generate:schemas": "tsx ./src/scripts/generateAbiSchemas.mts",
+    "postgenerate:schemas": "prettier --write 'src/contracts/**/*.schemas.ts'",
+    "generate:node-config-type": "pnpm build && node ./src/dist/scripts/generateNodeConfigType.js",
     "postgenerate:node-config-type": "prettier --write ./src/types/NodeConfig.generated.ts",
+    "test:type": "vitest --config vitest.type.config.ts",
     "test:unit": "vitest --config vitest.unit.config.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
     "postinstall": "patch-package",
+    "lint": "eslint . --cache",
+    "lint:fix": "eslint . --fix --cache",
     "prettier:check": "prettier --check '**/*.{ts,md,json,yml}'",
     "prettier:format": "prettier --write '**/*.{ts,md,json,yml}'",
     "audit:ci": "audit-ci --config ./audit-ci.jsonc"
   },
   "devDependencies": {
     "@offchainlabs/prettier-config": "0.2.1",
+    "@types/node": "^20.9.0",
     "@wagmi/cli": "^1.5.2",
+    "abi-to-zod": "^0.2.0",
     "audit-ci": "^7.0.1",
     "dotenv": "^16.3.1",
+    "eslint": "^9.39.1",
     "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.8.3",
     "ts-morph": "^21.0.1",
+    "tsx": "^4.22.1",
     "typescript": "^5.2.2",
-    "vitest": "^1.6.1"
-  },
-  "resolutions": {
-    "**/@wagmi/cli/viem/ws": "8.17.1",
-    "**/@ethersproject/providers/ws": "7.5.10",
-    "**/elliptic": "6.5.7",
-    "**/nanoid": "3.3.8"
+    "typescript-eslint": "^8.56.1",
+    "viem": "^1.20.0",
+    "vitest": "^4.1.0",
+    "zod": "^4.3.6"
   }
 }

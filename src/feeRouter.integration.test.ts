@@ -37,7 +37,7 @@ const nitroTestnodeL2WalletClient = createWalletClient({
 });
 
 describe('Fee routing tests', () => {
-  it(`successfully deploys and configures the ChildToParentRewardRouter`, async () => {
+  it(`successfully deploys and configures an ArbChildToParentRewardRouter`, async () => {
     const childToParentRewardRouterDeploymentTransactionHash =
       await feeRouterDeployChildToParentRewardRouter({
         parentChainPublicClient: nitroTestnodeL1Client,

@@ -1,8 +1,11 @@
 {
-  "name": "@arbitrum/orbit-sdk",
-  "description": "TypeScript SDK for building Arbitrum Orbit chains",
-  "version": "0.21.5",
+  "name": "@arbitrum/chain-sdk",
+  "description": "TypeScript SDK for building Arbitrum chains",
+  "version": "0.26.0",
   "main": "./dist/index.js",
+  "bin": {
+    "arbitrum-chain-sdk": "./dist/scripting/cli.js"
+  },
   "files": [
     "./dist"
   ],
@@ -44,17 +47,25 @@
       ]
     }
   },
-  "repository": "git+https://github.com/OffchainLabs/arbitrum-orbit-sdk.git",
+  "repository": "git+https://github.com/OffchainLabs/arbitrum-chain-sdk.git",
   "author": "Offchain Labs, Inc.",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
   "peerDependencies": {
     "viem": "^1.20.0"
   },
   "dependencies": {
-    "@arbitrum/sdk": "^4.0.2",
+    "@arbitrum/sdk": "^4.0.4",
     "@arbitrum/token-bridge-contracts": "^1.2.2",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
     "@offchainlabs/fund-distribution-contracts": "^1.0.1",
-    "@safe-global/protocol-kit": "^4.0.2",
-    "ethers": "^5.7.2"
+    "@safe-global/protocol-kit": "^4.1.7",
+    "abitype": "^0.9.8",
+    "ethers": "^5.7.2",
+    "jsonc-parser": "^3.3.1",
+    "zod": "^4.3.6"
   }
 }

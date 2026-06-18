@@ -30,11 +30,12 @@ import {
   CreateTokenBridgeSetWethGatewayTransactionReceipt,
   createTokenBridgePrepareSetWethGatewayTransactionReceipt,
 } from './createTokenBridgePrepareSetWethGatewayTransactionReceipt';
-import { isCustomFeeTokenAddress } from './utils/isCustomFeeTokenAddress';
+import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { TransactionRequestGasOverrides } from './utils/gasOverrides';
 import { getBlockExplorerUrl } from './utils/getBlockExplorerUrl';
-import { isTokenBridgeDeployed } from './isTokenBridgeDeployed';
+import { registerNewNetwork } from './utils/registerNewNetwork';
+import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
 export type CreateTokenBridgeParams<
   TParentChain extends Chain | undefined,
@@ -186,18 +187,7 @@ export async function createTokenBridge<
 }: CreateTokenBridgeParams<TParentChain, TOrbitChain>): Promise<
   CreateTokenBridgeResults<TParentChain, TOrbitChain>
 > {
-  const isTokenBridgeAlreadyDeployed = await isTokenBridgeDeployed({
-    parentChainPublicClient,
-    orbitChainPublicClient,
-    rollup: rollupAddress,
-    tokenBridgeCreatorAddressOverride,
-  });
-
-  if (isTokenBridgeAlreadyDeployed) {
-    throw new Error(`Token bridge contracts for Rollup ${rollupAddress} are already deployed`);
-  }
-
-  const isCustomFeeTokenBridge = isCustomFeeTokenAddress(nativeTokenAddress);
+  const isCustomFeeTokenBridge = isNonZeroAddress(nativeTokenAddress);
   if (isCustomFeeTokenBridge) {
     // set the custom fee token
     // prepare transaction to approve custom fee token spend
@@ -238,7 +228,6 @@ export async function createTokenBridge<
       rollupOwner,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: account.address,
     tokenBridgeCreatorAddressOverride,
     gasOverrides,
@@ -263,10 +252,17 @@ export async function createTokenBridge<
     }`,
   );
 
+  // Register the network with @arbitrum/sdk (required for waitForRetryables)
+  await registerNewNetwork(
+    publicClientToProvider(parentChainPublicClient),
+    publicClientToProvider(orbitChainPublicClient),
+    rollupAddress,
+  );
+
   // wait for retryables to execute
   console.log(`Waiting for retryable tickets to execute on the Orbit chain...`);
   const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
-    // @ts-ignore (todo: fix viem type issue)
+    // @ts-expect-error -- todo: fix viem type issue
     orbitPublicClient: orbitChainPublicClient,
   });
   console.log(`Retryables executed`);
@@ -279,7 +275,7 @@ export async function createTokenBridge<
 
   // fetching the TokenBridge contracts
   const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
-    // @ts-ignore (todo: fix viem type issue)
+    // @ts-expect-error -- todo: fix viem type issue
     parentChainPublicClient,
   });
 
@@ -290,7 +286,6 @@ export async function createTokenBridge<
       rollup: rollupAddress,
       rollupDeploymentBlockNumber,
       parentChainPublicClient,
-      orbitChainPublicClient,
       account: account.address,
       tokenBridgeCreatorAddressOverride,
       retryableGasOverrides: setWethGatewayGasOverrides,
@@ -319,7 +314,7 @@ export async function createTokenBridge<
     // Wait for retryables to execute
     const orbitChainSetWethGatewayRetryableReceipt =
       await setWethGatewayTxReceipt.waitForRetryables({
-        // @ts-ignore (todo: fix viem type issue)
+        // @ts-expect-error -- todo: fix viem type issue
         orbitPublicClient: orbitChainPublicClient,
       });
     console.log(`Retryables executed`);
@@ -335,13 +330,13 @@ export async function createTokenBridge<
 
     return {
       transaction,
-      // @ts-ignore (todo: fix viem type issue)
+      // @ts-expect-error -- todo: fix viem type issue
       transactionReceipt: txReceipt,
       retryables: orbitChainRetryableReceipts,
       tokenBridgeContracts,
       setWethGateway: {
         transaction: setWethGatewayTransaction,
-        // @ts-ignore (todo: fix viem type issue)
+        // @ts-expect-error -- todo: fix viem type issue
         transactionReceipt: setWethGatewayTxReceipt,
         retryables: [orbitChainSetWethGatewayRetryableReceipt[0]],
       },
@@ -350,7 +345,7 @@ export async function createTokenBridge<
 
   return {
     transaction,
-    // @ts-ignore (todo: fix viem type issue)
+    // @ts-expect-error -- todo: fix viem type issue
     transactionReceipt: txReceipt,
     retryables: orbitChainRetryableReceipts,
     tokenBridgeContracts,

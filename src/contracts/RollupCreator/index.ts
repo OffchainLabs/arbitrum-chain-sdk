@@ -1,2 +1,2 @@
 // export the latest version
-export * from './v2.1';
+export * from './v3.2';

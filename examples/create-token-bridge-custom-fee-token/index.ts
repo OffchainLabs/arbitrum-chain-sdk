@@ -6,8 +6,8 @@ import {
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest,
   createTokenBridgePrepareTransactionRequest,
   createTokenBridgePrepareTransactionReceipt,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 
@@ -107,7 +107,6 @@ async function main() {
       rollupOwner: rollupOwner.address,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: rollupOwner.address,
   });
 

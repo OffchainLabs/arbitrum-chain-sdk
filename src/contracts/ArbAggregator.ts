@@ -2,9 +2,6 @@
 // ArbAggregator
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006d)
- */
 export const arbAggregatorABI = [
   {
     stateMutability: 'nonpayable',
@@ -73,14 +70,8 @@ export const arbAggregatorABI = [
   },
 ] as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006d)
- */
-export const arbAggregatorAddress = '0x000000000000000000000000000000000000006D';
+export const arbAggregatorAddress = '0x000000000000000000000000000000000000006D' as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006d)
- */
 export const arbAggregatorConfig = {
   address: arbAggregatorAddress,
   abi: arbAggregatorABI,

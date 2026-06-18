@@ -18,7 +18,7 @@ const client = createPublicClient({
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 
 it('Infer parameters based on function name', async () => {
-  expect(
+  await expect(
     client.arbOwnerPrepareTransactionRequest({
       functionName: 'addChainOwner',
       // @ts-expect-error Args are missing
@@ -28,7 +28,7 @@ it('Infer parameters based on function name', async () => {
     }),
   ).rejects.toThrow(AbiEncodingLengthMismatchError);
 
-  expect(
+  await expect(
     client.arbOwnerPrepareTransactionRequest({
       functionName: 'addChainOwner',
       // @ts-expect-error Args are of the wrong type
@@ -38,7 +38,7 @@ it('Infer parameters based on function name', async () => {
     }),
   ).rejects.toThrow(InvalidAddressError);
 
-  expect(
+  await expect(
     client
       // @ts-expect-error Args are required for `addChainOwner`
       .arbOwnerPrepareTransactionRequest({
@@ -58,7 +58,7 @@ it('Infer parameters based on function name', async () => {
   );
 
   // Function doesn't exist
-  expect(
+  await expect(
     client.arbOwnerReadContract({
       // @ts-expect-error Function not available
       functionName: 'notExisting',

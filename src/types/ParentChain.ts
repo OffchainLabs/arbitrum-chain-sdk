@@ -15,7 +15,7 @@ function isValidParentChainId(parentChainId: number | undefined): parentChainId 
   const ids = [...chains, ...getCustomParentChains()]
     // exclude nitro-testnode L3 from the list of parent chains
     .filter((chain) => chain.id !== nitroTestnodeL3.id)
-    .map((chain) => chain.id) as Number[];
+    .map((chain) => chain.id) as number[];
   return ids.includes(Number(parentChainId));
 }
 

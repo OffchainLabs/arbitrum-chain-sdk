@@ -7,7 +7,7 @@ import {
   encodeFunctionData,
   http,
 } from 'viem';
-import { arbitrum, arbitrumSepolia } from 'viem/chains';
+import { arbitrum, arbitrumSepolia, sepolia } from 'viem/chains';
 import { it, expect, vi, describe } from 'vitest';
 
 import { gnosisSafeL2ABI } from './contracts/GnosisSafeL2';
@@ -24,6 +24,11 @@ const client = createPublicClient({
 const arbitrumSepoliaClient = createPublicClient({
   chain: arbitrumSepolia,
   transport: http(),
+});
+
+const sepoliaClient = createPublicClient({
+  chain: sepolia,
+  transport: http('https://sepolia.gateway.tenderly.co'),
 });
 
 function mockLog(transactionHash: string) {
@@ -182,6 +187,30 @@ it('getBatchPosters returns batch posters for a chain created with RollupCreator
     '0xDc4ECA04032b9178020Ff0c6154A7e87309a429f',
     '0xe122F9838A4C8e6834F24D1b9dCa92eb52a8E17e',
     '0xB280Fd59090f3D95588d94BACD22b336dE2278e0',
+  ]);
+  expect(isAccurate).toBeTruthy();
+});
+
+// https://sepolia.etherscan.io/tx/0xd79a80b7300df1bcb14e2e3ea83521d1ae37e5f171a787fb0f5377ea7f5003ad
+it('getBatchPosters returns batch posters for a chain created with RollupCreator v3.1', async () => {
+  const { isAccurate, batchPosters } = await getBatchPosters(sepoliaClient, {
+    rollup: '0x5D65e18b873dD978EeE4704BC6033436aA253936',
+    sequencerInbox: '0x3fB778EC3e6126aF1d956A7812Eb0a28B9d25017',
+  });
+  expect(batchPosters).toEqual(['0x05c82FC99a41e417Ea6ED14e1D3f3b01BBFfba5A']);
+  expect(isAccurate).toBeTruthy();
+});
+
+// https://sepolia.arbiscan.io/tx/0x67bb216d4dd1b1807d9f0e226e4da754bdf643e2788f9e515b37c6dd890be331
+it('getBatchPosters returns batch posters for a chain created with RollupCreator v3.2', async () => {
+  const { isAccurate, batchPosters } = await getBatchPosters(arbitrumSepoliaClient, {
+    rollup: '0x80630e3776E445c256E82D5ACcA2Bbb4b0c95a98',
+    sequencerInbox: '0x15aD14f109Eb97E32EA8F8b5A6E6DC1a6d2F1ca1',
+  });
+  expect(batchPosters).toEqual([
+    '0xdFd9C2cB3F8D4E6A8c758C22e24F3d88645d979d',
+    '0x48AD525578B79a3DF3B93bfd4C987BE577063389',
+    '0x9b64F3f6B4a895dB45eC7FEeBF1bEB6b62B2524E',
   ]);
   expect(isAccurate).toBeTruthy();
 });
@@ -489,7 +518,7 @@ describe('safeL2FunctionSelector', () => {
 });
 
 describe('Detect batch posters added or removed multiple times', () => {
-  it('when disabling the same batch poster multiple time', async () => {
+  it('when disabling the same batch poster multiple times', async () => {
     const batchPoster = '0xC0b97e2998edB3Bf5c6369e7f7eFfb49c36fA962';
     const mockTransport = () =>
       createTransport({
@@ -527,7 +556,7 @@ describe('Detect batch posters added or removed multiple times', () => {
     expect(batchPosters).toEqual([]);
     expect(isAccurate).toBeTruthy();
   });
-  it('when enabling the same batch posters multiple time', async () => {
+  it('when enabling the same batch posters multiple times', async () => {
     const batchPoster = '0xC0b97e2998edB3Bf5c6369e7f7eFfb49c36fA962';
     const mockTransport = () =>
       createTransport({

@@ -39,7 +39,6 @@ function mockInvalidateKeysetHashEvent(keysetHash: Hex) {
 function mockData({
   logs,
   method,
-  params,
 }: {
   logs: unknown[];
   method:

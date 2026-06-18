@@ -7,6 +7,7 @@ import {
   ArbGasInfoReadContractReturnType,
 } from '../arbGasInfoReadContract';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- todo: remove generic if not breaking
 export type ArbGasInfoPublicActions<TChain extends Chain | undefined = Chain | undefined> = {
   arbGasInfoReadContract: <TFunctionName extends ArbGasInfoFunctionName>(
     args: ArbGasInfoReadContractParameters<TFunctionName>,

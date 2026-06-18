@@ -20,7 +20,7 @@ export function arbOwnerReadContract<
   client: PublicClient<Transport, TChain>,
   params: ArbOwnerReadContractParameters<TFunctionName>,
 ): Promise<ArbOwnerReadContractReturnType<TFunctionName>> {
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   return client.readContract({
     address: arbOwnerPublicAddress,
     abi: arbOwnerPublicABI,

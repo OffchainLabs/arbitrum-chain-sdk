@@ -54,7 +54,8 @@ export async function getKeysets<TChain extends Chain>(
     });
     blockNumber = receipt.blockNumber;
   } catch (e) {
-    console.warn(`[getKeysets] ${(e as any).message}`);
+    const message = e instanceof Error ? e.message : String(e);
+    console.warn(`[getKeysets] ${message}`);
     blockNumber = 0n;
   }
 

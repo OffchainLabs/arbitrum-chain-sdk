@@ -7,6 +7,7 @@ import { generateChainId, sanitizePrivateKey } from './utils';
 import { createRollup } from './createRollup';
 import { createRollupPrepareDeploymentParamsConfig } from './createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from './prepareChainConfig';
+import { CreateRollupParams, RollupCreatorSupportedVersion } from './types/createRollupTypes';
 
 config();
 
@@ -135,43 +136,65 @@ export function getInformationFromTestnode(): TestnodeInformation {
   throw new Error('nitro-testnode sequencer not found');
 }
 
-export async function createRollupHelper({
+export async function createRollupHelper<
+  TRollupCreatorVersion extends RollupCreatorSupportedVersion = 'v3.2',
+>({
   deployer,
   batchPosters,
   validators,
   nativeToken = zeroAddress,
   client,
+  rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv() as TRollupCreatorVersion,
 }: {
   deployer: PrivateKeyAccountWithPrivateKey;
   batchPosters: Address[];
   validators: Address[];
   nativeToken: Address;
   client: PublicClient;
+  rollupCreatorVersion?: TRollupCreatorVersion;
 }) {
   const chainId = generateChainId();
 
-  const createRollupConfig = createRollupPrepareDeploymentParamsConfig(client, {
-    chainId: BigInt(chainId),
-    owner: deployer.address,
-    chainConfig: prepareChainConfig({
-      chainId,
-      arbitrum: {
-        InitialChainOwner: deployer.address,
-        DataAvailabilityCommittee: true,
-      },
-    }),
-  });
-
-  const createRollupInformation = await createRollup({
-    params: {
-      config: createRollupConfig,
-      batchPosters,
-      validators,
-      nativeToken,
+  const createRollupConfig = createRollupPrepareDeploymentParamsConfig(
+    client,
+    {
+      chainId: BigInt(chainId),
+      owner: deployer.address,
+      chainConfig: prepareChainConfig({
+        chainId,
+        arbitrum: {
+          InitialChainOwner: deployer.address,
+          DataAvailabilityCommittee: true,
+        },
+      }),
     },
-    account: deployer,
-    parentChainPublicClient: client,
-  });
+    rollupCreatorVersion,
+  );
+
+  const createRollupInformation =
+    rollupCreatorVersion === 'v2.1'
+      ? await createRollup({
+          params: {
+            config: createRollupConfig,
+            batchPosters,
+            validators,
+            nativeToken,
+          } as CreateRollupParams<'v2.1'>,
+          account: deployer,
+          parentChainPublicClient: client,
+          rollupCreatorVersion: 'v2.1',
+        })
+      : await createRollup({
+          params: {
+            config: createRollupConfig,
+            batchPosters,
+            validators,
+            nativeToken,
+          } as CreateRollupParams<'v3.2'>,
+          account: deployer,
+          parentChainPublicClient: client,
+          rollupCreatorVersion: 'v3.2',
+        });
 
   // create test rollup with ETH as gas token
   return {
@@ -182,8 +205,11 @@ export async function createRollupHelper({
 
 export function testHelper_createCustomParentChain(params?: { id?: number }) {
   const chainId = params?.id ?? generateChainId();
+
   const rollupCreator = privateKeyToAccount(generatePrivateKey()).address;
   const tokenBridgeCreator = privateKeyToAccount(generatePrivateKey()).address;
+  // randomly generated and hardcoded because it must not change for snapshot tests
+  const weth = '0xabaF3D9f5cbDcE54cDc43b429d8f7154A3E19Afa';
 
   return {
     id: chainId,
@@ -207,6 +233,18 @@ export function testHelper_createCustomParentChain(params?: { id?: number }) {
     contracts: {
       rollupCreator: { address: rollupCreator },
       tokenBridgeCreator: { address: tokenBridgeCreator },
+      weth: { address: weth },
     },
   } satisfies Chain;
+}
+
+export function testHelper_getRollupCreatorVersionFromEnv(): RollupCreatorSupportedVersion {
+  if (process.env.INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH) {
+    // extract just major and minor version numbers
+    return process.env.INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH.split('.')
+      .slice(0, 2)
+      .join('.') as RollupCreatorSupportedVersion;
+  }
+
+  return 'v3.2';
 }

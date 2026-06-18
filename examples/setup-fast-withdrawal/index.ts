@@ -7,9 +7,9 @@ import {
   createSafePrepareTransactionRequest,
   rollupAdminLogicPublicActions,
   setAnyTrustFastConfirmerPrepareTransactionRequest,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/orbit-sdk/utils';
-import { base, baseSepolia } from '@arbitrum/orbit-sdk/chains';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/chain-sdk/utils';
+import { base, baseSepolia } from '@arbitrum/chain-sdk/chains';
 import { config } from 'dotenv';
 config();
 

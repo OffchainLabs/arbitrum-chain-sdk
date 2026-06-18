@@ -1,4 +1,4 @@
-import { Address, PublicClient, Transport, Chain, maxInt256 } from 'viem';
+import { Address, PublicClient, Transport, Chain } from 'viem';
 
 import { approvePrepareTransactionRequest, fetchDecimals } from './utils/erc20';
 

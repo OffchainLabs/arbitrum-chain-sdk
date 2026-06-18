@@ -16,8 +16,8 @@ import {
   arbGasInfoPublicActions,
   parentChainIsArbitrum,
   ParentChainId,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 
@@ -28,12 +28,28 @@ if (
   typeof process.env.ORBIT_CHAIN_ID === 'undefined' ||
   typeof process.env.ORBIT_CHAIN_RPC === 'undefined' ||
   typeof process.env.PARENT_CHAIN_ID === 'undefined' ||
-  typeof process.env.PARENT_CHAIN_TARGET_ADDRESS === 'undefined'
+  typeof process.env.PARENT_CHAIN_TARGET_ADDRESS === 'undefined' ||
+  typeof process.env.INFRA_FEE_DISTRIBUTOR_RECIPIENT === 'undefined' ||
+  typeof process.env.NETWORK_FEE_DISTRIBUTOR_RECIPIENT === 'undefined' ||
+  typeof process.env.L1_REWARD_DISTRIBUTOR_RECIPIENT === 'undefined'
 ) {
   throw new Error(
-    `Please provide the following environment variables: ROLLUP_ADDRESS, CHAIN_OWNER_PRIVATE_KEY, ORBIT_CHAIN_ID, ORBIT_CHAIN_RPC, PARENT_CHAIN_ID, PARENT_CHAIN_TARGET_ADDRESS.`,
+    `Please provide the following environment variables: ROLLUP_ADDRESS, CHAIN_OWNER_PRIVATE_KEY, ORBIT_CHAIN_ID, ORBIT_CHAIN_RPC, PARENT_CHAIN_ID, PARENT_CHAIN_TARGET_ADDRESS, INFRA_FEE_DISTRIBUTOR_RECIPIENT, NETWORK_FEE_DISTRIBUTOR_RECIPIENT, L1_REWARD_DISTRIBUTOR_RECIPIENT.`,
   );
 }
+
+if (typeof process.env.PARENT_CHAIN_RPC === 'undefined' || process.env.PARENT_CHAIN_RPC === '') {
+  console.warn(
+    `Warning: you may encounter timeout errors while running the script with the default rpc endpoint. Please provide the "PARENT_CHAIN_RPC" environment variable instead.`,
+  );
+}
+
+// Mandatory recipient addresses
+const recipients = {
+  infraFeeDistributorRecipient: getAddress(process.env.INFRA_FEE_DISTRIBUTOR_RECIPIENT),
+  networkFeeDistributorRecipient: getAddress(process.env.NETWORK_FEE_DISTRIBUTOR_RECIPIENT),
+  l1RewardDistributorRecipient: getAddress(process.env.L1_REWARD_DISTRIBUTOR_RECIPIENT),
+};
 
 // load the chain owner account (or any account that has the executor role in the UpgradeExecutor)
 const chainOwner = privateKeyToAccount(sanitizePrivateKey(process.env.CHAIN_OWNER_PRIVATE_KEY));
@@ -42,7 +58,7 @@ const chainOwner = privateKeyToAccount(sanitizePrivateKey(process.env.CHAIN_OWNE
 const parentChain = getParentChainFromId(Number(process.env.PARENT_CHAIN_ID));
 const parentChainPublicClient = createPublicClient({
   chain: parentChain,
-  transport: http(),
+  transport: http(process.env.PARENT_CHAIN_RPC),
 });
 
 // define chain config for the orbit chain
@@ -153,15 +169,37 @@ async function main() {
   //  - Previous fee collector, to receive 90% of the amount
   //  - Deployed childToParentRouter, to receive 10% of the amount
   // ------------------------------------
-  const feeCollectors = [
-    ...new Set([infraFeeAccount, networkFeeAccount, parentChainRewardRecipient]),
-  ];
-  const feeCollectorToRewardDistributor: { [key: `0x${string}`]: `0x${string}` } = {};
+  const feeCollectors = new Map([
+    ['infraFeeAccount', infraFeeAccount],
+    ['networkFeeAccount', networkFeeAccount],
+    ['parentChainRewardRecipient', parentChainRewardRecipient],
+  ] as const);
 
-  for await (const feeCollector of feeCollectors) {
-    const recipients = [
+  type FeeCollectorKey = typeof feeCollectors extends Map<infer K, unknown> ? K : never;
+
+  const feeCollectorToRewardDistributor: Record<FeeCollectorKey, `0x${string}`> = {} as Record<
+    FeeCollectorKey,
+    `0x${string}`
+  >;
+
+  for (const [feeCollectorKey] of feeCollectors.entries()) {
+    // Determine the recipient address based on the fee collector type
+    let recipientAddress: `0x${string}`;
+
+    if (feeCollectorKey === 'infraFeeAccount') {
+      recipientAddress = recipients.infraFeeDistributorRecipient;
+    } else if (feeCollectorKey === 'networkFeeAccount') {
+      recipientAddress = recipients.networkFeeDistributorRecipient;
+    } else if (feeCollectorKey === 'parentChainRewardRecipient') {
+      recipientAddress = recipients.l1RewardDistributorRecipient;
+    } else {
+      // This should never happen due to TypeScript constraints
+      throw new Error(`Unknown fee collector key: ${feeCollectorKey}`);
+    }
+
+    const rewardDistributorRecipients = [
       {
-        account: feeCollector,
+        account: recipientAddress,
         weight: 9000n,
       },
       {
@@ -172,7 +210,7 @@ async function main() {
     console.log('Deploying RewardDistributor contract...');
     const rewardDistributorDeploymentTransactionHash = await feeRouterDeployRewardDistributor({
       orbitChainWalletClient,
-      recipients,
+      recipients: rewardDistributorRecipients,
     });
 
     const rewardDistributorDeploymentTransactionReceipt =
@@ -190,7 +228,7 @@ async function main() {
     console.log(`RewardDistributor contract deployed at ${rewardDistributorAddress}`);
     console.log('');
 
-    feeCollectorToRewardDistributor[feeCollector] = rewardDistributorAddress;
+    feeCollectorToRewardDistributor[feeCollectorKey] = rewardDistributorAddress;
   }
 
   // Step 3. Set the fee collectors to the new RewardDistributor contracts
@@ -201,7 +239,7 @@ async function main() {
   const setOrbitBaseFeeCollectorTransactionRequest =
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setInfraFeeAccount',
-      args: [feeCollectorToRewardDistributor[infraFeeAccount]],
+      args: [feeCollectorToRewardDistributor['infraFeeAccount']],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
       account: chainOwner.address,
     });
@@ -215,7 +253,7 @@ async function main() {
   const setOrbitSurplusFeeCollectorTransactionRequest =
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setNetworkFeeAccount',
-      args: [feeCollectorToRewardDistributor[networkFeeAccount]],
+      args: [feeCollectorToRewardDistributor['networkFeeAccount']],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
       account: chainOwner.address,
     });
@@ -229,7 +267,7 @@ async function main() {
   const setParentChainSurplusFeeCollectorTransactionRequest =
     await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
       functionName: 'setL1PricingRewardRecipient',
-      args: [feeCollectorToRewardDistributor[parentChainRewardRecipient]],
+      args: [feeCollectorToRewardDistributor['parentChainRewardRecipient']],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
       account: chainOwner.address,
     });
@@ -243,7 +281,7 @@ async function main() {
   const currentInfraFeeAccount = await orbitChainPublicClient.arbOwnerReadContract({
     functionName: 'getInfraFeeAccount',
   });
-  if (currentInfraFeeAccount != feeCollectorToRewardDistributor[infraFeeAccount]) {
+  if (currentInfraFeeAccount != feeCollectorToRewardDistributor['infraFeeAccount']) {
     throw new Error(
       `Orbit base fee collector was not correctly set. It is now set to ${currentInfraFeeAccount}`,
     );
@@ -255,7 +293,7 @@ async function main() {
   const currentNetworkFeeAccount = await orbitChainPublicClient.arbOwnerReadContract({
     functionName: 'getNetworkFeeAccount',
   });
-  if (currentNetworkFeeAccount != feeCollectorToRewardDistributor[networkFeeAccount]) {
+  if (currentNetworkFeeAccount != feeCollectorToRewardDistributor['networkFeeAccount']) {
     throw new Error(
       `Orbit surplus fee collector was not correctly set. It is now set to ${currentNetworkFeeAccount}`,
     );
@@ -270,7 +308,8 @@ async function main() {
     functionName: 'getL1RewardRecipient',
   });
   if (
-    currentParentChainRewardRecipient != feeCollectorToRewardDistributor[parentChainRewardRecipient]
+    currentParentChainRewardRecipient !=
+    feeCollectorToRewardDistributor['parentChainRewardRecipient']
   ) {
     throw new Error(
       `Parent chain surplus fee collector was not correctly set. It is now set to ${currentParentChainRewardRecipient}`,
@@ -279,6 +318,18 @@ async function main() {
   console.log(
     `Parent chain surplus fee collector correctly set to the RewardDistributor contract ${currentParentChainRewardRecipient}`,
   );
+
+  if (currentParentChainRewardRecipient === currentNetworkFeeAccount) {
+    throw new Error(
+      `Parent chain surplus fee collector and Orbit surplus fee collector are the same.`,
+    );
+  }
+
+  if (currentParentChainRewardRecipient === currentInfraFeeAccount) {
+    throw new Error(
+      `Parent chain surplus fee collector and Orbit base fee collector are the same.`,
+    );
+  }
 }
 
 main();

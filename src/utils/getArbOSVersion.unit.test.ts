@@ -10,13 +10,13 @@ it('returns the ArbOS version of Arbitrum One', async () => {
     transport: http(),
   });
 
-  expect(await getArbOSVersion(arbitrumOneClient)).toBe(32);
+  expect(await getArbOSVersion(arbitrumOneClient)).toBe(51);
 });
 
 it('throws if the chain is not an Arbitrum chain', async () => {
   const sepoliaClient = createPublicClient({
     chain: sepolia,
-    transport: http(),
+    transport: http('https://gateway.tenderly.co/public/sepolia'),
   });
 
   await expect(getArbOSVersion(sepoliaClient)).rejects.toThrowError();

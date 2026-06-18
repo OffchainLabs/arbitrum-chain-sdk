@@ -10,6 +10,7 @@ import {
 import { arbOwnerABI, arbOwnerAddress } from './contracts/ArbOwner';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { GetFunctionName } from './types/utils';
+import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
 
 type ArbOwnerAbi = typeof arbOwnerABI;
 export type ArbOwnerPrepareTransactionRequestFunctionName = GetFunctionName<ArbOwnerAbi>;
@@ -66,6 +67,7 @@ export type ArbOwnerPrepareTransactionRequestParameters<
   TFunctionName extends ArbOwnerPrepareTransactionRequestFunctionName,
 > = Omit<ArbOwnerPrepareFunctionDataParameters<TFunctionName>, 'abi'> & {
   account: Address;
+  gasOverrides?: TransactionRequestGasOverrides;
 };
 
 export async function arbOwnerPrepareTransactionRequest<
@@ -85,14 +87,26 @@ export async function arbOwnerPrepareTransactionRequest<
     abi: arbOwnerABI,
   } as unknown as ArbOwnerPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,
     data,
     value,
     account: params.account,
+    // if the base gas limit override was provided, hardcode gas to 0 to skip estimation
+    // we'll set the actual value in the code below
+    gas: typeof params.gasOverrides?.gasLimit?.base !== 'undefined' ? 0n : undefined,
   });
+
+  // potential gas overrides (gas limit)
+  if (params.gasOverrides && params.gasOverrides.gasLimit) {
+    request.gas = applyPercentIncrease({
+      // the ! is here because we should let it error in case we don't have the estimated gas
+      base: params.gasOverrides.gasLimit.base ?? request.gas!,
+      percentIncrease: params.gasOverrides.gasLimit.percentIncrease,
+    });
+  }
 
   return { ...request, chainId: client.chain.id };
 }

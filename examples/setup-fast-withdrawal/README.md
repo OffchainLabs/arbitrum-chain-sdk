@@ -39,7 +39,7 @@ You need to set the following environment variables in an .env file:
 1. Install dependencies
 
    ```bash
-   yarn install
+   pnpm install
    ```
 
 2. Create .env file and add the env vars
@@ -50,5 +50,5 @@ You need to set the following environment variables in an .env file:
 
 3. Run the example
    ```bash
-   yarn dev
+   pnpm dev
    ```

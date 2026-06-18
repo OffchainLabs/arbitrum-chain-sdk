@@ -6,7 +6,6 @@
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x60D9A46F24D5a35b95A78Dd3E793e55D94EE0660)
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0x4C240987d6fE4fa8C7a0004986e3db563150CA55)
- * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0x2f5624dc8800dfA0A82AC03509Ef8bb8E7Ac000e)
  * - [__View Contract on Arbitrum Nova Arbiscan__](https://nova.arbiscan.io/address/0x8B9D9490a68B1F16ac8A21DdAE5Fd7aB9d708c14)
  * - [__View Contract on Base Sepolia Blockscout__](https://base-sepolia.blockscout.com/address/0xFC71d21a4FE10Cc0d34745ba9c713836f82f8DE3)
@@ -406,7 +405,6 @@ export const tokenBridgeCreatorABI = [
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x60D9A46F24D5a35b95A78Dd3E793e55D94EE0660)
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0x4C240987d6fE4fa8C7a0004986e3db563150CA55)
- * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0x2f5624dc8800dfA0A82AC03509Ef8bb8E7Ac000e)
  * - [__View Contract on Arbitrum Nova Arbiscan__](https://nova.arbiscan.io/address/0x8B9D9490a68B1F16ac8A21DdAE5Fd7aB9d708c14)
  * - [__View Contract on Base Sepolia Blockscout__](https://base-sepolia.blockscout.com/address/0xFC71d21a4FE10Cc0d34745ba9c713836f82f8DE3)
@@ -417,7 +415,6 @@ export const tokenBridgeCreatorAddress = {
   1: '0x60D9A46F24D5a35b95A78Dd3E793e55D94EE0660',
   1337: '0x4Af567288e68caD4aA93A272fe6139Ca53859C70',
   8453: '0x4C240987d6fE4fa8C7a0004986e3db563150CA55',
-  17000: '0xac890ED9bC2494C053cE701F138958df95966d94',
   42161: '0x2f5624dc8800dfA0A82AC03509Ef8bb8E7Ac000e',
   42170: '0x8B9D9490a68B1F16ac8A21DdAE5Fd7aB9d708c14',
   84532: '0xFC71d21a4FE10Cc0d34745ba9c713836f82f8DE3',
@@ -430,7 +427,6 @@ export const tokenBridgeCreatorAddress = {
  * - [__View Contract on Ethereum Etherscan__](https://etherscan.io/address/0x60D9A46F24D5a35b95A78Dd3E793e55D94EE0660)
  * -
  * - [__View Contract on Base Basescan__](https://basescan.org/address/0x4C240987d6fE4fa8C7a0004986e3db563150CA55)
- * -
  * - [__View Contract on Arbitrum One Arbiscan__](https://arbiscan.io/address/0x2f5624dc8800dfA0A82AC03509Ef8bb8E7Ac000e)
  * - [__View Contract on Arbitrum Nova Arbiscan__](https://nova.arbiscan.io/address/0x8B9D9490a68B1F16ac8A21DdAE5Fd7aB9d708c14)
  * - [__View Contract on Base Sepolia Blockscout__](https://base-sepolia.blockscout.com/address/0xFC71d21a4FE10Cc0d34745ba9c713836f82f8DE3)

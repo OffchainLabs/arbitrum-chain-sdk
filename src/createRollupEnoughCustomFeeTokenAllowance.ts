@@ -4,19 +4,20 @@ import { fetchAllowance, fetchDecimals } from './utils/erc20';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 
 import { Prettify } from './types/utils';
-import { WithRollupCreatorAddressOverride } from './types/createRollupTypes';
+import { RollupCreatorSupportedVersion } from './types/createRollupTypes';
+
 import { createRollupGetRetryablesFeesWithDefaults } from './createRollupGetRetryablesFees';
 import { scaleFrom18DecimalsToNativeTokenDecimals } from './utils/decimals';
 
 export type CreateRollupEnoughCustomFeeTokenAllowanceParams<TChain extends Chain | undefined> =
-  Prettify<
-    WithRollupCreatorAddressOverride<{
-      nativeToken: Address;
-      maxFeePerGasForRetryables?: bigint;
-      account: Address;
-      publicClient: PublicClient<Transport, TChain>;
-    }>
-  >;
+  Prettify<{
+    nativeToken: Address;
+    maxFeePerGasForRetryables?: bigint;
+    account: Address;
+    publicClient: PublicClient<Transport, TChain>;
+    rollupCreatorAddressOverride?: Address;
+    rollupCreatorVersion?: RollupCreatorSupportedVersion;
+  }>;
 
 export async function createRollupEnoughCustomFeeTokenAllowance<TChain extends Chain | undefined>({
   nativeToken,
@@ -24,19 +25,25 @@ export async function createRollupEnoughCustomFeeTokenAllowance<TChain extends C
   account,
   publicClient,
   rollupCreatorAddressOverride,
+  rollupCreatorVersion = 'v3.2',
 }: CreateRollupEnoughCustomFeeTokenAllowanceParams<TChain>) {
   const allowance = await fetchAllowance({
     address: nativeToken,
     owner: account,
-    spender: rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient),
+    spender:
+      rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient, rollupCreatorVersion),
     publicClient,
   });
 
-  const fees = await createRollupGetRetryablesFeesWithDefaults(publicClient, {
-    account,
-    nativeToken,
-    maxFeePerGasForRetryables,
-  });
+  const fees = await createRollupGetRetryablesFeesWithDefaults(
+    publicClient,
+    {
+      account,
+      nativeToken,
+      maxFeePerGasForRetryables,
+    },
+    rollupCreatorVersion,
+  );
 
   const decimals = await fetchDecimals({
     address: nativeToken,

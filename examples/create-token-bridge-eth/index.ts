@@ -6,8 +6,8 @@ import {
   createTokenBridgePrepareSetWethGatewayTransactionRequest,
   createTokenBridgePrepareTransactionReceipt,
   createTokenBridgePrepareTransactionRequest,
-} from '@arbitrum/orbit-sdk';
-import { sanitizePrivateKey } from '@arbitrum/orbit-sdk/utils';
+} from '@arbitrum/chain-sdk';
+import { sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
 config();
 
@@ -73,7 +73,6 @@ async function main() {
       rollupOwner: rollupOwner.address,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: rollupOwner.address,
     retryableGasOverrides: {
       maxSubmissionCostForFactory: { percentIncrease: 100n },
@@ -139,7 +138,6 @@ async function main() {
   const setWethGatewayTxRequest = await createTokenBridgePrepareSetWethGatewayTransactionRequest({
     rollup: process.env.ROLLUP_ADDRESS as `0x${string}`,
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: rollupOwner.address,
     retryableGasOverrides: {
       gasLimit: {

@@ -5,7 +5,6 @@ import {
   arbitrumNova,
   base,
   sepolia,
-  holesky,
   arbitrumSepolia,
   baseSepolia,
 } from 'viem/chains';
@@ -137,7 +136,6 @@ export const mainnets = [
 export const testnets = [
   // testnet L1
   sepolia,
-  holesky,
   // testnet L2
   arbitrumSepolia,
   baseSepolia,
@@ -158,7 +156,6 @@ export {
   base,
   // testnet L1
   sepolia,
-  holesky,
   // testnet L2
   arbitrumSepolia,
   baseSepolia,

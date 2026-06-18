@@ -1,5 +1,6 @@
 import { ExcludeSome, Prettify, RequireSome } from './types/utils';
 import { ChainConfig, ChainConfigArbitrumParams } from './types/ChainConfig';
+import { prepareChainConfigSortKeys } from './prepareChainConfigSortKeys';
 
 export const defaults = {
   homesteadBlock: 0,
@@ -24,7 +25,7 @@ export const defaults = {
     EnableArbOS: true,
     AllowDebugPrecompiles: false,
     DataAvailabilityCommittee: false,
-    InitialArbOSVersion: 32,
+    InitialArbOSVersion: 51,
     GenesisBlockNum: 0,
     MaxCodeSize: 24_576,
     MaxInitCodeSize: 49_152,
@@ -48,9 +49,9 @@ export type PrepareChainConfigArbitrumParams = RequireSome<
 >;
 
 export function prepareChainConfig(params: PrepareChainConfigParams): ChainConfig {
-  return {
+  return prepareChainConfigSortKeys({
     ...defaults,
     chainId: params.chainId,
     arbitrum: { ...defaults.arbitrum, ...params.arbitrum },
-  };
+  });
 }

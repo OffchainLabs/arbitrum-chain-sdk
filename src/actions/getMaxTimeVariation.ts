@@ -3,7 +3,7 @@ import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import { ActionParameters } from '../types/Actions';
 
 export type GetMaxTimeVariationParameters<Curried extends boolean = false> = ActionParameters<
-  {},
+  Record<string, never>,
   'sequencerInbox',
   Curried
 >;

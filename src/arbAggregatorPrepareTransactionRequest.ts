@@ -86,7 +86,7 @@ export async function arbAggregatorPrepareTransactionRequest<
     abi: arbAggregatorABI,
   } as unknown as ArbAggregatorPrepareFunctionDataParameters<TFunctionName>);
 
-  // @ts-ignore (todo: fix viem type issue)
+  // @ts-expect-error -- todo: fix viem type issue
   const request = await client.prepareTransactionRequest({
     chain: client.chain,
     to,
