@@ -4,7 +4,7 @@ TypeScript SDK for [building Arbitrum chains](https://docs.arbitrum.io/launch-ar
 
 ## Installation
 
-Make sure you are using Node.js v18 or greater.
+Make sure you are using Node.js v24 or greater.
 
 ```bash
 pnpm add @arbitrum/chain-sdk viem@^1.20.0

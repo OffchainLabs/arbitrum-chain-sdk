@@ -1,4 +1,4 @@
-FROM node:20-bullseye-slim
+FROM node:24-bullseye-slim
 RUN apt-get update && \
     apt-get install -y git docker.io python3 chromium build-essential
 WORKDIR /workspace

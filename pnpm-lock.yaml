@@ -26,8 +26,8 @@ importers:
         specifier: 0.2.1
         version: 0.2.1(prettier@2.8.8)
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       '@wagmi/cli':
         specifier: ^1.5.2
         version: 1.5.2(typescript@5.2.2)
@@ -69,7 +69,7 @@ importers:
         version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
       vitest:
         specifier: ^4.1.0
-        version: 4.1.0(@types/node@20.9.0)(vite@7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
+        version: 4.1.0(@types/node@24.13.2)(vite@7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
       zod:
         specifier: 4.3.6
         version: 4.3.6
@@ -77,8 +77,8 @@ importers:
   examples/create-rollup-custom-fee-token:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -86,8 +86,8 @@ importers:
   examples/create-rollup-eth:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -95,8 +95,8 @@ importers:
   examples/create-token-bridge-custom-fee-token:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -104,8 +104,8 @@ importers:
   examples/create-token-bridge-eth:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -113,8 +113,8 @@ importers:
   examples/generate-bridge-ui-config:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -122,8 +122,8 @@ importers:
   examples/prepare-node-config:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -131,8 +131,8 @@ importers:
   examples/set-new-validators:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -140,8 +140,8 @@ importers:
   examples/set-valid-keyset:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -159,8 +159,8 @@ importers:
         version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -168,8 +168,8 @@ importers:
   examples/setup-fast-withdrawal:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -177,8 +177,8 @@ importers:
   examples/setup-fee-distributor-contract:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -186,8 +186,8 @@ importers:
   examples/upgrade-executor-add-account:
     devDependencies:
       '@types/node':
-        specifier: ^20.9.0
-        version: 20.9.0
+        specifier: ^24.13.2
+        version: 24.13.2
       typescript:
         specifier: ^5.2.2
         version: 5.2.2
@@ -1098,8 +1098,8 @@ packages:
   '@types/node@18.15.13':
     resolution: {integrity: sha512-N+0kuo9KgrUQ1Sn/ifDXsvg0TTleP7rIy4zOBGECxAljqvqfqpTfzx0Q1NUedOixRMBfe2Whhb056a42cWs26Q==}
 
-  '@types/node@20.9.0':
-    resolution: {integrity: sha512-nekiGu2NDb1BcVofVcEKMIwzlx4NjHlcjhoxxKBNLtz15Y1z7MYf549DFvkHSId02Ax6kGwWntIBPC3l/JZcmw==}
+  '@types/node@24.13.2':
+    resolution: {integrity: sha512-fRa09kZTgu8o71KFcDjUFuc7F+dEbZYZmkI0mg5YBTRs0yMKjYHsq/c0urDKeDb+D5qVgXOdFcuu+DZPKOITwA==}
 
   '@types/pbkdf2@3.1.2':
     resolution: {integrity: sha512-uRwJqmiXmh9++aSu1VNEn3iIxWOhd8AHXNSdlaLfdAAdSTY9jYVeGWnzejM3dvrkbqE3/hyQkQQ29IFATEGlew==}
@@ -2775,8 +2775,8 @@ packages:
   unbox-primitive@1.0.2:
     resolution: {integrity: sha512-61pPlCD9h51VoreyJ0BReideM3MDKMKnh6+V9L08331ipq6Q8OFXZYiqP6n/tbHx4s5I9uRhcye6BrbkizkBDw==}
 
-  undici-types@5.26.5:
-    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+  undici-types@7.18.2:
+    resolution: {integrity: sha512-AsuCzffGHJybSaRrmr5eHr81mwJU3kjw6M+uprWvCXiNeN9SOGwQ3Jn8jb8m3Z6izVgknn1R0FTCEAP2QrLY/w==}
 
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
@@ -3741,7 +3741,7 @@ snapshots:
 
   '@types/bn.js@5.1.5':
     dependencies:
-      '@types/node': 20.9.0
+      '@types/node': 24.13.2
 
   '@types/chai@5.2.3':
     dependencies:
@@ -3758,17 +3758,17 @@ snapshots:
 
   '@types/node@18.15.13': {}
 
-  '@types/node@20.9.0':
+  '@types/node@24.13.2':
     dependencies:
-      undici-types: 5.26.5
+      undici-types: 7.18.2
 
   '@types/pbkdf2@3.1.2':
     dependencies:
-      '@types/node': 20.9.0
+      '@types/node': 24.13.2
 
   '@types/secp256k1@4.0.6':
     dependencies:
-      '@types/node': 20.9.0
+      '@types/node': 24.13.2
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -3876,13 +3876,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.0(vite@7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))':
+  '@vitest/mocker@4.1.0(vite@7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))':
     dependencies:
       '@vitest/spy': 4.1.0
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
+      vite: 7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
 
   '@vitest/pretty-format@4.1.0':
     dependencies:
@@ -5806,7 +5806,7 @@ snapshots:
       which-boxed-primitive: 1.0.2
     optional: true
 
-  undici-types@5.26.5: {}
+  undici-types@7.18.2: {}
 
   universalify@2.0.1: {}
 
@@ -5841,7 +5841,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  vite@7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3):
+  vite@7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3):
     dependencies:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.4)
@@ -5850,16 +5850,16 @@ snapshots:
       rollup: 4.61.0
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 20.9.0
+      '@types/node': 24.13.2
       fsevents: 2.3.3
       lightningcss: 1.32.0
       tsx: 4.22.1
       yaml: 2.8.3
 
-  vitest@4.1.0(@types/node@20.9.0)(vite@7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)):
+  vitest@4.1.0(@types/node@24.13.2)(vite@7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.0
-      '@vitest/mocker': 4.1.0(vite@7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
+      '@vitest/mocker': 4.1.0(vite@7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
       '@vitest/pretty-format': 4.1.0
       '@vitest/runner': 4.1.0
       '@vitest/snapshot': 4.1.0
@@ -5876,10 +5876,10 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 7.3.2(@types/node@20.9.0)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
+      vite: 7.3.2(@types/node@24.13.2)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 20.9.0
+      '@types/node': 24.13.2
     transitivePeerDependencies:
       - msw
 
