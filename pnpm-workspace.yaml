@@ -2,6 +2,8 @@ packages:
   - "src"
   - "examples/*"
 
+minimumReleaseAge: 10080 # 7 days
+
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
 # rather than package.json's `pnpm.overrides`, so each pin can carry the rationale
