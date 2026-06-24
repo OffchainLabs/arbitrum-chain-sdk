@@ -16,7 +16,8 @@ import { buildDisableBatchPoster, buildEnableBatchPoster } from './buildSetIsBat
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { buildInvalidateKeysetHash } from './buildInvalidateKeysetHash';
 
-const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor } = getInformationFromTestnode();
+const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor, l2RollupCreator } =
+  getInformationFromTestnode();
 const { l3TokenBridgeDeployer, deployer, l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 
 const client = createPublicClient({
@@ -26,9 +27,9 @@ const client = createPublicClient({
 
 describe('max time variation management', () => {
   const defaultMaxTimeVariation = {
-    delayBlocks: 5_760n,
-    delaySeconds: 86_400n,
-    futureBlocks: 12n,
+    delayBlocks: 28_800n,
+    delaySeconds: 345_600n,
+    futureBlocks: 300n,
     futureSeconds: 3_600n,
   };
   it('getMaxTimeVariation successfully fetches max time variation', async () => {
@@ -161,6 +162,7 @@ describe('keyset management', () => {
       validators,
       nativeToken: zeroAddress,
       client,
+      rollupCreatorAddressOverride: l2RollupCreator,
     });
 
     const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;

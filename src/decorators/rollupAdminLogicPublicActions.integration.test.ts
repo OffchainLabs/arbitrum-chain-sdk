@@ -4,21 +4,14 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from '../chains';
 import { rollupAdminLogicPublicActions } from './rollupAdminLogicPublicActions';
-import {
-  getInformationFromTestnode,
-  getNitroTestnodePrivateKeyAccounts,
-  testHelper_getRollupCreatorVersionFromEnv,
-} from '../testHelpers';
+import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
 import { getValidators } from '../getValidators';
 
 const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 const { l3Rollup, l3UpgradeExecutor } = getInformationFromTestnode();
 
-const rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv();
-// https://github.com/OffchainLabs/nitro-testnode/blob/release/test-node.bash#L634
-// https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/scripts/rollupCreation.ts#L254-L261
-// https://github.com/OffchainLabs/nitro-contracts/blob/v2.1.3/scripts/rollupCreation.ts#L237-L243
-const expectedInitialValidators = rollupCreatorVersion === 'v3.2' ? 11 : 10;
+// the arbitrum-testnode snapshot deploys the rollup with a single initial validator
+const expectedInitialValidators = 1;
 
 const client = createPublicClient({
   chain: nitroTestnodeL2,

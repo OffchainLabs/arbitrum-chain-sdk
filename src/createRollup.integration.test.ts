@@ -20,6 +20,8 @@ const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
 const batchPosters = [testnodeAccounts.deployer.address];
 const validators = [testnodeAccounts.deployer.address];
 
+const { l2RollupCreator } = getInformationFromTestnode();
+
 describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
   const { createRollupConfig, createRollupInformation } = await createRollupHelper({
     deployer: l3TokenBridgeDeployer,
@@ -27,6 +29,7 @@ describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
     validators,
     nativeToken: zeroAddress,
     client: parentChainPublicClient,
+    rollupCreatorAddressOverride: l2RollupCreator,
   });
 
   it(`successfully deploys core contracts through rollup creator`, async () => {
@@ -66,6 +69,7 @@ describe(`create an AnyTrust chain that uses a custom gas token`, async () => {
     validators,
     nativeToken,
     client: parentChainPublicClient,
+    rollupCreatorAddressOverride: l2RollupCreator,
   });
 
   it(`successfully deploys core contracts through rollup creator`, async () => {
