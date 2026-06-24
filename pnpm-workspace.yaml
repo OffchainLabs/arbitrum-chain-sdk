@@ -2,6 +2,8 @@ packages:
   - "src"
   - "examples/*"
 
+minimumReleaseAge: 10080 # 7 days
+
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
 # rather than package.json's `pnpm.overrides`, so each pin can carry the rationale
@@ -12,18 +14,21 @@ overrides:
 
   # ws (WebSocket lib) is pulled transitively by viem and by BOTH ethers majors.
   # GHSA-58qx-3vcg-4xpx (uninitialized memory disclosure): vulnerable >=8.0.0
-  # <8.20.1, patched in 8.20.1. viem@1.20 declares ws@8.13.0 and Safe's ethers@6
-  # also lands on a vulnerable 8.x, so both 8.x lineages are pinned forward to
-  # 8.20.1. Safe to do: it's a patch bump within 8.x, and ws is only exercised by
-  # websocket transports (this SDK uses http). Pins are scoped per-parent
+  # <8.20.1, patched in 8.20.1.
+  # GHSA-96hv-2xvq-fx4p (memory exhaustion DoS): vulnerable >=8.0.0 <8.21.0
+  # and >=7.0.0 <7.5.11, patched in 8.21.0 and 7.5.11. viem@1.20 declares
+  # ws@8.13.0 and Safe's ethers@6 also lands on a vulnerable 8.x, so both 8.x
+  # lineages are pinned forward to 8.21.0. Safe to do: it's a patch bump within
+  # 8.x, and ws is only exercised by websocket transports (this SDK uses http).
+  # Pins are scoped per-parent
   # ("viem>ws", "ethers>ws") instead of a blanket "ws" so the separate ethers-v5
   # 7.x line below is not dragged onto the 8.x API.
-  "viem>ws": "8.20.1"
-  "ethers>ws": "8.20.1"
+  "viem>ws": "8.21.0"
+  "ethers>ws": "8.21.0"
   # ethers v5 (@ethersproject/providers, a direct dependency of `src`) uses the
-  # ws 7.x line. 7.5.10 is the patched 7.x from an earlier advisory (the one
-  # above only affects 8.x); kept so v5 can't fall back to a vulnerable older 7.x.
-  "@ethersproject/providers>ws": "7.5.10"
+  # ws 7.x line. 7.5.11 is patched for GHSA-96hv-2xvq-fx4p and keeps v5 from
+  # falling back to a vulnerable older 7.x.
+  "@ethersproject/providers>ws": "7.5.11"
 
   # Compatibility pins for `wagmi generate` (not security-related).
   "@wagmi/cli>esbuild": "0.25.1"
@@ -46,10 +51,27 @@ overrides:
   "cipher-base": "1.0.5"
 
   # GHSA-ph9p-34f9-6g65 (path traversal via unsanitized prefix/postfix):
-  # vulnerable <0.2.6, patched in 0.2.6. tmp is used only by patch-package at
-  # install time (dev-only). patch-package declares tmp@^0.0.33, so without this
-  # pin it resolves to a vulnerable 0.0.33; 0.2.6 is the patched release.
-  "tmp": "0.2.6"
+  # vulnerable <0.2.6, patched in 0.2.6.
+  # GHSA-7c78-jf6q-g5cm (symbolic-link following): vulnerable >=0.2.6 <0.2.7,
+  # patched in 0.2.7. tmp is used only by patch-package at install time
+  # (dev-only). patch-package declares tmp@^0.0.33, so without this pin it
+  # resolves to a vulnerable 0.0.33; 0.2.7 is the currently patched release.
+  "tmp": "0.2.7"
+
+  # GHSA-g7r4-m6w7-qqqr (esbuild dev server origin validation): vulnerable
+  # >=0.27.3 <0.28.1, patched in 0.28.1. Kept scoped so @wagmi/cli retains its
+  # compatibility pin on the older, unaffected 0.25.x line.
+  "tsx>esbuild": "0.28.1"
+  "vite>esbuild": "0.28.1"
+
+  # Vite is only pulled through Vitest here. 7.3.5 patches GHSA-fx2h-pf6j-xcff
+  # (server.fs.deny bypass on Windows alternate paths) and GHSA-v6wh-96g9-6wx3
+  # (launch-editor UNC path handling) while staying on the existing 7.x line.
+  "vite": "7.3.5"
+
+  # GHSA-h67p-54hq-rp68 (quadratic-complexity DoS in merge key handling via
+  # repeated aliases): vulnerable <=4.1.1, patched in 4.2.0.
+  "js-yaml": "4.2.0"
 
   # Pinned to a single resolved version (added with the types package, #707).
   "zod": "4.3.6"
