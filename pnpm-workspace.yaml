@@ -3,6 +3,8 @@ packages:
   - "examples/*"
 
 minimumReleaseAge: 10080 # 7 days
+minimumReleaseAgeExclude:
+  - '@offchainlabs/fund-distribution-contracts'
 
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
