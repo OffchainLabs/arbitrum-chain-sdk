@@ -17,6 +17,7 @@ export const feeRouterDeployRewardDistributorSchema = z
     orbitChainRpcUrl: z.url(),
     orbitChainId: z.number(),
     privateKey: privateKeySchema,
+    token: addressSchema.optional(),
     recipients: z.array(recipientSchema),
   })
   .transform(withChildChainSign);

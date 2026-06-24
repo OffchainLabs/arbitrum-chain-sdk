@@ -207,8 +207,8 @@ importers:
         specifier: ^5.7.2
         version: 5.7.2
       '@offchainlabs/fund-distribution-contracts':
-        specifier: ^1.0.1
-        version: 1.0.1
+        specifier: ^1.1.0
+        version: 1.1.0
       '@safe-global/protocol-kit':
         specifier: ^4.1.7
         version: 4.1.7(typescript@5.2.2)(zod@4.3.6)
@@ -878,8 +878,8 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
-  '@offchainlabs/fund-distribution-contracts@1.0.1':
-    resolution: {integrity: sha512-ig1aAmfWPpq9474td6M/f/ltseipM2c5xs3nAsv9JX6YBhRF4OlNBczfdtjTgEh069rCnu4DcFSdoNzuaHDxBg==}
+  '@offchainlabs/fund-distribution-contracts@1.1.0':
+    resolution: {integrity: sha512-tSD0cMJ1q1cjKawfeDc+Rg2x5ezi1eSDikFt5nzDcqETcfTk2Z6dzMV1UQgDdgVuMxmdaO57OAkqdNrtGXXRxA==}
 
   '@offchainlabs/prettier-config@0.2.1':
     resolution: {integrity: sha512-VjE4Hahx9ipTheXJVlt7tFtHeMVvlYUkKNT4uxnAK4i4qrLcqhlm/4GE9mueOS/Syi2/gzDKvNH0nk6+ts2IrA==}
@@ -1106,12 +1106,6 @@ packages:
 
   '@types/secp256k1@4.0.6':
     resolution: {integrity: sha512-hHxJU6PAEUn0TP4S/ZOzuTUvJWuZ6eIKeNKb5RBpODvSl6hp1Wrw4s7ATY50rklRCScUDpHzVA/DQdSjJ3UoYQ==}
-
-  '@types/yargs-parser@21.0.3':
-    resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
-
-  '@types/yargs@17.0.32':
-    resolution: {integrity: sha512-xQ67Yc/laOG5uMfX/093MRlGGCIBzZMarVa+gfNKJxWAIgykYpVGkBdbqEzGDDfCrVUj6Hiff4mTZ5BA6TmAog==}
 
   '@typescript-eslint/eslint-plugin@8.56.1':
     resolution: {integrity: sha512-Jz9ZztpB37dNC+HU2HI28Bs9QXpzCz+y/twHOwhyrIRdbuVDxSytJNDl6z/aAKlaRIwC7y8wJdkBv7FxYGgi0A==}
@@ -3572,11 +3566,7 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
 
-  '@offchainlabs/fund-distribution-contracts@1.0.1':
-    dependencies:
-      '@types/yargs': 17.0.32
-      dotenv: 16.3.1
-      yargs: 17.7.2
+  '@offchainlabs/fund-distribution-contracts@1.1.0': {}
 
   '@offchainlabs/prettier-config@0.2.1(prettier@2.8.8)':
     dependencies:
@@ -3769,12 +3759,6 @@ snapshots:
   '@types/secp256k1@4.0.6':
     dependencies:
       '@types/node': 20.9.0
-
-  '@types/yargs-parser@21.0.3': {}
-
-  '@types/yargs@17.0.32':
-    dependencies:
-      '@types/yargs-parser': 21.0.3
 
   '@typescript-eslint/eslint-plugin@8.56.1(@typescript-eslint/parser@8.56.1(eslint@9.39.3)(typescript@5.2.2))(eslint@9.39.3)(typescript@5.2.2)':
     dependencies:
