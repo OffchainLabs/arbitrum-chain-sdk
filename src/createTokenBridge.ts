@@ -277,6 +277,7 @@ export async function createTokenBridge<
   const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
     // @ts-expect-error -- todo: fix viem type issue
     parentChainPublicClient,
+    tokenBridgeCreatorAddressOverride,
   });
 
   // Non custom fee token

@@ -15,7 +15,7 @@ const { l3RollupOwner, l3TokenBridgeDeployer, deployer } = getNitroTestnodePriva
 
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 
-const { l3SequencerInbox, l3Bridge, l3Rollup, l3BatchPoster, l3UpgradeExecutor } =
+const { l3SequencerInbox, l3Bridge, l3Rollup, l3BatchPoster, l3UpgradeExecutor, l2RollupCreator } =
   getInformationFromTestnode();
 
 const client = createPublicClient({
@@ -93,7 +93,7 @@ describe('sequencerInboxReadContract', () => {
       sequencerInbox: l3SequencerInbox,
     });
 
-    expect(result).toEqual([5760n, 12n, 86400n, 3600n]);
+    expect(result).toEqual([28800n, 300n, 345600n, 3600n]);
   });
 
   it('successfully call rollup', async () => {
@@ -127,6 +127,7 @@ describe('sequencerInboxPrepareTransactionRequest', () => {
       validators,
       nativeToken: zeroAddress,
       client,
+      rollupCreatorAddressOverride: l2RollupCreator,
     });
 
     const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;

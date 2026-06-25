@@ -20,7 +20,6 @@ import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
 const l2RollupOwner = testnodeAccounts.l2RollupOwner;
 const l3RollupOwner = testnodeAccounts.l3RollupOwner;
-const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
 
 const nitroTestnodeL1Client = createPublicClient({
   chain: nitroTestnodeL1,
@@ -168,9 +167,10 @@ describe('createTokenBridge utils function', () => {
     expect(orbitChainRetryableReceipts[0].status).toEqual('success');
     expect(orbitChainRetryableReceipts[1].status).toEqual('success');
 
-    // get contracts
+    // get contracts (query the freshly-deployed creator that holds the deployment mapping)
     const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
       parentChainPublicClient: nitroTestnodeL1Client,
+      tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     });
     checkTokenBridgeContracts(tokenBridgeContracts);
 
@@ -229,13 +229,13 @@ describe('createTokenBridge utils function', () => {
         ],
       }),
       value: BigInt(0),
-      account: l3TokenBridgeDeployer,
+      account: l3RollupOwner,
     });
 
     // sign and send the transaction
     const fundTxRequest = { ...fundTxRequestRaw, chainId: nitroTestnodeL2Client.chain.id };
     const fundTxHash = await nitroTestnodeL2Client.sendRawTransaction({
-      serializedTransaction: await l3TokenBridgeDeployer.signTransaction(fundTxRequest),
+      serializedTransaction: await l3RollupOwner.signTransaction(fundTxRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
@@ -326,9 +326,10 @@ describe('createTokenBridge utils function', () => {
     expect(orbitChainRetryableReceipts[0].status).toEqual('success');
     expect(orbitChainRetryableReceipts[1].status).toEqual('success');
 
-    // get contracts
+    // get contracts (query the freshly-deployed creator that holds the deployment mapping)
     const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
       parentChainPublicClient: nitroTestnodeL2Client,
+      tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     });
 
     checkTokenBridgeContracts(tokenBridgeContracts);
@@ -404,13 +405,13 @@ describe('createTokenBridge', () => {
         ],
       }),
       value: BigInt(0),
-      account: l3TokenBridgeDeployer,
+      account: l3RollupOwner,
     });
 
     // sign and send the transaction
     const fundTxRequest = { ...fundTxRequestRaw, chainId: nitroTestnodeL2Client.chain.id };
     const fundTxHash = await nitroTestnodeL2Client.sendRawTransaction({
-      serializedTransaction: await l3TokenBridgeDeployer.signTransaction(fundTxRequest),
+      serializedTransaction: await l3RollupOwner.signTransaction(fundTxRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete

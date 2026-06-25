@@ -18,7 +18,7 @@ import {
 } from './testHelpers';
 import { getKeysets } from './getKeysets';
 
-const { l3SequencerInbox } = getInformationFromTestnode();
+const { l3SequencerInbox, l2RollupCreator } = getInformationFromTestnode();
 const { l3TokenBridgeDeployer, deployer } = getNitroTestnodePrivateKeyAccounts();
 
 const client = createPublicClient({
@@ -103,6 +103,7 @@ async function createAnytrustRollup() {
     validators,
     nativeToken: zeroAddress,
     client,
+    rollupCreatorAddressOverride: l2RollupCreator,
   });
 }
 
