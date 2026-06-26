@@ -10,7 +10,9 @@ import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
 const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l3RollupOwner.privateKey;
 
 // L3 Upgrade Executor Address
-const upgradeExecutorAddress: Address = '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
+const upgradeExecutorAddress: Address | false = process.env.ARBITRUM_TESTNODE_CONTAINER
+  ? false
+  : '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
 
 const owner = privateKeyToAccount(devPrivateKey);
 const randomAccount = privateKeyToAccount(generatePrivateKey());

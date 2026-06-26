@@ -222,3 +222,98 @@ jobs:
           INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
           pnpm test:integration
+
+  test-integration-arbitrum-testnode:
+    name: Test (Integration) - Arbitrum Testnode - ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc3.2-l3-custom-18
+            variant: l3-custom-18
+            container: arbitrum-testnode-v3-2-l3-custom-18
+            nitro-contracts-version: v3.2
+            decimals: 18
+
+          - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc3.2-l3-custom-6
+            variant: l3-custom-6
+            container: arbitrum-testnode-v3-2-l3-custom-6
+            nitro-contracts-version: v3.2
+            decimals: 6
+
+          - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc2.1-l3-custom-18
+            variant: l3-custom-18
+            container: arbitrum-testnode-v2-1-l3-custom-18
+            nitro-contracts-version: v2.1
+            decimals: 18
+
+          - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc2.1-l3-custom-6
+            variant: l3-custom-6
+            container: arbitrum-testnode-v2-1-l3-custom-6
+            nitro-contracts-version: v2.1
+            decimals: 6
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.3
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install node_modules
+        uses: OffchainLabs/actions/node-modules/install@main
+        with:
+          install-command: pnpm install --frozen-lockfile
+          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Set up the local node
+        run: |
+          docker pull "${{ matrix.config.image }}"
+          docker run -d \
+            --name "${{ matrix.config.container }}" \
+            --platform linux/amd64 \
+            -e TESTNODE_VARIANT="${{ matrix.config.variant }}" \
+            -p 127.0.0.1:8545:8545 \
+            -p 127.0.0.1:8547:8547 \
+            -p 127.0.0.1:8548:8548 \
+            -p 127.0.0.1:3347:8549 \
+            -p 127.0.0.1:3348:8550 \
+            -p 127.0.0.1:8080:8080 \
+            "${{ matrix.config.image }}"
+
+          deadline=$((SECONDS + 120))
+          until curl -sf http://127.0.0.1:8080/health >/dev/null; do
+            if (( SECONDS >= deadline )); then
+              docker logs "${{ matrix.config.container }}" >&2 || true
+              echo "arbitrum-testnode did not become healthy within 120s" >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Copy .env
+        run: cp ./.env.example ./.env
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: |
+          ARBITRUM_TESTNODE_CONTAINER=${{ matrix.config.container }} \
+          INTEGRATION_TEST_DECIMALS=${{ matrix.config.decimals }} \
+          INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{ matrix.config.nitro-contracts-version }} \
+          NITRO_TESTNODE_L3_TOKEN_BRIDGE_DEPLOYER_PRIVATE_KEY=0x84f89f9afcf4cd87bbf0a8872a1abd8ddf69364da61a2c2a5286d999383cd2c9 \
+          CI=true \
+          pnpm test:integration
