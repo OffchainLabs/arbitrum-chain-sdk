@@ -226,6 +226,9 @@ jobs:
   test-integration-arbitrum-testnode:
     name: Test (Integration) - Arbitrum Testnode - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
     strategy:
       matrix:
         config:
@@ -277,6 +280,13 @@ jobs:
         with:
           install-command: pnpm install --frozen-lockfile
           cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up the local node
         run: |
