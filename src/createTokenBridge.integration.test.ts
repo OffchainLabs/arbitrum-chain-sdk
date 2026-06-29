@@ -171,6 +171,7 @@ describe('createTokenBridge utils function', () => {
     // get contracts
     const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
       parentChainPublicClient: nitroTestnodeL1Client,
+      tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     });
     checkTokenBridgeContracts(tokenBridgeContracts);
 
@@ -329,6 +330,7 @@ describe('createTokenBridge utils function', () => {
     // get contracts
     const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
       parentChainPublicClient: nitroTestnodeL2Client,
+      tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
     });
 
     checkTokenBridgeContracts(tokenBridgeContracts);
