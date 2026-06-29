@@ -4,15 +4,26 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { nitroTestnodeL3 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
 import { arbGasInfoPublicActions } from './arbGasInfoPublicActions';
-import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
 
 // L3 Owner Private Key
 const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l3RollupOwner.privateKey;
 
-// L3 Upgrade Executor Address
-const upgradeExecutorAddress: Address | false = process.env.ARBITRUM_TESTNODE_CONTAINER
-  ? false
-  : '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
+function getL3ChainOwnerUpgradeExecutorAddress(): Address {
+  if (!process.env.ARBITRUM_TESTNODE_CONTAINER) {
+    return '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
+  }
+
+  const testnodeInfo = getInformationFromTestnode();
+
+  if (!testnodeInfo.l3ChainOwnerUpgradeExecutor) {
+    throw new Error('Missing chain-owner-upgrade-executor in arbitrum-testnode metadata');
+  }
+
+  return testnodeInfo.l3ChainOwnerUpgradeExecutor;
+}
+
+const upgradeExecutorAddress = getL3ChainOwnerUpgradeExecutorAddress();
 
 const owner = privateKeyToAccount(devPrivateKey);
 const randomAccount = privateKeyToAccount(generatePrivateKey());

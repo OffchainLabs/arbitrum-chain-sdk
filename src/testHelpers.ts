@@ -86,6 +86,7 @@ type TestnodeInformation = {
   batchPoster: Address;
   l3BatchPoster: Address;
   l3UpgradeExecutor: Address;
+  l3ChainOwnerUpgradeExecutor?: Address;
   l3Rollup: `0x${string}`;
   l3NativeToken: `0x${string}`;
   l2RollupCreator?: Address;
@@ -97,6 +98,7 @@ type TestnodeDeploymentJson = {
   'sequencer-inbox': Address;
   'native-token'?: `0x${string}`;
   'upgrade-executor'?: Address;
+  'chain-owner-upgrade-executor'?: Address;
   'rollup-creator'?: Address;
 };
 
@@ -184,6 +186,7 @@ function getInformationFromTestnodeContainer(container: string): TestnodeInforma
     l3NativeToken: l3DeploymentJson['native-token'],
     l3BatchPoster: getBatchPosterAddressFromNodeConfig(l3SequencerConfig),
     l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
+    l3ChainOwnerUpgradeExecutor: l3DeploymentJson['chain-owner-upgrade-executor'],
     ...(l2RollupCreator && l2RollupCreator !== zeroAddress ? { l2RollupCreator } : {}),
   };
 }
