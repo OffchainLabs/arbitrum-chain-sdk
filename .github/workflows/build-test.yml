@@ -233,28 +233,28 @@ jobs:
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc3.2-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.8-nc3.2-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
             decimals: 18
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc3.2-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.8-nc3.2-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
             decimals: 6
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc2.1-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.8-nc2.1-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v2-1-l3-custom-18
             nitro-contracts-version: v2.1
             decimals: 18
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.7-nc2.1-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.8-nc2.1-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v2-1-l3-custom-6
             nitro-contracts-version: v2.1
