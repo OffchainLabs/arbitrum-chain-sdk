@@ -102,7 +102,7 @@ async function main() {
   // Step 2 - Obtain genesis block hash and sendRoot hash
   console.log(`Obtain genesis block hash and sendRoot hash...`);
   console.log(`Using image "${nitroNodeImage}" and L1 base fee "${l1BaseFee}".`);
-  console.log(`${execSync(`cat genesis.json`)}`);
+  console.log(fs.readFileSync('genesis.json', 'utf8'));
   const genesisHashes = execSync(
     `docker run -v $(pwd):/data/genesisDir --entrypoint genesis-generator ${nitroNodeImage} --genesis-json-file /data/genesisDir/genesis.json`,
   );
