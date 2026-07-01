@@ -11,7 +11,7 @@ For the contents of the genesis.json file, and what predeploys it contains, you 
 1. Install dependencies and build the SDK project (from the root of the repository)
 
 ```bash
-yarn install && yarn build
+pnpm install && pnpm build
 ```
 
 2. Move to the example script directory
@@ -32,5 +32,5 @@ cp .env.example .env
 4. Run the example
 
 ```bash
-yarn dev
+pnpm dev
 ```

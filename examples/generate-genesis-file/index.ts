@@ -75,11 +75,28 @@ async function main() {
   }
 
   // Step 1 - If needed, generate the genesis file
-  // Note: remove this step once we have a public image
   if (generateGenesisFile) {
     // Generate genesis file
     console.log(`Generate genesis file...`);
-    execSync(`docker run --env-file ./.env ${genesisFileGeneratorImage} > genesis.json`);
+
+    // (Optional) mount a custom alloc file into the generator container.
+    // Only added when CUSTOM_ALLOC_ACCOUNT_FILE is set. The file must live in
+    // this example directory; the generator reads it relative to its /app workdir.
+    let customAllocMount = '';
+    const customAllocFile = process.env.CUSTOM_ALLOC_ACCOUNT_FILE?.trim();
+    if (customAllocFile) {
+      if (!fs.existsSync(customAllocFile)) {
+        throw new Error(
+          `"CUSTOM_ALLOC_ACCOUNT_FILE" is set to "${customAllocFile}" but that file was not found in ${process.cwd()}. ` +
+            `Place the file in this example directory and set CUSTOM_ALLOC_ACCOUNT_FILE to its filename.`,
+        );
+      }
+      customAllocMount = `-v "$(pwd)/${customAllocFile}:/app/${customAllocFile}:ro"`;
+    }
+
+    execSync(
+      `docker run --env-file ./.env ${customAllocMount} ${genesisFileGeneratorImage} > genesis.json`,
+    );
   }
 
   // Step 2 - Obtain genesis block hash and sendRoot hash
