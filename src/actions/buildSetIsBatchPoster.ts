@@ -1,4 +1,4 @@
-import { Address, Chain, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
+import { Address, Chain, PublicClient, Transport } from 'viem';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import {
   ActionParameters,
@@ -7,7 +7,7 @@ import {
   WithUpgradeExecutor,
 } from '../types/Actions';
 import { Prettify } from '../types/utils';
-import { prepareUpgradeExecutorCallParameters } from '../prepareUpgradeExecutorCallParameters';
+import { prepareContractTransactionRequest } from '../contractTransactionRequests';
 import { validateParentChain } from '../types/ParentChain';
 
 type Args = {
@@ -31,19 +31,15 @@ export async function buildSetIsBatchPoster<TChain extends Chain | undefined>(
 ): Promise<BuildSetIsBatchPosterReturnType> {
   const { chainId } = validateParentChain(client);
 
-  const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+  return prepareContractTransactionRequest(client, {
+    chainId,
     account,
-    ...prepareUpgradeExecutorCallParameters({
-      to: sequencerInboxAddress,
-      upgradeExecutor,
-      args: [params.batchPoster, params.enable],
-      abi: sequencerInboxABI,
-      functionName: 'setIsBatchPoster',
-    }),
-  } satisfies PrepareTransactionRequestParameters);
-
-  return { ...request, chainId };
+    to: sequencerInboxAddress,
+    upgradeExecutor,
+    args: [params.batchPoster, params.enable],
+    abi: sequencerInboxABI,
+    functionName: 'setIsBatchPoster',
+  });
 }
 
 export async function buildEnableBatchPoster<TChain extends Chain | undefined>(
