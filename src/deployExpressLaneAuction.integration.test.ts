@@ -232,33 +232,4 @@ describe('ExpressLaneAuction deployment tests', () => {
       }),
     ).rejects.toThrow(/reverted/);
   });
-
-  it('rejects before deploying when proxyAdmin has no contract code', async () => {
-    // A freshly generated EOA has no code, so the pre-flight check must reject without deploying.
-    const eoaProxyAdmin = privateKeyToAccount(generatePrivateKey()).address;
-
-    await expect(
-      deployExpressLaneAuction({
-        orbitChainWalletClient: nitroTestnodeL2WalletClient,
-        proxyAdmin: eoaProxyAdmin,
-        auctioneer,
-        biddingToken: auctioneer,
-        beneficiary,
-        roundTimingInfo: {
-          offsetTimestamp: 0n,
-          roundDurationSeconds: 60n,
-          auctionClosingSeconds: 15n,
-          reserveSubmissionSeconds: 15n,
-        },
-        minReservePrice: 1n,
-        auctioneerAdmin,
-        minReservePriceSetter,
-        reservePriceSetter,
-        reservePriceSetterAdmin,
-        beneficiarySetter,
-        roundTimingSetter,
-        masterAdmin,
-      }),
-    ).rejects.toThrow(/no contract code at proxyAdmin/);
-  });
 });

@@ -140,31 +140,11 @@ export function encodeExpressLaneAuctionInitData(initArgs: ExpressLaneAuctionIni
  *   masterAdmin,
  * });
  */
-export async function deployExpressLaneAuction({
-  orbitChainWalletClient,
-  proxyAdmin,
-  auctioneer,
-  biddingToken,
-  beneficiary,
-  roundTimingInfo,
-  minReservePrice,
-  auctioneerAdmin,
-  minReservePriceSetter,
-  reservePriceSetter,
-  reservePriceSetterAdmin,
-  beneficiarySetter,
-  roundTimingSetter,
-  masterAdmin,
-}: DeployExpressLaneAuctionParams): Promise<DeployExpressLaneAuctionResult> {
+export async function deployExpressLaneAuction(
+  deployExpressLaneAuctionParams: DeployExpressLaneAuctionParams,
+): Promise<DeployExpressLaneAuctionResult> {
+  const { orbitChainWalletClient, proxyAdmin, ...initArgs } = deployExpressLaneAuctionParams;
   const client = orbitChainWalletClient.extend(publicActions);
-
-  // Sanity check the proxy admin isn't an EOA.
-  const proxyAdminCode = await client.getBytecode({ address: proxyAdmin });
-  if (!proxyAdminCode || proxyAdminCode === '0x') {
-    throw new Error(
-      `deployExpressLaneAuction: no contract code at proxyAdmin ${proxyAdmin}; deploy one with deployProxyAdmin first`,
-    );
-  }
 
   const implementationTransactionHash = await client.deployContract({
     abi: expressLaneAuction.abi,
@@ -182,20 +162,7 @@ export async function deployExpressLaneAuction({
   }
   const implementation = getAddress(implementationReceipt.contractAddress);
 
-  const initData = encodeExpressLaneAuctionInitData({
-    auctioneer,
-    biddingToken,
-    beneficiary,
-    roundTimingInfo,
-    minReservePrice,
-    auctioneerAdmin,
-    minReservePriceSetter,
-    reservePriceSetter,
-    reservePriceSetterAdmin,
-    beneficiarySetter,
-    roundTimingSetter,
-    masterAdmin,
-  });
+  const initData = encodeExpressLaneAuctionInitData(initArgs);
 
   const transactionHash = await client.deployContract({
     abi: transparentUpgradeableProxy.abi,
