@@ -6,7 +6,9 @@ import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 
 const execFilePromise = promisify(execFile);
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const tokenBridgeContractsImage = 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.2';
+const tokenBridgeContractsImage =
+  process.env.TOKEN_BRIDGE_CONTRACTS_IMAGE ?? 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.2';
+const skipTokenBridgeContractsImageBuild = process.env.TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD === 'true';
 
 let tokenBridgeContractsImagePromise: Promise<string> | undefined;
 
@@ -16,13 +18,18 @@ async function buildTokenBridgeContractsImage() {
   }
 
   tokenBridgeContractsImagePromise = (async () => {
-    await execFilePromise(
-      'docker',
-      ['build', '-q', '-t', tokenBridgeContractsImage, 'token-bridge-contracts'],
-      {
-        maxBuffer: 1024 * 1024 * 10,
-      },
-    );
+    if (skipTokenBridgeContractsImageBuild) {
+      await execFilePromise('docker', ['image', 'inspect', tokenBridgeContractsImage]);
+      return tokenBridgeContractsImage;
+    }
+
+    await execFilePromise('docker', [
+      'build',
+      '-q',
+      '-t',
+      tokenBridgeContractsImage,
+      'token-bridge-contracts',
+    ]);
     return tokenBridgeContractsImage;
   })();
 
@@ -38,27 +45,21 @@ export async function deployTokenBridgeCreator({
   const weth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
   const image = await buildTokenBridgeContractsImage();
 
-  const { stdout } = await execFilePromise(
-    'docker',
-    [
-      'run',
-      '--rm',
-      '--net=host',
-      '-e',
-      `BASECHAIN_RPC=${publicClient.transport.url}`,
-      '-e',
-      `BASECHAIN_DEPLOYER_KEY=${testnodeAccounts.deployer.privateKey}`,
-      '-e',
-      `BASECHAIN_WETH=${weth}`,
-      '-e',
-      'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
-      image,
-      'deploy:token-bridge-creator',
-    ],
-    {
-      maxBuffer: 1024 * 1024 * 10,
-    },
-  );
+  const { stdout } = await execFilePromise('docker', [
+    'run',
+    '--rm',
+    '--net=host',
+    '-e',
+    `BASECHAIN_RPC=${publicClient.transport.url}`,
+    '-e',
+    `BASECHAIN_DEPLOYER_KEY=${testnodeAccounts.deployer.privateKey}`,
+    '-e',
+    `BASECHAIN_WETH=${weth}`,
+    '-e',
+    'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
+    image,
+    'deploy:token-bridge-creator',
+  ]);
 
   const match = stdout.match(/L1TokenBridgeCreator: (0x[0-9a-fA-F]{40})/);
 
