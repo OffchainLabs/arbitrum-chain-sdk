@@ -1,4 +1,5 @@
 import {
+  Address,
   Log,
   PublicClient,
   Transport,
@@ -60,6 +61,7 @@ export type WaitForRetryablesResult = [TransactionReceipt, TransactionReceipt];
 
 type GetTokenBridgeContractsParameters<TParentChain extends Chain | undefined> = {
   parentChainPublicClient: PublicClient<Transport, TParentChain>;
+  tokenBridgeCreatorAddressOverride?: Address;
 };
 
 export type CreateTokenBridgeTransactionReceipt<
@@ -108,7 +110,10 @@ export function createTokenBridgePrepareTransactionReceipt<
           ) as WaitForRetryablesResult
       );
     },
-    getTokenBridgeContracts: async function ({ parentChainPublicClient }) {
+    getTokenBridgeContracts: async function ({
+      parentChainPublicClient,
+      tokenBridgeCreatorAddressOverride,
+    }) {
       const eventLog = findOrbitTokenBridgeCreatedEventLog(txReceipt);
       const decodedEventLog = decodeOrbitTokenBridgeCreatedEventLog(eventLog);
       const { inbox } = decodedEventLog.args;
@@ -116,6 +121,7 @@ export function createTokenBridgePrepareTransactionReceipt<
       return createTokenBridgeFetchTokenBridgeContracts({
         inbox,
         parentChainPublicClient,
+        tokenBridgeCreatorAddressOverride,
       });
     },
   };
