@@ -108,5 +108,5 @@ export async function prepareContractTransactionRequest<
     gas,
   });
 
-  return { ...request, chainId };
+  return { ...request, gas: request.gas, chainId };
 }
