@@ -3,22 +3,9 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
 import { chains, getCustomParentChains } from '../chains';
 
+// Synthesize a minimal chain (rather than throw) for ids not in the registry -- e.g. a freshly
+// deployed orbit chain. rpcUrls is left empty since every caller sets the transport URL explicitly.
 export function findChain(chainId: number): Chain {
-  const knownChains = [...chains, ...getCustomParentChains()];
-  const chain = knownChains.find((c) => c.id === chainId);
-  if (!chain) {
-    const known = knownChains.map((c) => c.id).join(', ');
-    throw new Error(`Unknown chain ID: ${chainId}. Known chain IDs: ${known}`);
-  }
-  return chain;
-}
-
-// Resolve a chain for CLI use, preferring the rich known/registered Chain (it carries
-// multicall3, native currency and explorer metadata). When the id isn't recognised --
-// e.g. a freshly deployed orbit chain that isn't in the registry -- synthesize a minimal
-// chain from the id and RPC instead of throwing. Only the id matters for EIP-155 signing,
-// and the transport always uses the supplied rpcUrl, so this is enough to deploy/read.
-export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
   const knownChains = [...chains, ...getCustomParentChains()];
   const chain = knownChains.find((c) => c.id === chainId);
   if (chain) return chain;
@@ -27,7 +14,7 @@ export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
     name: `Chain ${chainId}`,
     network: `chain-${chainId}`,
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-    rpcUrls: { default: { http: [rpcUrl] }, public: { http: [rpcUrl] } },
+    rpcUrls: { default: { http: [] }, public: { http: [] } },
   });
 }
 
@@ -147,11 +134,7 @@ export function withChildChainSign<
   const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
   return [
     {
-      orbitChainWalletClient: toWalletClient(
-        orbitChainRpcUrl,
-        privateKey,
-        findOrDefineChain(orbitChainId, orbitChainRpcUrl),
-      ),
+      orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)),
       ...rest,
     },
   ] as WithChildChainSign<T>;

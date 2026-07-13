@@ -1,5 +1,6 @@
 import { it, expect } from 'vitest';
 import {
+  findChain,
   toPublicClient,
   toAccount,
   toWalletClient,
@@ -42,6 +43,39 @@ it('toWalletClient creates a WalletClient from an RPC URL and private key', () =
 
 // Arbitrum One chainId for connection transform tests
 const arbChainId = 42161;
+
+// An id not in the registry, standing in for a freshly deployed orbit chain.
+const unregisteredChainId = 987654321;
+
+it('findChain returns the registered chain for a known id', () => {
+  expect(findChain(arbChainId).id).toEqual(arbChainId);
+});
+
+it('findChain synthesizes a minimal chain for an unregistered id instead of throwing', () => {
+  const chain = findChain(unregisteredChainId);
+  expect(chain.id).toEqual(unregisteredChainId);
+  expect(chain.name).toEqual(`Chain ${unregisteredChainId}`);
+});
+
+it('withPublicClient resolves an unregistered chain id without throwing', () => {
+  const [result] = withPublicClient({
+    rpcUrl: testRpcUrl,
+    chainId: unregisteredChainId,
+    rollup: '0x1',
+  });
+  expect(result.publicClient).toBeDefined();
+  expect(result.publicClient.chain?.id).toEqual(unregisteredChainId);
+});
+
+it('withChildChainSign resolves an unregistered orbit chain id without throwing', () => {
+  const [result] = withChildChainSign({
+    orbitChainRpcUrl: testRpcUrl,
+    orbitChainId: unregisteredChainId,
+    privateKey: testPrivateKey,
+    extra: 'data',
+  });
+  expect(result.orbitChainWalletClient.chain?.id).toEqual(unregisteredChainId);
+});
 
 it('withPublicClient strips rpcUrl/chainId and adds publicClient', () => {
   const [result] = withPublicClient({ rpcUrl: testRpcUrl, chainId: arbChainId, rollup: '0x1' });
