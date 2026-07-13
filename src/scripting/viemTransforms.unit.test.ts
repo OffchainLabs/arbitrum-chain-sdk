@@ -44,7 +44,6 @@ it('toWalletClient creates a WalletClient from an RPC URL and private key', () =
 // Arbitrum One chainId for connection transform tests
 const arbChainId = 42161;
 
-// An id not in the registry, standing in for a freshly deployed orbit chain.
 const unregisteredChainId = 987654321;
 
 it('findChain returns the registered chain for a known id', () => {
