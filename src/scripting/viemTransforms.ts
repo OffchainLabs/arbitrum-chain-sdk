@@ -13,11 +13,6 @@ export function findChain(chainId: number): Chain {
   return chain;
 }
 
-// Resolve a chain for CLI use, preferring the rich known/registered Chain (it carries
-// multicall3, native currency and explorer metadata). When the id isn't recognised --
-// e.g. a freshly deployed orbit chain that isn't in the registry -- synthesize a minimal
-// chain from the id and RPC instead of throwing. Only the id matters for EIP-155 signing,
-// and the transport always uses the supplied rpcUrl, so this is enough to deploy/read.
 export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
   const knownChains = [...chains, ...getCustomParentChains()];
   const chain = knownChains.find((c) => c.id === chainId);
