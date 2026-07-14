@@ -1,5 +1,5 @@
+import type { Abi, ExtractAbiFunctionNames } from 'abitype';
 import {
-  Abi,
   Address,
   Chain,
   encodeFunctionData as viemEncodeFunctionData,
@@ -12,18 +12,15 @@ import {
   upgradeExecutorEncodeFunctionData,
   UpgradeExecutorFunctionName,
 } from './upgradeExecutorEncodeFunctionData';
-import { GetFunctionName } from './types/utils';
-
-type ContractFunctionName<TAbi extends Abi> = GetFunctionName<TAbi>;
 
 export type ContractEncodeFunctionDataParameters<
   TAbi extends Abi,
-  TFunctionName extends ContractFunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 > = ViemEncodeFunctionDataParameters<TAbi, TFunctionName>;
 
 type PrepareContractCallParameters<
   TAbi extends Abi,
-  TFunctionName extends ContractFunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 > = Omit<ContractEncodeFunctionDataParameters<TAbi, TFunctionName>, 'abi'> & {
   abi: TAbi;
   to: Address;
@@ -40,7 +37,7 @@ type PreparedContractCallParameters = {
 
 function encodeContractFunctionData<
   TAbi extends Abi,
-  TFunctionName extends ContractFunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 >({ abi, functionName, args }: PrepareContractCallParameters<TAbi, TFunctionName>) {
   return viemEncodeFunctionData({
     abi,
@@ -51,7 +48,7 @@ function encodeContractFunctionData<
 
 export function prepareContractCallParameters<
   TAbi extends Abi,
-  TFunctionName extends ContractFunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 >(params: PrepareContractCallParameters<TAbi, TFunctionName>): PreparedContractCallParameters {
   const { upgradeExecutor, value = BigInt(0) } = params;
   const data = encodeContractFunctionData(params);
@@ -79,7 +76,7 @@ export function prepareContractCallParameters<
 
 type PrepareContractTransactionRequestParameters<
   TAbi extends Abi,
-  TFunctionName extends ContractFunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 > = PrepareContractCallParameters<TAbi, TFunctionName> & {
   account: Address;
   chainId: number;
@@ -88,7 +85,7 @@ type PrepareContractTransactionRequestParameters<
 
 export async function prepareContractTransactionRequest<
   TAbi extends Abi,
-  TFunctionName extends ContractFunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
   TTransport extends Transport = Transport,
   TChain extends Chain | undefined = Chain | undefined,
 >(

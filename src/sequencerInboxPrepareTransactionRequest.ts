@@ -1,7 +1,7 @@
 import { PublicClient, Address, Transport, Chain } from 'viem';
+import type { ExtractAbiFunctionNames } from 'abitype';
 
 import { sequencerInboxABI } from './contracts/SequencerInbox';
-import { GetFunctionName } from './types/utils';
 import { validateParentChain } from './types/ParentChain';
 import {
   ContractEncodeFunctionDataParameters,
@@ -10,7 +10,7 @@ import {
 } from './contractTransactionRequests';
 
 export type SequencerInboxAbi = typeof sequencerInboxABI;
-export type SequencerInboxFunctionName = GetFunctionName<SequencerInboxAbi>;
+export type SequencerInboxFunctionName = ExtractAbiFunctionNames<SequencerInboxAbi>;
 
 type SequencerInboxEncodeFunctionDataParameters<TFunctionName extends SequencerInboxFunctionName> =
   ContractEncodeFunctionDataParameters<SequencerInboxAbi, TFunctionName>;

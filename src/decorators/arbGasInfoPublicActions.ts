@@ -1,11 +1,23 @@
 import { Transport, Chain, PublicClient } from 'viem';
 
+import { arbGasInfoABI, arbGasInfoAddress } from '../contracts/ArbGasInfo';
 import {
-  arbGasInfoReadContract,
-  ArbGasInfoFunctionName,
-  ArbGasInfoReadContractParameters,
-  ArbGasInfoReadContractReturnType,
-} from '../arbGasInfoReadContract';
+  createContractRead,
+  ContractReadFunctionName,
+  ContractReadParameters,
+  ContractReadReturnType,
+} from '../contractRead';
+
+type ArbGasInfoFunctionName = ContractReadFunctionName<typeof arbGasInfoABI>;
+type ArbGasInfoReadContractParameters<TFunctionName extends ArbGasInfoFunctionName> =
+  ContractReadParameters<typeof arbGasInfoABI, TFunctionName>;
+type ArbGasInfoReadContractReturnType<TFunctionName extends ArbGasInfoFunctionName> =
+  ContractReadReturnType<typeof arbGasInfoABI, TFunctionName>;
+
+const arbGasInfoReadContract = createContractRead<typeof arbGasInfoABI>(
+  arbGasInfoABI,
+  () => arbGasInfoAddress,
+);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- todo: remove generic if not breaking
 export type ArbGasInfoPublicActions<TChain extends Chain | undefined = Chain | undefined> = {

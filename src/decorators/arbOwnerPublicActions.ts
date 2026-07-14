@@ -1,16 +1,28 @@
 import { Transport, Chain, PrepareTransactionRequestReturnType, PublicClient } from 'viem';
 
+import { arbOwnerPublicABI, arbOwnerPublicAddress } from '../contracts/ArbOwnerPublic';
 import {
-  arbOwnerReadContract,
-  ArbOwnerPublicFunctionName,
-  ArbOwnerReadContractParameters,
-  ArbOwnerReadContractReturnType,
-} from '../arbOwnerReadContract';
+  createContractRead,
+  ContractReadFunctionName,
+  ContractReadParameters,
+  ContractReadReturnType,
+} from '../contractRead';
 import {
   arbOwnerPrepareTransactionRequest,
   ArbOwnerPrepareTransactionRequestFunctionName,
   ArbOwnerPrepareTransactionRequestParameters,
 } from '../arbOwnerPrepareTransactionRequest';
+
+type ArbOwnerPublicFunctionName = ContractReadFunctionName<typeof arbOwnerPublicABI>;
+type ArbOwnerReadContractParameters<TFunctionName extends ArbOwnerPublicFunctionName> =
+  ContractReadParameters<typeof arbOwnerPublicABI, TFunctionName>;
+type ArbOwnerReadContractReturnType<TFunctionName extends ArbOwnerPublicFunctionName> =
+  ContractReadReturnType<typeof arbOwnerPublicABI, TFunctionName>;
+
+const arbOwnerReadContract = createContractRead<typeof arbOwnerPublicABI>(
+  arbOwnerPublicABI,
+  () => arbOwnerPublicAddress,
+);
 
 export type ArbOwnerPublicActions<TChain extends Chain | undefined = Chain | undefined> = {
   arbOwnerReadContract: <TFunctionName extends ArbOwnerPublicFunctionName>(

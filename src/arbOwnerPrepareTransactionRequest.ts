@@ -1,7 +1,7 @@
 import { PublicClient, Address, Chain, Transport } from 'viem';
+import type { ExtractAbiFunctionNames } from 'abitype';
 
 import { arbOwnerABI, arbOwnerAddress } from './contracts/ArbOwner';
-import { GetFunctionName } from './types/utils';
 import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
 import {
   ContractEncodeFunctionDataParameters,
@@ -10,7 +10,7 @@ import {
 } from './contractTransactionRequests';
 
 type ArbOwnerAbi = typeof arbOwnerABI;
-export type ArbOwnerPrepareTransactionRequestFunctionName = GetFunctionName<ArbOwnerAbi>;
+export type ArbOwnerPrepareTransactionRequestFunctionName = ExtractAbiFunctionNames<ArbOwnerAbi>;
 export type ArbOwnerEncodeFunctionDataParameters<
   TFunctionName extends ArbOwnerPrepareTransactionRequestFunctionName,
 > = ContractEncodeFunctionDataParameters<ArbOwnerAbi, TFunctionName>;

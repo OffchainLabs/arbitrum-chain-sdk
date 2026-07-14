@@ -1,19 +1,34 @@
 import { Transport, Chain, PrepareTransactionRequestReturnType, PublicClient, Address } from 'viem';
 
+import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import {
-  sequencerInboxReadContract,
-  SequencerInboxReadContractParameters,
-  SequencerInboxReadContractReturnType,
-} from '../sequencerInboxReadContract';
+  createContractRead,
+  ContractReadFunctionName,
+  ContractReadParameters,
+  ContractReadReturnType,
+} from '../contractRead';
 import {
+  SequencerInboxAbi,
   SequencerInboxFunctionName,
   sequencerInboxPrepareTransactionRequest,
   SequencerInboxPrepareTransactionRequestParameters,
 } from '../sequencerInboxPrepareTransactionRequest';
 
+type SequencerInboxAddressParameters = { sequencerInbox: Address };
+type SequencerInboxReadFunctionName = ContractReadFunctionName<SequencerInboxAbi>;
+type SequencerInboxReadContractParameters<TFunctionName extends SequencerInboxReadFunctionName> =
+  ContractReadParameters<SequencerInboxAbi, TFunctionName, SequencerInboxAddressParameters>;
+type SequencerInboxReadContractReturnType<TFunctionName extends SequencerInboxReadFunctionName> =
+  ContractReadReturnType<SequencerInboxAbi, TFunctionName>;
+
+const sequencerInboxReadContract = createContractRead<
+  SequencerInboxAbi,
+  SequencerInboxAddressParameters
+>(sequencerInboxABI, ({ sequencerInbox }) => sequencerInbox);
+
 type SequencerInboxReadContractArgs<
   TSequencerInbox extends Address | undefined,
-  TFunctionName extends SequencerInboxFunctionName,
+  TFunctionName extends SequencerInboxReadFunctionName,
 > = TSequencerInbox extends Address
   ? Omit<SequencerInboxReadContractParameters<TFunctionName>, 'sequencerInbox'> & {
       sequencerInbox?: Address;
@@ -32,7 +47,7 @@ export type SequencerInboxActions<
   TSequencerInbox extends Address | undefined,
   TChain extends Chain | undefined = Chain | undefined,
 > = {
-  sequencerInboxReadContract: <TFunctionName extends SequencerInboxFunctionName>(
+  sequencerInboxReadContract: <TFunctionName extends SequencerInboxReadFunctionName>(
     args: SequencerInboxReadContractArgs<TSequencerInbox, TFunctionName>,
   ) => Promise<SequencerInboxReadContractReturnType<TFunctionName>>;
 
@@ -77,7 +92,7 @@ export function sequencerInboxActions<
     client: PublicClient<TTransport, TChain>,
   ) {
     const sequencerInboxExtensions: SequencerInboxActions<TParams['sequencerInbox'], TChain> = {
-      sequencerInboxReadContract: <TFunctionName extends SequencerInboxFunctionName>(
+      sequencerInboxReadContract: <TFunctionName extends SequencerInboxReadFunctionName>(
         args: SequencerInboxReadContractArgs<TParams['sequencerInbox'], TFunctionName>,
       ) => {
         return sequencerInboxReadContract(client, {

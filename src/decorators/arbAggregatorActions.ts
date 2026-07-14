@@ -1,16 +1,28 @@
 import { Transport, Chain, PrepareTransactionRequestReturnType, PublicClient } from 'viem';
 
+import { arbAggregatorABI, arbAggregatorAddress } from '../contracts/ArbAggregator';
 import {
-  arbAggregatorReadContract,
-  ArbAggregatorFunctionName,
-  ArbAggregatorReadContractParameters,
-  ArbAggregatorReadContractReturnType,
-} from '../arbAggregatorReadContract';
+  createContractRead,
+  ContractReadFunctionName,
+  ContractReadParameters,
+  ContractReadReturnType,
+} from '../contractRead';
 import {
   arbAggregatorPrepareTransactionRequest,
   ArbAggregatorPrepareTransactionRequestFunctionName,
   ArbAggregatorPrepareTransactionRequestParameters,
 } from '../arbAggregatorPrepareTransactionRequest';
+
+type ArbAggregatorFunctionName = ContractReadFunctionName<typeof arbAggregatorABI>;
+type ArbAggregatorReadContractParameters<TFunctionName extends ArbAggregatorFunctionName> =
+  ContractReadParameters<typeof arbAggregatorABI, TFunctionName>;
+type ArbAggregatorReadContractReturnType<TFunctionName extends ArbAggregatorFunctionName> =
+  ContractReadReturnType<typeof arbAggregatorABI, TFunctionName>;
+
+const arbAggregatorReadContract = createContractRead<typeof arbAggregatorABI>(
+  arbAggregatorABI,
+  () => arbAggregatorAddress,
+);
 
 export type ArbAggregatorActions<TChain extends Chain | undefined = Chain | undefined> = {
   arbAggregatorReadContract: <TFunctionName extends ArbAggregatorFunctionName>(
