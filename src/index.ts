@@ -139,6 +139,11 @@ import {
   ExpressLaneAuctionRoundTimingInfo,
 } from './deployExpressLaneAuction';
 import { deployWeth, DeployWethParams, DeployWethResult } from './deployWeth';
+import {
+  deployRollupCreator,
+  DeployRollupCreatorParams,
+  DeployRollupCreatorResult,
+} from './deployRollupCreator';
 import * as utils from './utils';
 
 import { getBridgeUiConfig, GetBridgeUiConfigFunctionParams } from './getBridgeUiConfig';
@@ -319,6 +324,9 @@ export {
   deployWeth,
   DeployWethParams,
   DeployWethResult,
+  deployRollupCreator,
+  DeployRollupCreatorParams,
+  DeployRollupCreatorResult,
   //
   getDefaultConfirmPeriodBlocks,
   getDefaultChallengeGracePeriodBlocks,

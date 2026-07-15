@@ -63,6 +63,7 @@
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@offchainlabs/fund-distribution-contracts": "^1.0.1",
+    "@offchainlabs/upgrade-executor": "1.1.0-beta.0",
     "@safe-global/protocol-kit": "^4.1.7",
     "abitype": "^0.9.8",
     "ethers": "^5.7.2",
