@@ -6,7 +6,9 @@ import { chains, getCustomParentChains } from '../chains';
 // Synthesize a minimal chain (rather than throw) for ids not in the registry -- e.g. a freshly
 // deployed orbit chain. rpcUrls is left empty since every caller sets the transport URL explicitly.
 export function findChain(chainId: number): Chain {
-  const knownChains = [...chains, ...getCustomParentChains()];
+  // Custom chains first: a registered custom chain wins over a built-in with the same id,
+  // so its factory addresses are used instead of the contract-less built-in entry.
+  const knownChains = [...getCustomParentChains(), ...chains];
   const chain = knownChains.find((c) => c.id === chainId);
   if (chain) return chain;
   return defineChain({

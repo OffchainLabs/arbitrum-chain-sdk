@@ -67,7 +67,13 @@ export function getCustomParentChains(): Chain[] {
 /**
  * Registers a custom parent chain.
  *
- * @param {Chain} chain Regular `Chain` object with mandatory `contracts.rollupCreator` and `contracts.tokenBridgeCreator` fields.
+ * `contracts.rollupCreator` and `contracts.tokenBridgeCreator` are optional: a
+ * command only needs the factory address for the operation it performs, so
+ * requiredness is enforced per-command at the CLI schema layer rather than here.
+ * Any address that is provided is still validated as a non-zero address.
+ *
+ * @param {Chain} chain Regular `Chain` object, optionally carrying
+ * `contracts.rollupCreator` and/or `contracts.tokenBridgeCreator`.
  *
  * @example
  * registerCustomParentChain({
@@ -87,7 +93,7 @@ export function getCustomParentChains(): Chain[] {
  *       http: ['http://localhost:8080'],
  *     },
  *   },
- *   // these are mandatory
+ *   // provide the ones the operation needs
  *   contracts: {
  *     rollupCreator: {
  *       address: '0x0000000000000000000000000000000000000001',
@@ -100,22 +106,25 @@ export function getCustomParentChains(): Chain[] {
  */
 export function registerCustomParentChain(
   chain: Chain & {
-    contracts: {
-      rollupCreator: ChainContract;
-      tokenBridgeCreator: ChainContract;
+    contracts?: {
+      rollupCreator?: ChainContract;
+      tokenBridgeCreator?: ChainContract;
     };
   },
 ) {
-  const rollupCreator = chain.contracts.rollupCreator.address;
-  const tokenBridgeCreator = chain.contracts.tokenBridgeCreator.address;
+  const rollupCreator = chain.contracts?.rollupCreator?.address;
+  const tokenBridgeCreator = chain.contracts?.tokenBridgeCreator?.address;
 
-  if (!isAddress(rollupCreator) || rollupCreator === zeroAddress) {
+  if (rollupCreator !== undefined && (!isAddress(rollupCreator) || rollupCreator === zeroAddress)) {
     throw new Error(
       `"contracts.rollupCreator.address" is invalid for custom parent chain with id ${chain.id}`,
     );
   }
 
-  if (!isAddress(tokenBridgeCreator) || tokenBridgeCreator === zeroAddress) {
+  if (
+    tokenBridgeCreator !== undefined &&
+    (!isAddress(tokenBridgeCreator) || tokenBridgeCreator === zeroAddress)
+  ) {
     throw new Error(
       `"contracts.tokenBridgeCreator.address" is invalid for custom parent chain with id ${chain.id}`,
     );
