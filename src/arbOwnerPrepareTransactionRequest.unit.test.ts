@@ -7,19 +7,20 @@ import {
   createPublicClient,
   http,
 } from 'viem';
-import { nitroTestnodeL2 } from '../chains';
-import { arbOwnerPublicActions } from './arbOwnerPublicActions';
+import { nitroTestnodeL2 } from './chains';
+import { arbOwnerPublicConfig } from './contracts/ArbOwnerPublic';
+import { arbOwnerPrepareTransactionRequest } from './arbOwnerPrepareTransactionRequest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
-}).extend(arbOwnerPublicActions);
+});
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 
 it('Infer parameters based on function name', async () => {
   await expect(
-    client.arbOwnerPrepareTransactionRequest({
+    arbOwnerPrepareTransactionRequest(client, {
       functionName: 'addChainOwner',
       // @ts-expect-error Args are missing
       args: [],
@@ -29,7 +30,7 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrow(AbiEncodingLengthMismatchError);
 
   await expect(
-    client.arbOwnerPrepareTransactionRequest({
+    arbOwnerPrepareTransactionRequest(client, {
       functionName: 'addChainOwner',
       // @ts-expect-error Args are of the wrong type
       args: [10n],
@@ -39,27 +40,26 @@ it('Infer parameters based on function name', async () => {
   ).rejects.toThrow(InvalidAddressError);
 
   await expect(
-    client
-      // @ts-expect-error Args are required for `addChainOwner`
-      .arbOwnerPrepareTransactionRequest({
-        functionName: 'addChainOwner',
-        upgradeExecutor: false,
-        account: randomAccount.address,
-      }),
-  ).rejects.toThrow(AbiEncodingLengthMismatchError);
-
-  expectTypeOf<typeof client.arbOwnerPrepareTransactionRequest<'addChainOwner'>>().toBeCallableWith(
-    {
+    arbOwnerPrepareTransactionRequest(client, {
       functionName: 'addChainOwner',
-      args: [randomAccount.address],
       upgradeExecutor: false,
       account: randomAccount.address,
-    },
-  );
+      // @ts-expect-error Args are required for `addChainOwner`
+      args: undefined,
+    }),
+  ).rejects.toThrow(AbiEncodingLengthMismatchError);
+
+  expectTypeOf(arbOwnerPrepareTransactionRequest).toBeCallableWith(client, {
+    functionName: 'addChainOwner',
+    args: [randomAccount.address],
+    upgradeExecutor: false,
+    account: randomAccount.address,
+  });
 
   // Function doesn't exist
   await expect(
-    client.arbOwnerReadContract({
+    client.readContract({
+      ...arbOwnerPublicConfig,
       // @ts-expect-error Function not available
       functionName: 'notExisting',
     }),

@@ -70,24 +70,32 @@ import {
 import {
   arbOwnerPrepareFunctionData,
   ArbOwnerPrepareFunctionDataParameters,
+  arbOwnerPrepareTransactionRequest,
+  ArbOwnerPrepareTransactionRequestParameters,
 } from './arbOwnerPrepareTransactionRequest';
-import { arbOwnerPublicActions } from './decorators/arbOwnerPublicActions';
-import { arbGasInfoPublicActions } from './decorators/arbGasInfoPublicActions';
+import { arbOwnerPublicConfig } from './contracts/ArbOwnerPublic';
+import { arbGasInfoConfig } from './contracts/ArbGasInfo';
+import { arbAggregatorConfig } from './contracts/ArbAggregator';
+import { sequencerInboxABI } from './contracts/SequencerInbox';
+import { rollupABI } from './contracts/Rollup';
 import {
   arbAggregatorPrepareFunctionData,
   ArbAggregatorPrepareFunctionDataParameters,
+  arbAggregatorPrepareTransactionRequest,
+  ArbAggregatorPrepareTransactionRequestParameters,
 } from './arbAggregatorPrepareTransactionRequest';
-import { arbAggregatorActions } from './decorators/arbAggregatorActions';
 import {
   sequencerInboxPrepareFunctionData,
   SequencerInboxPrepareFunctionDataParameters,
+  sequencerInboxPrepareTransactionRequest,
+  SequencerInboxPrepareTransactionRequestParameters,
 } from './sequencerInboxPrepareTransactionRequest';
-import { sequencerInboxActions } from './decorators/sequencerInboxActions';
 import {
   rollupAdminLogicPrepareFunctionData,
   RollupAdminLogicPrepareFunctionDataParameters,
+  rollupAdminLogicPrepareTransactionRequest,
+  RollupAdminLogicPrepareTransactionRequestParameters,
 } from './rollupAdminLogicPrepareTransactionRequest';
-import { rollupAdminLogicPublicActions } from './decorators/rollupAdminLogicPublicActions';
 
 import { ChainConfig, ChainConfigArbitrumParams } from './types/ChainConfig';
 import { CoreContracts } from './types/CoreContracts';
@@ -197,23 +205,31 @@ import {
 import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
 
 export {
-  arbOwnerPublicActions,
   arbOwnerPrepareFunctionData,
   ArbOwnerPrepareFunctionDataParameters,
+  arbOwnerPrepareTransactionRequest,
+  ArbOwnerPrepareTransactionRequestParameters,
+  arbOwnerPublicConfig,
   //
-  arbGasInfoPublicActions,
+  arbGasInfoConfig,
   //
-  arbAggregatorActions,
+  arbAggregatorConfig,
   arbAggregatorPrepareFunctionData,
   ArbAggregatorPrepareFunctionDataParameters,
+  arbAggregatorPrepareTransactionRequest,
+  ArbAggregatorPrepareTransactionRequestParameters,
   //
-  sequencerInboxActions,
+  sequencerInboxABI,
   sequencerInboxPrepareFunctionData,
   SequencerInboxPrepareFunctionDataParameters,
+  sequencerInboxPrepareTransactionRequest,
+  SequencerInboxPrepareTransactionRequestParameters,
   //
-  rollupAdminLogicPublicActions,
+  rollupABI,
   rollupAdminLogicPrepareFunctionData,
   RollupAdminLogicPrepareFunctionDataParameters,
+  rollupAdminLogicPrepareTransactionRequest,
+  RollupAdminLogicPrepareTransactionRequestParameters,
   //
   createRollupEncodeFunctionData,
   //

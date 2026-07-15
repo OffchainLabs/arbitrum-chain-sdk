@@ -3,13 +3,13 @@ import { Address, createPublicClient, http } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from './chains';
-import { rollupAdminLogicPublicActions } from './decorators/rollupAdminLogicPublicActions';
 import {
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
   testHelper_getRollupCreatorVersionFromEnv,
 } from './testHelpers';
 import { getValidators } from './getValidators';
+import { rollupAdminLogicPrepareTransactionRequest } from './rollupAdminLogicPrepareTransactionRequest';
 
 const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 const { l3Rollup, l3UpgradeExecutor } = getInformationFromTestnode();
@@ -23,14 +23,10 @@ const expectedInitialValidators = rollupCreatorVersion === 'v3.2' ? 11 : 10;
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
-}).extend(
-  rollupAdminLogicPublicActions({
-    rollup: l3Rollup,
-  }),
-);
+});
 
 async function setValidator(validator: Address, state: boolean) {
-  const tx = await client.rollupAdminLogicPrepareTransactionRequest({
+  const tx = await rollupAdminLogicPrepareTransactionRequest(client, {
     functionName: 'setValidator',
     args: [[validator], [state]],
     account: l3RollupOwner.address,

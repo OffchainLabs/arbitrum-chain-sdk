@@ -3,9 +3,9 @@ import { Address, createPublicClient, http } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from './chains';
-import { sequencerInboxActions } from './decorators/sequencerInboxActions';
 import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 import { getBatchPosters } from './getBatchPosters';
+import { sequencerInboxPrepareTransactionRequest } from './sequencerInboxPrepareTransactionRequest';
 
 const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 const { l3Rollup, l3UpgradeExecutor, l3SequencerInbox } = getInformationFromTestnode();
@@ -13,14 +13,10 @@ const { l3Rollup, l3UpgradeExecutor, l3SequencerInbox } = getInformationFromTest
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
-}).extend(
-  sequencerInboxActions({
-    sequencerInbox: l3SequencerInbox,
-  }),
-);
+});
 
 async function setBatchPoster(batchPoster: Address, state: boolean) {
-  const tx = await client.sequencerInboxPrepareTransactionRequest({
+  const tx = await sequencerInboxPrepareTransactionRequest(client, {
     functionName: 'setIsBatchPoster',
     args: [batchPoster, state],
     account: l3RollupOwner.address,

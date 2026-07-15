@@ -10,25 +10,16 @@ import {
 } from 'viem';
 
 import { nitroTestnodeL2 } from './chains';
-import { sequencerInboxActions } from './decorators/sequencerInboxActions';
-import {
-  createRollupHelper,
-  getInformationFromTestnode,
-  getNitroTestnodePrivateKeyAccounts,
-} from './testHelpers';
+import { createRollupHelper, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 import { getKeysets } from './getKeysets';
+import { sequencerInboxPrepareTransactionRequest } from './sequencerInboxPrepareTransactionRequest';
 
-const { l3SequencerInbox } = getInformationFromTestnode();
 const { l3TokenBridgeDeployer, deployer } = getNitroTestnodePrivateKeyAccounts();
 
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
-}).extend(
-  sequencerInboxActions({
-    sequencerInbox: l3SequencerInbox,
-  }),
-);
+});
 
 async function sendKeysetTransaction({
   account,
@@ -55,7 +46,7 @@ async function setValidKeyset({
   upgradeExecutor: Address;
   account: PrivateKeyAccount;
 }) {
-  const tx = await client.sequencerInboxPrepareTransactionRequest({
+  const tx = await sequencerInboxPrepareTransactionRequest(client, {
     functionName: 'setValidKeyset',
     args: [keysetBytes],
     account: account.address,
@@ -75,7 +66,7 @@ async function invalidateKeyset({
   upgradeExecutor: Address;
   account: PrivateKeyAccount;
 }) {
-  const tx = await client.sequencerInboxPrepareTransactionRequest({
+  const tx = await sequencerInboxPrepareTransactionRequest(client, {
     functionName: 'invalidateKeysetHash',
     args: [keysetHash],
     account: account.address,
