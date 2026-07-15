@@ -49,8 +49,7 @@ export const schema = inputSchema
     refineChainIdMatch(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
-    // Register a custom parent chain (if custom fields were supplied) before resolving it, so
-    // findChain returns it with its factory addresses. Strips the custom fields from the rest.
+    // Register the custom parent chain (if supplied) before findChain resolves it.
     const registered = registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
       registered.parentChainRpcUrl,

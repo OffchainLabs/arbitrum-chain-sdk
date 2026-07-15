@@ -65,7 +65,6 @@ describe('TokenBridgeCreator deployment tests', () => {
     // canonicalL2FactoryAddress is computed on-chain by initialize; a non-zero value proves it ran.
     expect(await read('canonicalL2FactoryAddress')).not.toEqual(ADDRESS_ZERO);
 
-    // Every L2 template placeholder must be stored (non-zero).
     for (const getter of [
       'l1Multicall',
       'l2TokenBridgeFactoryTemplate',
@@ -79,7 +78,6 @@ describe('TokenBridgeCreator deployment tests', () => {
       expect(await read(getter), getter).not.toEqual(ADDRESS_ZERO);
     }
 
-    // The L1 template struct must be fully populated (no zero fields).
     const l1Templates = (await read('l1Templates')) as unknown as readonly Address[];
     for (const template of l1Templates) {
       expect(template).not.toEqual(ADDRESS_ZERO);

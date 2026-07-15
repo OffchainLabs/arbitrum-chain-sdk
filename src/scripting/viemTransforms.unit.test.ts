@@ -170,7 +170,6 @@ it('registerCustomParentChainFromInput registers a custom parent chain and strip
     rollup: '0x1',
   });
 
-  // custom fields stripped, other fields preserved
   expect(rest).not.toHaveProperty('parentChainContracts');
   expect(rest).toHaveProperty('parentChainId', parentChainId);
   expect(rest).toHaveProperty('rollup', '0x1');

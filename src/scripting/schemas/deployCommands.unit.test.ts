@@ -43,7 +43,6 @@ it('parentChainContractsSchema is optional and includes only the requested requi
 
   expect(schema.parse(undefined)).toBeUndefined();
   expect(schema.parse({ rollupCreator: address })).toEqual({ rollupCreator: address });
-  // the requested field is required
   expect(schema.safeParse({}).success).toBe(false);
   // fields the command does not read are rejected (strict)
   expect(schema.safeParse({ rollupCreator: address, tokenBridgeCreator: address }).success).toBe(

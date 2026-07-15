@@ -33,17 +33,13 @@ import aeWETH from '@arbitrum/token-bridge-contracts/build/contracts/contracts/t
 // throwaway data purely to lock them (so nobody else can initialize the template instances).
 const ADDRESS_DEAD = '0x000000000000000000000000000000000000dEaD' as Address;
 
-// Dummy bytes32 for the ERC20 gateways' cloneableProxyHash init arg (upstream uses hexZeroPad('0x01')).
 const DUMMY_CLONEABLE_PROXY_HASH =
   '0x0000000000000000000000000000000000000000000000000000000000000001' as Hex;
 
-// Matches the upstream local-deployment value; the creator uses it as the gas limit for the
-// retryable that deploys the L2 token-bridge factory during createTokenBridge.
 const GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT = 10_000_000n;
 
 export type DeployTokenBridgeCreatorParams = {
   walletClient: WalletClient;
-  // WETH on this chain, wired into the WETH gateway (e.g. from deployWeth or an existing WETH).
   l1Weth: Address;
 };
 
@@ -79,11 +75,7 @@ export type DeployTokenBridgeCreatorResult = {
   transactionHash: Hex;
 };
 
-/**
- * Assembles the 11 positional arguments for L1AtomicTokenBridgeCreator.setTemplates in ABI order.
- * The unit test round-trips this through the real ABI, so a reordered argument or a renamed
- * L1Templates struct field fails in CI rather than silently mis-wiring the creator at deploy time.
- */
+// Argument order must match setTemplates' ABI; the unit test round-trips it to catch a reorder.
 export function buildSetTemplatesArgs(inputs: SetTemplatesInputs): readonly unknown[] {
   return [
     inputs.l1Templates,
@@ -238,27 +230,9 @@ async function deployAndInitL2Placeholders(ctx: DeployContext): Promise<L2Placeh
   return { factory, router, standardGateway, customGateway, wethGateway, weth };
 }
 
-/**
- * Deploys an L1AtomicTokenBridgeCreator (behind a proxy) and all of its templates on the chain the
- * wallet client is connected to, porting token-bridge-contracts' `deployL1TokenBridgeCreator` to viem.
- *
- * The creator is used later by createTokenBridge to deploy a token bridge for an Orbit chain. The
- * L2-side contracts are deployed here on the parent chain purely as bytecode carriers. The canonical
- * L2 factory address is computed on-chain by the creator's initialize.
- *
- * References:
- * - deployL1TokenBridgeCreator: https://github.com/OffchainLabs/token-bridge-contracts/blob/main/scripts/atomicTokenBridgeDeployer.ts
- *
- * @param {DeployTokenBridgeCreatorParams} deployTokenBridgeCreatorParams {@link DeployTokenBridgeCreatorParams}
- * @param {WalletClient} deployTokenBridgeCreatorParams.walletClient - The Viem wallet client (this account deploys everything and becomes the creator owner)
- * @param {Address} deployTokenBridgeCreatorParams.l1Weth - The WETH address on this chain, wired into the WETH gateway
- *
- * @returns Promise<DeployTokenBridgeCreatorResult> {@link DeployTokenBridgeCreatorResult} - The token bridge creator (proxy) address, the retryable sender and proxy admin, and the creator proxy deployment transaction hash
- *
- * @example
- * const { weth } = await deployWeth({ walletClient });
- * const { tokenBridgeCreator } = await deployTokenBridgeCreator({ walletClient, l1Weth: weth });
- */
+// Ports token-bridge-contracts' deployL1TokenBridgeCreator to viem. The creator is used later by
+// createTokenBridge; the L2-side contracts are deployed here on the parent chain only as bytecode
+// carriers, and the canonical L2 factory address is computed on-chain by the creator's initialize.
 export async function deployTokenBridgeCreator({
   walletClient,
   l1Weth,

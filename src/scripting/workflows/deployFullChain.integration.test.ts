@@ -45,12 +45,11 @@ describe('deployFullChain on a custom parent chain', () => {
     const validatorAfkBlocks = getDefaultValidatorAfkBlocks(parentChainPublicClient);
     const mtv = getDefaultSequencerInboxMaxTimeVariation(parentChainPublicClient);
 
-    // 1. Deploy the three factories on the parent chain.
     const { weth } = await deployWeth({ walletClient });
     const { rollupCreator } = await deployRollupCreator({ walletClient });
     const { tokenBridgeCreator } = await deployTokenBridgeCreator({ walletClient, l1Weth: weth });
 
-    // 2. Register the L2 as a custom parent chain, deliberately shadowing the built-in entry.
+    // Register the L2 as a custom parent chain, deliberately shadowing the built-in entry.
     registerCustomParentChain({
       ...nitroTestnodeL2,
       contracts: {
@@ -67,8 +66,8 @@ describe('deployFullChain on a custom parent chain', () => {
       | undefined;
     expect(resolvedRollupCreator?.address).toEqual(rollupCreator);
 
-    // 3. Deploy a full chain (parent-side only -- no child node needed). Custom parents require the
-    //    five timing params; stakeToken defaults to the registered weth.
+    // Deploy a full chain (parent-side only, no child node needed). Custom parents require the five
+    // timing params; stakeToken defaults to the registered weth.
     const childChainId = generateChainId();
     const input = {
       parentChainRpcUrl: rpcUrl,
@@ -99,7 +98,6 @@ describe('deployFullChain on a custom parent chain', () => {
 
     const result = await execute(schema.parse(input));
 
-    // 4. Core + token-bridge contracts come back populated.
     expect(result.coreContracts.rollup).not.toEqual(ADDRESS_ZERO);
     expect(result.coreContracts.inbox).not.toEqual(ADDRESS_ZERO);
     expect(result.coreContracts.bridge).not.toEqual(ADDRESS_ZERO);

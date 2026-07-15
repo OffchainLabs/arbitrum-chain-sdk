@@ -31,8 +31,7 @@ import DeployHelper from '@arbitrum/nitro-contracts/build/contracts/src/rollup/D
 import RollupCreator from '@arbitrum/nitro-contracts/build/contracts/src/rollup/RollupCreator.sol/RollupCreator.json';
 import UpgradeExecutor from '@offchainlabs/upgrade-executor/build/contracts/src/UpgradeExecutor.sol/UpgradeExecutor.json';
 
-// maxDataSize for a non-Ethereum-L1 parent chain (Ethereum L1 uses 117964). It is only stored by
-// the templates, so this value is what determines batch size limits for the resulting chain.
+// Non-Ethereum-L1 maxDataSize (L1 uses 117964); deploying on L1 is out of scope.
 const MAX_DATA_SIZE = 104857n;
 
 // SequencerInbox requires a non-zero reader4844 on non-Arbitrum chains; the dead address is the
@@ -67,11 +66,7 @@ export type BridgeContractTemplates = {
   outbox: Address;
 };
 
-/**
- * Assembles the two 6-field template structs BridgeCreator's constructor expects (eth-based and
- * erc20-based). The field order must match the ABI tuple component order; the unit test round-trips
- * this through the real ABI so a reorder in a future nitro-contracts bump fails in CI, not at deploy.
- */
+// Field order must match BridgeCreator's ABI tuple; the unit test round-trips it to catch a reorder.
 export function buildBridgeCreatorTemplates(
   eth: BridgeContractTemplates,
   erc20: BridgeContractTemplates,
@@ -158,7 +153,6 @@ async function deployOspStack(ctx: DeployContext): Promise<Address> {
   const prover0 = await deploy('OneStepProver0', OneStepProver0);
   const proverMem = await deploy('OneStepProverMemory', OneStepProverMemory);
   const proverMath = await deploy('OneStepProverMath', OneStepProverMath);
-  // customDAValidator = address(0): no custom data-availability validator.
   const proverHostIo = await deploy('OneStepProverHostIo', OneStepProverHostIo, [zeroAddress]);
   return deploy('OneStepProofEntry', OneStepProofEntry, [
     prover0,
@@ -168,26 +162,9 @@ async function deployOspStack(ctx: DeployContext): Promise<Address> {
   ]);
 }
 
-/**
- * Deploys a RollupCreator (v3.2, BOLD) and all of its template/logic contracts on the chain the
- * wallet client is connected to, porting nitro-contracts' `deployAllContracts` to viem.
- *
- * The v3.2 RollupCreator constructor sets its templates directly (equivalent to a later
- * setTemplates call), so no follow-up transaction is needed. The deploying account becomes the
- * RollupCreator owner (able to update templates later). Deploying on Ethereum L1 (which needs a
- * real Reader4844 and maxDataSize 117964) is out of scope.
- *
- * References:
- * - deployAllContracts: https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/scripts/deploymentUtils.ts
- *
- * @param {DeployRollupCreatorParams} deployRollupCreatorParams {@link DeployRollupCreatorParams}
- * @param {WalletClient} deployRollupCreatorParams.walletClient - The Viem wallet client (this account deploys everything and becomes the RollupCreator owner)
- *
- * @returns Promise<DeployRollupCreatorResult> {@link DeployRollupCreatorResult} - The RollupCreator address, its wired sub-contract addresses, and the RollupCreator deployment transaction hash
- *
- * @example
- * const { rollupCreator } = await deployRollupCreator({ walletClient });
- */
+// Ports nitro-contracts' deployAllContracts (v3.2). The v3.2 RollupCreator constructor sets its
+// templates directly, so there is no follow-up setTemplates call; the deploying account becomes the
+// RollupCreator owner. Deploying on Ethereum L1 (needs a real Reader4844) is out of scope.
 export async function deployRollupCreator({
   walletClient,
 }: DeployRollupCreatorParams): Promise<DeployRollupCreatorResult> {

@@ -27,9 +27,7 @@ export function toPublicClient<TChain extends Chain | undefined = undefined>(
   return createPublicClient({ chain, transport: http(rpcUrl) });
 }
 
-// Optional custom-parent-chain fields a command's schema may carry. They describe a parent chain not
-// in the built-in list so it can be registered before resolution; the connection URL is supplied
-// separately, so the registered chain's rpcUrls stay empty.
+// Optional fields describing a parent chain not in the built-in list, so it can be registered.
 export type CustomParentChainInput = {
   parentChainContracts?: {
     rollupCreator?: Address;
@@ -40,10 +38,8 @@ export type CustomParentChainInput = {
   parentChainNativeCurrency?: { name: string; symbol: string; decimals: number };
 };
 
-// Registers a custom parent chain from CLI input (idempotent per process, via the module-level custom
-// map) and returns the input with the custom fields stripped, so downstream transforms and SDK args
-// never see them. With no custom fields present (e.g. a built-in parent chain) it registers nothing
-// and passes the input through unchanged. Combined with custom-first resolution in `findChain`, a
+// Registers a custom parent chain from CLI input (when its fields are present) and strips those
+// fields so downstream transforms and SDK args never see them. With custom-first findChain, the
 // registered chain's factory addresses then win over any built-in entry with the same id.
 export function registerCustomParentChainFromInput<
   T extends { parentChainId: number } & CustomParentChainInput,

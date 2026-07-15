@@ -4,9 +4,8 @@ import testWeth9 from '@arbitrum/token-bridge-contracts/build/contracts/contract
 
 type AbiEntry = { type: string; name?: string; inputs?: { type: string }[] };
 
-// deployWeth imports this artifact by path and passes (name, symbol) to its constructor. Asserting the
-// artifact resolves with populated bytecode and the expected WETH9 shape makes a bad import path,
-// an empty artifact, or a changed constructor signature fail here rather than at deploy time.
+// Assert the artifact resolves with populated bytecode and the expected constructor/interface, so a
+// bad import path or changed signature fails here rather than at deploy time.
 describe('deployWeth artifact', () => {
   it('resolves TestWETH9 with populated bytecode', () => {
     expect(testWeth9.bytecode.startsWith('0x')).toBe(true);

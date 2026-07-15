@@ -10,9 +10,6 @@ import {
   publicActions,
 } from 'viem';
 
-// Shared viem-deploy plumbing for the factory deploy functions (deployRollupCreator,
-// deployTokenBridgeCreator), which each fire dozens of parent-chain deploys and calls.
-
 export type DeployArtifact = { abi: unknown; bytecode: string };
 
 function extendWithPublicActions(walletClient: WalletClient) {
@@ -25,7 +22,6 @@ export type DeployContext = {
   client: DeployClient;
   account: Account;
   chain: Chain | undefined;
-  // Prefix for error messages, e.g. the calling function's name.
   label: string;
 };
 

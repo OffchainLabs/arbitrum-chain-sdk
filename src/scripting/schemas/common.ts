@@ -27,10 +27,8 @@ export const nativeCurrencySchema = z.strictObject({
   decimals: z.number(),
 });
 
-// Builds the optional `parentChainContracts` fragment for a command: only the factory addresses the
-// command actually reads are included, and each included field is required. A caller on a built-in
-// parent chain omits `parentChainContracts` entirely; a caller on a custom parent supplies it so the
-// chain can be registered (see registerCustomParentChainFromInput). `.strict()` rejects the rest.
+// Optional `parentChainContracts` fragment carrying only the factory addresses a command reads (each
+// required): a built-in-parent caller omits it; a custom-parent caller supplies it for registration.
 export function parentChainContractsSchema(fields: {
   rollupCreator?: boolean;
   tokenBridgeCreator?: boolean;

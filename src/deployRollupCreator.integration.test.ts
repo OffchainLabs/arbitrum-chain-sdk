@@ -35,7 +35,6 @@ describe('RollupCreator deployment tests', () => {
   it('deploys a RollupCreator wired to the deployed templates', async () => {
     const result = await deployRollupCreator({ walletClient: nitroTestnodeL2WalletClient });
 
-    // Every returned address must be a real, distinct deployment.
     const addresses = [
       result.rollupCreator,
       result.bridgeCreator,
@@ -59,8 +58,7 @@ describe('RollupCreator deployment tests', () => {
         functionName: functionName as 'bridgeCreator',
       }) as Promise<Address>;
 
-    // The RollupCreator's on-chain getters must match the addresses we deployed and returned,
-    // proving the v3.2 constructor wired every template correctly.
+    // On-chain getters must match the deployed addresses, proving the v3.2 constructor wired them.
     expect(await read('bridgeCreator')).toEqual(result.bridgeCreator);
     expect(await read('osp')).toEqual(result.osp);
     expect(await read('challengeManagerTemplate')).toEqual(result.challengeManager);
