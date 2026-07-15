@@ -1,15 +1,12 @@
+import { Address, Hex, WalletClient, parseAbi, zeroAddress } from 'viem';
+
 import {
-  Abi,
-  Account,
-  Address,
-  Chain,
-  Hex,
-  WalletClient,
-  getAddress,
-  parseAbi,
-  publicActions,
-  zeroAddress,
-} from 'viem';
+  DeployArtifact,
+  DeployClient,
+  DeployContext,
+  deployContractChecked,
+  toDeployContext,
+} from './utils/deployContract';
 
 import Bridge from '@arbitrum/nitro-contracts/build/contracts/src/bridge/Bridge.sol/Bridge.json';
 import SequencerInbox from '@arbitrum/nitro-contracts/build/contracts/src/bridge/SequencerInbox.sol/SequencerInbox.json';
@@ -90,36 +87,6 @@ export function buildBridgeCreatorTemplates(
   return [toTuple(eth), toTuple(erc20)];
 }
 
-function toDeployClient(walletClient: WalletClient) {
-  return walletClient.extend(publicActions);
-}
-
-type DeployClient = ReturnType<typeof toDeployClient>;
-type Artifact = { abi: unknown; bytecode: string };
-type DeployContext = { client: DeployClient; account: Account; chain: Chain | undefined };
-
-async function deployContractChecked(
-  ctx: DeployContext,
-  label: string,
-  artifact: Artifact,
-  args?: readonly unknown[],
-): Promise<{ address: Address; transactionHash: Hex }> {
-  const transactionHash = await ctx.client.deployContract({
-    abi: artifact.abi as Abi,
-    account: ctx.account,
-    chain: ctx.chain,
-    bytecode: artifact.bytecode as Hex,
-    ...(args ? { args } : {}),
-  });
-  const receipt = await ctx.client.waitForTransactionReceipt({ hash: transactionHash });
-  if (receipt.status === 'reverted' || !receipt.contractAddress) {
-    throw new Error(
-      `deployRollupCreator: ${label} deployment ${transactionHash} reverted (status=${receipt.status})`,
-    );
-  }
-  return { address: getAddress(receipt.contractAddress), transactionHash };
-}
-
 // Probe the ArbSys precompile, which exists only on Arbitrum chains. Following nitro-contracts'
 // _isRunningOnArbitrum: the call failing is the signal that ArbSys is absent (not Arbitrum), so the
 // catch is intentional feature-detection, not error suppression.
@@ -141,7 +108,7 @@ async function deployBridgeTemplatesAndCreator(
   maxDataSize: bigint,
   reader4844: Address,
 ): Promise<Address> {
-  const deploy = (label: string, artifact: Artifact, args?: readonly unknown[]) =>
+  const deploy = (label: string, artifact: DeployArtifact, args?: readonly unknown[]) =>
     deployContractChecked(ctx, label, artifact, args).then((result) => result.address);
 
   const eth: BridgeContractTemplates = {
@@ -185,7 +152,7 @@ async function deployBridgeTemplatesAndCreator(
 }
 
 async function deployOspStack(ctx: DeployContext): Promise<Address> {
-  const deploy = (label: string, artifact: Artifact, args?: readonly unknown[]) =>
+  const deploy = (label: string, artifact: DeployArtifact, args?: readonly unknown[]) =>
     deployContractChecked(ctx, label, artifact, args).then((result) => result.address);
 
   const prover0 = await deploy('OneStepProver0', OneStepProver0);
@@ -224,11 +191,7 @@ async function deployOspStack(ctx: DeployContext): Promise<Address> {
 export async function deployRollupCreator({
   walletClient,
 }: DeployRollupCreatorParams): Promise<DeployRollupCreatorResult> {
-  const ctx: DeployContext = {
-    client: toDeployClient(walletClient),
-    account: walletClient.account!,
-    chain: walletClient.chain,
-  };
+  const ctx = toDeployContext(walletClient, 'deployRollupCreator');
 
   const reader4844 = (await isRunningOnArbitrum(ctx.client))
     ? zeroAddress
