@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 FROM node:24-alpine AS builder
-RUN npm install -g pnpm@10.30.3
+RUN npm install -g pnpm@11.10.0
 WORKDIR /repo
 
 COPY pnpm-lock.yaml ./

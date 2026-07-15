@@ -18,9 +18,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
@@ -45,9 +44,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
@@ -72,9 +70,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
@@ -99,9 +96,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
@@ -132,9 +128,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
@@ -188,9 +183,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
@@ -265,9 +259,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          version: 10.30.3
           run_install: false
 
       - name: Setup Node.js
