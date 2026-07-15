@@ -138,6 +138,7 @@ import {
   DeployExpressLaneAuctionResult,
   ExpressLaneAuctionRoundTimingInfo,
 } from './deployExpressLaneAuction';
+import { deployWeth, DeployWethParams, DeployWethResult } from './deployWeth';
 import * as utils from './utils';
 
 import { getBridgeUiConfig, GetBridgeUiConfigFunctionParams } from './getBridgeUiConfig';
@@ -315,6 +316,9 @@ export {
   DeployExpressLaneAuctionParams,
   DeployExpressLaneAuctionResult,
   ExpressLaneAuctionRoundTimingInfo,
+  deployWeth,
+  DeployWethParams,
+  DeployWethResult,
   //
   getDefaultConfirmPeriodBlocks,
   getDefaultChallengeGracePeriodBlocks,
