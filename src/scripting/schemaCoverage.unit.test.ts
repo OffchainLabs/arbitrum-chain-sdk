@@ -115,6 +115,20 @@ const CHAIN_CONFIG_VALIDATOR_FIELDS = [
 const chainConfigGateSkips = (chainConfigPath: string): readonly string[] =>
   CHAIN_CONFIG_VALIDATOR_FIELDS.map((f) => `${chainConfigPath}.${f} (presence)`);
 
+// The custom-parent-chain fields drive registerCustomParentChainFromInput as a side effect (they
+// register a chain, then are stripped), so they never reach the transform output the coverage
+// harness diffs. The registration itself is covered by viemTransforms.unit.test.ts.
+const CUSTOM_PARENT_CHAIN_SKIPS = [
+  'parentChainContracts (presence)',
+  'parentChainName (presence)',
+  'parentChainNativeCurrency (presence)',
+  'parentChainContracts.rollupCreator (value)',
+  'parentChainName (value)',
+  'parentChainNativeCurrency.name (value)',
+  'parentChainNativeCurrency.symbol (value)',
+  'parentChainNativeCurrency.decimals (value)',
+] as const;
+
 const coverageConfig: Record<string, CoverageConfig> = {
   getConsensusReleaseByVersion: {
     samples: { consensusVersion: 10 },
@@ -126,7 +140,7 @@ const coverageConfig: Record<string, CoverageConfig> = {
     samples: { wasmModuleRoot: CONSENSUS_V10_WASM_MODULE_ROOT },
   },
   deployNewChain: {
-    skip: chainConfigGateSkips('params.config.chainConfig'),
+    skip: [...chainConfigGateSkips('params.config.chainConfig'), ...CUSTOM_PARENT_CHAIN_SKIPS],
     // `execute` only consults `keyset` when `chainConfig.arbitrum.DataAvailabilityCommittee`
     // is true; the schema enforces that via a superRefine. Supply both so
     // toggling `params.keyset` actually exercises the function's keyset path.
@@ -246,7 +260,10 @@ const coverageConfig: Record<string, CoverageConfig> = {
     ],
   },
   deployFullChain: {
-    skip: chainConfigGateSkips('createRollupParams.config.chainConfig'),
+    skip: [
+      ...chainConfigGateSkips('createRollupParams.config.chainConfig'),
+      ...CUSTOM_PARENT_CHAIN_SKIPS,
+    ],
     overrides: [
       // `execute` only exercises keyset when DAC=true; schema enforces via
       // superRefine. Supply both so toggling keyset hits the branch.

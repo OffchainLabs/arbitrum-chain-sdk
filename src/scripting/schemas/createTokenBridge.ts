@@ -1,8 +1,14 @@
 import { z } from 'zod';
-import { toPublicClient, withParentChainSign } from '../viemTransforms';
+import {
+  registerCustomParentChainFromInput,
+  toPublicClient,
+  withParentChainSign,
+} from '../viemTransforms';
 import {
   addressSchema,
   bigintSchema,
+  nativeCurrencySchema,
+  parentChainContractsSchema,
   parentChainPublicClientSchema,
   privateKeySchema,
   gasLimitSchema,
@@ -23,9 +29,16 @@ export const createTokenBridgeSchema = parentChainPublicClientSchema
     gasOverrides: gasLimitSchema.optional(),
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
     setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
+    // createTokenBridge reads the parent chain's tokenBridgeCreator (and weth for the weth gateway),
+    // so a custom parent must supply them.
+    parentChainContracts: parentChainContractsSchema({ tokenBridgeCreator: true, weth: true }),
+    parentChainName: z.string().optional(),
+    parentChainNativeCurrency: nativeCurrencySchema.optional(),
   })
   .strict()
   .transform((input): Parameters<typeof createTokenBridge> => {
-    const [{ orbitChainRpcUrl, ...rest }] = withParentChainSign(input);
+    const [{ orbitChainRpcUrl, ...rest }] = withParentChainSign(
+      registerCustomParentChainFromInput(input),
+    );
     return [{ ...rest, orbitChainPublicClient: toPublicClient(orbitChainRpcUrl) }];
   });

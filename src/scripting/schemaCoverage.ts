@@ -163,6 +163,15 @@ vi.mock('./viemTransforms', () => {
     findChain,
     toAccount,
     toWalletClient,
+    // Identity: the real one registers a custom chain (a side effect) and strips the custom fields.
+    // Leaving them in lets the coverage harness observe that those fields are used (not dead).
+    registerCustomParentChainFromInput: <T>(input: T) => input,
+    withWalletClient: <T extends { rpcUrl: string; chainId: number; privateKey: string }>(
+      input: T,
+    ) => {
+      const { rpcUrl, chainId, privateKey, ...rest } = input;
+      return [{ walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)), ...rest }];
+    },
     withPublicClient: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
       return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
@@ -373,6 +382,13 @@ vi.mock('../feeRouterDeployChildToParentRewardRouter', () => ({
 vi.mock('../deployProxyAdmin', () => ({ deployProxyAdmin: _mocks.fn('deployProxyAdmin') }));
 vi.mock('../deployExpressLaneAuction', () => ({
   deployExpressLaneAuction: _mocks.fn('deployExpressLaneAuction'),
+}));
+vi.mock('../deployWeth', () => ({ deployWeth: _mocks.fn('deployWeth') }));
+vi.mock('../deployRollupCreator', () => ({
+  deployRollupCreator: _mocks.fn('deployRollupCreator'),
+}));
+vi.mock('../deployTokenBridgeCreator', () => ({
+  deployTokenBridgeCreator: _mocks.fn('deployTokenBridgeCreator'),
 }));
 vi.mock('../prepareNodeConfig', () => ({ prepareNodeConfig: _mocks.fn('prepareNodeConfig') }));
 vi.mock('../getDefaultConfirmPeriodBlocks', () => ({

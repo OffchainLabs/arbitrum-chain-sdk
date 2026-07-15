@@ -27,6 +27,9 @@ import {
   feeRouterDeployChildToParentRewardRouterSchema,
   deployProxyAdminSchema,
   deployExpressLaneAuctionSchema,
+  deployWethSchema,
+  deployRollupCreatorSchema,
+  deployTokenBridgeCreatorSchema,
   prepareChainConfigParamsSchema,
   prepareNodeConfigSchema,
   prepareKeysetSchema,
@@ -83,6 +86,9 @@ import { feeRouterDeployRewardDistributor } from '../feeRouterDeployRewardDistri
 import { feeRouterDeployChildToParentRewardRouter } from '../feeRouterDeployChildToParentRewardRouter';
 import { deployProxyAdmin } from '../deployProxyAdmin';
 import { deployExpressLaneAuction } from '../deployExpressLaneAuction';
+import { deployWeth } from '../deployWeth';
+import { deployRollupCreator } from '../deployRollupCreator';
+import { deployTokenBridgeCreator } from '../deployTokenBridgeCreator';
 import { prepareChainConfig } from '../prepareChainConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { prepareKeyset } from '../prepareKeyset';
@@ -280,6 +286,9 @@ export const commands: readonly Command[] = [
   ),
   command('deployProxyAdmin', deployProxyAdminSchema, deployProxyAdmin),
   command('deployExpressLaneAuction', deployExpressLaneAuctionSchema, deployExpressLaneAuction),
+  command('deployWeth', deployWethSchema, deployWeth),
+  command('deployRollupCreator', deployRollupCreatorSchema, deployRollupCreator),
+  command('deployTokenBridgeCreator', deployTokenBridgeCreatorSchema, deployTokenBridgeCreator),
   command('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
   command('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
   command('prepareKeyset', prepareKeysetSchema, prepareKeyset),

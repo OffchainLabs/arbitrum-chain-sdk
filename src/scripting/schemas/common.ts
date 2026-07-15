@@ -21,6 +21,28 @@ export const parentChainPublicClientSchema = z.strictObject({
   parentChainId: z.number(),
 });
 
+export const nativeCurrencySchema = z.strictObject({
+  name: z.string(),
+  symbol: z.string(),
+  decimals: z.number(),
+});
+
+// Builds the optional `parentChainContracts` fragment for a command: only the factory addresses the
+// command actually reads are included, and each included field is required. A caller on a built-in
+// parent chain omits `parentChainContracts` entirely; a caller on a custom parent supplies it so the
+// chain can be registered (see registerCustomParentChainFromInput). `.strict()` rejects the rest.
+export function parentChainContractsSchema(fields: {
+  rollupCreator?: boolean;
+  tokenBridgeCreator?: boolean;
+  weth?: boolean;
+}) {
+  const shape: Record<string, typeof addressSchema> = {};
+  if (fields.rollupCreator) shape.rollupCreator = addressSchema;
+  if (fields.tokenBridgeCreator) shape.tokenBridgeCreator = addressSchema;
+  if (fields.weth) shape.weth = addressSchema;
+  return z.strictObject(shape).optional();
+}
+
 export const actionWriteBaseSchema = publicClientSchema.extend({
   account: addressSchema,
   upgradeExecutor: addressSchema.optional().transform((v) => v ?? false),

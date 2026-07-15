@@ -6,7 +6,13 @@ import {
   refineChainIdMatch,
   refineV3Dot2CustomGenesis,
 } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
+import {
+  toPublicClient,
+  toAccount,
+  toWalletClient,
+  findChain,
+  registerCustomParentChainFromInput,
+} from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { createRollup } from '../../createRollup';
@@ -43,16 +49,19 @@ export const schema = inputSchema
     refineChainIdMatch(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
+    // Register a custom parent chain (if custom fields were supplied) before resolving it, so
+    // findChain returns it with its factory addresses. Strips the custom fields from the rest.
+    const registered = registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
-      input.parentChainRpcUrl,
-      findChain(input.parentChainId),
+      registered.parentChainRpcUrl,
+      findChain(registered.parentChainId),
     );
-    const account = toAccount(input.privateKey);
+    const account = toAccount(registered.privateKey);
     const {
       config: { chainConfig: rawChainConfigParams, owner: rawOwner, ...restConfigRest },
       keyset,
       ...params
-    } = input.params;
+    } = registered.params;
     const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
     const chainConfigParams = rawChainConfigParams
       ? {
@@ -78,9 +87,9 @@ export const schema = inputSchema
       account,
       parentChainPublicClient,
       walletClient: toWalletClient(
-        input.parentChainRpcUrl,
-        input.privateKey,
-        findChain(input.parentChainId),
+        registered.parentChainRpcUrl,
+        registered.privateKey,
+        findChain(registered.parentChainId),
       ),
       keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
     };

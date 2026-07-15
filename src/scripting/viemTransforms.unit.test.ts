@@ -1,16 +1,21 @@
 import { it, expect } from 'vitest';
+import { ChainContract } from 'viem';
 import {
   findChain,
   toPublicClient,
   toAccount,
   toWalletClient,
   withPublicClient,
+  withWalletClient,
   withParentChainPublicClient,
   withChainSign,
   withParentChainSign,
   withChildChainSign,
   withParentReadChildSign,
+  registerCustomParentChainFromInput,
 } from './viemTransforms';
+import { getCustomParentChains } from '../chains';
+import { generateChainId } from '../utils';
 
 // A valid private key (anvil default account #0)
 const testPrivateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
@@ -137,6 +142,54 @@ it('withChildChainSign strips orbitChain+privateKey and adds orbitChainWalletCli
   expect(result).toHaveProperty('extra', 'data');
   expect(result).not.toHaveProperty('orbitChainRpcUrl');
   expect(result).not.toHaveProperty('privateKey');
+});
+
+it('withWalletClient strips connection+privateKey and adds walletClient', () => {
+  const [result] = withWalletClient({
+    rpcUrl: testRpcUrl,
+    chainId: arbChainId,
+    privateKey: testPrivateKey,
+    l1Weth: '0x2',
+  });
+  expect(result.walletClient).toBeDefined();
+  expect(result.walletClient.account).toBeDefined();
+  expect(result).toHaveProperty('l1Weth', '0x2');
+  expect(result).not.toHaveProperty('rpcUrl');
+  expect(result).not.toHaveProperty('chainId');
+  expect(result).not.toHaveProperty('privateKey');
+});
+
+const testRollupCreator = '0x1111111111111111111111111111111111111111';
+
+it('registerCustomParentChainFromInput registers a custom parent chain and strips its fields', () => {
+  const parentChainId = generateChainId();
+  const rest = registerCustomParentChainFromInput({
+    parentChainId,
+    parentChainRpcUrl: testRpcUrl,
+    parentChainContracts: { rollupCreator: testRollupCreator },
+    rollup: '0x1',
+  });
+
+  // custom fields stripped, other fields preserved
+  expect(rest).not.toHaveProperty('parentChainContracts');
+  expect(rest).toHaveProperty('parentChainId', parentChainId);
+  expect(rest).toHaveProperty('rollup', '0x1');
+
+  // the registered chain wins (custom-first) and carries the supplied factory address
+  const rollupCreator = findChain(parentChainId).contracts?.rollupCreator as
+    | ChainContract
+    | undefined;
+  expect(rollupCreator?.address).toEqual(testRollupCreator);
+});
+
+it('registerCustomParentChainFromInput leaves a chain with no custom fields unregistered', () => {
+  const parentChainId = generateChainId();
+  registerCustomParentChainFromInput({
+    parentChainId,
+    parentChainRpcUrl: testRpcUrl,
+    rollup: '0x1',
+  });
+  expect(getCustomParentChains().some((chain) => chain.id === parentChainId)).toBe(false);
 });
 
 it('withParentReadChildSign strips both chains+privateKey and adds both clients', () => {

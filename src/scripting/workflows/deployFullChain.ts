@@ -14,7 +14,13 @@ import {
   refineChainIdMatch,
   refineV3Dot2CustomGenesis,
 } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
+import {
+  toPublicClient,
+  toAccount,
+  toWalletClient,
+  findChain,
+  registerCustomParentChainFromInput,
+} from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { prepareNodeConfig } from '../../prepareNodeConfig';
@@ -155,6 +161,10 @@ export const schema = inputSchema
     }
   })
   .transform((input) => {
+    // Register a custom parent chain (if custom fields were supplied) before resolving it, so
+    // findChain returns it with its factory addresses. This workflow reads fields off `input`
+    // directly, so the stripped return value isn't needed here.
+    registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
