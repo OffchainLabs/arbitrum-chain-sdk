@@ -67,10 +67,7 @@ export function getCustomParentChains(): Chain[] {
 /**
  * Registers a custom parent chain.
  *
- * `contracts.rollupCreator` and `contracts.tokenBridgeCreator` are optional: a
- * command only needs the factory address for the operation it performs, so
- * requiredness is enforced per-command at the CLI schema layer rather than here.
- * Any address that is provided is still validated as a non-zero address.
+ * `contracts.rollupCreator` and `contracts.tokenBridgeCreator` are optional.
  *
  * @param {Chain} chain Regular `Chain` object, optionally carrying
  * `contracts.rollupCreator` and/or `contracts.tokenBridgeCreator`.
