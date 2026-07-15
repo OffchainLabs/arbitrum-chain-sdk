@@ -91,6 +91,9 @@ describe('deployFullChain on a custom parent chain', () => {
         },
         batchPosters: [deployer.address],
         validators: [deployer.address],
+        // custom parents also require maxDataSize; 104857 is the non-L1 value the SequencerInbox
+        // templates were deployed with.
+        maxDataSize: '104857',
       },
     };
 
