@@ -5,7 +5,8 @@ import {
   createRollupPrepareTransactionReceipt,
   createSafePrepareTransactionReceipt,
   createSafePrepareTransactionRequest,
-  rollupAdminLogicPublicActions,
+  rollupABI,
+  rollupAdminLogicPrepareTransactionRequest,
   setAnyTrustFastConfirmerPrepareTransactionRequest,
 } from '@arbitrum/chain-sdk';
 import { sanitizePrivateKey, getParentChainFromId } from '@arbitrum/chain-sdk/utils';
@@ -59,11 +60,7 @@ const parentChain = getParentChainFromId(Number(process.env.PARENT_CHAIN_ID));
 const parentChainPublicClient = createPublicClient({
   chain: parentChain,
   transport: http(),
-}).extend(
-  rollupAdminLogicPublicActions({
-    rollup: rollupAddress,
-  }),
-);
+});
 
 // load the deployer account
 const safeOwner = privateKeyToAccount(sanitizePrivateKey(process.env.CHAIN_OWNER_PRIVATE_KEY));
@@ -158,8 +155,9 @@ async function main() {
 
   // prepare set validator transaction request
   const fcValidatorsStatus = Array(fcValidators.length).fill(true);
-  const setValidatorTransactionRequest =
-    await parentChainPublicClient.rollupAdminLogicPrepareTransactionRequest({
+  const setValidatorTransactionRequest = await rollupAdminLogicPrepareTransactionRequest(
+    parentChainPublicClient,
+    {
       functionName: 'setValidator',
       args: [
         fcValidators, // validator address list
@@ -167,7 +165,9 @@ async function main() {
       ],
       upgradeExecutor: upgradeExecutorAddress,
       account: safeOwner.address,
-    });
+      rollup: rollupAddress,
+    },
+  );
 
   // sign and send the transaction
   const setValidatorTransactionHash = await parentChainPublicClient.sendRawTransaction({
@@ -249,18 +249,21 @@ async function main() {
   console.log('---');
 
   // get current minimumAssertionPeriod
-  const currentMinimumAssertionPeriod = await parentChainPublicClient.rollupAdminLogicReadContract({
+  const currentMinimumAssertionPeriod = await parentChainPublicClient.readContract({
+    address: rollupAddress,
+    abi: rollupABI,
     functionName: 'minimumAssertionPeriod',
   });
 
   if (currentMinimumAssertionPeriod !== minimumAssertionPeriod) {
     // prepare setMinimumAssertionPeriod transaction request
     const setMinimumAssertionPeriodTransactionRequest =
-      await parentChainPublicClient.rollupAdminLogicPrepareTransactionRequest({
+      await rollupAdminLogicPrepareTransactionRequest(parentChainPublicClient, {
         functionName: 'setMinimumAssertionPeriod',
         args: [minimumAssertionPeriod],
         upgradeExecutor: upgradeExecutorAddress,
         account: safeOwner.address,
+        rollup: rollupAddress,
       });
 
     // sign and send the transaction

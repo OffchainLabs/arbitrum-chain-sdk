@@ -1,8 +1,8 @@
 import { PublicClient, Address, Transport, Chain } from 'viem';
+import type { ExtractAbiFunctionNames } from 'abitype';
 
 import { rollupABI } from './contracts/Rollup';
 
-import { GetFunctionName } from './types/utils';
 import { validateParentChain } from './types/ParentChain';
 import {
   ContractEncodeFunctionDataParameters,
@@ -11,7 +11,7 @@ import {
 } from './contractTransactionRequests';
 
 export type RollupAdminLogicAbi = typeof rollupABI;
-export type RollupAdminLogicFunctionName = GetFunctionName<RollupAdminLogicAbi>;
+export type RollupAdminLogicFunctionName = ExtractAbiFunctionNames<RollupAdminLogicAbi>;
 
 type RollupAdminLogicEncodeFunctionDataParameters<
   TFunctionName extends RollupAdminLogicFunctionName,

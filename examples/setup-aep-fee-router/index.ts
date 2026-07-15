@@ -12,8 +12,9 @@ import {
   feeRouterDeployRewardDistributor,
   createRollupFetchCoreContracts,
   createTokenBridgeFetchTokenBridgeContracts,
-  arbOwnerPublicActions,
-  arbGasInfoPublicActions,
+  arbOwnerPrepareTransactionRequest,
+  arbOwnerPublicConfig,
+  arbGasInfoConfig,
   parentChainIsArbitrum,
   ParentChainId,
 } from '@arbitrum/chain-sdk';
@@ -77,9 +78,10 @@ const orbitChain = defineChain({
   },
   testnet: true,
 });
-const orbitChainPublicClient = createPublicClient({ chain: orbitChain, transport: http() })
-  .extend(arbOwnerPublicActions)
-  .extend(arbGasInfoPublicActions);
+const orbitChainPublicClient = createPublicClient({
+  chain: orbitChain,
+  transport: http(),
+});
 const orbitChainWalletClient = createWalletClient({
   chain: orbitChain,
   transport: http(),
@@ -118,12 +120,14 @@ async function main() {
   });
 
   // getting Orbit base fee collector (infraFeeAccount)
-  const infraFeeAccount = await orbitChainPublicClient.arbOwnerReadContract({
+  const infraFeeAccount = await orbitChainPublicClient.readContract({
+    ...arbOwnerPublicConfig,
     functionName: 'getInfraFeeAccount',
   });
 
   // getting Orbit surplus fee collector (networkFeeAccount)
-  const networkFeeAccount = await orbitChainPublicClient.arbOwnerReadContract({
+  const networkFeeAccount = await orbitChainPublicClient.readContract({
+    ...arbOwnerPublicConfig,
     functionName: 'getNetworkFeeAccount',
   });
 
@@ -131,8 +135,7 @@ async function main() {
   // Note: Arbiscan (Sepolia) doesn't have the updated ABI for ArbGasInfo, so we need to
   // fetch the reward recipient this way
   const parentChainRewardRecipient = await orbitChainPublicClient.readContract({
-    address: '0x000000000000000000000000000000000000006C',
-    abi: parseAbi(['function getL1RewardRecipient() view returns (address)']),
+    ...arbGasInfoConfig,
     functionName: 'getL1RewardRecipient',
   });
 
@@ -236,13 +239,15 @@ async function main() {
   console.log('Setting the RewardDistributors as the fee new collectors...');
 
   // setting Orbit base fee collector (infraFeeAccount)
-  const setOrbitBaseFeeCollectorTransactionRequest =
-    await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
+  const setOrbitBaseFeeCollectorTransactionRequest = await arbOwnerPrepareTransactionRequest(
+    orbitChainPublicClient,
+    {
       functionName: 'setInfraFeeAccount',
       args: [feeCollectorToRewardDistributor['infraFeeAccount']],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
       account: chainOwner.address,
-    });
+    },
+  );
   await orbitChainPublicClient.sendRawTransaction({
     serializedTransaction: await chainOwner.signTransaction(
       setOrbitBaseFeeCollectorTransactionRequest,
@@ -250,13 +255,15 @@ async function main() {
   });
 
   // setting Orbit surplus fee collector (networkFeeAccount)
-  const setOrbitSurplusFeeCollectorTransactionRequest =
-    await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
+  const setOrbitSurplusFeeCollectorTransactionRequest = await arbOwnerPrepareTransactionRequest(
+    orbitChainPublicClient,
+    {
       functionName: 'setNetworkFeeAccount',
       args: [feeCollectorToRewardDistributor['networkFeeAccount']],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
       account: chainOwner.address,
-    });
+    },
+  );
   await orbitChainPublicClient.sendRawTransaction({
     serializedTransaction: await chainOwner.signTransaction(
       setOrbitSurplusFeeCollectorTransactionRequest,
@@ -265,7 +272,7 @@ async function main() {
 
   // setting parent chain surplus fee collector (L1RewardRecipient)
   const setParentChainSurplusFeeCollectorTransactionRequest =
-    await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
+    await arbOwnerPrepareTransactionRequest(orbitChainPublicClient, {
       functionName: 'setL1PricingRewardRecipient',
       args: [feeCollectorToRewardDistributor['parentChainRewardRecipient']],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
@@ -278,7 +285,8 @@ async function main() {
   });
 
   // checking that the fee collectors were correctly set
-  const currentInfraFeeAccount = await orbitChainPublicClient.arbOwnerReadContract({
+  const currentInfraFeeAccount = await orbitChainPublicClient.readContract({
+    ...arbOwnerPublicConfig,
     functionName: 'getInfraFeeAccount',
   });
   if (currentInfraFeeAccount != feeCollectorToRewardDistributor['infraFeeAccount']) {
@@ -290,7 +298,8 @@ async function main() {
     `Orbit base fee collector correctly set to the RewardDistributor contract ${currentInfraFeeAccount}`,
   );
 
-  const currentNetworkFeeAccount = await orbitChainPublicClient.arbOwnerReadContract({
+  const currentNetworkFeeAccount = await orbitChainPublicClient.readContract({
+    ...arbOwnerPublicConfig,
     functionName: 'getNetworkFeeAccount',
   });
   if (currentNetworkFeeAccount != feeCollectorToRewardDistributor['networkFeeAccount']) {
@@ -303,8 +312,7 @@ async function main() {
   );
 
   const currentParentChainRewardRecipient = await orbitChainPublicClient.readContract({
-    address: '0x000000000000000000000000000000000000006C',
-    abi: parseAbi(['function getL1RewardRecipient() view returns (address)']),
+    ...arbGasInfoConfig,
     functionName: 'getL1RewardRecipient',
   });
   if (

@@ -1,7 +1,8 @@
 import { encodeFunctionData, EncodeFunctionDataParameters, keccak256, toHex } from 'viem';
+import type { ExtractAbiFunctionNames } from 'abitype';
 
 import { upgradeExecutorABI } from './contracts/UpgradeExecutor';
-import { GetFunctionName, Prettify } from './types/utils';
+import { Prettify } from './types/utils';
 
 // Roles
 /**
@@ -19,7 +20,7 @@ export type UpgradeExecutorRole =
 
 // Types for upgradeExecutorEncodeFunctionData
 export type UpgradeExecutorAbi = typeof upgradeExecutorABI;
-export type UpgradeExecutorFunctionName = GetFunctionName<UpgradeExecutorAbi>;
+export type UpgradeExecutorFunctionName = ExtractAbiFunctionNames<UpgradeExecutorAbi>;
 export type UpgradeExecutorEncodeFunctionDataParameters<
   TFunctionName extends UpgradeExecutorFunctionName,
 > = Prettify<Omit<EncodeFunctionDataParameters<UpgradeExecutorAbi, TFunctionName>, 'abi'>>;

@@ -11,7 +11,8 @@ import {
   feeRouterDeployRewardDistributor,
   createRollupFetchCoreContracts,
   createTokenBridgeFetchTokenBridgeContracts,
-  arbOwnerPublicActions,
+  arbOwnerPrepareTransactionRequest,
+  arbOwnerPublicConfig,
 } from '@arbitrum/chain-sdk';
 import { getParentChainFromId, sanitizePrivateKey } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
@@ -58,9 +59,7 @@ const orbitChain = defineChain({
   },
   testnet: true,
 });
-const orbitChainPublicClient = createPublicClient({ chain: orbitChain, transport: http() }).extend(
-  arbOwnerPublicActions,
-);
+const orbitChainPublicClient = createPublicClient({ chain: orbitChain, transport: http() });
 const orbitChainWalletClient = createWalletClient({
   chain: orbitChain,
   transport: http(),
@@ -149,20 +148,23 @@ async function main() {
   console.log(
     'Setting the RewardDistributor as the collector of the Orbit chain execution fees...',
   );
-  const setFeeCollectorTransactionRequest =
-    await orbitChainPublicClient.arbOwnerPrepareTransactionRequest({
+  const setFeeCollectorTransactionRequest = await arbOwnerPrepareTransactionRequest(
+    orbitChainPublicClient,
+    {
       functionName: 'setInfraFeeAccount',
       args: [rewardDistributorAddress],
       upgradeExecutor: tokenBridgeContracts.orbitChainContracts.upgradeExecutor,
       account: chainOwner.address,
-    });
+    },
+  );
 
   await orbitChainPublicClient.sendRawTransaction({
     serializedTransaction: await chainOwner.signTransaction(setFeeCollectorTransactionRequest),
   });
 
   // checking that the fee collector was correctly set
-  const currentFeeCollector = await orbitChainPublicClient.arbOwnerReadContract({
+  const currentFeeCollector = await orbitChainPublicClient.readContract({
+    ...arbOwnerPublicConfig,
     functionName: 'getInfraFeeAccount',
   });
   if (currentFeeCollector != rewardDistributorAddress) {

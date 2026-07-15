@@ -1,7 +1,7 @@
 import { PublicClient, Address, Chain, Transport } from 'viem';
+import type { ExtractAbiFunctionNames } from 'abitype';
 
 import { arbAggregatorABI, arbAggregatorAddress } from './contracts/ArbAggregator';
-import { GetFunctionName } from './types/utils';
 import {
   ContractEncodeFunctionDataParameters,
   prepareContractCallParameters,
@@ -9,7 +9,8 @@ import {
 } from './contractTransactionRequests';
 
 type ArbAggregatorAbi = typeof arbAggregatorABI;
-export type ArbAggregatorPrepareTransactionRequestFunctionName = GetFunctionName<ArbAggregatorAbi>;
+export type ArbAggregatorPrepareTransactionRequestFunctionName =
+  ExtractAbiFunctionNames<ArbAggregatorAbi>;
 export type ArbAggregatorEncodeFunctionDataParameters<
   TFunctionName extends ArbAggregatorPrepareTransactionRequestFunctionName,
 > = ContractEncodeFunctionDataParameters<ArbAggregatorAbi, TFunctionName>;

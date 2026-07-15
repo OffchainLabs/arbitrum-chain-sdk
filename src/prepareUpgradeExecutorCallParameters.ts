@@ -1,5 +1,5 @@
 import { Address } from 'viem';
-import { GetFunctionName } from './types/utils';
+import type { ExtractAbiFunctionNames } from 'abitype';
 import { sequencerInboxABI } from './contracts/SequencerInbox';
 import { arbOwnerABI } from './contracts/ArbOwner';
 import { inboxABI } from './contracts/Inbox';
@@ -10,16 +10,15 @@ import {
 } from './contractTransactionRequests';
 
 type ABIs = typeof sequencerInboxABI | typeof arbOwnerABI | typeof inboxABI;
-type FunctionName<TAbi extends ABIs> = GetFunctionName<TAbi>;
 
 type EncodeFunctionDataParameters<
   TAbi extends ABIs,
-  TFunctionName extends FunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 > = ContractEncodeFunctionDataParameters<TAbi, TFunctionName>;
 
 type PrepareUpgradeExecutorCallParameters<
   TAbi extends ABIs,
-  TFunctionName extends FunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 > = Omit<EncodeFunctionDataParameters<TAbi, TFunctionName>, 'abi'> & {
   abi: TAbi;
   to: Address;
@@ -30,7 +29,7 @@ type PrepareUpgradeExecutorCallParameters<
 
 export function prepareUpgradeExecutorCallParameters<
   TAbi extends ABIs,
-  TFunctionName extends FunctionName<TAbi>,
+  TFunctionName extends ExtractAbiFunctionNames<TAbi>,
 >(params: PrepareUpgradeExecutorCallParameters<TAbi, TFunctionName>) {
   return prepareContractCallParameters<TAbi, TFunctionName>(params);
 }

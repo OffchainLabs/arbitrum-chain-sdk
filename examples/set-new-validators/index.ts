@@ -4,7 +4,8 @@ import { arbitrumSepolia } from 'viem/chains';
 import {
   createRollupFetchTransactionHash,
   createRollupPrepareTransactionReceipt,
-  rollupAdminLogicPublicActions,
+  rollupABI,
+  rollupAdminLogicPrepareTransactionRequest,
   // Uncomment it when you want to use getValidators() to get validator status
   // getValidators,
 } from '@arbitrum/chain-sdk';
@@ -39,11 +40,7 @@ const parentChain = arbitrumSepolia;
 const parentChainPublicClient = createPublicClient({
   chain: parentChain,
   transport: http(process.env.PARENT_CHAIN_RPC),
-}).extend(
-  rollupAdminLogicPublicActions({
-    rollup: process.env.ROLLUP_ADDRESS as Address,
-  }),
-);
+});
 
 // load the deployer account
 const deployer = privateKeyToAccount(sanitizePrivateKey(process.env.ROLLUP_OWNER_PRIVATE_KEY));
@@ -70,7 +67,9 @@ async function main() {
   const newValidatorStatus = [true];
 
   // check the status of this address in validator list before executing
-  const beforeStatus = await parentChainPublicClient.rollupAdminLogicReadContract({
+  const beforeStatus = await parentChainPublicClient.readContract({
+    address: coreContracts.rollup,
+    abi: rollupABI,
     functionName: 'isValidator',
     args: [newValidators[0]],
   });
@@ -90,8 +89,9 @@ async function main() {
   */
 
   // prepare set validator transaction request
-  const setValidatorTransactionRequest =
-    await parentChainPublicClient.rollupAdminLogicPrepareTransactionRequest({
+  const setValidatorTransactionRequest = await rollupAdminLogicPrepareTransactionRequest(
+    parentChainPublicClient,
+    {
       functionName: 'setValidator',
       args: [
         newValidators, // validator address list
@@ -99,7 +99,9 @@ async function main() {
       ],
       upgradeExecutor: coreContracts.upgradeExecutor,
       account: deployer.address,
-    });
+      rollup: coreContracts.rollup,
+    },
+  );
 
   // sign and send the transaction
   const setValidatorTransactionHash = await parentChainPublicClient.sendRawTransaction({
@@ -118,10 +120,11 @@ async function main() {
   );
 
   // Check the status of this address in validator list before executing
-  const afterStatus = await parentChainPublicClient.rollupAdminLogicReadContract({
+  const afterStatus = await parentChainPublicClient.readContract({
+    address: coreContracts.rollup,
+    abi: rollupABI,
     functionName: 'isValidator',
     args: [newValidators[0]],
-    rollup: coreContracts.rollup,
   });
 
   console.log(
