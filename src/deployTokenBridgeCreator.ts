@@ -231,9 +231,9 @@ async function deployAndInitL2Placeholders(ctx: DeployContext): Promise<L2Placeh
   return { factory, router, standardGateway, customGateway, wethGateway, weth };
 }
 
-// Ports token-bridge-contracts' deployL1TokenBridgeCreator to viem. The creator is used later by
-// createTokenBridge; the L2-side contracts are deployed here on the parent chain only as bytecode
-// carriers, and the canonical L2 factory address is computed on-chain by the creator's initialize.
+/**
+ * viem port of https://github.com/OffchainLabs/token-bridge-contracts/blob/v1.2.2/scripts/atomicTokenBridgeDeployer.ts#L224
+ */
 export async function deployTokenBridgeCreator({
   walletClient,
   l1Weth,

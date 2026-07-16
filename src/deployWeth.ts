@@ -17,8 +17,10 @@ export type DeployWethResult = {
   transactionHash: Hex;
 };
 
-// Deploys a standard WETH9 on the chain the wallet client points at, so a custom parent chain with
-// no canonical WETH can supply one as `l1Weth` to deployTokenBridgeCreator.
+/**
+ * Deploys a standard WETH9 on the chain the wallet client points at, so a custom parent chain with
+ * no canonical WETH can supply one as `l1Weth` to deployTokenBridgeCreator.
+ */
 export async function deployWeth({ walletClient }: DeployWethParams): Promise<DeployWethResult> {
   const ctx = toDeployContext(walletClient, 'deployWeth');
   const { address, transactionHash } = await deployContractChecked(ctx, 'TestWETH9', testWeth9, [

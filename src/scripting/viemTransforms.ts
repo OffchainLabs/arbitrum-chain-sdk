@@ -9,8 +9,6 @@ export function findChain(chainId: number): Chain {
   const knownChains = [...getCustomParentChains(), ...chains];
   const chain = knownChains.find((c) => c.id === chainId);
   if (chain) return chain;
-  // Synthesize a minimal chain (rather than throw) for ids not in the registry -- e.g. a freshly
-  // deployed orbit chain. rpcUrls is left empty since every caller sets the transport URL explicitly.
   return defineChain({
     id: chainId,
     name: `Chain ${chainId}`,
