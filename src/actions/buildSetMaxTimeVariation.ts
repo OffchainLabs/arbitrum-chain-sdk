@@ -1,4 +1,4 @@
-import { Chain, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
+import { Chain, PublicClient, Transport } from 'viem';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
 import {
   ActionParameters,
@@ -7,7 +7,7 @@ import {
   WithUpgradeExecutor,
 } from '../types/Actions';
 import { Prettify } from '../types/utils';
-import { prepareUpgradeExecutorCallParameters } from '../prepareUpgradeExecutorCallParameters';
+import { prepareContractTransactionRequest } from '../contractTransactionRequests';
 import { validateParentChain } from '../types/ParentChain';
 
 type Args = {
@@ -33,17 +33,13 @@ export async function buildSetMaxTimeVariation<TChain extends Chain | undefined>
 ): Promise<BuildSetMaxTimeVariationReturnType> {
   const { chainId } = validateParentChain(client);
 
-  const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+  return prepareContractTransactionRequest(client, {
+    chainId,
     account,
-    ...prepareUpgradeExecutorCallParameters({
-      to: sequencerInboxAddress,
-      upgradeExecutor,
-      args: [params],
-      abi: sequencerInboxABI,
-      functionName: 'setMaxTimeVariation',
-    }),
-  } satisfies PrepareTransactionRequestParameters);
-
-  return { ...request, chainId };
+    to: sequencerInboxAddress,
+    upgradeExecutor,
+    args: [params],
+    abi: sequencerInboxABI,
+    functionName: 'setMaxTimeVariation',
+  });
 }
