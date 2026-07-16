@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, expect } from 'vitest';
-import { ChainContract, createPublicClient, createWalletClient, http } from 'viem';
+import { ChainContract, createPublicClient, http } from 'viem';
 
 import { clearCustomParentChains, nitroTestnodeL2, registerCustomParentChain } from '../../chains';
 import { getNitroTestnodePrivateKeyAccounts } from '../../testHelpers';
@@ -10,11 +10,13 @@ import { getDefaultChallengeGracePeriodBlocks } from '../../getDefaultChallengeG
 import { getDefaultMinimumAssertionPeriod } from '../../getDefaultMinimumAssertionPeriod';
 import { getDefaultValidatorAfkBlocks } from '../../getDefaultValidatorAfkBlocks';
 import { getDefaultSequencerInboxMaxTimeVariation } from '../../getDefaultSequencerInboxMaxTimeVariation';
-import { deployWeth } from '../../deployWeth';
-import { deployRollupCreator, DEFAULT_MAX_DATA_SIZE } from '../../deployRollupCreator';
-import { deployTokenBridgeCreator } from '../../deployTokenBridgeCreator';
+import { DEFAULT_MAX_DATA_SIZE } from '../../deployRollupCreator';
 import { findChain } from '../viemTransforms';
 import { schema, execute } from './deployFullChain';
+import {
+  schema as deployParentChainContractsSchema,
+  execute as deployParentChainContractsExecute,
+} from './deployParentChainContracts';
 
 const deployer = getNitroTestnodePrivateKeyAccounts().deployer;
 const rpcUrl = nitroTestnodeL2.rpcUrls.default.http[0];
@@ -22,11 +24,6 @@ const rpcUrl = nitroTestnodeL2.rpcUrls.default.http[0];
 const parentChainPublicClient = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(rpcUrl),
-});
-const walletClient = createWalletClient({
-  chain: nitroTestnodeL2,
-  transport: http(rpcUrl),
-  account: deployer,
 });
 
 const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
@@ -47,9 +44,13 @@ describe('deployFullChain on a custom parent chain', () => {
     const validatorAfkBlocks = getDefaultValidatorAfkBlocks(parentChainPublicClient);
     const mtv = getDefaultSequencerInboxMaxTimeVariation(parentChainPublicClient);
 
-    const { weth } = await deployWeth({ walletClient });
-    const { rollupCreator } = await deployRollupCreator({ walletClient });
-    const { tokenBridgeCreator } = await deployTokenBridgeCreator({ walletClient, l1Weth: weth });
+    const { rollupCreator, tokenBridgeCreator, weth } = await deployParentChainContractsExecute(
+      deployParentChainContractsSchema.parse({
+        rpcUrl,
+        chainId: nitroTestnodeL2.id,
+        privateKey: deployer.privateKey,
+      }),
+    );
 
     // Register the L2 as a custom parent chain, deliberately shadowing the built-in entry.
     registerCustomParentChain({

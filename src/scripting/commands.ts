@@ -136,6 +136,10 @@ import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
+import {
+  schema as deployParentChainContractsSchema,
+  execute as deployParentChainContractsExecute,
+} from './workflows/deployParentChainContracts';
 
 import { contractRegistry } from './contractRegistry';
 import { buildContractCommandSchema } from './contractCommandSchema';
@@ -372,6 +376,11 @@ export const commands: readonly Command[] = [
     'deployFullChain',
     deployFullChainSchema.transform((i) => [i] as const),
     deployFullChainExecute,
+  ),
+  command(
+    'deployParentChainContracts',
+    deployParentChainContractsSchema.transform((i) => [i] as const),
+    deployParentChainContractsExecute,
   ),
 
   ...contractCommands,
