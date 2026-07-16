@@ -1,4 +1,6 @@
-import { Abi, Address, Hex, WalletClient, getAddress, publicActions } from 'viem';
+import { Address, Hex, WalletClient } from 'viem';
+
+import { deployContractChecked, toDeployContext } from './utils/deployContract';
 
 import testWeth9 from '@arbitrum/token-bridge-contracts/build/contracts/contracts/tokenbridge/test/TestWETH9.sol/TestWETH9.json';
 
@@ -18,26 +20,11 @@ export type DeployWethResult = {
 // Deploys a standard WETH9 on the chain the wallet client points at, so a custom parent chain with
 // no canonical WETH can supply one as `l1Weth` to deployTokenBridgeCreator.
 export async function deployWeth({ walletClient }: DeployWethParams): Promise<DeployWethResult> {
-  const client = walletClient.extend(publicActions);
+  const ctx = toDeployContext(walletClient, 'deployWeth');
+  const { address, transactionHash } = await deployContractChecked(ctx, 'TestWETH9', testWeth9, [
+    WETH_NAME,
+    WETH_SYMBOL,
+  ]);
 
-  const transactionHash = await client.deployContract({
-    abi: testWeth9.abi as Abi,
-    account: walletClient.account!,
-    chain: walletClient.chain,
-    args: [WETH_NAME, WETH_SYMBOL],
-    bytecode: testWeth9.bytecode as Hex,
-  });
-
-  const receipt = await client.waitForTransactionReceipt({ hash: transactionHash });
-
-  if (receipt.status === 'reverted' || !receipt.contractAddress) {
-    throw new Error(
-      `deployWeth: deployment transaction ${transactionHash} reverted (status=${receipt.status})`,
-    );
-  }
-
-  return {
-    weth: getAddress(receipt.contractAddress),
-    transactionHash,
-  };
+  return { weth: address, transactionHash };
 }

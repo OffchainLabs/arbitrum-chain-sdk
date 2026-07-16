@@ -1,4 +1,6 @@
-import { Address, Hex, WalletClient, getAddress, publicActions } from 'viem';
+import { Address, Hex, WalletClient } from 'viem';
+
+import { deployContractChecked, toDeployContext } from './utils/deployContract';
 
 import proxyAdmin from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 
@@ -34,25 +36,8 @@ export type DeployProxyAdminResult = {
 export async function deployProxyAdmin({
   orbitChainWalletClient,
 }: DeployProxyAdminParams): Promise<DeployProxyAdminResult> {
-  const client = orbitChainWalletClient.extend(publicActions);
+  const ctx = toDeployContext(orbitChainWalletClient, 'deployProxyAdmin');
+  const { address, transactionHash } = await deployContractChecked(ctx, 'ProxyAdmin', proxyAdmin);
 
-  const transactionHash = await client.deployContract({
-    abi: proxyAdmin.abi,
-    account: orbitChainWalletClient.account!,
-    chain: orbitChainWalletClient.chain,
-    bytecode: proxyAdmin.bytecode as Hex,
-  });
-
-  const receipt = await client.waitForTransactionReceipt({ hash: transactionHash });
-
-  if (receipt.status === 'reverted' || !receipt.contractAddress) {
-    throw new Error(
-      `deployProxyAdmin: deployment transaction ${transactionHash} reverted (status=${receipt.status})`,
-    );
-  }
-
-  return {
-    proxyAdmin: getAddress(receipt.contractAddress),
-    transactionHash,
-  };
+  return { proxyAdmin: address, transactionHash };
 }
