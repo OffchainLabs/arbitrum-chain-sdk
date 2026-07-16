@@ -68,7 +68,7 @@ export function getCustomParentChains(): Chain[] {
  * Registers a custom parent chain.
  *
  * @param {Chain} chain Regular `Chain` object, optionally carrying
- * `contracts.rollupCreator` and/or `contracts.tokenBridgeCreator`.
+ * `contracts.rollupCreator`, `contracts.tokenBridgeCreator`, and/or `contracts.weth`.
  *
  * @example
  * registerCustomParentChain({
@@ -104,26 +104,21 @@ export function registerCustomParentChain(
     contracts?: {
       rollupCreator?: ChainContract;
       tokenBridgeCreator?: ChainContract;
+      weth?: ChainContract;
     };
   },
 ) {
-  const rollupCreator = chain.contracts?.rollupCreator?.address;
-  const tokenBridgeCreator = chain.contracts?.tokenBridgeCreator?.address;
+  const assertValidAddress = (address: string | undefined, field: string) => {
+    if (address !== undefined && (!isAddress(address) || address === zeroAddress)) {
+      throw new Error(
+        `"contracts.${field}.address" is invalid for custom parent chain with id ${chain.id}`,
+      );
+    }
+  };
 
-  if (rollupCreator !== undefined && (!isAddress(rollupCreator) || rollupCreator === zeroAddress)) {
-    throw new Error(
-      `"contracts.rollupCreator.address" is invalid for custom parent chain with id ${chain.id}`,
-    );
-  }
-
-  if (
-    tokenBridgeCreator !== undefined &&
-    (!isAddress(tokenBridgeCreator) || tokenBridgeCreator === zeroAddress)
-  ) {
-    throw new Error(
-      `"contracts.tokenBridgeCreator.address" is invalid for custom parent chain with id ${chain.id}`,
-    );
-  }
+  assertValidAddress(chain.contracts?.rollupCreator?.address, 'rollupCreator');
+  assertValidAddress(chain.contracts?.tokenBridgeCreator?.address, 'tokenBridgeCreator');
+  assertValidAddress(chain.contracts?.weth?.address, 'weth');
 
   customParentChains[chain.id] = chain;
 }
