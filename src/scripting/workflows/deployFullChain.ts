@@ -47,9 +47,6 @@ const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSch
 export const inputSchema = z
   .object({
     ...baseFields,
-    // baseFields carries only rollupCreator (inherited from createRollup); this workflow also runs
-    // the token bridge, so a custom parent must supply tokenBridgeCreator and weth as well. Only the
-    // contracts field differs from baseFields; parentChainName/parentChainNativeCurrency carry over.
     parentChainContracts: parentChainContractsSchema({
       rollupCreator: true,
       tokenBridgeCreator: true,

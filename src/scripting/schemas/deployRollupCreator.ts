@@ -7,7 +7,6 @@ export const deployRollupCreatorSchema = z
     rpcUrl: z.url(),
     chainId: z.number(),
     privateKey: privateKeySchema,
-    // Set this to match the maxDataSize a later createRollup uses; omit to take the SDK default.
     maxDataSize: bigintSchema.optional(),
   })
   .transform(withWalletClient);

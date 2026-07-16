@@ -5,7 +5,6 @@ import { CreateRollupFunctionParams } from '../../createRollup';
 import { customParentChainPublicClientSchema, privateKeySchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
-// createRollup reads the parent chain's rollupCreator, so a custom parent must supply it.
 const commonFieldsSchema = customParentChainPublicClientSchema({ rollupCreator: true }).extend({
   privateKey: privateKeySchema,
 });

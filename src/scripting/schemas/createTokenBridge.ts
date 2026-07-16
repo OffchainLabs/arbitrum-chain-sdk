@@ -15,8 +15,6 @@ import {
 } from './common';
 import { createTokenBridge } from '../../createTokenBridge';
 
-// createTokenBridge reads the parent chain's tokenBridgeCreator (and weth for the weth gateway),
-// so a custom parent must supply them.
 export const createTokenBridgeSchema = customParentChainPublicClientSchema({
   tokenBridgeCreator: true,
   weth: true,
