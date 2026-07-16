@@ -263,6 +263,10 @@ const coverageConfig: Record<string, CoverageConfig> = {
     skip: [
       ...chainConfigGateSkips('createRollupParams.config.chainConfig'),
       ...CUSTOM_PARENT_CHAIN_SKIPS,
+      // deployFullChain also requires tokenBridgeCreator/weth (it runs the token bridge); like
+      // rollupCreator these register a chain as a side effect and never reach the transform output.
+      'parentChainContracts.tokenBridgeCreator (value)',
+      'parentChainContracts.weth (value)',
     ],
     overrides: [
       // `execute` only exercises keyset when DAC=true; schema enforces via

@@ -9,6 +9,7 @@ import {
   addressSchema,
   privateKeySchema,
   chainConfigInputSchema,
+  customParentChainSchemaFields,
 } from '../schemas/common';
 import {
   paramsV3Dot2Schema,
@@ -46,6 +47,9 @@ const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSch
 export const inputSchema = z
   .object({
     ...baseFields,
+    // baseFields carries only rollupCreator (inherited from createRollup); this workflow also runs
+    // the token bridge, so a custom parent must supply tokenBridgeCreator and weth as well.
+    ...customParentChainSchemaFields({ rollupCreator: true, tokenBridgeCreator: true, weth: true }),
     chainName: z.string(),
     createRollupParams: createRollupBaseParams
       .extend({

@@ -3,8 +3,7 @@ import { Chain } from 'viem';
 import { registerCustomParentChainFromInput, withParentChainSign } from '../viemTransforms';
 import { CreateRollupFunctionParams } from '../../createRollup';
 import {
-  nativeCurrencySchema,
-  parentChainContractsSchema,
+  customParentChainSchemaFields,
   parentChainPublicClientSchema,
   privateKeySchema,
 } from './common';
@@ -13,9 +12,7 @@ import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 // createRollup reads the parent chain's rollupCreator, so a custom parent must supply it.
 const commonFieldsSchema = parentChainPublicClientSchema.extend({
   privateKey: privateKeySchema,
-  parentChainContracts: parentChainContractsSchema({ rollupCreator: true }),
-  parentChainName: z.string().optional(),
-  parentChainNativeCurrency: nativeCurrencySchema.optional(),
+  ...customParentChainSchemaFields({ rollupCreator: true }),
 });
 
 type Params<V extends 'v2.1' | 'v3.2' | undefined> = [

@@ -38,15 +38,17 @@ export type CustomParentChainInput = {
   parentChainNativeCurrency?: { name: string; symbol: string; decimals: number };
 };
 
-// Registers a custom parent chain from CLI input (when its fields are present) and strips those
-// fields so downstream transforms and SDK args never see them. With custom-first findChain, the
-// registered chain's factory addresses then win over any built-in entry with the same id.
+// Registers a custom parent chain from CLI input and strips the custom fields so downstream
+// transforms and SDK args never see them. With custom-first findChain, the registered chain's
+// factory addresses win over any built-in entry with the same id. Gated on parentChainContracts:
+// registering on name/currency alone would shadow a working built-in with a contract-less entry
+// (custom-first findChain), breaking the address lookups that then read an isCustom chain.
 export function registerCustomParentChainFromInput<
   T extends { parentChainId: number } & CustomParentChainInput,
 >(input: T): Omit<T, keyof CustomParentChainInput> {
   const { parentChainContracts, parentChainName, parentChainNativeCurrency, ...rest } = input;
 
-  if (parentChainContracts || parentChainName || parentChainNativeCurrency) {
+  if (parentChainContracts) {
     registerCustomParentChain({
       id: input.parentChainId,
       name: parentChainName ?? `Custom Parent Chain ${input.parentChainId}`,

@@ -1,12 +1,14 @@
-import { it, expect } from 'vitest';
+import { beforeEach, it, expect } from 'vitest';
 import { Chain, ChainContract, getAddress } from 'viem';
 
 import { validateParentChain } from './types/ParentChain';
-import { arbitrumOne, base, registerCustomParentChain } from './chains';
+import { arbitrumOne, base, clearCustomParentChains, registerCustomParentChain } from './chains';
 import { generateChainId } from './utils';
 import { getParentChainFromId } from './utils/getParentChainFromId';
 
 import { testHelper_createCustomParentChain } from './testHelpers';
+
+beforeEach(clearCustomParentChains);
 
 it(`sucessfully validates arbitrum one`, () => {
   const result = validateParentChain(arbitrumOne.id);

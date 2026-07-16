@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { beforeEach, describe, it, expect } from 'vitest';
 import { ChainContract, createPublicClient, createWalletClient, http } from 'viem';
 
-import { nitroTestnodeL2, registerCustomParentChain } from '../../chains';
+import { clearCustomParentChains, nitroTestnodeL2, registerCustomParentChain } from '../../chains';
 import { getNitroTestnodePrivateKeyAccounts } from '../../testHelpers';
 import { validateParentChain } from '../../types/ParentChain';
 import { generateChainId } from '../../utils';
@@ -30,6 +30,8 @@ const walletClient = createWalletClient({
 });
 
 const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
+
+beforeEach(clearCustomParentChains);
 
 describe('deployFullChain on a custom parent chain', () => {
   // Uses the nitro-testnode L2 as an arbitrary parent chain: deploy the factories on it, register it

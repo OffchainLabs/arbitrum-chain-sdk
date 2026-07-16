@@ -41,6 +41,21 @@ export function parentChainContractsSchema(fields: {
   return z.strictObject(shape).optional();
 }
 
+// The custom-parent-chain input trio, parameterized by which factory addresses the command reads.
+// Bundled here so every custom-parent-supporting command declares the same fields, and so a workflow
+// running several SDK calls can require the union of the addresses those calls need.
+export function customParentChainSchemaFields(contracts: {
+  rollupCreator?: boolean;
+  tokenBridgeCreator?: boolean;
+  weth?: boolean;
+}) {
+  return {
+    parentChainContracts: parentChainContractsSchema(contracts),
+    parentChainName: z.string().optional(),
+    parentChainNativeCurrency: nativeCurrencySchema.optional(),
+  };
+}
+
 export const actionWriteBaseSchema = publicClientSchema.extend({
   account: addressSchema,
   upgradeExecutor: addressSchema.optional().transform((v) => v ?? false),

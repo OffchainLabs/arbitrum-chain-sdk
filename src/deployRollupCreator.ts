@@ -1,4 +1,12 @@
-import { Address, Hex, WalletClient, parseAbi, zeroAddress } from 'viem';
+import {
+  Address,
+  BaseError,
+  ContractFunctionZeroDataError,
+  Hex,
+  WalletClient,
+  parseAbi,
+  zeroAddress,
+} from 'viem';
 
 import {
   DeployArtifact,
@@ -83,9 +91,10 @@ export function buildBridgeCreatorTemplates(
   return [toTuple(eth), toTuple(erc20)];
 }
 
-// Probe the ArbSys precompile, which exists only on Arbitrum chains. Following nitro-contracts'
-// _isRunningOnArbitrum: the call failing is the signal that ArbSys is absent (not Arbitrum), so the
-// catch is intentional feature-detection, not error suppression.
+// Probe the ArbSys precompile, which exists only on Arbitrum chains. On other chains 0x64 has no
+// code, so the call returns empty data and viem raises ContractFunctionZeroDataError -- that is the
+// "not Arbitrum" signal (feature detection). A transport/RPC failure is not, so it is rethrown
+// rather than silently misread as non-Arbitrum (which would pick the wrong reader4844).
 async function isRunningOnArbitrum(client: DeployClient): Promise<boolean> {
   try {
     await client.readContract({
@@ -94,8 +103,11 @@ async function isRunningOnArbitrum(client: DeployClient): Promise<boolean> {
       functionName: 'arbOSVersion',
     });
     return true;
-  } catch {
-    return false;
+  } catch (err) {
+    if (err instanceof BaseError && err.walk((e) => e instanceof ContractFunctionZeroDataError)) {
+      return false;
+    }
+    throw err;
   }
 }
 

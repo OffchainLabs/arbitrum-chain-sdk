@@ -64,6 +64,13 @@ export function getCustomParentChains(): Chain[] {
   return Object.values(customParentChains);
 }
 
+// The registry is process-global by design (register once, resolve for the process lifetime), so
+// tests that register custom chains must clear it between runs to avoid one test's registration
+// shadowing a built-in id in the next.
+export function clearCustomParentChains(): void {
+  for (const id of Object.keys(customParentChains)) delete customParentChains[Number(id)];
+}
+
 /**
  * Registers a custom parent chain.
  *

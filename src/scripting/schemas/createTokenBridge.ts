@@ -7,8 +7,7 @@ import {
 import {
   addressSchema,
   bigintSchema,
-  nativeCurrencySchema,
-  parentChainContractsSchema,
+  customParentChainSchemaFields,
   parentChainPublicClientSchema,
   privateKeySchema,
   gasLimitSchema,
@@ -31,9 +30,7 @@ export const createTokenBridgeSchema = parentChainPublicClientSchema
     setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
     // createTokenBridge reads the parent chain's tokenBridgeCreator (and weth for the weth gateway),
     // so a custom parent must supply them.
-    parentChainContracts: parentChainContractsSchema({ tokenBridgeCreator: true, weth: true }),
-    parentChainName: z.string().optional(),
-    parentChainNativeCurrency: nativeCurrencySchema.optional(),
+    ...customParentChainSchemaFields({ tokenBridgeCreator: true, weth: true }),
   })
   .strict()
   .transform((input): Parameters<typeof createTokenBridge> => {

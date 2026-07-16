@@ -1,4 +1,4 @@
-import { it, expect } from 'vitest';
+import { beforeEach, it, expect } from 'vitest';
 import { ChainContract } from 'viem';
 import {
   findChain,
@@ -14,8 +14,10 @@ import {
   withParentReadChildSign,
   registerCustomParentChainFromInput,
 } from './viemTransforms';
-import { getCustomParentChains } from '../chains';
+import { clearCustomParentChains, getCustomParentChains } from '../chains';
 import { generateChainId } from '../utils';
+
+beforeEach(clearCustomParentChains);
 
 // A valid private key (anvil default account #0)
 const testPrivateKey = '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
@@ -186,6 +188,18 @@ it('registerCustomParentChainFromInput leaves a chain with no custom fields unre
   registerCustomParentChainFromInput({
     parentChainId,
     parentChainRpcUrl: testRpcUrl,
+    rollup: '0x1',
+  });
+  expect(getCustomParentChains().some((chain) => chain.id === parentChainId)).toBe(false);
+});
+
+// Without factory addresses, registering would shadow a built-in id with a contract-less entry.
+it('registerCustomParentChainFromInput does not register when only parentChainName is supplied', () => {
+  const parentChainId = generateChainId();
+  registerCustomParentChainFromInput({
+    parentChainId,
+    parentChainRpcUrl: testRpcUrl,
+    parentChainName: 'My Chain',
     rollup: '0x1',
   });
   expect(getCustomParentChains().some((chain) => chain.id === parentChainId)).toBe(false);
