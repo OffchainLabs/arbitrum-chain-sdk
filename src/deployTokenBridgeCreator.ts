@@ -1,11 +1,6 @@
-import { Abi, Address, Hex, WalletClient } from 'viem';
+import { Abi, Address, Hex, WalletClient, publicActions } from 'viem';
 
-import {
-  DeployContext,
-  deployContractChecked,
-  sendAndWait,
-  toDeployContext,
-} from './utils/deployContract';
+import { DeployContext, deployContractChecked, sendAndWait } from './utils/deployContract';
 
 import ProxyAdmin from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 import TransparentUpgradeableProxy from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json';
@@ -238,7 +233,7 @@ export async function deployTokenBridgeCreator({
   walletClient,
   l1Weth,
 }: DeployTokenBridgeCreatorParams): Promise<DeployTokenBridgeCreatorResult> {
-  const ctx = toDeployContext(walletClient, 'deployTokenBridgeCreator');
+  const ctx = { client: walletClient.extend(publicActions), label: 'deployTokenBridgeCreator' };
 
   const l2Multicall = (await deployContractChecked(ctx, 'ArbMulticall2', ArbMulticall2)).address;
   const proxyAdmin = (await deployContractChecked(ctx, 'ProxyAdmin', ProxyAdmin)).address;

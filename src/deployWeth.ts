@@ -1,6 +1,6 @@
-import { Address, Hex, WalletClient } from 'viem';
+import { Address, Hex, WalletClient, publicActions } from 'viem';
 
-import { deployContractChecked, toDeployContext } from './utils/deployContract';
+import { deployContractChecked } from './utils/deployContract';
 
 import testWeth9 from '@arbitrum/token-bridge-contracts/build/contracts/contracts/tokenbridge/test/TestWETH9.sol/TestWETH9.json';
 
@@ -22,7 +22,7 @@ export type DeployWethResult = {
  * no canonical WETH can supply one as `l1Weth` to deployTokenBridgeCreator.
  */
 export async function deployWeth({ walletClient }: DeployWethParams): Promise<DeployWethResult> {
-  const ctx = toDeployContext(walletClient, 'deployWeth');
+  const ctx = { client: walletClient.extend(publicActions), label: 'deployWeth' };
   const { address, transactionHash } = await deployContractChecked(ctx, 'TestWETH9', testWeth9, [
     WETH_NAME,
     WETH_SYMBOL,

@@ -1,38 +1,18 @@
 import {
   Abi,
-  Account,
   Address,
-  Chain,
   Hex,
+  PublicActions,
   WalletClient,
   encodeFunctionData,
   getAddress,
-  publicActions,
 } from 'viem';
 
 export type DeployArtifact = { abi: unknown; bytecode: string };
 
-function extendWithPublicActions(walletClient: WalletClient) {
-  return walletClient.extend(publicActions);
-}
+export type DeployClient = WalletClient & PublicActions;
 
-export type DeployClient = ReturnType<typeof extendWithPublicActions>;
-
-export type DeployContext = {
-  client: DeployClient;
-  account: Account;
-  chain: Chain | undefined;
-  label: string;
-};
-
-export function toDeployContext(walletClient: WalletClient, label: string): DeployContext {
-  return {
-    client: extendWithPublicActions(walletClient),
-    account: walletClient.account!,
-    chain: walletClient.chain,
-    label,
-  };
-}
+export type DeployContext = { client: DeployClient; label: string };
 
 export async function deployContractChecked(
   ctx: DeployContext,
@@ -42,8 +22,8 @@ export async function deployContractChecked(
 ): Promise<{ address: Address; transactionHash: Hex }> {
   const transactionHash = await ctx.client.deployContract({
     abi: artifact.abi as Abi,
-    account: ctx.account,
-    chain: ctx.chain,
+    account: ctx.client.account!,
+    chain: ctx.client.chain,
     bytecode: artifact.bytecode as Hex,
     ...(args ? { args } : {}),
   });
@@ -67,8 +47,8 @@ export async function sendAndWait(
     args: call.args,
   });
   const transactionHash = await ctx.client.sendTransaction({
-    account: ctx.account,
-    chain: ctx.chain,
+    account: ctx.client.account!,
+    chain: ctx.client.chain,
     to: call.address,
     data,
   });

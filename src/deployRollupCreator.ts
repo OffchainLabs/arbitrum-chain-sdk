@@ -5,6 +5,7 @@ import {
   Hex,
   WalletClient,
   parseAbi,
+  publicActions,
   zeroAddress,
 } from 'viem';
 
@@ -13,7 +14,6 @@ import {
   DeployClient,
   DeployContext,
   deployContractChecked,
-  toDeployContext,
 } from './utils/deployContract';
 
 import Bridge from '@arbitrum/nitro-contracts/build/contracts/src/bridge/Bridge.sol/Bridge.json';
@@ -93,8 +93,7 @@ export function buildBridgeCreatorTemplates(
 
 // Probe the ArbSys precompile, which exists only on Arbitrum chains. On other chains 0x64 has no
 // code, so the call returns empty data and viem raises ContractFunctionZeroDataError -- that is the
-// "not Arbitrum" signal (feature detection). A transport/RPC failure is not, so it is rethrown
-// rather than silently misread as non-Arbitrum (which would pick the wrong reader4844).
+// "not Arbitrum" signal (feature detection).
 async function isRunningOnArbitrum(client: DeployClient): Promise<boolean> {
   try {
     await client.readContract({
@@ -111,9 +110,6 @@ async function isRunningOnArbitrum(client: DeployClient): Promise<boolean> {
   }
 }
 
-// On a non-Arbitrum parent we deploy a real Reader4844 rather than nitro-contracts' dead-address
-// sentinel: it works on EVM chains that support EIP-4844 (e.g. an Ethereum-like L1 used for testing)
-// and is harmless where blobs are unavailable, since SequencerInbox only calls it for blob batches.
 async function deployReader4844(ctx: DeployContext): Promise<Address> {
   const { address } = await deployContractChecked(ctx, 'Reader4844', {
     abi: [],
@@ -186,14 +182,14 @@ async function deployOspStack(ctx: DeployContext): Promise<Address> {
   ]);
 }
 
-// Ports nitro-contracts' deployAllContracts (v3.2). The v3.2 RollupCreator constructor sets its
-// templates directly, so there is no follow-up setTemplates call; the deploying account becomes the
-// RollupCreator owner. Deploying on Ethereum L1 (needs a real Reader4844) is out of scope.
+/**
+ * viem port of https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/scripts/deploymentUtils.ts#L256
+ */
 export async function deployRollupCreator({
   walletClient,
   maxDataSize = DEFAULT_MAX_DATA_SIZE,
 }: DeployRollupCreatorParams): Promise<DeployRollupCreatorResult> {
-  const ctx = toDeployContext(walletClient, 'deployRollupCreator');
+  const ctx = { client: walletClient.extend(publicActions), label: 'deployRollupCreator' };
 
   const reader4844 = (await isRunningOnArbitrum(ctx.client))
     ? zeroAddress
@@ -220,7 +216,7 @@ export async function deployRollupCreator({
     'RollupCreator',
     RollupCreator,
     [
-      ctx.account.address,
+      ctx.client.account!.address,
       bridgeCreator,
       osp,
       challengeManager,

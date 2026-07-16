@@ -1,6 +1,6 @@
-import { Address, Hex, WalletClient } from 'viem';
+import { Address, Hex, WalletClient, publicActions } from 'viem';
 
-import { deployContractChecked, toDeployContext } from './utils/deployContract';
+import { deployContractChecked } from './utils/deployContract';
 
 import proxyAdmin from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 
@@ -36,7 +36,7 @@ export type DeployProxyAdminResult = {
 export async function deployProxyAdmin({
   orbitChainWalletClient,
 }: DeployProxyAdminParams): Promise<DeployProxyAdminResult> {
-  const ctx = toDeployContext(orbitChainWalletClient, 'deployProxyAdmin');
+  const ctx = { client: orbitChainWalletClient.extend(publicActions), label: 'deployProxyAdmin' };
   const { address, transactionHash } = await deployContractChecked(ctx, 'ProxyAdmin', proxyAdmin);
 
   return { proxyAdmin: address, transactionHash };

@@ -1,6 +1,6 @@
-import { Abi, Address, Hex, WalletClient, encodeFunctionData } from 'viem';
+import { Abi, Address, Hex, WalletClient, encodeFunctionData, publicActions } from 'viem';
 
-import { deployContractChecked, toDeployContext } from './utils/deployContract';
+import { deployContractChecked } from './utils/deployContract';
 
 import expressLaneAuction from '@arbitrum/nitro-contracts/build/contracts/src/express-lane-auction/ExpressLaneAuction.sol/ExpressLaneAuction.json';
 import transparentUpgradeableProxy from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json';
@@ -138,7 +138,10 @@ export async function deployExpressLaneAuction(
   deployExpressLaneAuctionParams: DeployExpressLaneAuctionParams,
 ): Promise<DeployExpressLaneAuctionResult> {
   const { orbitChainWalletClient, proxyAdmin, ...initArgs } = deployExpressLaneAuctionParams;
-  const ctx = toDeployContext(orbitChainWalletClient, 'deployExpressLaneAuction');
+  const ctx = {
+    client: orbitChainWalletClient.extend(publicActions),
+    label: 'deployExpressLaneAuction',
+  };
 
   const { address: implementation } = await deployContractChecked(
     ctx,
