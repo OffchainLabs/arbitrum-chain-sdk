@@ -44,7 +44,6 @@ const nitroTestnodeL3Client = createPublicClient({
   transport: http(nitroTestnodeL3.rpcUrls.default.http[0]),
 });
 
-// deployer wallet clients used to deploy a fresh token bridge creator per test
 const nitroTestnodeL1WalletClient = createWalletClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),

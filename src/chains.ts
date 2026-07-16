@@ -67,8 +67,6 @@ export function getCustomParentChains(): Chain[] {
 /**
  * Registers a custom parent chain.
  *
- * `contracts.rollupCreator` and `contracts.tokenBridgeCreator` are optional.
- *
  * @param {Chain} chain Regular `Chain` object, optionally carrying
  * `contracts.rollupCreator` and/or `contracts.tokenBridgeCreator`.
  *

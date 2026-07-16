@@ -41,10 +41,6 @@ export type DeployExpressLaneAuctionResult = {
   transactionHash: Hex;
 };
 
-/**
- * The ExpressLaneAuction initialize arguments: everything in DeployExpressLaneAuctionParams
- * except the deploy machinery (the wallet client and the proxy admin).
- */
 export type ExpressLaneAuctionInitArgs = Omit<
   DeployExpressLaneAuctionParams,
   'orbitChainWalletClient' | 'proxyAdmin'
