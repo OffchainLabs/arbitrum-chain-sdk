@@ -143,6 +143,7 @@ import {
   deployRollupCreator,
   DeployRollupCreatorParams,
   DeployRollupCreatorResult,
+  DEFAULT_MAX_DATA_SIZE,
 } from './deployRollupCreator';
 import {
   deployTokenBridgeCreator,
@@ -332,6 +333,7 @@ export {
   deployRollupCreator,
   DeployRollupCreatorParams,
   DeployRollupCreatorResult,
+  DEFAULT_MAX_DATA_SIZE,
   deployTokenBridgeCreator,
   DeployTokenBridgeCreatorParams,
   DeployTokenBridgeCreatorResult,

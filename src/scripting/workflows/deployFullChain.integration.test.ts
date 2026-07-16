@@ -11,7 +11,7 @@ import { getDefaultMinimumAssertionPeriod } from '../../getDefaultMinimumAsserti
 import { getDefaultValidatorAfkBlocks } from '../../getDefaultValidatorAfkBlocks';
 import { getDefaultSequencerInboxMaxTimeVariation } from '../../getDefaultSequencerInboxMaxTimeVariation';
 import { deployWeth } from '../../deployWeth';
-import { deployRollupCreator } from '../../deployRollupCreator';
+import { deployRollupCreator, DEFAULT_MAX_DATA_SIZE } from '../../deployRollupCreator';
 import { deployTokenBridgeCreator } from '../../deployTokenBridgeCreator';
 import { findChain } from '../viemTransforms';
 import { schema, execute } from './deployFullChain';
@@ -90,9 +90,9 @@ describe('deployFullChain on a custom parent chain', () => {
         },
         batchPosters: [deployer.address],
         validators: [deployer.address],
-        // custom parents also require maxDataSize; 104857 is the non-L1 value the SequencerInbox
-        // templates were deployed with.
-        maxDataSize: '104857',
+        // custom parents also require maxDataSize; it must match the value the SequencerInbox
+        // templates were deployed with (deployRollupCreator's default here).
+        maxDataSize: String(DEFAULT_MAX_DATA_SIZE),
       },
     };
 

@@ -31,8 +31,9 @@ import DeployHelper from '@arbitrum/nitro-contracts/build/contracts/src/rollup/D
 import RollupCreator from '@arbitrum/nitro-contracts/build/contracts/src/rollup/RollupCreator.sol/RollupCreator.json';
 import UpgradeExecutor from '@offchainlabs/upgrade-executor/build/contracts/src/UpgradeExecutor.sol/UpgradeExecutor.json';
 
-// Non-Ethereum-L1 maxDataSize (L1 uses 117964); deploying on L1 is out of scope.
-const MAX_DATA_SIZE = 104857n;
+// Default non-Ethereum-L1 maxDataSize (L1 uses 117964); deploying on L1 is out of scope. A later
+// createRollup must pass the same maxDataSize, since it is baked into the SequencerInbox templates here.
+export const DEFAULT_MAX_DATA_SIZE = 104857n;
 
 // SequencerInbox requires a non-zero reader4844 on non-Arbitrum chains; the dead address is the
 // upstream sentinel for "no EIP-4844 blob support". On Arbitrum chains address(0) is required instead.
@@ -42,6 +43,7 @@ const ARB_SYS_ADDRESS = '0x0000000000000000000000000000000000000064' as Address;
 
 export type DeployRollupCreatorParams = {
   walletClient: WalletClient;
+  maxDataSize?: bigint;
 };
 
 export type DeployRollupCreatorResult = {
@@ -167,6 +169,7 @@ async function deployOspStack(ctx: DeployContext): Promise<Address> {
 // RollupCreator owner. Deploying on Ethereum L1 (needs a real Reader4844) is out of scope.
 export async function deployRollupCreator({
   walletClient,
+  maxDataSize = DEFAULT_MAX_DATA_SIZE,
 }: DeployRollupCreatorParams): Promise<DeployRollupCreatorResult> {
   const ctx = toDeployContext(walletClient, 'deployRollupCreator');
 
@@ -174,7 +177,7 @@ export async function deployRollupCreator({
     ? zeroAddress
     : READER_4844_NON_ARBITRUM;
 
-  const bridgeCreator = await deployBridgeTemplatesAndCreator(ctx, MAX_DATA_SIZE, reader4844);
+  const bridgeCreator = await deployBridgeTemplatesAndCreator(ctx, maxDataSize, reader4844);
   const osp = await deployOspStack(ctx);
   const challengeManager = (
     await deployContractChecked(ctx, 'EdgeChallengeManager', EdgeChallengeManager)
