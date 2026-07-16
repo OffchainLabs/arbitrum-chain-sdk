@@ -50,7 +50,6 @@ export const schema = inputSchema
     refineChainIdMatch(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
-    // Register the custom parent chain (if supplied) before findChain resolves it.
     const registered = registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
       registered.parentChainRpcUrl,

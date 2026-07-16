@@ -162,8 +162,6 @@ export const schema = inputSchema
     }
   })
   .transform((input) => {
-    // Register the custom parent chain (if supplied) before findChain resolves it; this workflow
-    // reads fields off `input` directly, so the stripped return value isn't used.
     registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
       input.parentChainRpcUrl,
