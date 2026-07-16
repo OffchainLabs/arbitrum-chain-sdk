@@ -7,6 +7,7 @@ import SequencerInbox from '@arbitrum/nitro-contracts/build/contracts/src/bridge
 import RollupCreator from '@arbitrum/nitro-contracts/build/contracts/src/rollup/RollupCreator.sol/RollupCreator.json';
 import OneStepProofEntry from '@arbitrum/nitro-contracts/build/contracts/src/osp/OneStepProofEntry.sol/OneStepProofEntry.json';
 import UpgradeExecutor from '@offchainlabs/upgrade-executor/build/contracts/src/UpgradeExecutor.sol/UpgradeExecutor.json';
+import Reader4844 from '@arbitrum/nitro-contracts/out/yul/Reader4844.yul/Reader4844.json';
 
 import { buildBridgeCreatorTemplates } from './deployRollupCreator';
 
@@ -88,5 +89,11 @@ describe('deployRollupCreator artifact wiring', () => {
       expect(artifact.bytecode.startsWith('0x'), name).toBe(true);
       expect(artifact.bytecode.length, name).toBeGreaterThan(2);
     }
+  });
+
+  // Reader4844 is a Yul artifact, so its bytecode lives under `bytecode.object`, not `bytecode`.
+  it('resolves the Reader4844 Yul artifact with populated bytecode', () => {
+    expect(Reader4844.bytecode.object.startsWith('0x')).toBe(true);
+    expect(Reader4844.bytecode.object.length).toBeGreaterThan(2);
   });
 });

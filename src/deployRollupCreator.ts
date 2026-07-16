@@ -30,14 +30,13 @@ import ValidatorWalletCreator from '@arbitrum/nitro-contracts/build/contracts/sr
 import DeployHelper from '@arbitrum/nitro-contracts/build/contracts/src/rollup/DeployHelper.sol/DeployHelper.json';
 import RollupCreator from '@arbitrum/nitro-contracts/build/contracts/src/rollup/RollupCreator.sol/RollupCreator.json';
 import UpgradeExecutor from '@offchainlabs/upgrade-executor/build/contracts/src/UpgradeExecutor.sol/UpgradeExecutor.json';
+// Reader4844 is a Yul contract, so its forge artifact keeps the bytecode under `bytecode.object` and
+// carries no ABI, unlike the hardhat build/contracts artifacts imported above.
+import Reader4844 from '@arbitrum/nitro-contracts/out/yul/Reader4844.yul/Reader4844.json';
 
 // Default non-Ethereum-L1 maxDataSize (L1 uses 117964); deploying on L1 is out of scope. A later
 // createRollup must pass the same maxDataSize, since it is baked into the SequencerInbox templates here.
 export const DEFAULT_MAX_DATA_SIZE = 104857n;
-
-// SequencerInbox requires a non-zero reader4844 on non-Arbitrum chains; the dead address is the
-// upstream sentinel for "no EIP-4844 blob support". On Arbitrum chains address(0) is required instead.
-const READER_4844_NON_ARBITRUM = '0x000000000000000000000000000000000000dead' as Address;
 
 const ARB_SYS_ADDRESS = '0x0000000000000000000000000000000000000064' as Address;
 
@@ -98,6 +97,17 @@ async function isRunningOnArbitrum(client: DeployClient): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// On a non-Arbitrum parent we deploy a real Reader4844 rather than nitro-contracts' dead-address
+// sentinel: it works on EVM chains that support EIP-4844 (e.g. an Ethereum-like L1 used for testing)
+// and is harmless where blobs are unavailable, since SequencerInbox only calls it for blob batches.
+async function deployReader4844(ctx: DeployContext): Promise<Address> {
+  const { address } = await deployContractChecked(ctx, 'Reader4844', {
+    abi: [],
+    bytecode: Reader4844.bytecode.object,
+  });
+  return address;
 }
 
 async function deployBridgeTemplatesAndCreator(
@@ -175,7 +185,7 @@ export async function deployRollupCreator({
 
   const reader4844 = (await isRunningOnArbitrum(ctx.client))
     ? zeroAddress
-    : READER_4844_NON_ARBITRUM;
+    : await deployReader4844(ctx);
 
   const bridgeCreator = await deployBridgeTemplatesAndCreator(ctx, maxDataSize, reader4844);
   const osp = await deployOspStack(ctx);
