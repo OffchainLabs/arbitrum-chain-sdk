@@ -41,19 +41,21 @@ export function parentChainContractsSchema(fields: {
   return z.strictObject(shape).optional();
 }
 
-// The custom-parent-chain input trio, parameterized by which factory addresses the command reads.
-// Bundled here so every custom-parent-supporting command declares the same fields, and so a workflow
-// running several SDK calls can require the union of the addresses those calls need.
-export function customParentChainSchemaFields(contracts: {
+// Parent-chain input for a command that can target a custom (not built-in) parent: the rpc/id pair
+// plus the optional registration fields, parameterized by which factory addresses the command reads.
+// Use this in place of parentChainPublicClientSchema to opt a command into custom-parent support --
+// the fields only make sense alongside parentChainRpcUrl/parentChainId, so they travel together. The
+// command's transform must still call registerCustomParentChainFromInput to perform the registration.
+export function customParentChainPublicClientSchema(contracts: {
   rollupCreator?: boolean;
   tokenBridgeCreator?: boolean;
   weth?: boolean;
 }) {
-  return {
+  return parentChainPublicClientSchema.extend({
     parentChainContracts: parentChainContractsSchema(contracts),
     parentChainName: z.string().optional(),
     parentChainNativeCurrency: nativeCurrencySchema.optional(),
-  };
+  });
 }
 
 export const actionWriteBaseSchema = publicClientSchema.extend({

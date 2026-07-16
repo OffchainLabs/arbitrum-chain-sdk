@@ -7,8 +7,7 @@ import {
 import {
   addressSchema,
   bigintSchema,
-  customParentChainSchemaFields,
-  parentChainPublicClientSchema,
+  customParentChainPublicClientSchema,
   privateKeySchema,
   gasLimitSchema,
   tokenBridgeRetryableGasOverridesSchema,
@@ -16,7 +15,12 @@ import {
 } from './common';
 import { createTokenBridge } from '../../createTokenBridge';
 
-export const createTokenBridgeSchema = parentChainPublicClientSchema
+// createTokenBridge reads the parent chain's tokenBridgeCreator (and weth for the weth gateway),
+// so a custom parent must supply them.
+export const createTokenBridgeSchema = customParentChainPublicClientSchema({
+  tokenBridgeCreator: true,
+  weth: true,
+})
   .extend({
     orbitChainRpcUrl: z.url(),
     privateKey: privateKeySchema,
@@ -28,9 +32,6 @@ export const createTokenBridgeSchema = parentChainPublicClientSchema
     gasOverrides: gasLimitSchema.optional(),
     retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
     setWethGatewayGasOverrides: setWethGatewayGasOverridesSchema.optional(),
-    // createTokenBridge reads the parent chain's tokenBridgeCreator (and weth for the weth gateway),
-    // so a custom parent must supply them.
-    ...customParentChainSchemaFields({ tokenBridgeCreator: true, weth: true }),
   })
   .strict()
   .transform((input): Parameters<typeof createTokenBridge> => {

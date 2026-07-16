@@ -2,17 +2,12 @@ import { z } from 'zod';
 import { Chain } from 'viem';
 import { registerCustomParentChainFromInput, withParentChainSign } from '../viemTransforms';
 import { CreateRollupFunctionParams } from '../../createRollup';
-import {
-  customParentChainSchemaFields,
-  parentChainPublicClientSchema,
-  privateKeySchema,
-} from './common';
+import { customParentChainPublicClientSchema, privateKeySchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
 // createRollup reads the parent chain's rollupCreator, so a custom parent must supply it.
-const commonFieldsSchema = parentChainPublicClientSchema.extend({
+const commonFieldsSchema = customParentChainPublicClientSchema({ rollupCreator: true }).extend({
   privateKey: privateKeySchema,
-  ...customParentChainSchemaFields({ rollupCreator: true }),
 });
 
 type Params<V extends 'v2.1' | 'v3.2' | undefined> = [
