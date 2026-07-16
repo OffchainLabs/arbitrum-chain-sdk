@@ -25,13 +25,6 @@ export type DeployProxyAdminResult = {
  *
  * @param {DeployProxyAdminParams} deployProxyAdminParams {@link DeployProxyAdminParams}
  * @param {WalletClient} deployProxyAdminParams.orbitChainWalletClient - The orbit chain Viem wallet client (this account deploys the contract and becomes the ProxyAdmin owner)
- *
- * @returns Promise<DeployProxyAdminResult> {@link DeployProxyAdminResult} - The deployed ProxyAdmin address and the deployment transaction hash
- *
- * @example
- * const { proxyAdmin } = await deployProxyAdmin({
- *   orbitChainWalletClient,
- * });
  */
 export async function deployProxyAdmin({
   orbitChainWalletClient,

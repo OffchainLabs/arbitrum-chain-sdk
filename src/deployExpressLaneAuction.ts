@@ -76,11 +76,6 @@ export function encodeExpressLaneAuctionInitData(initArgs: ExpressLaneAuctionIni
  * Deploys the Timeboost ExpressLaneAuction logic contract and an initialized
  * TransparentUpgradeableProxy in front of it on the orbit (child) chain.
  *
- * The proxy is what callers interact with; the logic contract holds no state. ExpressLaneAuction's
- * initialize is guarded by onlyDelegated, so it reverts if called on the implementation directly.
- * We therefore encode initialize into the proxy constructor's data argument: it runs via delegatecall
- * atomically with deployment, exactly like the orbit-actions Foundry deployment script.
- *
  * The proxy admin must already exist (deploy it first with deployProxyAdmin); it is the contract that
  * can later upgrade this proxy.
  *
@@ -107,32 +102,6 @@ export function encodeExpressLaneAuctionInitData(initArgs: ExpressLaneAuctionIni
  * @param {Address} deployExpressLaneAuctionParams.beneficiarySetter - The account that can change the beneficiary
  * @param {Address} deployExpressLaneAuctionParams.roundTimingSetter - The account that can change the round timing
  * @param {Address} deployExpressLaneAuctionParams.masterAdmin - Holds DEFAULT_ADMIN_ROLE; the admin for any role without a dedicated admin
- *
- * @returns Promise<DeployExpressLaneAuctionResult> {@link DeployExpressLaneAuctionResult} - The proxy address (expressLaneAuction), the implementation address, and the proxy deployment transaction hash
- *
- * @example
- * const { proxyAdmin } = await deployProxyAdmin({ orbitChainWalletClient });
- * const { expressLaneAuction } = await deployExpressLaneAuction({
- *   orbitChainWalletClient,
- *   proxyAdmin,
- *   auctioneer,
- *   biddingToken,
- *   beneficiary,
- *   roundTimingInfo: {
- *     offsetTimestamp: 0n,
- *     roundDurationSeconds: 60n,
- *     auctionClosingSeconds: 15n,
- *     reserveSubmissionSeconds: 15n,
- *   },
- *   minReservePrice: 1n,
- *   auctioneerAdmin,
- *   minReservePriceSetter,
- *   reservePriceSetter,
- *   reservePriceSetterAdmin,
- *   beneficiarySetter,
- *   roundTimingSetter,
- *   masterAdmin,
- * });
  */
 export async function deployExpressLaneAuction(
   deployExpressLaneAuctionParams: DeployExpressLaneAuctionParams,
@@ -151,8 +120,6 @@ export async function deployExpressLaneAuction(
 
   const initData = encodeExpressLaneAuctionInitData(initArgs);
 
-  // initialize runs via delegatecall inside the proxy constructor, so an invalid config reverts
-  // the proxy deployment; deployContractChecked surfaces that as a revert error.
   const proxy = await deployContractChecked(
     ctx,
     'ExpressLaneAuction proxy',

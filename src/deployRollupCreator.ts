@@ -75,7 +75,9 @@ export type BridgeContractTemplates = {
   outbox: Address;
 };
 
-// Field order must match BridgeCreator's ABI tuple; the unit test round-trips it to catch a reorder.
+/**
+ * Field order must match BridgeCreator's ABI tuple; the unit test round-trips it to catch a reorder.
+ */
 export function buildBridgeCreatorTemplates(
   eth: BridgeContractTemplates,
   erc20: BridgeContractTemplates,

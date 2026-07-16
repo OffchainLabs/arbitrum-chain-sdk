@@ -70,7 +70,9 @@ export type DeployTokenBridgeCreatorResult = {
   transactionHash: Hex;
 };
 
-// Argument order must match setTemplates' ABI; the unit test round-trips it to catch a reorder.
+/**
+ * Argument order must match setTemplates' ABI; the unit test round-trips it to catch a reorder.
+ */
 export function buildSetTemplatesArgs(inputs: SetTemplatesInputs): readonly unknown[] {
   return [
     inputs.l1Templates,

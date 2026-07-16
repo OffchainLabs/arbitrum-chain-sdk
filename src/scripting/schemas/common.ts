@@ -27,8 +27,10 @@ export const nativeCurrencySchema = z.strictObject({
   decimals: z.number(),
 });
 
-// Optional `parentChainContracts` fragment carrying only the factory addresses a command reads (each
-// required): a built-in-parent caller omits it; a custom-parent caller supplies it for registration.
+/**
+ * Optional `parentChainContracts` fragment carrying only the factory addresses a command reads (each
+ * required): a built-in-parent caller omits it; a custom-parent caller supplies it for registration.
+ */
 export function parentChainContractsSchema(fields: {
   rollupCreator?: boolean;
   tokenBridgeCreator?: boolean;
@@ -41,8 +43,10 @@ export function parentChainContractsSchema(fields: {
   return z.strictObject(shape).optional();
 }
 
-// parentChainPublicClientSchema plus the optional custom-parent registration fields; the command's
-// transform still calls registerCustomParentChainFromInput to register.
+/**
+ * parentChainPublicClientSchema plus the optional custom-parent registration fields; the command's
+ * transform still calls registerCustomParentChainFromInput to register.
+ */
 export function customParentChainPublicClientSchema(contracts: {
   rollupCreator?: boolean;
   tokenBridgeCreator?: boolean;
