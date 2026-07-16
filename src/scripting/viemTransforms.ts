@@ -18,6 +18,19 @@ export function findChain(chainId: number): Chain {
   });
 }
 
+export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
+  const knownChains = [...chains, ...getCustomParentChains()];
+  const chain = knownChains.find((c) => c.id === chainId);
+  if (chain) return chain;
+  return defineChain({
+    id: chainId,
+    name: `Chain ${chainId}`,
+    network: `chain-${chainId}`,
+    nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls: { default: { http: [rpcUrl] }, public: { http: [rpcUrl] } },
+  });
+}
+
 export function toPublicClient<TChain extends Chain | undefined = undefined>(
   rpcUrl: string,
   chain?: TChain,
@@ -134,7 +147,11 @@ export function withChildChainSign<
   const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
   return [
     {
-      orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)),
+      orbitChainWalletClient: toWalletClient(
+        orbitChainRpcUrl,
+        privateKey,
+        findOrDefineChain(orbitChainId, orbitChainRpcUrl),
+      ),
       ...rest,
     },
   ] as WithChildChainSign<T>;

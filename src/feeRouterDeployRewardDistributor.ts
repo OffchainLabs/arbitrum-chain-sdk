@@ -1,4 +1,4 @@
-import { Address, WalletClient } from 'viem';
+import { Address, WalletClient, zeroAddress } from 'viem';
 
 import rewardDistributor from '@offchainlabs/fund-distribution-contracts/out/RewardDistributor.sol/RewardDistributor.json';
 
@@ -15,6 +15,7 @@ export type RewardDistributorRecipient = {
  */
 export type FeeRouterDeployRewardDistributorParams = {
   orbitChainWalletClient: WalletClient;
+  token?: Address;
   recipients: RewardDistributorRecipient[];
 };
 
@@ -32,6 +33,7 @@ export type FeeRouterDeployRewardDistributorParams = {
  *
  * @param {FeeRouterDeployRewardDistributorParams} feeRouterDeployRewardDistributorParams {@link FeeRouterDeployRewardDistributorParams}
  * @param {WalletClient} feeRouterDeployRewardDistributorParams.orbitChainWalletClient - The orbit chain Viem wallet client (this account will deploy the contract)
+ * @param {Address} feeRouterDeployRewardDistributorParams.token - [Optional] The token to distribute. Defaults to the native token.
  * @param {RewardDistributorRecipient[]} feeRouterDeployRewardDistributorParams.recipients - The recipients of the rewards (array objects with properties "account" and "weight") {@link RewardDistributorRecipient}
  * @param {Address} feeRouterDeployRewardDistributorParams.recipients.account - Recipient of rewards
  * @param {Address} feeRouterDeployRewardDistributorParams.recipients.weight - Percentage of the reward obtained multiplied by 100 (e.g., for obtaining 25%, the weight would be 2500)
@@ -63,6 +65,7 @@ export type FeeRouterDeployRewardDistributorParams = {
  */
 export async function feeRouterDeployRewardDistributor({
   orbitChainWalletClient,
+  token = zeroAddress,
   recipients,
 }: FeeRouterDeployRewardDistributorParams) {
   const transactionHash = await orbitChainWalletClient.deployContract({
@@ -70,6 +73,7 @@ export async function feeRouterDeployRewardDistributor({
     account: orbitChainWalletClient.account!,
     chain: orbitChainWalletClient.chain,
     args: [
+      token,
       recipients.map((recipient) => recipient.account),
       recipients.map((recipient) => recipient.weight),
     ],
