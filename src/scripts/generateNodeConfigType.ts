@@ -5,7 +5,7 @@ import { Project, WriterFunction, Writers } from 'ts-morph';
 const { objectType } = Writers;
 
 function getNitroNodeImageTag(): string {
-  const defaultNitroNodeTag = 'v3.6.0-fc07dd2';
+  const defaultNitroNodeTag = 'v3.11.2-3599aca';
   const argv = process.argv.slice(2);
 
   if (argv.length < 2 || argv[0] !== '--nitro-node-tag') {
@@ -57,6 +57,8 @@ function parseCliOptions(fileContents: string): CliOption[] {
     float: 'number',
     AllowedSeeks: 'number',
     backendConfigList: 'string',
+    // JSON-encoded array of compression level steps, passed as a string
+    CompressionLevelStepList: 'string',
     boolean: 'boolean',
     duration: 'string',
     durationSlice: 'string[]',
@@ -66,16 +68,18 @@ function parseCliOptions(fileContents: string): CliOption[] {
   let lines = fileContents.split('\n');
   // trim whitespaces
   lines = lines.map((line) => line.trim());
-  // special case for flags with comments that span multiple lines
-  // todo: generalize this so it automatically detects and merges multi-line comments??
-  lines = lines.map((line, lineIndex) => {
-    // this comment spans 3 lines
-    if (line.includes('max-fee-cap-formula')) {
-      return `${line} ${lines[lineIndex + 1]} ${lines[lineIndex + 2]}`;
+  // merge multi-line help texts: a line that doesn't start with "--" is a
+  // continuation of the previous flag's description (help epilogue excluded)
+  const epilogue = /^(Version:|Sample usage:|Options:?)/;
+  const merged: string[] = [];
+  for (const line of lines) {
+    if (line.startsWith('--')) {
+      merged.push(line);
+    } else if (line !== '' && merged.length > 0 && !epilogue.test(line)) {
+      merged[merged.length - 1] += ` ${line}`;
     }
-
-    return line;
-  });
+  }
+  lines = merged;
   // only leave lines that start with "--", e.g. "--auth.addr string" but exclude "--help" and "--dev"
 
   lines = lines.filter(
