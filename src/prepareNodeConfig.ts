@@ -118,7 +118,7 @@ export function prepareNodeConfig({
         'finalize-distance': 1,
       },
       'batch-poster': {
-        'max-size': 90000,
+        'max-calldata-batch-size': 90000,
         'enable': batchPosterPrivateKey !== undefined,
         ...(batchPosterPrivateKey !== undefined && {
           'parent-chain-wallet': {
@@ -164,8 +164,6 @@ export function prepareNodeConfig({
   if (chainConfig.arbitrum.DataAvailabilityCommittee) {
     config.node!['data-availability'] = {
       'enable': true,
-      'sequencer-inbox-address': coreContracts.sequencerInbox,
-      'parent-chain-node-url': parentChainRpcUrl,
       'rest-aggregator': {
         enable: true,
         urls: [`${dasServerUrlWithFallback}:9877`],
