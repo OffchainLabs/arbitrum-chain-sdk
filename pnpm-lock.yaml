@@ -12,15 +12,9 @@ overrides:
   '@wagmi/cli>esbuild': 0.25.1
   '@wagmi/cli>bundle-require': 5.1.0
   elliptic: 6.6.1
-  pbkdf2: 3.1.3
-  cipher-base: 1.0.5
   tmp: 0.2.7
-  tsx>esbuild: 0.28.1
   vite>esbuild: 0.28.1
   vite: 7.3.5
-  js-yaml: 4.2.0
-  zod: 4.3.6
-  postcss: 8.5.10
 
 importers:
 
@@ -75,7 +69,7 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(@types/node@20.19.43)(vite@7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
       zod:
-        specifier: 4.3.6
+        specifier: ^4.3.6
         version: 4.3.6
 
   examples/create-rollup-custom-fee-token:
@@ -160,7 +154,7 @@ importers:
         version: 16.3.1
       viem:
         specifier: 1.20.0
-        version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
+        version: 1.20.0(typescript@5.2.2)(zod@3.25.76)
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -232,7 +226,7 @@ importers:
         specifier: 1.20.0
         version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
       zod:
-        specifier: 4.3.6
+        specifier: ^4.3.6
         version: 4.3.6
 
 packages:
@@ -1077,7 +1071,7 @@ packages:
     resolution: {integrity: sha512-wQ7hV8Yg/yKmGyFpqrNZufCxbszDe5es4AZGYPBitocfSqXtjrTG9JMWFcc4N30ukl2ve48aBTwt7NJxVQdU3w==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: 4.3.6
+      zod: ^3 >=3.19.1
     peerDependenciesMeta:
       zod:
         optional: true
@@ -1086,7 +1080,7 @@ packages:
     resolution: {integrity: sha512-puLifILdm+8sjyss4S+fsUN09obiT1g2YW6CtcQF+QDzxR0euzgEB29MZujC6zMk2a6SVmtttq1fc6+YFA7WYQ==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: 4.3.6
+      zod: ^3 >=3.19.1
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1097,7 +1091,7 @@ packages:
     resolution: {integrity: sha512-YzDhti7cjlfaBhHutMaboYB21Ha3rXR9QTkNJFzYC4kC8YclaiwPBBBJY8ejFdu2wnJeZCVZSMlQJ7fi8S6hsw==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: 4.3.6
+      zod: ^3 >=3.22.0
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1108,7 +1102,7 @@ packages:
     resolution: {integrity: sha512-dpKH+N27vRjarMVTFFkeY445VTKftzGWpL0FiT7xmVmzQRKazZexzC5uHG0f6XKsVLAuUlndnbGau6lRejClxg==}
     peerDependencies:
       typescript: '>=5.0.4'
-      zod: 4.3.6
+      zod: ^3.22.0 || ^4.0.0
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -1220,14 +1214,14 @@ packages:
   bn.js@5.2.3:
     resolution: {integrity: sha512-EAcmnPkxpntVL+DS7bO1zhcZNvCkxqtkd0ZY53h06GNQ3DEkkGZ/gKgmDv6DdZQGj9BgfSPKtJJ7Dp1GPP8f7w==}
 
-  brace-expansion@1.1.14:
-    resolution: {integrity: sha512-MWPGfDxnyzKU7rNOW9SP/c50vi3xrmrua/+6hfPbCS2ABNWfx24vPidzvC7krjU/RTo235sV776ymlsMtGKj8g==}
+  brace-expansion@1.1.16:
+    resolution: {integrity: sha512-IDw48K2/2kRkg9LdJxurvq3lV3aBgq0REY89duEqFRthjlPdXHKMj7EnQOXVckxzgisinf3nHfrcE2FufFLXMw==}
 
-  brace-expansion@2.1.0:
-    resolution: {integrity: sha512-TN1kCZAgdgweJhWWpgKYrQaMNHcDULHkWwQIspdtjV4Y5aurRdZpjAqn6yX3FPqTA9ngHCc4hJxMAMgGfve85w==}
+  brace-expansion@2.1.2:
+    resolution: {integrity: sha512-w5JZcKgdhDOgOwm8H+KgbosopHMuGcl6qbulwjtz3SM7I7P3yW1eAjzMPLrIE+NQ9vjgANKHWeMHnrT0OXW1oA==}
 
-  brace-expansion@5.0.6:
-    resolution: {integrity: sha512-kLpxurY4Z4r9sgMsyG0Z9uzsBlgiU/EFKhj/h91/8yHu0edo7XuixOIH3VcJ8kkxs6/jPzoI6U9Vj3WqbMQ94g==}
+  brace-expansion@5.0.7:
+    resolution: {integrity: sha512-7oFy703dxfY3/NLxC1fh2SUCQ0H9rmAY+5EpDVfXjUTTs+HEwR2nYaqLv+GWcTsumwxPfiz6CzCNkwXwBUwqCA==}
     engines: {node: 18 || 20 || >=22}
 
   braces@3.0.3:
@@ -1909,8 +1903,8 @@ packages:
   js-sha3@0.8.0:
     resolution: {integrity: sha512-gF1cRrHhIzNfToc802P800N8PpXS+evLLXfsVpowqmAFR9uwbi89WvXg2QspOmXL8QL86J4T1EpFu+yUkwJY3Q==}
 
-  js-yaml@4.2.0:
-    resolution: {integrity: sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==}
+  js-yaml@4.3.0:
+    resolution: {integrity: sha512-1td788aAnnZ5qs7V2QIRl1owjtYpbKt749Y3xauqQgwIIGF/xXWz1wMTEBx5O3LK3lXLVuqXPdPxj2BoFHaW9Q==}
     hasBin: true
 
   json-buffer@3.0.1:
@@ -2815,6 +2809,9 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
 
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
   zod@4.3.6:
     resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
@@ -3045,7 +3042,7 @@ snapshots:
       globals: 14.0.0
       ignore: 5.2.4
       import-fresh: 3.3.1
-      js-yaml: 4.2.0
+      js-yaml: 4.3.0
       minimatch: 3.1.5
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -3676,7 +3673,7 @@ snapshots:
 
   '@wagmi/cli@1.5.2(typescript@5.2.2)':
     dependencies:
-      abitype: 0.8.7(typescript@5.2.2)(zod@4.3.6)
+      abitype: 0.8.7(typescript@5.2.2)(zod@3.25.76)
       abort-controller: 3.0.0
       bundle-require: 5.1.0(esbuild@0.25.1)
       cac: 6.7.14
@@ -3696,8 +3693,8 @@ snapshots:
       pathe: 1.1.1
       picocolors: 1.1.1
       prettier: 2.8.8
-      viem: 1.20.0(typescript@5.2.2)(zod@4.3.6)
-      zod: 4.3.6
+      viem: 1.20.0(typescript@5.2.2)(zod@3.25.76)
+      zod: 3.25.76
     optionalDependencies:
       typescript: 5.2.2
     transitivePeerDependencies:
@@ -3713,11 +3710,16 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  abitype@0.8.7(typescript@5.2.2)(zod@4.3.6):
+  abitype@0.8.7(typescript@5.2.2)(zod@3.25.76):
     dependencies:
       typescript: 5.2.2
     optionalDependencies:
-      zod: 4.3.6
+      zod: 3.25.76
+
+  abitype@0.9.8(typescript@5.2.2)(zod@3.25.76):
+    optionalDependencies:
+      typescript: 5.2.2
+      zod: 3.25.76
 
   abitype@0.9.8(typescript@5.2.2)(zod@4.3.6):
     optionalDependencies:
@@ -3846,16 +3848,16 @@ snapshots:
 
   bn.js@5.2.3: {}
 
-  brace-expansion@1.1.14:
+  brace-expansion@1.1.16:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
 
-  brace-expansion@2.1.0:
+  brace-expansion@2.1.2:
     dependencies:
       balanced-match: 1.0.2
 
-  brace-expansion@5.0.6:
+  brace-expansion@5.0.7:
     dependencies:
       balanced-match: 4.0.4
 
@@ -4788,7 +4790,7 @@ snapshots:
 
   js-sha3@0.8.0: {}
 
-  js-yaml@4.2.0:
+  js-yaml@4.3.0:
     dependencies:
       argparse: 2.0.1
 
@@ -4945,15 +4947,15 @@ snapshots:
 
   minimatch@10.2.4:
     dependencies:
-      brace-expansion: 5.0.6
+      brace-expansion: 5.0.7
 
   minimatch@3.1.5:
     dependencies:
-      brace-expansion: 1.1.14
+      brace-expansion: 1.1.16
 
   minimatch@9.0.9:
     dependencies:
-      brace-expansion: 2.1.0
+      brace-expansion: 2.1.2
 
   minimist@1.2.8: {}
 
@@ -5563,6 +5565,23 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  viem@1.20.0(typescript@5.2.2)(zod@3.25.76):
+    dependencies:
+      '@adraffy/ens-normalize': 1.10.0
+      '@noble/curves': 1.2.0
+      '@noble/hashes': 1.3.2
+      '@scure/bip32': 1.3.2
+      '@scure/bip39': 1.2.1
+      abitype: 0.9.8(typescript@5.2.2)(zod@3.25.76)
+      isows: 1.0.3(ws@8.21.0)
+      ws: 8.21.0
+    optionalDependencies:
+      typescript: 5.2.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+      - zod
+
   viem@1.20.0(typescript@5.2.2)(zod@4.3.6):
     dependencies:
       '@adraffy/ens-normalize': 1.10.0
@@ -5695,5 +5714,7 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   yocto-queue@1.0.0: {}
+
+  zod@3.25.76: {}
 
   zod@4.3.6: {}
