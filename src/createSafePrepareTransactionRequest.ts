@@ -115,8 +115,11 @@ export async function createSafePrepareTransactionRequest<TChain extends Chain |
   validateSafeAccountConfig(safeAccountConfig);
 
   // instantiate Safe Factory
+  // chain.rpcUrls can be empty (custom/unknown chains), so prefer the transport URL the
+  // caller connected with.
+  const transportUrl = publicClient.transport.url as string | undefined;
   const safeFactory = await SafeFactory.init({
-    provider: publicClient.chain!.rpcUrls.default.http[0],
+    provider: transportUrl ?? publicClient.chain!.rpcUrls.default.http[0],
   });
 
   // instantiate Safe Contract

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_KEYSET } from './defaultKeyset';
 import { createRollupDefaultSchema } from '../schemas/createRollup';
 import { hexSchema, bigintSchema, addressSchema, chainConfigInputSchema } from '../schemas/common';
 import {
@@ -6,7 +7,13 @@ import {
   refineChainIdMatch,
   refineV3Dot2CustomGenesis,
 } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
+import {
+  toPublicClient,
+  toAccount,
+  toWalletClient,
+  findChain,
+  registerCustomParentChainFromInput,
+} from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { createRollup } from '../../createRollup';
@@ -43,16 +50,17 @@ export const schema = inputSchema
     refineChainIdMatch(data.params.config, ctx, ['params', 'config']);
   })
   .transform((input) => {
+    const registered = registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
-      input.parentChainRpcUrl,
-      findChain(input.parentChainId),
+      registered.parentChainRpcUrl,
+      findChain(registered.parentChainId),
     );
-    const account = toAccount(input.privateKey);
+    const account = toAccount(registered.privateKey);
     const {
       config: { chainConfig: rawChainConfigParams, owner: rawOwner, ...restConfigRest },
       keyset,
       ...params
-    } = input.params;
+    } = registered.params;
     const restConfig = { ...restConfigRest, owner: rawOwner ?? account.address };
     const chainConfigParams = rawChainConfigParams
       ? {
@@ -70,17 +78,14 @@ export const schema = inputSchema
       chainConfig,
     });
 
-    const DEFAULT_KEYSET: `0x${string}` =
-      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
-
     return {
       params: { config, ...params },
       account,
       parentChainPublicClient,
       walletClient: toWalletClient(
-        input.parentChainRpcUrl,
-        input.privateKey,
-        findChain(input.parentChainId),
+        registered.parentChainRpcUrl,
+        registered.privateKey,
+        findChain(registered.parentChainId),
       ),
       keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
     };

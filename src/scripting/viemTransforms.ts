@@ -1,20 +1,12 @@
-import { Chain, createPublicClient, createWalletClient, defineChain, http } from 'viem';
+import { Address, Chain, createPublicClient, createWalletClient, defineChain, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
-import { chains, getCustomParentChains } from '../chains';
+import { chains, getCustomParentChains, registerCustomParentChain } from '../chains';
 
 export function findChain(chainId: number): Chain {
-  const knownChains = [...chains, ...getCustomParentChains()];
-  const chain = knownChains.find((c) => c.id === chainId);
-  if (!chain) {
-    const known = knownChains.map((c) => c.id).join(', ');
-    throw new Error(`Unknown chain ID: ${chainId}. Known chain IDs: ${known}`);
-  }
-  return chain;
-}
-
-export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
-  const knownChains = [...chains, ...getCustomParentChains()];
+  // Custom chains first: a registered custom chain wins over a built-in with the same id,
+  // so its factory addresses are used instead of the contract-less built-in entry.
+  const knownChains = [...getCustomParentChains(), ...chains];
   const chain = knownChains.find((c) => c.id === chainId);
   if (chain) return chain;
   return defineChain({
@@ -22,7 +14,7 @@ export function findOrDefineChain(chainId: number, rpcUrl: string): Chain {
     name: `Chain ${chainId}`,
     network: `chain-${chainId}`,
     nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-    rpcUrls: { default: { http: [rpcUrl] }, public: { http: [rpcUrl] } },
+    rpcUrls: { default: { http: [] }, public: { http: [] } },
   });
 }
 
@@ -31,6 +23,51 @@ export function toPublicClient<TChain extends Chain | undefined = undefined>(
   chain?: TChain,
 ) {
   return createPublicClient({ chain, transport: http(rpcUrl) });
+}
+
+// Optional fields describing a parent chain not in the built-in list, so it can be registered.
+export type CustomParentChainInput = {
+  parentChainContracts?: {
+    rollupCreator?: Address;
+    tokenBridgeCreator?: Address;
+    weth?: Address;
+  };
+  parentChainName?: string;
+  parentChainNativeCurrency?: { name: string; symbol: string; decimals: number };
+};
+
+/**
+ * Registers a custom parent chain from CLI input and strips the custom fields so downstream
+ * transforms and SDK args never see them. With custom-first findChain, the registered chain's
+ * factory addresses win over any built-in entry with the same id. Gated on parentChainContracts:
+ * registering on name/currency alone would shadow a working built-in with a contract-less entry
+ * (custom-first findChain), breaking the address lookups that then read an isCustom chain.
+ */
+export function registerCustomParentChainFromInput<
+  T extends { parentChainId: number } & CustomParentChainInput,
+>(input: T): Omit<T, keyof CustomParentChainInput> {
+  const { parentChainContracts, parentChainName, parentChainNativeCurrency, ...rest } = input;
+
+  if (parentChainContracts) {
+    registerCustomParentChain({
+      id: input.parentChainId,
+      name: parentChainName ?? `Custom Parent Chain ${input.parentChainId}`,
+      network: `custom-parent-chain-${input.parentChainId}`,
+      nativeCurrency: parentChainNativeCurrency ?? { name: 'Ether', symbol: 'ETH', decimals: 18 },
+      rpcUrls: { default: { http: [] }, public: { http: [] } },
+      contracts: {
+        ...(parentChainContracts?.rollupCreator && {
+          rollupCreator: { address: parentChainContracts.rollupCreator },
+        }),
+        ...(parentChainContracts?.tokenBridgeCreator && {
+          tokenBridgeCreator: { address: parentChainContracts.tokenBridgeCreator },
+        }),
+        ...(parentChainContracts?.weth && { weth: { address: parentChainContracts.weth } }),
+      },
+    });
+  }
+
+  return rest;
 }
 
 // -- Connection transform types --
@@ -43,6 +80,12 @@ type WithPublicClient<T> = [
 
 type WithPublicClientOptionalChain<T> = [
   Omit<T, 'rpcUrl' | 'chainId'> & { publicClient: ReturnType<typeof toPublicClient> },
+];
+
+type WithWalletClient<T> = [
+  Omit<T, 'rpcUrl' | 'chainId' | 'privateKey'> & {
+    walletClient: ReturnType<typeof toWalletClient<Chain>>;
+  },
 ];
 
 type WithParentChainPublicClient<T> = [
@@ -98,6 +141,15 @@ export function withPublicClientOptionalChain<T extends { rpcUrl: string; chainI
   ] as WithPublicClientOptionalChain<T>;
 }
 
+export function withWalletClient<T extends { rpcUrl: string; chainId: number; privateKey: string }>(
+  input: T,
+): WithWalletClient<T> {
+  const { rpcUrl, chainId, privateKey, ...rest } = input;
+  return [
+    { walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)), ...rest },
+  ] as WithWalletClient<T>;
+}
+
 export function withParentChainPublicClient<
   T extends { parentChainRpcUrl: string; parentChainId: number },
 >(input: T): WithParentChainPublicClient<T> {
@@ -142,11 +194,7 @@ export function withChildChainSign<
   const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
   return [
     {
-      orbitChainWalletClient: toWalletClient(
-        orbitChainRpcUrl,
-        privateKey,
-        findOrDefineChain(orbitChainId, orbitChainRpcUrl),
-      ),
+      orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)),
       ...rest,
     },
   ] as WithChildChainSign<T>;

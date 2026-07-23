@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEFAULT_KEYSET } from './defaultKeyset';
 import { parseAbi, zeroAddress, isAddressEqual } from 'viem';
 
 import { createRollupDefaultSchema } from '../schemas/createRollup';
@@ -8,13 +9,20 @@ import {
   addressSchema,
   privateKeySchema,
   chainConfigInputSchema,
+  parentChainContractsSchema,
 } from '../schemas/common';
 import {
   paramsV3Dot2Schema,
   refineChainIdMatch,
   refineV3Dot2CustomGenesis,
 } from '../schemas/createRollupPrepareDeploymentParamsConfig';
-import { toPublicClient, toAccount, toWalletClient, findChain } from '../viemTransforms';
+import {
+  toPublicClient,
+  toAccount,
+  toWalletClient,
+  findChain,
+  registerCustomParentChainFromInput,
+} from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from '../../prepareChainConfig';
 import { prepareNodeConfig } from '../../prepareNodeConfig';
@@ -39,6 +47,11 @@ const { params: createRollupBaseParams, ...baseFields } = createRollupDefaultSch
 export const inputSchema = z
   .object({
     ...baseFields,
+    parentChainContracts: parentChainContractsSchema({
+      rollupCreator: true,
+      tokenBridgeCreator: true,
+      weth: true,
+    }),
     chainName: z.string(),
     createRollupParams: createRollupBaseParams
       .extend({
@@ -155,6 +168,7 @@ export const schema = inputSchema
     }
   })
   .transform((input) => {
+    registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
       input.parentChainRpcUrl,
       findChain(input.parentChainId),
@@ -181,9 +195,6 @@ export const schema = inputSchema
         };
 
     const isAnytrust = chainConfigParams.arbitrum.DataAvailabilityCommittee === true;
-
-    const DEFAULT_KEYSET: `0x${string}` =
-      '0x00000000000000010000000000000001012160000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
 
     const walletClient = toWalletClient(
       input.parentChainRpcUrl,

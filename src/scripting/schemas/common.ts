@@ -21,6 +21,44 @@ export const parentChainPublicClientSchema = z.strictObject({
   parentChainId: z.number(),
 });
 
+export const nativeCurrencySchema = z.strictObject({
+  name: z.string(),
+  symbol: z.string(),
+  decimals: z.number(),
+});
+
+/**
+ * Optional `parentChainContracts` fragment carrying only the factory addresses a command reads (each
+ * required): a built-in-parent caller omits it; a custom-parent caller supplies it for registration.
+ */
+export function parentChainContractsSchema(fields: {
+  rollupCreator?: boolean;
+  tokenBridgeCreator?: boolean;
+  weth?: boolean;
+}) {
+  const shape: Record<string, typeof addressSchema> = {};
+  if (fields.rollupCreator) shape.rollupCreator = addressSchema;
+  if (fields.tokenBridgeCreator) shape.tokenBridgeCreator = addressSchema;
+  if (fields.weth) shape.weth = addressSchema;
+  return z.strictObject(shape).optional();
+}
+
+/**
+ * parentChainPublicClientSchema plus the optional custom-parent registration fields; the command's
+ * transform still calls registerCustomParentChainFromInput to register.
+ */
+export function customParentChainPublicClientSchema(contracts: {
+  rollupCreator?: boolean;
+  tokenBridgeCreator?: boolean;
+  weth?: boolean;
+}) {
+  return parentChainPublicClientSchema.extend({
+    parentChainContracts: parentChainContractsSchema(contracts),
+    parentChainName: z.string().optional(),
+    parentChainNativeCurrency: nativeCurrencySchema.optional(),
+  });
+}
+
 export const actionWriteBaseSchema = publicClientSchema.extend({
   account: addressSchema,
   upgradeExecutor: addressSchema.optional().transform((v) => v ?? false),

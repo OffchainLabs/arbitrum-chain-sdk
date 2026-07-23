@@ -27,6 +27,9 @@ import {
   feeRouterDeployChildToParentRewardRouterSchema,
   deployProxyAdminSchema,
   deployExpressLaneAuctionSchema,
+  deployWethSchema,
+  deployRollupCreatorSchema,
+  deployTokenBridgeCreatorSchema,
   prepareChainConfigParamsSchema,
   prepareNodeConfigSchema,
   prepareKeysetSchema,
@@ -83,6 +86,9 @@ import { feeRouterDeployRewardDistributor } from '../feeRouterDeployRewardDistri
 import { feeRouterDeployChildToParentRewardRouter } from '../feeRouterDeployChildToParentRewardRouter';
 import { deployProxyAdmin } from '../deployProxyAdmin';
 import { deployExpressLaneAuction } from '../deployExpressLaneAuction';
+import { deployWeth } from '../deployWeth';
+import { deployRollupCreator } from '../deployRollupCreator';
+import { deployTokenBridgeCreator } from '../deployTokenBridgeCreator';
 import { prepareChainConfig } from '../prepareChainConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { prepareKeyset } from '../prepareKeyset';
@@ -130,6 +136,10 @@ import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
+import {
+  schema as deployParentChainContractsSchema,
+  execute as deployParentChainContractsExecute,
+} from './workflows/deployParentChainContracts';
 
 import { contractRegistry } from './contractRegistry';
 import { buildContractCommandSchema } from './contractCommandSchema';
@@ -280,6 +290,9 @@ export const commands: readonly Command[] = [
   ),
   command('deployProxyAdmin', deployProxyAdminSchema, deployProxyAdmin),
   command('deployExpressLaneAuction', deployExpressLaneAuctionSchema, deployExpressLaneAuction),
+  command('deployWeth', deployWethSchema, deployWeth),
+  command('deployRollupCreator', deployRollupCreatorSchema, deployRollupCreator),
+  command('deployTokenBridgeCreator', deployTokenBridgeCreatorSchema, deployTokenBridgeCreator),
   command('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
   command('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
   command('prepareKeyset', prepareKeysetSchema, prepareKeyset),
@@ -363,6 +376,11 @@ export const commands: readonly Command[] = [
     'deployFullChain',
     deployFullChainSchema.transform((i) => [i] as const),
     deployFullChainExecute,
+  ),
+  command(
+    'deployParentChainContracts',
+    deployParentChainContractsSchema.transform((i) => [i] as const),
+    deployParentChainContractsExecute,
   ),
 
   ...contractCommands,

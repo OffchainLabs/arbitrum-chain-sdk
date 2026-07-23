@@ -138,6 +138,18 @@ import {
   DeployExpressLaneAuctionResult,
   ExpressLaneAuctionRoundTimingInfo,
 } from './deployExpressLaneAuction';
+import { deployWeth, DeployWethParams, DeployWethResult } from './deployWeth';
+import {
+  deployRollupCreator,
+  DeployRollupCreatorParams,
+  DeployRollupCreatorResult,
+  DEFAULT_MAX_DATA_SIZE,
+} from './deployRollupCreator';
+import {
+  deployTokenBridgeCreator,
+  DeployTokenBridgeCreatorParams,
+  DeployTokenBridgeCreatorResult,
+} from './deployTokenBridgeCreator';
 import * as utils from './utils';
 
 import { getBridgeUiConfig, GetBridgeUiConfigFunctionParams } from './getBridgeUiConfig';
@@ -315,6 +327,16 @@ export {
   DeployExpressLaneAuctionParams,
   DeployExpressLaneAuctionResult,
   ExpressLaneAuctionRoundTimingInfo,
+  deployWeth,
+  DeployWethParams,
+  DeployWethResult,
+  deployRollupCreator,
+  DeployRollupCreatorParams,
+  DeployRollupCreatorResult,
+  DEFAULT_MAX_DATA_SIZE,
+  deployTokenBridgeCreator,
+  DeployTokenBridgeCreatorParams,
+  DeployTokenBridgeCreatorResult,
   //
   getDefaultConfirmPeriodBlocks,
   getDefaultChallengeGracePeriodBlocks,
