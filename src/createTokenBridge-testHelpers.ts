@@ -6,49 +6,30 @@ import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 
 const execFilePromise = promisify(execFile);
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const tokenBridgeContractsImage =
-  process.env.TOKEN_BRIDGE_CONTRACTS_IMAGE ?? 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.2';
-const skipTokenBridgeContractsImageBuild = process.env.TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD === 'true';
-
-let tokenBridgeContractsImagePromise: Promise<string> | undefined;
-
-async function buildTokenBridgeContractsImage() {
-  if (typeof tokenBridgeContractsImagePromise !== 'undefined') {
-    return tokenBridgeContractsImagePromise;
-  }
-
-  tokenBridgeContractsImagePromise = (async () => {
-    if (skipTokenBridgeContractsImageBuild) {
-      await execFilePromise('docker', ['image', 'inspect', tokenBridgeContractsImage]);
-      return tokenBridgeContractsImage;
-    }
-
-    await execFilePromise('docker', [
-      'build',
-      '-q',
-      '-t',
-      tokenBridgeContractsImage,
-      'token-bridge-contracts',
-    ]);
-    return tokenBridgeContractsImage;
-  })();
-
-  return tokenBridgeContractsImagePromise;
-}
 
 export async function deployTokenBridgeCreator({
   publicClient,
 }: {
   publicClient: PublicClient;
 }): Promise<Address> {
+  const testnodeImage = process.env.TESTNODE_IMAGE;
+
+  if (testnodeImage === undefined) {
+    throw new Error('TESTNODE_IMAGE must be defined');
+  }
+
   // https://github.com/OffchainLabs/token-bridge-contracts/blob/main/scripts/local-deployment/deployCreatorAndCreateTokenBridge.ts#L109C19-L109C61
   const weth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
-  const image = await buildTokenBridgeContractsImage();
 
   const { stdout } = await execFilePromise('docker', [
     'run',
     '--rm',
-    '--net=host',
+    '--network',
+    'host',
+    '--workdir',
+    '/workspace',
+    '--entrypoint',
+    'yarn',
     '-e',
     `BASECHAIN_RPC=${publicClient.transport.url}`,
     '-e',
@@ -57,7 +38,11 @@ export async function deployTokenBridgeCreator({
     `BASECHAIN_WETH=${weth}`,
     '-e',
     'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
-    image,
+    '-e',
+    'POLLING_INTERVAL=100',
+    '-e',
+    'DISABLE_CONTRACT_VERIFICATION=true',
+    testnodeImage,
     'deploy:token-bridge-creator',
   ]);
 

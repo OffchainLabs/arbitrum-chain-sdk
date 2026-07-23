@@ -233,28 +233,28 @@ jobs:
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc3.2-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.12-nc3.2-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
             decimals: 18
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc3.2-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.12-nc3.2-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
             decimals: 6
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.12-nc2.1-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v2-1-l3-custom-18
             nitro-contracts-version: v2.1
             decimals: 18
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.12-nc2.1-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v2-1-l3-custom-6
             nitro-contracts-version: v2.1
@@ -287,18 +287,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build token bridge contracts image
-        uses: docker/build-push-action@v6
-        with:
-          context: token-bridge-contracts
-          load: true
-          tags: arbitrum-chain-sdk-token-bridge-contracts:v1.2.2
-          cache-from: type=gha,scope=token-bridge-contracts-v1.2.2
-          cache-to: type=gha,mode=max,scope=token-bridge-contracts-v1.2.2
 
       - name: Set up the local node
         run: |
@@ -334,9 +322,9 @@ jobs:
       - name: Test
         run: |
           ARBITRUM_TESTNODE_CONTAINER=${{ matrix.config.container }} \
+          TESTNODE_IMAGE=${{ matrix.config.image }} \
           INTEGRATION_TEST_DECIMALS=${{ matrix.config.decimals }} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{ matrix.config.nitro-contracts-version }} \
           NITRO_TESTNODE_L3_TOKEN_BRIDGE_DEPLOYER_PRIVATE_KEY=0x84f89f9afcf4cd87bbf0a8872a1abd8ddf69364da61a2c2a5286d999383cd2c9 \
-          TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD=true \
           CI=true \
           pnpm test:integration
