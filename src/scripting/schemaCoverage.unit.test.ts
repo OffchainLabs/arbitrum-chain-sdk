@@ -278,9 +278,16 @@ const coverageConfig: Record<string, CoverageConfig> = {
       {
         matches: (k) => k === 'nodeConfigParams' || k.startsWith('nodeConfigParams.'),
         apply: (base) => {
-          const b = base as { createRollupParams: { config: Record<string, unknown> } };
+          const b = base as {
+            createRollupParams: { config: Record<string, unknown> };
+            nodeConfigParams?: Record<string, unknown>;
+          };
           return {
             ...b,
+            nodeConfigParams: {
+              ...b.nodeConfigParams,
+              insecure: true,
+            },
             createRollupParams: {
               ...b.createRollupParams,
               config: {
@@ -350,6 +357,10 @@ const coverageConfig: Record<string, CoverageConfig> = {
       },
       'createRollupParams.config.chainConfig.chainId': {
         'createRollupParams.config.chainId': (v) => String(v),
+      },
+      'nodeConfigParams.insecure': {
+        'nodeConfigParams.batchPosterPrivateKey': (v) => (v ? `0x${'1'.repeat(64)}` : undefined),
+        'nodeConfigParams.validatorPrivateKey': (v) => (v ? `0x${'2'.repeat(64)}` : undefined),
       },
     },
   },

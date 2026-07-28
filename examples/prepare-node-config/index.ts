@@ -1,4 +1,5 @@
 import { writeFile } from 'fs/promises';
+import { parseArgs } from 'node:util';
 import { Chain, createPublicClient, http } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
 import {
@@ -10,7 +11,21 @@ import {
 } from '@arbitrum/chain-sdk';
 import { getParentChainLayer } from '@arbitrum/chain-sdk/utils';
 import { config } from 'dotenv';
+import { getPrivateKeyParams } from './options.js';
 config();
+
+const {
+  values: { insecure },
+} = parseArgs({
+  options: {
+    insecure: {
+      type: 'boolean',
+      default: false,
+    },
+  },
+});
+
+const privateKeyParams = getPrivateKeyParams(insecure);
 
 function getRpcUrl(chain: Chain) {
   return chain.rpcUrls.default.http[0];
@@ -20,12 +35,10 @@ if (typeof process.env.ORBIT_DEPLOYMENT_TRANSACTION_HASH === 'undefined') {
   throw new Error(`Please provide the "ORBIT_DEPLOYMENT_TRANSACTION_HASH" environment variable`);
 }
 
-if (typeof process.env.BATCH_POSTER_PRIVATE_KEY === 'undefined') {
-  throw new Error(`Please provide the "BATCH_POSTER_PRIVATE_KEY" environment variable`);
-}
-
-if (typeof process.env.VALIDATOR_PRIVATE_KEY === 'undefined') {
-  throw new Error(`Please provide the "VALIDATOR_PRIVATE_KEY" environment variable`);
+if (!insecure && (process.env.BATCH_POSTER_PRIVATE_KEY || process.env.VALIDATOR_PRIVATE_KEY)) {
+  console.warn(
+    `Private keys will not be written to "node-config.json". Pass "--insecure" to explicitly allow embedding them.`,
+  );
 }
 
 if (typeof process.env.PARENT_CHAIN_RPC === 'undefined' || process.env.PARENT_CHAIN_RPC === '') {
@@ -72,11 +85,11 @@ async function main() {
 
   // prepare the node config
   const nodeConfigParameters: PrepareNodeConfigParams = {
+    insecure,
     chainName: 'My Orbit Chain',
     chainConfig,
     coreContracts,
-    batchPosterPrivateKey: process.env.BATCH_POSTER_PRIVATE_KEY as `0x${string}`,
-    validatorPrivateKey: process.env.VALIDATOR_PRIVATE_KEY as `0x${string}`,
+    ...privateKeyParams,
     stakeToken: config.stakeToken,
     parentChainId: parentChain.id,
     parentChainRpcUrl: getRpcUrl(parentChain),
