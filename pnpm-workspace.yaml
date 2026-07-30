@@ -29,10 +29,12 @@ overrides:
   "ethers>ws": "8.21.0"
   # ethers v5 (@ethersproject/providers, a direct dependency of `src`) uses the
   # ws 7.x line. 7.5.11 is patched for GHSA-96hv-2xvq-fx4p and keeps v5 from
-  # falling back to a vulnerable older 7.x.
+  # falling back to a vulnerable older 7.x. @ethersproject/providers 5.8 moves
+  # to ws 8.x, so update this override alongside any ethers-v5 family upgrade.
   "@ethersproject/providers>ws": "7.5.11"
 
-  # Compatibility pins for `wagmi generate` (not security-related).
+  # @wagmi/cli declares vulnerable esbuild@0.16.17 (GHSA-67mh-4wv8-2f99),
+  # patched in 0.25.0. bundle-require@5 is also required by `wagmi generate`.
   "@wagmi/cli>esbuild": "0.25.1"
   "@wagmi/cli>bundle-require": "5.1.0"
 
@@ -43,38 +45,19 @@ overrides:
   # affects <=6.6.1 with no fix, is allowlisted in audit-ci.jsonc.)
   "elliptic": "6.6.1"
 
-  # Inherited crypto pins (yarn->pnpm migration). A clean re-resolve in this repo
-  # currently lands these on the pinned versions anyway and audit:ci stays green
-  # without them, but the resolved version sits *below* the latest the declared
-  # ranges allow (pbkdf2 latest 3.1.6, cipher-base latest 1.0.7) for reasons that
-  # aren't fully explained, so they're kept as explicit deterministic pins rather
-  # than relying on resolver behavior for crypto transitives.
-  "pbkdf2": "3.1.3"
-  "cipher-base": "1.0.5"
-
   # GHSA-ph9p-34f9-6g65 (path traversal via unsanitized prefix/postfix):
   # vulnerable <0.2.6, patched in 0.2.6.
   # GHSA-7c78-jf6q-g5cm (symbolic-link following): vulnerable >=0.2.6 <0.2.7,
-  # patched in 0.2.7. tmp is used only by patch-package at install time
-  # (dev-only). patch-package declares tmp@^0.0.33, so without this pin it
-  # resolves to a vulnerable 0.0.33; 0.2.7 is the currently patched release.
+  # patched in 0.2.7. Both the root and Nitro's patch-package dependencies
+  # declare tmp@^0.0.33, so without this pin they resolve to vulnerable 0.0.33.
   "tmp": "0.2.7"
 
   # GHSA-g7r4-m6w7-qqqr (esbuild dev server origin validation): vulnerable
-  # >=0.27.3 <0.28.1, patched in 0.28.1. Kept scoped so @wagmi/cli retains its
-  # compatibility pin on the older, unaffected 0.25.x line.
-  "tsx>esbuild": "0.28.1"
+  # >=0.27.3 <0.28.1, patched in 0.28.1. Vite's ^0.27 dependency cannot reach
+  # the patched version without this override.
   "vite>esbuild": "0.28.1"
 
   # Vite is only pulled through Vitest here. 7.3.5 patches GHSA-fx2h-pf6j-xcff
   # (server.fs.deny bypass on Windows alternate paths) and GHSA-v6wh-96g9-6wx3
   # (launch-editor UNC path handling) while staying on the existing 7.x line.
   "vite": "7.3.5"
-
-  # GHSA-h67p-54hq-rp68 (quadratic-complexity DoS in merge key handling via
-  # repeated aliases): vulnerable <=4.1.1, patched in 4.2.0.
-  "js-yaml": "4.2.0"
-
-  # Pinned to a single resolved version (added with the types package, #707).
-  "zod": "4.3.6"
-  "postcss": "8.5.10"
