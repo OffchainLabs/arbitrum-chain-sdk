@@ -5,6 +5,9 @@ packages:
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'
+  # GHSA-mh99-v99m-4gvg has no patched release older than the quarantine
+  # window, so permit the security-only pin below immediately.
+  - 'brace-expansion'
 
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
@@ -61,3 +64,19 @@ overrides:
   # (server.fs.deny bypass on Windows alternate paths) and GHSA-v6wh-96g9-6wx3
   # (launch-editor UNC path handling) while staying on the existing 7.x line.
   "vite": "7.3.5"
+
+  # GHSA-6g55-p6wh-862q and GHSA-r28c-9q8g-f849 (source-map path traversal
+  # and file disclosure): vulnerable <=8.5.17, patched in 8.5.18. Scope this
+  # to Vite, the only PostCSS parent in the workspace.
+  "vite>postcss": "8.5.18"
+
+  # GHSA-mh99-v99m-4gvg (unbounded brace expansion DoS): all releases through
+  # 5.0.7 are vulnerable, and 5.0.8 is the only release currently recognized
+  # as patched by the advisory database.
+  "brace-expansion": "5.0.8"
+
+  # Older minimatch major lines expect incompatible brace-expansion CommonJS
+  # exports. All workspace consumers use the Minimatch constructor, which is
+  # supported by 10.2.5, so consolidate on that release instead of patching
+  # brace-expansion.
+  "minimatch": "10.2.5"
