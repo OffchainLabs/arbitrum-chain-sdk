@@ -6,35 +6,6 @@ import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 
 const execFilePromise = promisify(execFile);
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const tokenBridgeContractsImage =
-  process.env.TOKEN_BRIDGE_CONTRACTS_IMAGE ?? 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.2';
-const skipTokenBridgeContractsImageBuild = process.env.TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD === 'true';
-
-let tokenBridgeContractsImagePromise: Promise<string> | undefined;
-
-async function buildTokenBridgeContractsImage() {
-  if (typeof tokenBridgeContractsImagePromise !== 'undefined') {
-    return tokenBridgeContractsImagePromise;
-  }
-
-  tokenBridgeContractsImagePromise = (async () => {
-    if (skipTokenBridgeContractsImageBuild) {
-      await execFilePromise('docker', ['image', 'inspect', tokenBridgeContractsImage]);
-      return tokenBridgeContractsImage;
-    }
-
-    await execFilePromise('docker', [
-      'build',
-      '-q',
-      '-t',
-      tokenBridgeContractsImage,
-      'token-bridge-contracts',
-    ]);
-    return tokenBridgeContractsImage;
-  })();
-
-  return tokenBridgeContractsImagePromise;
-}
 
 export async function deployTokenBridgeCreator({
   publicClient,
@@ -43,7 +14,11 @@ export async function deployTokenBridgeCreator({
 }): Promise<Address> {
   // https://github.com/OffchainLabs/token-bridge-contracts/blob/main/scripts/local-deployment/deployCreatorAndCreateTokenBridge.ts#L109C19-L109C61
   const weth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
-  const image = await buildTokenBridgeContractsImage();
+  const image = process.env.ARBITRUM_TESTNODE_IMAGE;
+
+  if (!image) {
+    throw new Error('ARBITRUM_TESTNODE_IMAGE is required to deploy the token bridge creator');
+  }
 
   const clientVersion = await publicClient.request({ method: 'web3_clientVersion' });
   const isAnvil = clientVersion.startsWith('anvil/');
