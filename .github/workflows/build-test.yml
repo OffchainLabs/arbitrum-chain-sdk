@@ -233,28 +233,28 @@ jobs:
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc3.2-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.14-nc3.2-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
             decimals: 18
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc3.2-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.14-nc3.2-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
             decimals: 6
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.14-nc2.1-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v2-1-l3-custom-18
             nitro-contracts-version: v2.1
             decimals: 18
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.14-nc2.1-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v2-1-l3-custom-6
             nitro-contracts-version: v2.1
@@ -307,6 +307,7 @@ jobs:
             --name "${{ matrix.config.container }}" \
             --platform linux/amd64 \
             -e TESTNODE_VARIANT="${{ matrix.config.variant }}" \
+            -e TESTNODE_PARENT_CHAIN_POLL_INTERVAL=100ms \
             -p 127.0.0.1:8545:8545 \
             -p 127.0.0.1:8547:8547 \
             -p 127.0.0.1:8548:8548 \

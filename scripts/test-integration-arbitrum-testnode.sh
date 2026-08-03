@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ARBITRUM_TESTNODE_VERSION="${ARBITRUM_TESTNODE_VERSION:-v0.2.10}"
+ARBITRUM_TESTNODE_VERSION="${ARBITRUM_TESTNODE_VERSION:-v0.2.14}"
 INTEGRATION_TEST_DECIMALS="${INTEGRATION_TEST_DECIMALS:-18}"
 INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH="${INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH:-v3.2}"
 NITRO_CONTRACTS_VERSION="${INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH#v}"
@@ -10,8 +10,6 @@ IMAGE="${ARBITRUM_TESTNODE_IMAGE:-ghcr.io/offchainlabs/arbitrum-testnode-ci:${AR
 CONTAINER="${ARBITRUM_TESTNODE_CONTAINER:-arbitrum-testnode-${NITRO_CONTRACTS_VERSION}-${TESTNODE_VARIANT}}"
 STARTUP_TIMEOUT_SECONDS="${ARBITRUM_TESTNODE_STARTUP_TIMEOUT_SECONDS:-120}"
 ARBITRUM_TESTNODE_FEE_TOKEN_DEPLOYER_PRIVATE_KEY="${ARBITRUM_TESTNODE_FEE_TOKEN_DEPLOYER_PRIVATE_KEY:-0x84f89f9afcf4cd87bbf0a8872a1abd8ddf69364da61a2c2a5286d999383cd2c9}"
-SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-FAST_POLLING_ENTRYPOINT="$SCRIPT_DIR/arbitrum-testnode-fast-polling.sh"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "docker is required to run arbitrum-testnode integration tests" >&2
@@ -30,9 +28,8 @@ docker pull "$IMAGE"
 docker run -d \
   --name "$CONTAINER" \
   --platform linux/amd64 \
-  --volume "$FAST_POLLING_ENTRYPOINT:/usr/local/bin/arbitrum-testnode-fast-polling:ro" \
-  --entrypoint /usr/local/bin/arbitrum-testnode-fast-polling \
   -e TESTNODE_VARIANT="$TESTNODE_VARIANT" \
+  -e TESTNODE_PARENT_CHAIN_POLL_INTERVAL=100ms \
   -p 127.0.0.1:8545:8545 \
   -p 127.0.0.1:8547:8547 \
   -p 127.0.0.1:8548:8548 \
