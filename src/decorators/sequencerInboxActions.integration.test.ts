@@ -7,6 +7,7 @@ import {
   getNitroTestnodePrivateKeyAccounts,
   getInformationFromTestnode,
   createRollupHelper,
+  nitroTestnodePollingInterval,
 } from '../testHelpers';
 import { sequencerInboxActions } from './sequencerInboxActions';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
@@ -21,6 +22,7 @@ const { l3SequencerInbox, l3Bridge, l3Rollup, l3BatchPoster, l3UpgradeExecutor }
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 }).extend(sequencerInboxActions({ sequencerInbox: l3SequencerInbox }));
 
 describe('sequencerInboxReadContract', () => {

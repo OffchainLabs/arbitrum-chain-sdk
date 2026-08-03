@@ -4,7 +4,11 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from './chains';
 import { sequencerInboxActions } from './decorators/sequencerInboxActions';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
+} from './testHelpers';
 import { getBatchPosters } from './getBatchPosters';
 
 const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
@@ -13,6 +17,7 @@ const { l3Rollup, l3UpgradeExecutor, l3SequencerInbox } = getInformationFromTest
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 }).extend(
   sequencerInboxActions({
     sequencerInbox: l3SequencerInbox,

@@ -45,27 +45,61 @@ export async function deployTokenBridgeCreator({
   const weth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
   const image = await buildTokenBridgeContractsImage();
 
-  const { stdout } = await execFilePromise('docker', [
-    'run',
-    '--rm',
-    '--net=host',
-    '-e',
-    `BASECHAIN_RPC=${publicClient.transport.url}`,
-    '-e',
-    `BASECHAIN_DEPLOYER_KEY=${testnodeAccounts.deployer.privateKey}`,
-    '-e',
-    `BASECHAIN_WETH=${weth}`,
-    '-e',
-    'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
-    image,
-    'deploy:token-bridge-creator',
-  ]);
+  const clientVersion = await publicClient.request({ method: 'web3_clientVersion' });
+  const isAnvil = clientVersion.startsWith('anvil/');
+  const automineWasEnabled =
+    isAnvil &&
+    (await publicClient.transport.request({
+      method: 'anvil_getAutomine',
+    }));
 
-  const match = stdout.match(/L1TokenBridgeCreator: (0x[0-9a-fA-F]{40})/);
-
-  if (!match) {
-    throw Error(`Failed to parse token bridge creator address from output: ${stdout}`);
+  if (isAnvil && !automineWasEnabled) {
+    await publicClient.transport.request({
+      method: 'evm_setAutomine',
+      params: [true],
+    });
   }
 
-  return match[1] as Address;
+  try {
+    const { stdout } = await execFilePromise('docker', [
+      'run',
+      '--rm',
+      '--network',
+      'host',
+      '--workdir',
+      '/workspace',
+      '--entrypoint',
+      'yarn',
+      '-e',
+      `BASECHAIN_RPC=${publicClient.transport.url}`,
+      '-e',
+      `BASECHAIN_DEPLOYER_KEY=${testnodeAccounts.deployer.privateKey}`,
+      '-e',
+      `BASECHAIN_WETH=${weth}`,
+      '-e',
+      'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
+      '-e',
+      'POLLING_INTERVAL=100',
+      '-e',
+      'DISABLE_CONTRACT_VERIFICATION=true',
+      image,
+      'deploy:token-bridge-creator',
+    ]);
+
+    const match = stdout.match(/L1TokenBridgeCreator: (0x[0-9a-fA-F]{40})/);
+
+    if (!match) {
+      throw Error(`Failed to parse token bridge creator address from output: ${stdout}`);
+    }
+
+    return match[1] as Address;
+  } finally {
+    if (isAnvil && !automineWasEnabled) {
+      // Restore the testnode's `--block-time 1` interval mining mode.
+      await publicClient.transport.request({
+        method: 'evm_setIntervalMining',
+        params: [1],
+      });
+    }
+  }
 }

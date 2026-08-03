@@ -7,6 +7,7 @@ import { rollupAdminLogicPublicActions } from './rollupAdminLogicPublicActions';
 import {
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
   testHelper_getRollupCreatorVersionFromEnv,
 } from '../testHelpers';
 import { getValidators } from '../getValidators';
@@ -27,6 +28,7 @@ const expectedInitialValidators = process.env.ARBITRUM_TESTNODE_CONTAINER
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 }).extend(
   rollupAdminLogicPublicActions({
     rollup: l3Rollup,

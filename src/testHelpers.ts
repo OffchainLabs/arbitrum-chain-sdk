@@ -11,6 +11,8 @@ import { CreateRollupParams, RollupCreatorSupportedVersion } from './types/creat
 
 config();
 
+export const nitroTestnodePollingInterval = 100;
+
 type PrivateKeyAccountWithPrivateKey = PrivateKeyAccount & { privateKey: `0x${string}` };
 // Source: https://github.com/OffchainLabs/nitro-testnode/blob/release/scripts/accounts.ts#L28
 type NitroTestNodePrivateKeyAccounts = {

@@ -15,7 +15,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import testToken from '@arbitrum/nitro-contracts/build/contracts/src/test-helpers/TestToken.sol/TestToken.json';
 
 import { nitroTestnodeL2 } from './chains';
-import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import { getNitroTestnodePrivateKeyAccounts, nitroTestnodePollingInterval } from './testHelpers';
 import { deployProxyAdmin } from './deployProxyAdmin';
 import { deployExpressLaneAuction } from './deployExpressLaneAuction';
 
@@ -24,11 +24,13 @@ const deployer = getNitroTestnodePrivateKeyAccounts().deployer;
 const nitroTestnodeL2Client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 const nitroTestnodeL2WalletClient = createWalletClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
   account: deployer,
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 // Distinct random role addresses so the assertions can't accidentally pass by
