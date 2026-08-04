@@ -1,4 +1,4 @@
-// .mts (not .ts) because abi-to-zod is ESM-only and src/package.json doesn't
+// .mts (not .ts) because abi-to-zod is ESM-only and package.json doesn't
 // set `"type": "module"`. A .ts file under src/ would be treated as CJS, where
 // the static `import { renderSchemas } from 'abi-to-zod'` fails at runtime
 // with ERR_PACKAGE_PATH_NOT_EXPORTED. The .mts extension forces ESM resolution

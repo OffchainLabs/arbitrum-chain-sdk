@@ -59,4 +59,4 @@ INTEGRATION_TEST_DECIMALS="$INTEGRATION_TEST_DECIMALS" \
 INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH="$INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH" \
 NITRO_TESTNODE_L3_TOKEN_BRIDGE_DEPLOYER_PRIVATE_KEY="$ARBITRUM_TESTNODE_FEE_TOKEN_DEPLOYER_PRIVATE_KEY" \
 CI=true \
-pnpm exec vitest --config vitest.integration.config.ts --reporter verbose --run "$@"
+pnpm exec vitest --config vitest.integration.config.mts --reporter verbose --run "$@"
