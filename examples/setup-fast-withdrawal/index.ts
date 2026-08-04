@@ -117,7 +117,7 @@ async function main() {
 
   const txRequest = await createSafePrepareTransactionRequest({
     publicClient: parentChainPublicClient,
-    account: safeOwner,
+    account: safeOwner.address,
     owners: fcValidators,
     threshold: safeWalletThreshold,
     saltNonce: BigInt(Date.now()),
@@ -206,7 +206,7 @@ async function main() {
     const setAnyTrustFastConfirmerTransactionRequest =
       await setAnyTrustFastConfirmerPrepareTransactionRequest({
         publicClient: parentChainPublicClient,
-        account: safeOwner,
+        account: safeOwner.address,
         rollup: rollupAddress,
         upgradeExecutor: upgradeExecutorAddress,
         fastConfirmer: safeAddress,

@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { withChainSign } from '../viemTransforms';
-import { addressSchema, bigintSchema, privateKeySchema, publicClientSchema } from './common';
+import { addressSchema, bigintSchema, publicClientSchema } from './common';
+import { withPublicClient } from '../viemTransforms';
 
 export const createSafePrepareTransactionRequestSchema = publicClientSchema
   .extend({
-    privateKey: privateKeySchema,
+    account: addressSchema,
     owners: z.array(addressSchema),
     threshold: z.number(),
     saltNonce: bigintSchema.optional(),
   })
   .strict()
-  .transform(withChainSign);
+  .transform(withPublicClient);
