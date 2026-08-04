@@ -7,6 +7,9 @@
     "dev": "tsc --outDir dist && node ./dist/index.js",
     "dev:low-level": "tsc --outDir dist && node ./dist/low_level.js"
   },
+  "dependencies": {
+    "@arbitrum/chain-sdk": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^20.9.0",
     "typescript": "^5.2.2"
