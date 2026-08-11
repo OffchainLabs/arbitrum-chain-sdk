@@ -120,6 +120,15 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
+  examples/generate-genesis-file:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.9.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.2.2
+        version: 5.2.2
+
   examples/prepare-node-config:
     devDependencies:
       '@types/node':
