@@ -13,6 +13,7 @@ import { createRollupPrepareDeploymentParamsConfig } from './createRollupPrepare
 import { prepareChainConfig } from './prepareChainConfig';
 import { CreateRollupParams, RollupCreatorSupportedVersion } from './types/createRollupTypes';
 import { scaleFrom18DecimalsToNativeTokenDecimals } from './utils/decimals';
+import { nitroTestnodeL2 } from './chains';
 
 config();
 
@@ -179,6 +180,17 @@ export function getInformationFromTestnode(): TestnodeInformation {
   throw new Error('nitro-testnode sequencer not found');
 }
 
+export function testHelper_getNitroTestnodeL2() {
+  const { l2RollupCreator } = getInformationFromTestnode();
+
+  return {
+    ...nitroTestnodeL2,
+    contracts: {
+      rollupCreator: { address: l2RollupCreator },
+    },
+  };
+}
+
 export async function createRollupHelper<
   TRollupCreatorVersion extends RollupCreatorSupportedVersion = 'v3.2',
 >({
@@ -188,7 +200,6 @@ export async function createRollupHelper<
   nativeToken = zeroAddress,
   client,
   rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv() as TRollupCreatorVersion,
-  rollupCreatorAddressOverride,
 }: {
   deployer: PrivateKeyAccountWithPrivateKey;
   batchPosters: Address[];
@@ -196,7 +207,6 @@ export async function createRollupHelper<
   nativeToken: Address;
   client: PublicClient;
   rollupCreatorVersion?: TRollupCreatorVersion;
-  rollupCreatorAddressOverride?: Address;
 }) {
   const chainId = generateChainId();
 
@@ -264,7 +274,6 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v2.1',
-          rollupCreatorAddressOverride,
         })
       : await createRollup({
           params: {
@@ -276,7 +285,6 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v3.2',
-          rollupCreatorAddressOverride,
         });
 
   // create test rollup with ETH as gas token

@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { createPublicClient, http, zeroAddress } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
-import { nitroTestnodeL2 } from '../chains';
 import {
   getNitroTestnodePrivateKeyAccounts,
   getInformationFromTestnode,
   createRollupHelper,
+  testHelper_getNitroTestnodeL2,
 } from '../testHelpers';
 import { sequencerInboxActions } from './sequencerInboxActions';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
@@ -15,11 +15,11 @@ const { l3RollupOwner, l3TokenBridgeDeployer, deployer } = getNitroTestnodePriva
 
 const randomAccount = privateKeyToAccount(generatePrivateKey());
 
-const { l3SequencerInbox, l3Bridge, l3Rollup, l3BatchPoster, l3UpgradeExecutor, l2RollupCreator } =
+const { l3SequencerInbox, l3Bridge, l3Rollup, l3BatchPoster, l3UpgradeExecutor } =
   getInformationFromTestnode();
 
 const client = createPublicClient({
-  chain: nitroTestnodeL2,
+  chain: testHelper_getNitroTestnodeL2(),
   transport: http(),
 }).extend(sequencerInboxActions({ sequencerInbox: l3SequencerInbox }));
 
@@ -127,7 +127,6 @@ describe('sequencerInboxPrepareTransactionRequest', () => {
       validators,
       nativeToken: zeroAddress,
       client,
-      rollupCreatorAddressOverride: l2RollupCreator,
     });
 
     const { sequencerInbox, upgradeExecutor } = createRollupInformation.coreContracts;

@@ -9,20 +9,20 @@ import {
   zeroAddress,
 } from 'viem';
 
-import { nitroTestnodeL2 } from './chains';
 import { sequencerInboxActions } from './decorators/sequencerInboxActions';
 import {
   createRollupHelper,
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  testHelper_getNitroTestnodeL2,
 } from './testHelpers';
 import { getKeysets } from './getKeysets';
 
-const { l3SequencerInbox, l2RollupCreator } = getInformationFromTestnode();
+const { l3SequencerInbox } = getInformationFromTestnode();
 const { l3TokenBridgeDeployer, deployer } = getNitroTestnodePrivateKeyAccounts();
 
 const client = createPublicClient({
-  chain: nitroTestnodeL2,
+  chain: testHelper_getNitroTestnodeL2(),
   transport: http(),
 }).extend(
   sequencerInboxActions({
@@ -103,7 +103,6 @@ async function createAnytrustRollup() {
     validators,
     nativeToken: zeroAddress,
     client,
-    rollupCreatorAddressOverride: l2RollupCreator,
   });
 }
 

@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { createPublicClient, http, parseGwei, zeroAddress } from 'viem';
 
-import { nitroTestnodeL2 } from './chains';
 import {
   createRollupHelper,
   getNitroTestnodePrivateKeyAccounts,
   getInformationFromTestnode,
+  testHelper_getNitroTestnodeL2,
 } from './testHelpers';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
 const parentChainPublicClient = createPublicClient({
-  chain: nitroTestnodeL2,
+  chain: testHelper_getNitroTestnodeL2(),
   transport: http(),
 });
 
@@ -20,8 +20,6 @@ const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
 const batchPosters = [testnodeAccounts.deployer.address];
 const validators = [testnodeAccounts.deployer.address];
 
-const { l2RollupCreator } = getInformationFromTestnode();
-
 describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
   const { createRollupConfig, createRollupInformation } = await createRollupHelper({
     deployer: l3TokenBridgeDeployer,
@@ -29,7 +27,6 @@ describe(`create an AnyTrust chain that uses ETH as gas token`, async () => {
     validators,
     nativeToken: zeroAddress,
     client: parentChainPublicClient,
-    rollupCreatorAddressOverride: l2RollupCreator,
   });
 
   it(`successfully deploys core contracts through rollup creator`, async () => {
@@ -69,7 +66,6 @@ describe(`create an AnyTrust chain that uses a custom gas token`, async () => {
     validators,
     nativeToken,
     client: parentChainPublicClient,
-    rollupCreatorAddressOverride: l2RollupCreator,
   });
 
   it(`successfully deploys core contracts through rollup creator`, async () => {

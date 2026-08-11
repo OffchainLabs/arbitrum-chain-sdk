@@ -21,7 +21,6 @@ type EnsureCustomGasTokenAllowanceGrantedToRollupCreatorParams<TChain extends Ch
   parentChainPublicClient: PublicClient<Transport, TChain>;
   account: PrivateKeyAccount;
   rollupCreatorVersion?: RollupCreatorSupportedVersion;
-  rollupCreatorAddressOverride?: Address;
 };
 
 /**
@@ -39,14 +38,12 @@ async function ensureCustomGasTokenAllowanceGrantedToRollupCreator<
   parentChainPublicClient,
   account,
   rollupCreatorVersion = 'v3.2',
-  rollupCreatorAddressOverride,
 }: EnsureCustomGasTokenAllowanceGrantedToRollupCreatorParams<TChain>) {
   const allowanceParams = {
     nativeToken,
     account: account.address,
     publicClient: parentChainPublicClient,
     rollupCreatorVersion,
-    rollupCreatorAddressOverride,
   };
 
   if (!(await createRollupEnoughCustomFeeTokenAllowance(allowanceParams))) {
@@ -85,21 +82,18 @@ export type CreateRollupFunctionParams<TChain extends Chain | undefined> =
       account: PrivateKeyAccount;
       parentChainPublicClient: PublicClient<Transport, TChain>;
       rollupCreatorVersion: 'v2.1';
-      rollupCreatorAddressOverride?: Address;
     }
   | {
       params: CreateRollupParams<'v3.2'>;
       account: PrivateKeyAccount;
       parentChainPublicClient: PublicClient<Transport, TChain>;
       rollupCreatorVersion: 'v3.2';
-      rollupCreatorAddressOverride?: Address;
     }
   | {
       params: CreateRollupParams<'v3.2'>;
       account: PrivateKeyAccount;
       parentChainPublicClient: PublicClient<Transport, TChain>;
       rollupCreatorVersion?: never;
-      rollupCreatorAddressOverride?: Address;
     };
 
 /**
@@ -179,7 +173,6 @@ export async function createRollup<TChain extends Chain | undefined>({
   account,
   parentChainPublicClient,
   rollupCreatorVersion = 'v3.2',
-  rollupCreatorAddressOverride,
 }: CreateRollupFunctionParams<TChain>): Promise<CreateRollupResults> {
   validateParentChain(parentChainPublicClient);
 
@@ -193,7 +186,6 @@ export async function createRollup<TChain extends Chain | undefined>({
       parentChainPublicClient,
       account,
       rollupCreatorVersion,
-      rollupCreatorAddressOverride,
     });
   }
 
@@ -205,14 +197,12 @@ export async function createRollup<TChain extends Chain | undefined>({
           account: account.address,
           publicClient: parentChainPublicClient,
           rollupCreatorVersion: 'v2.1',
-          rollupCreatorAddressOverride,
         })
       : await createRollupPrepareTransactionRequest({
           params: params as CreateRollupParams<'v3.2'>,
           account: account.address,
           publicClient: parentChainPublicClient,
           rollupCreatorVersion: 'v3.2',
-          rollupCreatorAddressOverride,
         });
 
   // sign and send the transaction
