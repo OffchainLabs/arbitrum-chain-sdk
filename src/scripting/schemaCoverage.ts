@@ -370,6 +370,10 @@ vi.mock('../feeRouterDeployRewardDistributor', () => ({
 vi.mock('../feeRouterDeployChildToParentRewardRouter', () => ({
   feeRouterDeployChildToParentRewardRouter: _mocks.fn('feeRouterDeployChildToParentRewardRouter'),
 }));
+vi.mock('../deployProxyAdmin', () => ({ deployProxyAdmin: _mocks.fn('deployProxyAdmin') }));
+vi.mock('../deployExpressLaneAuction', () => ({
+  deployExpressLaneAuction: _mocks.fn('deployExpressLaneAuction'),
+}));
 vi.mock('../prepareNodeConfig', () => ({ prepareNodeConfig: _mocks.fn('prepareNodeConfig') }));
 vi.mock('../getDefaultConfirmPeriodBlocks', () => ({
   getDefaultConfirmPeriodBlocks: _mocks.fn('getDefaultConfirmPeriodBlocks'),

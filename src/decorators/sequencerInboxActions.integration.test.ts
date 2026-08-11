@@ -93,7 +93,12 @@ describe('sequencerInboxReadContract', () => {
       sequencerInbox: l3SequencerInbox,
     });
 
-    expect(result).toEqual([28800n, 300n, 345600n, 3600n]);
+    expect(result).toEqual([
+      process.env.ARBITRUM_TESTNODE_CONTAINER ? 28_800n : 5_760n,
+      process.env.ARBITRUM_TESTNODE_CONTAINER ? 300n : 12n,
+      process.env.ARBITRUM_TESTNODE_CONTAINER ? 345_600n : 86_400n,
+      3_600n,
+    ]);
   });
 
   it('successfully call rollup', async () => {

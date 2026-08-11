@@ -127,6 +127,17 @@ import {
   feeRouterDeployRewardDistributor,
   FeeRouterDeployRewardDistributorParams,
 } from './feeRouterDeployRewardDistributor';
+import {
+  deployProxyAdmin,
+  DeployProxyAdminParams,
+  DeployProxyAdminResult,
+} from './deployProxyAdmin';
+import {
+  deployExpressLaneAuction,
+  DeployExpressLaneAuctionParams,
+  DeployExpressLaneAuctionResult,
+  ExpressLaneAuctionRoundTimingInfo,
+} from './deployExpressLaneAuction';
 import * as utils from './utils';
 
 import { getBridgeUiConfig, GetBridgeUiConfigFunctionParams } from './getBridgeUiConfig';
@@ -297,6 +308,13 @@ export {
   FeeRouterDeployChildToParentRewardRouterParams,
   feeRouterDeployRewardDistributor,
   FeeRouterDeployRewardDistributorParams,
+  deployProxyAdmin,
+  DeployProxyAdminParams,
+  DeployProxyAdminResult,
+  deployExpressLaneAuction,
+  DeployExpressLaneAuctionParams,
+  DeployExpressLaneAuctionResult,
+  ExpressLaneAuctionRoundTimingInfo,
   //
   getDefaultConfirmPeriodBlocks,
   getDefaultChallengeGracePeriodBlocks,

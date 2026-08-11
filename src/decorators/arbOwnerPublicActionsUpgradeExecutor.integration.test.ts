@@ -9,9 +9,21 @@ import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from '
 // L3 Owner Private Key
 const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l3RollupOwner.privateKey;
 
-// L3 chain-owner Upgrade Executor Address (the orbit-chain UE that owns the L3 chain
-// and grants l3owner the EXECUTOR_ROLE), read from the testnode deployment
-const upgradeExecutorAddress: Address = getInformationFromTestnode().l3ChainOwnerUpgradeExecutor;
+function getL3ChainOwnerUpgradeExecutorAddress(): Address {
+  if (!process.env.ARBITRUM_TESTNODE_CONTAINER) {
+    return '0x24198F8A339cd3C47AEa3A764A20d2dDaB4D1b5b';
+  }
+
+  const testnodeInfo = getInformationFromTestnode();
+
+  if (!testnodeInfo.l3ChainOwnerUpgradeExecutor) {
+    throw new Error('Missing chain-owner-upgrade-executor in arbitrum-testnode metadata');
+  }
+
+  return testnodeInfo.l3ChainOwnerUpgradeExecutor;
+}
+
+const upgradeExecutorAddress = getL3ChainOwnerUpgradeExecutorAddress();
 
 const owner = privateKeyToAccount(devPrivateKey);
 const randomAccount = privateKeyToAccount(generatePrivateKey());

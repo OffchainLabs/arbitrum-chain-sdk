@@ -25,6 +25,8 @@ import {
   createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequestSchema,
   feeRouterDeployRewardDistributorSchema,
   feeRouterDeployChildToParentRewardRouterSchema,
+  deployProxyAdminSchema,
+  deployExpressLaneAuctionSchema,
   prepareChainConfigParamsSchema,
   prepareNodeConfigSchema,
   prepareKeysetSchema,
@@ -79,6 +81,8 @@ import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../createTokenBr
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from '../createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import { feeRouterDeployRewardDistributor } from '../feeRouterDeployRewardDistributor';
 import { feeRouterDeployChildToParentRewardRouter } from '../feeRouterDeployChildToParentRewardRouter';
+import { deployProxyAdmin } from '../deployProxyAdmin';
+import { deployExpressLaneAuction } from '../deployExpressLaneAuction';
 import { prepareChainConfig } from '../prepareChainConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { prepareKeyset } from '../prepareKeyset';
@@ -274,6 +278,8 @@ export const commands: readonly Command[] = [
     feeRouterDeployChildToParentRewardRouterSchema,
     feeRouterDeployChildToParentRewardRouter,
   ),
+  command('deployProxyAdmin', deployProxyAdminSchema, deployProxyAdmin),
+  command('deployExpressLaneAuction', deployExpressLaneAuctionSchema, deployExpressLaneAuction),
   command('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
   command('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
   command('prepareKeyset', prepareKeysetSchema, prepareKeyset),

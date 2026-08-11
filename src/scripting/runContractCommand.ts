@@ -4,7 +4,7 @@ import { formatAbiItem } from 'viem/utils';
 import type { AbiFunction } from 'abitype';
 
 import { upgradeExecutorABI } from '../contracts/UpgradeExecutor';
-import { toPublicClient, findChain } from './viemTransforms';
+import { toPublicClient, findOrDefineChain } from './viemTransforms';
 
 export type ParsedContractCommand = {
   rpcUrl: string;
@@ -32,7 +32,7 @@ export async function runContractCommand({
   parsed: ParsedContractCommand;
 }): Promise<unknown> {
   const fn = findAbiFunction(abi, parsed.function);
-  const client = toPublicClient(parsed.rpcUrl, findChain(parsed.chainId));
+  const client = toPublicClient(parsed.rpcUrl, findOrDefineChain(parsed.chainId, parsed.rpcUrl));
 
   if (fn.stateMutability === 'view' || fn.stateMutability === 'pure') {
     return client.readContract({
