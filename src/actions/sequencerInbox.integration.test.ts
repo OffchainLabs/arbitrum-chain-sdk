@@ -26,9 +26,9 @@ const client = createPublicClient({
 
 describe('max time variation management', () => {
   const defaultMaxTimeVariation = {
-    delayBlocks: 5_760n,
-    delaySeconds: 86_400n,
-    futureBlocks: 12n,
+    delayBlocks: process.env.ARBITRUM_TESTNODE_CONTAINER ? 28_800n : 5_760n,
+    delaySeconds: process.env.ARBITRUM_TESTNODE_CONTAINER ? 345_600n : 86_400n,
+    futureBlocks: process.env.ARBITRUM_TESTNODE_CONTAINER ? 300n : 12n,
     futureSeconds: 3_600n,
   };
   it('getMaxTimeVariation successfully fetches max time variation', async () => {

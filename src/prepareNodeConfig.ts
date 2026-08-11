@@ -28,8 +28,8 @@ export type PrepareNodeConfigParams = {
   chainName: string;
   chainConfig: ChainConfig;
   coreContracts: CoreContracts;
-  batchPosterPrivateKey: string;
-  validatorPrivateKey: string;
+  batchPosterPrivateKey?: string;
+  validatorPrivateKey?: string;
   stakeToken: string;
   parentChainId: ParentChainId;
   parentChainIsArbitrum?: boolean;
@@ -118,18 +118,22 @@ export function prepareNodeConfig({
         'finalize-distance': 1,
       },
       'batch-poster': {
-        'max-size': 90000,
-        'enable': true,
-        'parent-chain-wallet': {
-          'private-key': sanitizePrivateKey(batchPosterPrivateKey),
-        },
+        'max-calldata-batch-size': 90000,
+        'enable': batchPosterPrivateKey !== undefined,
+        ...(batchPosterPrivateKey !== undefined && {
+          'parent-chain-wallet': {
+            'private-key': sanitizePrivateKey(batchPosterPrivateKey),
+          },
+        }),
       },
       'staker': {
-        'enable': true,
-        'strategy': 'MakeNodes',
-        'parent-chain-wallet': {
-          'private-key': sanitizePrivateKey(validatorPrivateKey),
-        },
+        enable: validatorPrivateKey !== undefined,
+        strategy: 'MakeNodes',
+        ...(validatorPrivateKey !== undefined && {
+          'parent-chain-wallet': {
+            'private-key': sanitizePrivateKey(validatorPrivateKey),
+          },
+        }),
       },
       'dangerous': {
         'no-sequencer-coordinator': true,
@@ -160,8 +164,6 @@ export function prepareNodeConfig({
   if (chainConfig.arbitrum.DataAvailabilityCommittee) {
     config.node!['data-availability'] = {
       'enable': true,
-      'sequencer-inbox-address': coreContracts.sequencerInbox,
-      'parent-chain-node-url': parentChainRpcUrl,
       'rest-aggregator': {
         enable: true,
         urls: [`${dasServerUrlWithFallback}:9877`],

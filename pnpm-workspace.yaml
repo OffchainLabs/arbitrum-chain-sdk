@@ -1,3 +1,82 @@
 packages:
   - "src"
   - "examples/*"
+
+minimumReleaseAge: 10080 # 7 days
+minimumReleaseAgeExclude:
+  - '@offchainlabs/fund-distribution-contracts'
+  # GHSA-mh99-v99m-4gvg has no patched release older than the quarantine
+  # window, so permit the security-only pin below immediately.
+  - 'brace-expansion'
+
+# Dependency overrides. Most are security pins that force a vulnerable transitive
+# up to a patched version (audit:ci fails on any advisory >= low). They live here,
+# rather than package.json's `pnpm.overrides`, so each pin can carry the rationale
+# inline (package.json is strict JSON and can't hold comments).
+overrides:
+  # Pin viem to a single resolved version across the tree.
+  "viem": "1.20.0"
+
+  # ws (WebSocket lib) is pulled transitively by viem and by BOTH ethers majors.
+  # GHSA-58qx-3vcg-4xpx (uninitialized memory disclosure): vulnerable >=8.0.0
+  # <8.20.1, patched in 8.20.1.
+  # GHSA-96hv-2xvq-fx4p (memory exhaustion DoS): vulnerable >=8.0.0 <8.21.0
+  # and >=7.0.0 <7.5.11, patched in 8.21.0 and 7.5.11. viem@1.20 declares
+  # ws@8.13.0 and Safe's ethers@6 also lands on a vulnerable 8.x, so both 8.x
+  # lineages are pinned forward to 8.21.0. Safe to do: it's a patch bump within
+  # 8.x, and ws is only exercised by websocket transports (this SDK uses http).
+  # Pins are scoped per-parent
+  # ("viem>ws", "ethers>ws") instead of a blanket "ws" so the separate ethers-v5
+  # 7.x line below is not dragged onto the 8.x API.
+  "viem>ws": "8.21.0"
+  "ethers>ws": "8.21.0"
+  # ethers v5 (@ethersproject/providers, a direct dependency of `src`) uses the
+  # ws 7.x line. 7.5.11 is patched for GHSA-96hv-2xvq-fx4p and keeps v5 from
+  # falling back to a vulnerable older 7.x. @ethersproject/providers 5.8 moves
+  # to ws 8.x, so update this override alongside any ethers-v5 family upgrade.
+  "@ethersproject/providers>ws": "7.5.11"
+
+  # @wagmi/cli declares vulnerable esbuild@0.16.17 (GHSA-67mh-4wv8-2f99),
+  # patched in 0.25.0. bundle-require@5 is also required by `wagmi generate`.
+  "@wagmi/cli>esbuild": "0.25.1"
+  "@wagmi/cli>bundle-require": "5.1.0"
+
+  # elliptic: without this pin @ethersproject/signing-key resolves elliptic to
+  # 6.5.4, which carries unpatched-in-that-line advisories (GHSA-977x-g7h5-7qgw,
+  # GHSA-f7q4-pwc6-w24p, GHSA-fc9h-whq2-v747, GHSA-vjh7-7g9h-fjfh, etc.). 6.6.1 is
+  # the patched 6.x. (The remaining elliptic advisory GHSA-848j-6mx2-7j84, which
+  # affects <=6.6.1 with no fix, is allowlisted in audit-ci.jsonc.)
+  "elliptic": "6.6.1"
+
+  # GHSA-ph9p-34f9-6g65 (path traversal via unsanitized prefix/postfix):
+  # vulnerable <0.2.6, patched in 0.2.6.
+  # GHSA-7c78-jf6q-g5cm (symbolic-link following): vulnerable >=0.2.6 <0.2.7,
+  # patched in 0.2.7. Both the root and Nitro's patch-package dependencies
+  # declare tmp@^0.0.33, so without this pin they resolve to vulnerable 0.0.33.
+  "tmp": "0.2.7"
+
+  # GHSA-g7r4-m6w7-qqqr (esbuild dev server origin validation): vulnerable
+  # >=0.27.3 <0.28.1, patched in 0.28.1. Vite's ^0.27 dependency cannot reach
+  # the patched version without this override.
+  "vite>esbuild": "0.28.1"
+
+  # Vite is only pulled through Vitest here. 7.3.5 patches GHSA-fx2h-pf6j-xcff
+  # (server.fs.deny bypass on Windows alternate paths) and GHSA-v6wh-96g9-6wx3
+  # (launch-editor UNC path handling) while staying on the existing 7.x line.
+  "vite": "7.3.5"
+
+  # GHSA-6g55-p6wh-862q and GHSA-r28c-9q8g-f849 (source-map path traversal
+  # and file disclosure): vulnerable <=8.5.17, patched in 8.5.18. Scope this
+  # to Vite, the only PostCSS parent in the workspace.
+  "vite>postcss": "8.5.18"
+
+  # GHSA-mh99-v99m-4gvg (unbounded brace expansion DoS): all releases through
+  # 5.0.7 are vulnerable, and 5.0.8 is the only release currently recognized
+  # as patched by the advisory database.
+  "brace-expansion": "5.0.8"
+
+  # Older minimatch major lines expect incompatible brace-expansion CommonJS
+  # exports. All workspace consumers use the Minimatch constructor, which is
+  # supported by 10.2.5, so consolidate on that release instead of patching
+  # brace-expansion.
+  "minimatch": "10.2.5"

@@ -34,7 +34,8 @@ import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
 import { TransactionRequestGasOverrides } from './utils/gasOverrides';
 import { getBlockExplorerUrl } from './utils/getBlockExplorerUrl';
-import { isTokenBridgeDeployed } from './isTokenBridgeDeployed';
+import { registerNewNetwork } from './utils/registerNewNetwork';
+import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
 
 export type CreateTokenBridgeParams<
   TParentChain extends Chain | undefined,
@@ -186,17 +187,6 @@ export async function createTokenBridge<
 }: CreateTokenBridgeParams<TParentChain, TOrbitChain>): Promise<
   CreateTokenBridgeResults<TParentChain, TOrbitChain>
 > {
-  const isTokenBridgeAlreadyDeployed = await isTokenBridgeDeployed({
-    parentChainPublicClient,
-    orbitChainPublicClient,
-    rollup: rollupAddress,
-    tokenBridgeCreatorAddressOverride,
-  });
-
-  if (isTokenBridgeAlreadyDeployed) {
-    throw new Error(`Token bridge contracts for Rollup ${rollupAddress} are already deployed`);
-  }
-
   const isCustomFeeTokenBridge = isNonZeroAddress(nativeTokenAddress);
   if (isCustomFeeTokenBridge) {
     // set the custom fee token
@@ -238,7 +228,6 @@ export async function createTokenBridge<
       rollupOwner,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: account.address,
     tokenBridgeCreatorAddressOverride,
     gasOverrides,
@@ -263,6 +252,13 @@ export async function createTokenBridge<
     }`,
   );
 
+  // Register the network with @arbitrum/sdk (required for waitForRetryables)
+  await registerNewNetwork(
+    publicClientToProvider(parentChainPublicClient),
+    publicClientToProvider(orbitChainPublicClient),
+    rollupAddress,
+  );
+
   // wait for retryables to execute
   console.log(`Waiting for retryable tickets to execute on the Orbit chain...`);
   const orbitChainRetryableReceipts = await txReceipt.waitForRetryables({
@@ -281,6 +277,7 @@ export async function createTokenBridge<
   const tokenBridgeContracts = await txReceipt.getTokenBridgeContracts({
     // @ts-expect-error -- todo: fix viem type issue
     parentChainPublicClient,
+    tokenBridgeCreatorAddressOverride,
   });
 
   // Non custom fee token
@@ -290,7 +287,6 @@ export async function createTokenBridge<
       rollup: rollupAddress,
       rollupDeploymentBlockNumber,
       parentChainPublicClient,
-      orbitChainPublicClient,
       account: account.address,
       tokenBridgeCreatorAddressOverride,
       retryableGasOverrides: setWethGatewayGasOverrides,

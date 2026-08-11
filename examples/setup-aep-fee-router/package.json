@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "tsc --outDir dist && node ./dist/index.js"
   },
+  "dependencies": {
+    "@arbitrum/chain-sdk": "workspace:*",
+    "dotenv": "^16.3.1",
+    "viem": "^1.20.0"
+  },
   "devDependencies": {
     "@types/node": "^20.9.0",
     "typescript": "^5.2.2"

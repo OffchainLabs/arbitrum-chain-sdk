@@ -102,10 +102,11 @@ const deployHelperABI = [
 async function getTemplates<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   rollupCreatorVersion: RollupCreatorSupportedVersion,
+  rollupCreatorAddress: Address,
 ) {
   const bridgeCreatorAddress = await publicClient.readContract({
     abi: rollupCreatorABI,
-    address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    address: rollupCreatorAddress,
     functionName: 'bridgeCreator',
   });
 
@@ -150,6 +151,7 @@ export type CreateRollupGetRetryablesFeesParams = {
   account: Address;
   nativeToken?: Address;
   maxFeePerGasForRetryables?: bigint;
+  rollupCreatorAddressOverride?: Address;
 };
 
 /**
@@ -165,18 +167,27 @@ export type CreateRollupGetRetryablesFeesParams = {
  */
 export async function createRollupGetRetryablesFees<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
-  { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
+  {
+    account,
+    nativeToken,
+    maxFeePerGasForRetryables,
+    rollupCreatorAddressOverride,
+  }: CreateRollupGetRetryablesFeesParams,
   rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
+  const rollupCreatorAddress =
+    rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient, rollupCreatorVersion);
+
   const deployHelperAddress = await publicClient.readContract({
     abi: rollupCreatorABI,
-    address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    address: rollupCreatorAddress,
     functionName: 'l2FactoriesDeployer',
   });
 
   const [ethTemplateInbox, erc20TemplateInbox] = await getTemplates(
     publicClient,
     rollupCreatorVersion,
+    rollupCreatorAddress,
   );
 
   const isCustomGasToken = isNonZeroAddress(nativeToken);
@@ -246,7 +257,12 @@ export async function createRollupGetRetryablesFees<TChain extends Chain | undef
  */
 export async function createRollupGetRetryablesFeesWithDefaults<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
-  { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
+  {
+    account,
+    nativeToken,
+    maxFeePerGasForRetryables,
+    rollupCreatorAddressOverride,
+  }: CreateRollupGetRetryablesFeesParams,
   rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
   try {
@@ -256,6 +272,7 @@ export async function createRollupGetRetryablesFeesWithDefaults<TChain extends C
         account,
         nativeToken,
         maxFeePerGasForRetryables,
+        rollupCreatorAddressOverride,
       },
       rollupCreatorVersion,
     );

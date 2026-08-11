@@ -1,16 +1,19 @@
 import { Address, PublicClient, Transport, Chain, encodeFunctionData, parseAbi } from 'viem';
 
+import { validateParentChain } from './types/ParentChain';
 import { isCustomFeeTokenChain } from './utils/isCustomFeeTokenChain';
-import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { createTokenBridgeFetchTokenBridgeContracts } from './createTokenBridgeFetchTokenBridgeContracts';
 import { createRollupFetchCoreContracts } from './createRollupFetchCoreContracts';
-import { getEstimateForSettingGateway } from './createTokenBridge-ethers';
+import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { GasOverrideOptions, applyPercentIncrease } from './utils/gasOverrides';
 import { Prettify } from './types/utils';
-import { validateParentChain } from './types/ParentChain';
 import { WithTokenBridgeCreatorAddressOverride } from './types/createTokenBridgeTypes';
-import { registerNewNetwork } from './utils/registerNewNetwork';
-import { publicClientToProvider } from './ethers-compat/publicClientToProvider';
+import {
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
+} from './constants';
+import { calculateRetryableSubmissionFee } from './calculateRetryableSubmissionFee';
 
 export type TransactionRequestRetryableGasOverrides = {
   gasLimit?: GasOverrideOptions;
@@ -18,9 +21,8 @@ export type TransactionRequestRetryableGasOverrides = {
   maxSubmissionCost?: GasOverrideOptions;
 };
 
-export type CreateTokenBridgePrepareRegisterWethGatewayTransactionRequestParams<
+export type CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams<
   TParentChain extends Chain | undefined,
-  TOrbitChain extends Chain | undefined,
 > = Prettify<
   WithTokenBridgeCreatorAddressOverride<{
     /**
@@ -35,7 +37,6 @@ export type CreateTokenBridgePrepareRegisterWethGatewayTransactionRequestParams<
      */
     rollupDeploymentBlockNumber?: bigint;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
-    orbitChainPublicClient: PublicClient<Transport, TOrbitChain>;
     account: Address;
     retryableGasOverrides?: TransactionRequestRetryableGasOverrides;
   }>
@@ -104,26 +105,16 @@ const parentChainGatewayRouterAbi = [
 
 export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   TParentChain extends Chain | undefined,
-  TOrbitChain extends Chain | undefined,
 >({
   rollup,
   rollupDeploymentBlockNumber,
   parentChainPublicClient,
-  orbitChainPublicClient,
   account,
   retryableGasOverrides,
   tokenBridgeCreatorAddressOverride,
-}: CreateTokenBridgePrepareRegisterWethGatewayTransactionRequestParams<TParentChain, TOrbitChain>) {
+}: CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams<TParentChain>) {
   const { chainId } = validateParentChain(parentChainPublicClient);
 
-  // Ensure that networks are registered
-  await registerNewNetwork(
-    publicClientToProvider(parentChainPublicClient),
-    publicClientToProvider(orbitChainPublicClient),
-    rollup,
-  );
-
-  // check for custom fee token chain
   if (
     await isCustomFeeTokenChain({
       rollup,
@@ -133,21 +124,18 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
     throw new Error('chain is custom fee token chain, no need to register the weth gateway.');
   }
 
-  // get inbox address from rollup
   const inbox = await parentChainPublicClient.readContract({
     address: rollup,
     abi: parseAbi(['function inbox() view returns (address)']),
     functionName: 'inbox',
   });
 
-  // get token bridge contracts
   const tokenBridgeContracts = await createTokenBridgeFetchTokenBridgeContracts({
     inbox,
     parentChainPublicClient,
     tokenBridgeCreatorAddressOverride,
   });
 
-  // check whether the weth gateway is already registered in the router
   const registeredWethGateway = await parentChainPublicClient.readContract({
     address: tokenBridgeContracts.parentChainContracts.router,
     abi: parentChainGatewayRouterAbi,
@@ -164,7 +152,6 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
     publicClient: parentChainPublicClient,
   });
 
-  // encode data for the setGateways call
   // (we first encode dummy data, to get the retryable message estimates)
   const setGatewaysDummyCalldata = encodeFunctionData({
     abi: parentChainGatewayRouterAbi,
@@ -177,45 +164,43 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
       1n, // _maxSubmissionCost
     ],
   });
-  const retryableTicketGasEstimates = await getEstimateForSettingGateway(
-    account,
-    rollupCoreContracts.upgradeExecutor,
-    tokenBridgeContracts.parentChainContracts.router,
-    setGatewaysDummyCalldata,
+  const calldataSize = BigInt((setGatewaysDummyCalldata.length - 2) / 2);
+  const maxSubmissionCostEstimate = await calculateRetryableSubmissionFee(
     parentChainPublicClient,
-    orbitChainPublicClient,
+    inbox,
+    calldataSize,
   );
 
   //// apply gas overrides
   const gasLimit =
     retryableGasOverrides && retryableGasOverrides.gasLimit
       ? applyPercentIncrease({
-          base: retryableGasOverrides.gasLimit.base ?? retryableTicketGasEstimates.gasLimit,
+          base:
+            retryableGasOverrides.gasLimit.base ?? createTokenBridgeDefaultGasLimitForWethGateway,
           percentIncrease: retryableGasOverrides.gasLimit.percentIncrease,
         })
-      : retryableTicketGasEstimates.gasLimit;
+      : createTokenBridgeDefaultGasLimitForWethGateway;
 
   const maxFeePerGas =
     retryableGasOverrides && retryableGasOverrides.maxFeePerGas
       ? applyPercentIncrease({
-          base: retryableGasOverrides.maxFeePerGas.base ?? retryableTicketGasEstimates.maxFeePerGas,
+          base: retryableGasOverrides.maxFeePerGas.base ?? createTokenBridgeDefaultMaxGasPrice,
           percentIncrease: retryableGasOverrides.maxFeePerGas.percentIncrease,
         })
-      : retryableTicketGasEstimates.maxFeePerGas;
+      : createTokenBridgeDefaultMaxGasPrice;
 
-  const maxSubmissionCost =
-    retryableGasOverrides && retryableGasOverrides.maxSubmissionCost
-      ? applyPercentIncrease({
-          base:
-            retryableGasOverrides.maxSubmissionCost.base ??
-            retryableTicketGasEstimates.maxSubmissionCost,
-          percentIncrease: retryableGasOverrides.maxSubmissionCost.percentIncrease,
-        })
-      : retryableTicketGasEstimates.maxSubmissionCost;
+  const maxSubmissionCost = retryableGasOverrides?.maxSubmissionCost
+    ? applyPercentIncrease({
+        base: retryableGasOverrides.maxSubmissionCost.base ?? maxSubmissionCostEstimate,
+        percentIncrease: retryableGasOverrides.maxSubmissionCost.percentIncrease,
+      })
+    : applyPercentIncrease({
+        base: maxSubmissionCostEstimate,
+        percentIncrease: defaultSubmissionFeePercentIncrease,
+      });
 
   const deposit = gasLimit * maxFeePerGas + maxSubmissionCost;
 
-  // (and then we encode the real data, to send the transaction)
   const setGatewaysCalldata = encodeFunctionData({
     abi: parentChainGatewayRouterAbi,
     functionName: 'setGateways',
@@ -228,7 +213,6 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
     ],
   });
 
-  // prepare the transaction request with a call to the upgrade executor
   // @ts-expect-error -- todo: fix viem type issue
   const request = await parentChainPublicClient.prepareTransactionRequest({
     chain: parentChainPublicClient.chain,

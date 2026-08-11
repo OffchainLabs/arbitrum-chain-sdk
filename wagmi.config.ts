@@ -181,6 +181,13 @@ const contracts: ContractConfig[] = [
     address: '0x68FF3d308F3a9Bc321c499eeE85c897D4B351f64',
   },
   {
+    name: 'Inbox',
+    version: '3.2',
+    // example deployment via factory
+    // https://sepolia.arbiscan.io/tx/0xbf2e35ed7d1a6f933e79f875deef2bf625ea628067b3b23c34afce9d6f8a8ce1
+    address: '0x2529cdc3ce14e6881ae03f144b7a05a68b0e97d4',
+  },
+  {
     name: 'ArbOwner',
     address: '0x0000000000000000000000000000000000000070',
   },

@@ -107,7 +107,6 @@ async function main() {
       rollupOwner: rollupOwner.address,
     },
     parentChainPublicClient,
-    orbitChainPublicClient,
     account: rollupOwner.address,
   });
 

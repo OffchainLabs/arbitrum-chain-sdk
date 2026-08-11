@@ -39,17 +39,21 @@ Routing contracts owned by the Arbitrum Foundation can be seen in the [AEP docum
 1. Install dependencies
 
    ```bash
+   # in repo root
    pnpm install
+   pnpm build
    ```
 
 2. Create .env file and add the env vars
 
    ```bash
+   # in example dir
    cp .env.example .env
    ```
 
 3. Run the example
    ```bash
+   # in example dir
    pnpm dev
    ```
 

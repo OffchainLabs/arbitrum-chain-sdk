@@ -101,7 +101,6 @@ import {
   CreateTokenBridgeResults,
   createTokenBridge,
 } from './createTokenBridge';
-import { isTokenBridgeDeployed } from './isTokenBridgeDeployed';
 import {
   createTokenBridgeEnoughCustomFeeTokenAllowance,
   CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams,
@@ -128,6 +127,17 @@ import {
   feeRouterDeployRewardDistributor,
   FeeRouterDeployRewardDistributorParams,
 } from './feeRouterDeployRewardDistributor';
+import {
+  deployProxyAdmin,
+  DeployProxyAdminParams,
+  DeployProxyAdminResult,
+} from './deployProxyAdmin';
+import {
+  deployExpressLaneAuction,
+  DeployExpressLaneAuctionParams,
+  DeployExpressLaneAuctionResult,
+  ExpressLaneAuctionRoundTimingInfo,
+} from './deployExpressLaneAuction';
 import * as utils from './utils';
 
 import { getBridgeUiConfig, GetBridgeUiConfigFunctionParams } from './getBridgeUiConfig';
@@ -178,7 +188,12 @@ import {
 import {
   createRollupDefaultRetryablesFees,
   createTokenBridgeDefaultRetryablesFees,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
 } from './constants';
+import { CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams } from './createTokenBridgePrepareSetWethGatewayTransactionRequest';
 import {
   CreateRollupGetRetryablesFeesParams,
   createRollupGetRetryablesFees,
@@ -275,7 +290,6 @@ export {
   prepareKeysetHash,
   utils,
   //
-  isTokenBridgeDeployed,
   CreateTokenBridgeParams,
   CreateTokenBridgeResults,
   createTokenBridge,
@@ -294,6 +308,13 @@ export {
   FeeRouterDeployChildToParentRewardRouterParams,
   feeRouterDeployRewardDistributor,
   FeeRouterDeployRewardDistributorParams,
+  deployProxyAdmin,
+  DeployProxyAdminParams,
+  DeployProxyAdminResult,
+  deployExpressLaneAuction,
+  DeployExpressLaneAuctionParams,
+  DeployExpressLaneAuctionResult,
+  ExpressLaneAuctionRoundTimingInfo,
   //
   getDefaultConfirmPeriodBlocks,
   getDefaultChallengeGracePeriodBlocks,
@@ -347,6 +368,11 @@ export {
   CreateRollupGetRetryablesFeesParams,
   //
   createTokenBridgeDefaultRetryablesFees,
+  createTokenBridgeDefaultMaxGasPrice,
+  createTokenBridgeDefaultMaxGasForContracts,
+  createTokenBridgeDefaultGasLimitForWethGateway,
+  defaultSubmissionFeePercentIncrease,
+  CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams,
   //
   fetchAllowance,
   FetchAllowanceProps,
@@ -355,3 +381,7 @@ export {
   //
   prepareArbitrumNetwork,
 };
+
+export * from './scripting/scriptUtils';
+export * from './scripting/viemTransforms';
+export * from './scripting/schemas';
