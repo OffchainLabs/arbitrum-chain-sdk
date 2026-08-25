@@ -207,6 +207,15 @@ import {
 } from './utils/erc20';
 import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
 import { getChainContractVersions } from './getChainContractVersions';
+import {
+  NitroContractsUpgradeVersion,
+  DeployNitroContractsUpgradeActionParameters,
+  ExecuteNitroContractsUpgradeParameters,
+  VerifyNitroContractsUpgradeParameters,
+  deployNitroContractsUpgradeAction,
+  executeNitroContractsUpgrade,
+  verifyNitroContractsUpgrade,
+} from './nitroContractsUpgrade';
 
 export {
   arbOwnerPublicActions,
@@ -383,6 +392,13 @@ export {
   prepareArbitrumNetwork,
   //
   getChainContractVersions,
+  NitroContractsUpgradeVersion,
+  deployNitroContractsUpgradeAction,
+  DeployNitroContractsUpgradeActionParameters,
+  executeNitroContractsUpgrade,
+  ExecuteNitroContractsUpgradeParameters,
+  verifyNitroContractsUpgrade,
+  VerifyNitroContractsUpgradeParameters,
 };
 
 export * from './scripting/scriptUtils';
