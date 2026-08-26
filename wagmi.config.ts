@@ -101,7 +101,7 @@ const contracts: ContractConfig[] = [
       [baseSepolia.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
       [nitroTestnodeL1.id]: '0xe6D50099f4d891240435143193d46581A1447202',
-      [nitroTestnodeL2.id]: '0xbcF51F3AAb5D5Efa025b4A2B235BDc9F3f69b4d2',
+      [nitroTestnodeL2.id]: '0x1E08B9c3f94E9aBcc531f67F949d796eC76963b9',
     },
   },
   {
