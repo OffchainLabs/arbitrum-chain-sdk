@@ -2,6 +2,12 @@ packages:
   - "src"
   - "examples/*"
 
+allowBuilds:
+  '@arbitrum/nitro-contracts': true
+  esbuild: true
+  keccak: true
+  secp256k1: true
+
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'
