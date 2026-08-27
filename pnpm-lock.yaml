@@ -121,6 +121,10 @@ importers:
         version: 5.2.2
 
   examples/prepare-node-config:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -3459,7 +3463,7 @@ snapshots:
 
   '@safe-global/safe-core-sdk-types@5.1.0(typescript@5.2.2)(zod@4.3.6)':
     dependencies:
-      abitype: 1.0.5(typescript@5.2.2)(zod@4.3.6)
+      abitype: 1.2.4(typescript@5.2.2)(zod@4.3.6)
     transitivePeerDependencies:
       - typescript
       - zod

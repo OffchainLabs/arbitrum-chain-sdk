@@ -25,6 +25,8 @@ function stringifyBackendsJson(
 }
 
 export type PrepareNodeConfigParams = {
+  /** Must be true to include private keys in the returned node config. */
+  insecure: boolean;
   chainName: string;
   chainConfig: ChainConfig;
   coreContracts: CoreContracts;
@@ -47,6 +49,7 @@ function getDisableBlobReader(parentChainId: ParentChainId): boolean {
 }
 
 export function prepareNodeConfig({
+  insecure,
   chainName,
   chainConfig,
   coreContracts,
@@ -59,6 +62,10 @@ export function prepareNodeConfig({
   parentChainBeaconRpcUrl,
   dasServerUrl,
 }: PrepareNodeConfigParams): NodeConfig {
+  if (!insecure && (batchPosterPrivateKey !== undefined || validatorPrivateKey !== undefined)) {
+    throw new Error(`"params.insecure" must be true to include private keys in the node config.`);
+  }
+
   // For L2 Orbit chains settling to Ethereum mainnet or testnet, a parentChainBeaconRpcUrl is enforced
   if (getParentChainLayer(parentChainId) === 1 && !parentChainBeaconRpcUrl) {
     throw new Error(`"parentChainBeaconRpcUrl" is required for L2 Orbit chains.`);
