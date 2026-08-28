@@ -57,6 +57,7 @@ import {
   getConsensusReleaseByVersionSchema,
   getConsensusReleaseByWasmModuleRootSchema,
   isKnownWasmModuleRootSchema,
+  generateGenesisSchema,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -142,6 +143,7 @@ import {
 } from './workflows/deployParentChainContracts';
 import { getNitroContractVersions } from '../getNitroContractVersions';
 import { getNitroContractVersionsSchema } from './schemas/getNitroContractVersions';
+import { generateGenesis } from '../generateGenesis';
 
 import { contractRegistry } from './contractRegistry';
 import { buildContractCommandSchema } from './contractCommandSchema';
@@ -387,4 +389,5 @@ export const commands: readonly Command[] = [
 
   ...contractCommands,
   command('getNitroContractVersions', getNitroContractVersionsSchema, getNitroContractVersions),
+  command('generateGenesis', generateGenesisSchema, generateGenesis),
 ];
