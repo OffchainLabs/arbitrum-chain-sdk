@@ -2,6 +2,8 @@ import type { Address } from 'viem';
 
 import { runChainVersioner } from '@arbitrum/chain-actions';
 
+import { verifyFoundryBinaries } from './utils/verifyFoundry';
+
 export type GetChainContractVersionsResult = {
   versions: Record<string, string | null>;
   upgradeRecommendation: unknown;
@@ -37,6 +39,8 @@ export async function getChainContractVersions(
   inboxAddress: Address,
   parentChainRpc: string,
 ): Promise<GetChainContractVersionsResult> {
+  await verifyFoundryBinaries();
+
   const result = await runChainVersioner(inboxAddress, parentChainRpc, true);
 
   return parseChainContractVersionsResult(result);
