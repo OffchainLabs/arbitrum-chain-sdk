@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getChainContractVersions } from './getChainContractVersions';
+import { getNitroContractVersions } from './getNitroContractVersions';
 import { runChainVersioner } from '@arbitrum/chain-actions';
 
 vi.mock('@arbitrum/chain-actions', () => ({
   runChainVersioner: vi.fn(),
 }));
 
-describe('getChainContractVersions', () => {
+describe('getNitroContractVersions', () => {
   beforeEach(() => {
     vi.mocked(runChainVersioner).mockReset();
   });
@@ -24,7 +24,7 @@ describe('getChainContractVersions', () => {
     });
 
     await expect(
-      getChainContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
+      getNitroContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
     ).resolves.toEqual({
       versions: {
         Inbox: 'v1.1.1',
@@ -48,8 +48,8 @@ describe('getChainContractVersions', () => {
     } as never);
 
     await expect(
-      getChainContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
-    ).rejects.toThrow('Failed to parse Orbit chain contract versions');
+      getNitroContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
+    ).rejects.toThrow('Failed to parse Nitro contract versions');
   });
 
   it('accepts any JSON payload that includes versions and upgradeRecommendation', async () => {
@@ -59,7 +59,7 @@ describe('getChainContractVersions', () => {
     } as never);
 
     await expect(
-      getChainContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
+      getNitroContractVersions('0xaE21fDA3de92dE2FDAF606233b2863782Ba046F9', 'https://rpc.example'),
     ).resolves.toEqual({
       versions: 'not-validated',
       upgradeRecommendation: null,

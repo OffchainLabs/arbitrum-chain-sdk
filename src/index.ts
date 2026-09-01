@@ -206,7 +206,7 @@ import {
   FetchDecimalsProps,
 } from './utils/erc20';
 import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
-import { getChainContractVersions } from './getChainContractVersions';
+import { getNitroContractVersions } from './getNitroContractVersions';
 
 export {
   arbOwnerPublicActions,
@@ -382,7 +382,7 @@ export {
   //
   prepareArbitrumNetwork,
   //
-  getChainContractVersions,
+  getNitroContractVersions,
 };
 
 export * from './scripting/scriptUtils';
