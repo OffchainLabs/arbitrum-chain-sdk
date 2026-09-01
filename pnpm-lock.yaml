@@ -78,6 +78,10 @@ importers:
         version: 4.3.6
 
   examples/create-rollup-custom-fee-token:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -87,6 +91,10 @@ importers:
         version: 5.2.2
 
   examples/create-rollup-eth:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -96,6 +104,10 @@ importers:
         version: 5.2.2
 
   examples/create-token-bridge-custom-fee-token:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -105,6 +117,10 @@ importers:
         version: 5.2.2
 
   examples/create-token-bridge-eth:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -114,6 +130,10 @@ importers:
         version: 5.2.2
 
   examples/generate-bridge-ui-config:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -123,6 +143,10 @@ importers:
         version: 5.2.2
 
   examples/prepare-node-config:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -132,6 +156,10 @@ importers:
         version: 5.2.2
 
   examples/set-new-validators:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -141,6 +169,10 @@ importers:
         version: 5.2.2
 
   examples/set-valid-keyset:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -169,6 +201,10 @@ importers:
         version: 5.2.2
 
   examples/setup-fast-withdrawal:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -178,6 +214,10 @@ importers:
         version: 5.2.2
 
   examples/setup-fee-distributor-contract:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
@@ -187,6 +227,10 @@ importers:
         version: 5.2.2
 
   examples/upgrade-executor-add-account:
+    dependencies:
+      '@arbitrum/chain-sdk':
+        specifier: workspace:*
+        version: link:../../src
     devDependencies:
       '@types/node':
         specifier: ^20.9.0
