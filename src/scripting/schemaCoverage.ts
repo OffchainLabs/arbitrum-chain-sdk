@@ -443,6 +443,11 @@ vi.mock('../getNitroContractVersions', () => ({
 vi.mock('../generateGenesis', () => ({
   generateGenesis: _mocks.fn('generateGenesis'),
 }));
+vi.mock('../nitroContractsUpgrade', () => ({
+  deployNitroContractsUpgradeAction: _mocks.fn('deployNitroContractsUpgradeAction'),
+  executeNitroContractsUpgrade: _mocks.fn('executeNitroContractsUpgrade'),
+  verifyNitroContractsUpgrade: _mocks.fn('verifyNitroContractsUpgrade'),
+}));
 /**
  * A testable leaf of a schema -- a scalar field the harness will vary when
  * running coverage.
