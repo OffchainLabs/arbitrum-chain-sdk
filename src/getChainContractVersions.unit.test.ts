@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getChainContractVersions } from './getChainContractVersions';
 import { runChainVersioner } from '@arbitrum/chain-actions';
+
+import { getChainContractVersions } from './getChainContractVersions';
 
 vi.mock('@arbitrum/chain-actions', () => ({
   runChainVersioner: vi.fn(),
@@ -42,7 +43,7 @@ describe('getChainContractVersions', () => {
     );
   });
 
-  it('throws when the JSON payload is missing top level fields', async () => {
+  it('throws when the result is missing top-level fields', async () => {
     vi.mocked(runChainVersioner).mockResolvedValueOnce({
       versions: { Inbox: 'v1.1.1' },
     } as never);
@@ -52,7 +53,7 @@ describe('getChainContractVersions', () => {
     ).rejects.toThrow('Failed to parse Orbit chain contract versions');
   });
 
-  it('accepts any JSON payload that includes versions and upgradeRecommendation', async () => {
+  it('accepts any result that includes versions and upgradeRecommendation', async () => {
     vi.mocked(runChainVersioner).mockResolvedValueOnce({
       versions: 'not-validated',
       upgradeRecommendation: null,

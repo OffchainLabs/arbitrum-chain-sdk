@@ -81,3 +81,4 @@ export {
   isAllowListEnabledSchema,
   isAllowedSchema,
 } from './actions';
+export { getChainContractVersionsSchema } from './getChainContractVersions';
