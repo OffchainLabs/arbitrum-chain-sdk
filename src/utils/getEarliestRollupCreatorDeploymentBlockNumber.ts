@@ -4,9 +4,11 @@ import {
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
   sepolia,
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   nitroTestnodeL1,
   nitroTestnodeL2,
 } from '../chains';
@@ -19,11 +21,13 @@ const earliestRollupCreatorDeploymentBlockNumber: Record<number, bigint> = {
   [arbitrumOne.id]: 150_599_584n,
   [arbitrumNova.id]: 47_798_739n,
   [base.id]: 12_978_604n,
+  [rhMainnet.id]: 51_078_803n,
   // testnet L1
   [sepolia.id]: 4_741_823n,
   // testnet L2
   [arbitrumSepolia.id]: 654_628n,
   [baseSepolia.id]: 10_606_961n,
+  [rhTestnet.id]: 111_220_754n,
   // local nitro-testnode
   [nitroTestnodeL1.id]: 0n,
   [nitroTestnodeL2.id]: 0n,
