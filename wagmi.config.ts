@@ -6,9 +6,11 @@ import {
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
   sepolia,
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   nitroTestnodeL1,
   nitroTestnodeL2,
 } from './src/chains';
@@ -94,11 +96,13 @@ const contracts: ContractConfig[] = [
       [arbitrumOne.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
       [arbitrumNova.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
       [base.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
+      [rhMainnet.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
       // testnet L1
       [sepolia.id]: '0xe06Bc77336E201c4C08751918A4bB99ddf0e1Bf7',
       // testnet L2
       [arbitrumSepolia.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
       [baseSepolia.id]: '0x8d1668636D053C10F57367D68118bD624f41ffe6',
+      [rhTestnet.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
       [nitroTestnodeL1.id]: '0xe6D50099f4d891240435143193d46581A1447202',
       [nitroTestnodeL2.id]: '0xbcF51F3AAb5D5Efa025b4A2B235BDc9F3f69b4d2',
@@ -114,11 +118,13 @@ const contracts: ContractConfig[] = [
       [arbitrumOne.id]: '0x2f5624dc8800dfA0A82AC03509Ef8bb8E7Ac000e',
       [arbitrumNova.id]: '0x8B9D9490a68B1F16ac8A21DdAE5Fd7aB9d708c14',
       [base.id]: '0x4C240987d6fE4fa8C7a0004986e3db563150CA55',
+      [rhMainnet.id]: '0x8B1EFf64E1eAd493A82C6798f5708183AF91A3AD',
       // testnet L1
       [sepolia.id]: '0x7edb2dfBeEf9417e0454A80c51EE0C034e45a570',
       // testnet L2
       [arbitrumSepolia.id]: '0x56C486D3786fA26cc61473C499A36Eb9CC1FbD8E',
       [baseSepolia.id]: '0xFC71d21a4FE10Cc0d34745ba9c713836f82f8DE3',
+      [rhTestnet.id]: '0xB27b615369d2B846183c36AD8406B4DD7990fb70',
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
       [nitroTestnodeL1.id]: '0x4Af567288e68caD4aA93A272fe6139Ca53859C70',
       [nitroTestnodeL2.id]: '0x38F35Af53bF913c439eaB06A367e09D6eb253492',

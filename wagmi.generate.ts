@@ -27,10 +27,11 @@ if (!apiKey) {
   throw new Error('Missing the ETHERSCAN_API_KEY environment variable!');
 }
 
+// address maps may omit parent chains where older contract versions are not deployed
 export type ContractConfig = {
   name: string;
   version?: string;
-  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
+  address: Partial<Record<ParentChainId, `0x${string}`>> | `0x${string}`;
 };
 
 async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
@@ -119,9 +120,14 @@ async function assertContractAbisMatch(contract: ContractConfig) {
  */
 async function generateAbiForFactoryContract(
   name: string,
-  address: Record<ParentChainId, `0x${string}`>,
+  address: Partial<Record<ParentChainId, `0x${string}`>>,
 ) {
   const chainId = referenceChain.id;
+  const referenceAddress = address[chainId];
+
+  if (typeof referenceAddress === 'undefined') {
+    throw new Error(`Missing address for ${name} on reference chain ${chainId}`);
+  }
 
   await assertContractAbisMatch({ name, address });
 
@@ -130,11 +136,12 @@ async function generateAbiForFactoryContract(
     transport: http(),
   });
 
-  const implementation = await getImplementation({ client, address: address[chainId] });
-  const resolvedAddress = implementation !== zeroAddress ? implementation : address[chainId];
+  const implementation = await getImplementation({ client, address: referenceAddress });
+  const resolvedAddress = implementation !== zeroAddress ? implementation : referenceAddress;
 
   const abi = await fetchAbi(chainId, resolvedAddress);
-  return [{ name, abi, address }];
+  // cast: Partial's undefined values never materialize, absent chains simply have no key
+  return [{ name, abi, address: address as Record<number, `0x${string}`> }];
 }
 
 /**
@@ -194,7 +201,7 @@ export function generate({
   address,
 }: {
   name: string;
-  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
+  address: ContractConfig['address'];
 }): Plugin {
   return {
     name: 'generate',
