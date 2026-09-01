@@ -7,7 +7,7 @@ import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 const execFilePromise = promisify(execFile);
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
 const tokenBridgeContractsImage =
-  process.env.TOKEN_BRIDGE_CONTRACTS_IMAGE ?? 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.2';
+  process.env.TOKEN_BRIDGE_CONTRACTS_IMAGE ?? 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.5';
 const skipTokenBridgeContractsImageBuild = process.env.TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD === 'true';
 
 let tokenBridgeContractsImagePromise: Promise<string> | undefined;
