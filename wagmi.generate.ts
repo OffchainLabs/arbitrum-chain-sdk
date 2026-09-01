@@ -47,7 +47,10 @@ async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
   const blockscoutUrl = blockscoutUrls[chainId];
 
   if (blockscoutUrl) {
-    const response = await fetch(`${blockscoutUrl}/api/v2/smart-contracts/${address}`);
+    const response = await fetch(`${blockscoutUrl}/api/v2/smart-contracts/${address}`, {
+      // Some blockscout instances reject non-browser user agents
+      headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36' },
+    });
     const responseJson = await response.json();
 
     if (!response.ok || !responseJson.abi) {
