@@ -86,3 +86,8 @@ export {
 } from './actions';
 export { getNitroContractVersionsSchema } from './getNitroContractVersions';
 export { generateGenesisSchema } from './generateGenesis';
+export {
+  deployNitroContractsUpgradeActionSchema,
+  executeNitroContractsUpgradeSchema,
+  verifyNitroContractsUpgradeSchema,
+} from './nitroContractsUpgrade';
