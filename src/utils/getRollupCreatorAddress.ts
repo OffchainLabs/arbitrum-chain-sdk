@@ -25,7 +25,6 @@ export function getRollupCreatorAddress<TChain extends Chain | undefined>(
     return address;
   }
 
-  // TODO: consider batching this change with deprecating v2.1 rollup creator in the sdk
   // older versions are not deployed on all parent chains, so their maps may miss entries
   const rollupCreatorAddress: Partial<Record<ParentChainId, Address>> =
     rollupCreatorVersion === 'v3.2'
