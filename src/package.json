@@ -58,6 +58,7 @@
   },
   "dependencies": {
     "@arbitrum/nitro-contracts": "^3.2.0",
+    "@arbitrum/chain-actions": "1.0.0-alpha.4",
     "@arbitrum/sdk": "^4.0.4",
     "@arbitrum/token-bridge-contracts": "^1.2.5",
     "@ethersproject/abstract-provider": "^5.7.0",

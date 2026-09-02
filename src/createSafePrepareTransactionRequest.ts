@@ -1,7 +1,6 @@
 import {
   Address,
   Chain,
-  PrivateKeyAccount,
   PublicClient,
   Transport,
   encodeFunctionData,
@@ -76,7 +75,7 @@ export const SafeProxyFactoryAbi = [
  */
 export type CreateSafePrepareTransactionRequestParams<TChain extends Chain | undefined> = {
   publicClient: PublicClient<Transport, TChain>;
-  account: PrivateKeyAccount;
+  account: Address;
   owners: Address[];
   threshold: number;
   saltNonce?: bigint;
@@ -91,7 +90,7 @@ export type CreateSafePrepareTransactionRequestParams<TChain extends Chain | und
  *
  * @param {CreateSafePrepareTransactionRequestParams} createSafePrepareTransactionRequestParams {@link CreateSafePrepareTransactionRequestParams}
  * @param {PublicClient} createSafePrepareTransactionRequestParams.publicClient - A Viem Public Client
- * @param {PrivateKeyAccount} createSafePrepareTransactionRequestParams.account - The private key of the deployer of the new Safe
+ * @param {Address} createSafePrepareTransactionRequestParams.account - The address of the deployer of the new Safe
  * @param {Address[]} createSafePrepareTransactionRequestParams.owners - Array of addresses of the signers of the Safe
  * @param {number} createSafePrepareTransactionRequestParams.threshold - Number of signatures needed to validate a transaction in the Safe
  * @param {bigint} createSafePrepareTransactionRequestParams.saltNonce - Optional salt nonce for the call to Create2
