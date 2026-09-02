@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 
-const FOUNDRY_BINARIES: ['forge', 'cast'] = ['forge', 'cast'];
+const FOUNDRY_BINARIES = ['forge', 'cast'] as const;
 
 function runVersionCommand(binary: 'forge' | 'cast'): Promise<string> {
   return new Promise((resolve, reject) => {
