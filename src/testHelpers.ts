@@ -146,30 +146,22 @@ function readFirstExistingContainerJson<T>(container: string, paths: string[]): 
 
 function getInformationFromTestnodeContainer(container: string): TestnodeInformation {
   const deploymentJson = readFirstExistingContainerJson<TestnodeDeploymentJson>(container, [
-    '/config/deployment.json',
-    '/config/l2_deployment.json',
     '/opt/arbitrum-testnode/export-config/deployment.json',
     '/opt/arbitrum-testnode/export-config/l2_deployment.json',
   ]);
   const l3DeploymentJson = readFirstExistingContainerJson<Required<TestnodeDeploymentJson>>(
     container,
     [
-      '/config/l3deployment.json',
-      '/config/l3_deployment.json',
       '/opt/arbitrum-testnode/export-config/l3deployment.json',
       '/opt/arbitrum-testnode/export-config/l3_deployment.json',
     ],
   );
   const sequencerConfig = readFirstExistingContainerJson<TestnodeNodeConfig>(container, [
-    '/config/sequencer_config.json',
-    '/config/l2-nodeConfig.json',
     '/opt/arbitrum-testnode/export-config/sequencer_config.json',
     '/opt/arbitrum-testnode/export-config/l2-nodeConfig.json',
   ]);
 
   const l3SequencerConfig = readFirstExistingContainerJson<TestnodeNodeConfig>(container, [
-    '/config/l3node_config.json',
-    '/config/l3-nodeConfig.json',
     '/opt/arbitrum-testnode/export-config/l3node_config.json',
     '/opt/arbitrum-testnode/export-config/l3-nodeConfig.json',
   ]);
@@ -199,10 +191,6 @@ export function getInformationFromTestnode(): TestnodeInformation {
       'arbitrum-testnode-l3-eth',
       'arbitrum-testnode-l2',
       'arbitrum-testnode',
-      'nitro_sequencer_1',
-      'nitro-sequencer-1',
-      'nitro-testnode-sequencer-1',
-      'nitro-testnode_sequencer_1',
     ]),
   ).filter((container): container is string => typeof container === 'string' && container !== '');
 

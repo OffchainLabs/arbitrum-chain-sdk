@@ -69,7 +69,7 @@
     "test:type": "vitest --config vitest.type.config.mts",
     "test:unit": "vitest --config vitest.unit.config.mts",
     "test:integration": "vitest --config vitest.integration.config.mts",
-    "test:integration:arbitrum-testnode": "bash ./scripts/test-integration-arbitrum-testnode.sh",
+    "test:integration:local": "bash ./scripts/test-integration-arbitrum-testnode.sh",
     "postinstall": "patch-package",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --fix --cache",

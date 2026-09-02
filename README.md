@@ -99,18 +99,12 @@ arbitrum-chain-sdk prepareChainConfig '{
 }'
 ```
 
-## Run integration tests
+## Run integration tests locally
 
-Clone the branch `release` of [nitro-testnode](https://github.com/OffchainLabs/nitro-testnode), and run the testnode using the following arguments:
-
-```bash
-./test-node.bash --init --tokenbridge --l3node --l3-fee-token --l3-token-bridge
-```
-
-Then, run the integration tests:
+With Docker running, start `arbitrum-testnode` and run the integration tests locally:
 
 ```bash
-pnpm test:integration
+pnpm test:integration:local
 ```
 
 ## Examples
