@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-import { getChainContractVersions } from '@arbitrum/chain-sdk';
+import { getNitroContractVersions } from '@arbitrum/chain-sdk';
 import { isAddress } from 'viem';
 
 config();
@@ -17,7 +17,7 @@ async function main() {
   }
 
   console.log('Getting Orbit chain contract versions...');
-  const result = await getChainContractVersions(inboxAddress, parentChainRpc);
+  const result = await getNitroContractVersions(inboxAddress, parentChainRpc);
 
   console.log(result);
 }
