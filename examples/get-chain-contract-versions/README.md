@@ -1,6 +1,6 @@
 # Get Orbit chain contract versions
 
-This example uses the SDK's `getChainContractVersions` helper to inspect the deployed Nitro contract versions for an Orbit chain on Arbitrum.
+This example uses the SDK's `getNitroContractVersions` helper to inspect the deployed Nitro contract versions for an Orbit chain on Arbitrum.
 
 It runs against the current repository checkout, so `pnpm dev` builds the local SDK before executing the example.
 
