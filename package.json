@@ -1,21 +1,74 @@
 {
-  "private": true,
-  "type": "module",
+  "name": "@arbitrum/chain-sdk",
+  "description": "TypeScript SDK for building Arbitrum chains",
+  "version": "0.27.0",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "bin": {
+    "arbitrum-chain-sdk": "./dist/scripting/cli.js"
+  },
+  "files": [
+    "./dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./chains": {
+      "types": "./dist/chains.d.ts",
+      "default": "./dist/chains.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "default": "./dist/utils/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "default": "./dist/constants.js"
+    },
+    "./contracts/*": {
+      "types": "./dist/contracts/*",
+      "default": "./dist/contracts/*"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "chains": [
+        "./dist/chains.d.ts"
+      ],
+      "utils": [
+        "./dist/utils/index.d.ts"
+      ],
+      "constants": [
+        "./dist/constants.d.ts"
+      ],
+      "contracts/*": [
+        "./dist/contracts/*"
+      ]
+    }
+  },
+  "repository": "git+https://github.com/OffchainLabs/arbitrum-chain-sdk.git",
+  "author": "Offchain Labs, Inc.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=18"
+  },
   "packageManager": "pnpm@10.30.3",
   "scripts": {
-    "prebuild": "rm -rf ./src/dist",
-    "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./src/dist --declaration",
-    "cli": "node src/dist/scripting/cli.js",
+    "prebuild": "rm -rf ./dist",
+    "build": "tsc --project ./tsconfig.json --module commonjs --outDir ./dist --declaration",
+    "cli": "node ./dist/scripting/cli.js",
     "dev": "pnpm build --watch",
     "generate": "wagmi generate",
     "postgenerate": "pnpm generate:schemas",
     "generate:schemas": "tsx ./src/scripts/generateAbiSchemas.mts",
     "postgenerate:schemas": "prettier --write 'src/contracts/**/*.schemas.ts'",
-    "generate:node-config-type": "pnpm build && node ./src/dist/scripts/generateNodeConfigType.js",
+    "generate:node-config-type": "pnpm build && node ./dist/scripts/generateNodeConfigType.js",
     "postgenerate:node-config-type": "prettier --write ./src/types/NodeConfig.generated.ts",
-    "test:type": "vitest --config vitest.type.config.ts",
-    "test:unit": "vitest --config vitest.unit.config.ts",
-    "test:integration": "vitest --config vitest.integration.config.ts",
+    "test:type": "vitest --config vitest.type.config.mts",
+    "test:unit": "vitest --config vitest.unit.config.mts",
+    "test:integration": "vitest --config vitest.integration.config.mts",
     "test:integration:arbitrum-testnode": "bash ./scripts/test-integration-arbitrum-testnode.sh",
     "postinstall": "patch-package",
     "lint": "eslint . --cache",
@@ -23,6 +76,22 @@
     "prettier:check": "prettier --check '**/*.{ts,md,json,yml}'",
     "prettier:format": "prettier --write '**/*.{ts,md,json,yml}'",
     "audit:ci": "audit-ci --config ./audit-ci.jsonc"
+  },
+  "peerDependencies": {
+    "viem": "^1.20.0"
+  },
+  "dependencies": {
+    "@arbitrum/nitro-contracts": "^3.2.0",
+    "@arbitrum/sdk": "^4.0.4",
+    "@arbitrum/token-bridge-contracts": "^1.2.2",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@offchainlabs/fund-distribution-contracts": "^1.1.0",
+    "@safe-global/protocol-kit": "^4.1.7",
+    "abitype": "^0.9.8",
+    "ethers": "^5.7.2",
+    "jsonc-parser": "^3.3.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@offchainlabs/prettier-config": "0.2.1",
@@ -40,7 +109,6 @@
     "typescript": "^5.2.2",
     "typescript-eslint": "^8.56.1",
     "viem": "^1.20.0",
-    "vitest": "^4.1.0",
-    "zod": "^4.3.6"
+    "vitest": "^4.1.0"
   }
 }
