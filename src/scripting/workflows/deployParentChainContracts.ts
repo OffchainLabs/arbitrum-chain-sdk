@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toWalletClient, findChain } from '../viemTransforms';
+import { toWalletClient, findOrDefineChain } from '../viemTransforms';
 import { bigintSchema, privateKeySchema } from '../schemas/common';
 import { deployWeth } from '../../deployWeth';
 import { deployRollupCreator } from '../../deployRollupCreator';
@@ -14,7 +14,7 @@ export const inputSchema = z.strictObject({
 });
 
 export const schema = inputSchema.transform((input) => ({
-  walletClient: toWalletClient(input.rpcUrl, input.privateKey, findChain(input.chainId)),
+  walletClient: toWalletClient(input.rpcUrl, input.privateKey, findOrDefineChain(input.chainId)),
   maxDataSize: input.maxDataSize,
 }));
 

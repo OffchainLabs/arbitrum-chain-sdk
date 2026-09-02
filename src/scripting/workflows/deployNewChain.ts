@@ -11,7 +11,7 @@ import {
   toPublicClient,
   toAccount,
   toWalletClient,
-  findChain,
+  findOrDefineChain,
   registerCustomParentChainFromInput,
 } from '../viemTransforms';
 import { createRollupPrepareDeploymentParamsConfig } from '../../createRollupPrepareDeploymentParamsConfig';
@@ -53,7 +53,7 @@ export const schema = inputSchema
     const registered = registerCustomParentChainFromInput(input);
     const parentChainPublicClient = toPublicClient(
       registered.parentChainRpcUrl,
-      findChain(registered.parentChainId),
+      findOrDefineChain(registered.parentChainId),
     );
     const account = toAccount(registered.privateKey);
     const {
@@ -85,7 +85,7 @@ export const schema = inputSchema
       walletClient: toWalletClient(
         registered.parentChainRpcUrl,
         registered.privateKey,
-        findChain(registered.parentChainId),
+        findOrDefineChain(registered.parentChainId),
       ),
       keyset: isAnytrust ? keyset ?? DEFAULT_KEYSET : undefined,
     };

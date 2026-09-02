@@ -11,7 +11,7 @@ import { getDefaultMinimumAssertionPeriod } from '../../getDefaultMinimumAsserti
 import { getDefaultValidatorAfkBlocks } from '../../getDefaultValidatorAfkBlocks';
 import { getDefaultSequencerInboxMaxTimeVariation } from '../../getDefaultSequencerInboxMaxTimeVariation';
 import { DEFAULT_MAX_DATA_SIZE } from '../../deployRollupCreator';
-import { findChain } from '../viemTransforms';
+import { findOrDefineChain } from '../viemTransforms';
 import { schema, execute } from './deployFullChain';
 import {
   schema as deployParentChainContractsSchema,
@@ -64,7 +64,7 @@ describe('deployFullChain on a custom parent chain', () => {
 
     expect(validateParentChain(parentChainPublicClient).isCustom).toEqual(true);
     // custom-first resolution returns our freshly deployed creator, not the contract-less built-in
-    const resolvedRollupCreator = findChain(nitroTestnodeL2.id).contracts?.rollupCreator as
+    const resolvedRollupCreator = findOrDefineChain(nitroTestnodeL2.id).contracts?.rollupCreator as
       | ChainContract
       | undefined;
     expect(resolvedRollupCreator?.address).toEqual(rollupCreator);

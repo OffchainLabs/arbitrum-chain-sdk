@@ -3,7 +3,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import { sanitizePrivateKey } from '../utils/sanitizePrivateKey';
 import { chains, getCustomParentChains, registerCustomParentChain } from '../chains';
 
-export function findChain(chainId: number): Chain {
+export function findOrDefineChain(chainId: number): Chain {
   // Custom chains first: a registered custom chain wins over a built-in with the same id,
   // so its factory addresses are used instead of the contract-less built-in entry.
   const knownChains = [...getCustomParentChains(), ...chains];
@@ -38,10 +38,11 @@ export type CustomParentChainInput = {
 
 /**
  * Registers a custom parent chain from CLI input and strips the custom fields so downstream
- * transforms and SDK args never see them. With custom-first findChain, the registered chain's
- * factory addresses win over any built-in entry with the same id. Gated on parentChainContracts:
- * registering on name/currency alone would shadow a working built-in with a contract-less entry
- * (custom-first findChain), breaking the address lookups that then read an isCustom chain.
+ * transforms and SDK args never see them. With custom-first findOrDefineChain, the registered
+ * chain's factory addresses win over any built-in entry with the same id. Gated on
+ * parentChainContracts: registering on name/currency alone would shadow a working built-in with
+ * a contract-less entry (custom-first findOrDefineChain), breaking the address lookups that then
+ * read an isCustom chain.
  */
 export function registerCustomParentChainFromInput<
   T extends { parentChainId: number } & CustomParentChainInput,
@@ -128,7 +129,7 @@ export function withPublicClient<T extends { rpcUrl: string; chainId: number }>(
 ): WithPublicClient<T> {
   const { rpcUrl, chainId, ...rest } = input;
   return [
-    { publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest },
+    { publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)), ...rest },
   ] as WithPublicClient<T>;
 }
 
@@ -137,7 +138,10 @@ export function withPublicClientOptionalChain<T extends { rpcUrl: string; chainI
 ): WithPublicClientOptionalChain<T> {
   const { rpcUrl, chainId, ...rest } = input;
   return [
-    { publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest },
+    {
+      publicClient: toPublicClient(rpcUrl, chainId ? findOrDefineChain(chainId) : undefined),
+      ...rest,
+    },
   ] as WithPublicClientOptionalChain<T>;
 }
 
@@ -146,7 +150,7 @@ export function withWalletClient<T extends { rpcUrl: string; chainId: number; pr
 ): WithWalletClient<T> {
   const { rpcUrl, chainId, privateKey, ...rest } = input;
   return [
-    { walletClient: toWalletClient(rpcUrl, privateKey, findChain(chainId)), ...rest },
+    { walletClient: toWalletClient(rpcUrl, privateKey, findOrDefineChain(chainId)), ...rest },
   ] as WithWalletClient<T>;
 }
 
@@ -156,7 +160,7 @@ export function withParentChainPublicClient<
   const { parentChainRpcUrl, parentChainId, ...rest } = input;
   return [
     {
-      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findOrDefineChain(parentChainId)),
       ...rest,
     },
   ] as WithParentChainPublicClient<T>;
@@ -168,7 +172,7 @@ export function withChainSign<T extends { rpcUrl: string; chainId: number; priva
   const { rpcUrl, chainId, privateKey, ...rest } = input;
   return [
     {
-      publicClient: toPublicClient(rpcUrl, findChain(chainId)),
+      publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       account: toAccount(privateKey),
       ...rest,
     },
@@ -181,7 +185,7 @@ export function withParentChainSign<
   const { parentChainRpcUrl, parentChainId, privateKey, ...rest } = input;
   return [
     {
-      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findOrDefineChain(parentChainId)),
       account: toAccount(privateKey),
       ...rest,
     },
@@ -194,7 +198,11 @@ export function withChildChainSign<
   const { orbitChainRpcUrl, orbitChainId, privateKey, ...rest } = input;
   return [
     {
-      orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey, findChain(orbitChainId)),
+      orbitChainWalletClient: toWalletClient(
+        orbitChainRpcUrl,
+        privateKey,
+        findOrDefineChain(orbitChainId),
+      ),
       ...rest,
     },
   ] as WithChildChainSign<T>;
@@ -211,7 +219,7 @@ export function withParentReadChildSign<
   const { parentChainRpcUrl, parentChainId, orbitChainRpcUrl, privateKey, ...rest } = input;
   return [
     {
-      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+      parentChainPublicClient: toPublicClient(parentChainRpcUrl, findOrDefineChain(parentChainId)),
       orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey),
       ...rest,
     },
@@ -232,7 +240,10 @@ export function withPublicClientPositional<T extends { rpcUrl: string; chainId: 
   input: T,
 ): WithPublicClientPositional<T> {
   const { rpcUrl, chainId, ...rest } = input;
-  return [toPublicClient(rpcUrl, findChain(chainId)), rest] as WithPublicClientPositional<T>;
+  return [
+    toPublicClient(rpcUrl, findOrDefineChain(chainId)),
+    rest,
+  ] as WithPublicClientPositional<T>;
 }
 
 export function toAccount(privateKey: string) {

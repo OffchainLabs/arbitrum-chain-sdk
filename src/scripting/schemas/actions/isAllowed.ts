@@ -1,4 +1,4 @@
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import { addressSchema, publicClientSchema } from '../common';
 
 export const isAllowedSchema = publicClientSchema
@@ -9,5 +9,8 @@ export const isAllowedSchema = publicClientSchema
   .strict()
   .transform((input) => {
     const { rpcUrl, chainId, address, ...rest } = input;
-    return [toPublicClient(rpcUrl, findChain(chainId)), { ...rest, params: { address } }] as const;
+    return [
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
+      { ...rest, params: { address } },
+    ] as const;
   });

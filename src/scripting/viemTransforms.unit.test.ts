@@ -1,7 +1,7 @@
 import { beforeEach, it, expect } from 'vitest';
 import { ChainContract } from 'viem';
 import {
-  findChain,
+  findOrDefineChain,
   toPublicClient,
   toAccount,
   toWalletClient,
@@ -53,12 +53,12 @@ const arbChainId = 42161;
 
 const unregisteredChainId = 987654321;
 
-it('findChain returns the registered chain for a known id', () => {
-  expect(findChain(arbChainId).id).toEqual(arbChainId);
+it('findOrDefineChain returns the registered chain for a known id', () => {
+  expect(findOrDefineChain(arbChainId).id).toEqual(arbChainId);
 });
 
-it('findChain synthesizes a minimal chain for an unregistered id instead of throwing', () => {
-  const chain = findChain(unregisteredChainId);
+it('findOrDefineChain synthesizes a minimal chain for an unregistered id instead of throwing', () => {
+  const chain = findOrDefineChain(unregisteredChainId);
   expect(chain.id).toEqual(unregisteredChainId);
   expect(chain.name).toEqual(`Chain ${unregisteredChainId}`);
 });
@@ -177,7 +177,7 @@ it('registerCustomParentChainFromInput registers a custom parent chain and strip
   expect(rest).toHaveProperty('rollup', '0x1');
 
   // the registered chain wins (custom-first) and carries the supplied factory address
-  const rollupCreator = findChain(parentChainId).contracts?.rollupCreator as
+  const rollupCreator = findOrDefineChain(parentChainId).contracts?.rollupCreator as
     | ChainContract
     | undefined;
   expect(rollupCreator?.address).toEqual(testRollupCreator);

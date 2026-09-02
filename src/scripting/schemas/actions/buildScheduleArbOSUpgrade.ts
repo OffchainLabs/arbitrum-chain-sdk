@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import { bigintSchema, gasOptionsSchema, actionWriteBaseSchema } from '../common';
 
 export const buildScheduleArbOSUpgradeSchema = actionWriteBaseSchema
@@ -16,7 +16,7 @@ export const buildScheduleArbOSUpgradeSchema = actionWriteBaseSchema
   .transform((input) => {
     const { rpcUrl, chainId, newVersion, timestamp, gasOverrides, ...rest } = input;
     return [
-      toPublicClient(rpcUrl, findChain(chainId)),
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       { ...rest, args: [newVersion, timestamp] as const, ...(gasOverrides && { gasOverrides }) },
     ] as const;
   });
