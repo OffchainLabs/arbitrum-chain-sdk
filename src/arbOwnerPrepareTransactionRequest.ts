@@ -1,32 +1,19 @@
-import {
-  PublicClient,
-  encodeFunctionData,
-  EncodeFunctionDataParameters,
-  Address,
-  Chain,
-  Transport,
-} from 'viem';
+import { PublicClient, Address, Chain, Transport } from 'viem';
 
 import { arbOwnerABI, arbOwnerAddress } from './contracts/ArbOwner';
-import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { GetFunctionName } from './types/utils';
 import { TransactionRequestGasOverrides, applyPercentIncrease } from './utils/gasOverrides';
+import {
+  ContractEncodeFunctionDataParameters,
+  prepareContractCallParameters,
+  prepareContractTransactionRequest,
+} from './contractTransactionRequests';
 
 type ArbOwnerAbi = typeof arbOwnerABI;
 export type ArbOwnerPrepareTransactionRequestFunctionName = GetFunctionName<ArbOwnerAbi>;
 export type ArbOwnerEncodeFunctionDataParameters<
   TFunctionName extends ArbOwnerPrepareTransactionRequestFunctionName,
-> = EncodeFunctionDataParameters<ArbOwnerAbi, TFunctionName>;
-
-function arbOwnerEncodeFunctionData<
-  TFunctionName extends ArbOwnerPrepareTransactionRequestFunctionName,
->({ functionName, abi, args }: ArbOwnerEncodeFunctionDataParameters<TFunctionName>) {
-  return encodeFunctionData({
-    abi,
-    functionName,
-    args,
-  });
-}
+> = ContractEncodeFunctionDataParameters<ArbOwnerAbi, TFunctionName>;
 
 export type ArbOwnerPrepareFunctionDataParameters<
   TFunctionName extends ArbOwnerPrepareTransactionRequestFunctionName,
@@ -38,29 +25,10 @@ export type ArbOwnerPrepareFunctionDataParameters<
 export function arbOwnerPrepareFunctionData<
   TFunctionName extends ArbOwnerPrepareTransactionRequestFunctionName,
 >(params: ArbOwnerPrepareFunctionDataParameters<TFunctionName>) {
-  const { upgradeExecutor } = params;
-
-  if (!upgradeExecutor) {
-    return {
-      to: arbOwnerAddress,
-      data: arbOwnerEncodeFunctionData(
-        params as ArbOwnerEncodeFunctionDataParameters<TFunctionName>,
-      ),
-      value: BigInt(0),
-    };
-  }
-
-  return {
-    to: upgradeExecutor,
-    data: upgradeExecutorEncodeFunctionData({
-      functionName: 'executeCall',
-      args: [
-        arbOwnerAddress, // target
-        arbOwnerEncodeFunctionData(params as ArbOwnerEncodeFunctionDataParameters<TFunctionName>), // targetCallData
-      ],
-    }),
-    value: BigInt(0),
-  };
+  return prepareContractCallParameters({
+    ...params,
+    to: arbOwnerAddress,
+  });
 }
 
 export type ArbOwnerPrepareTransactionRequestParameters<
@@ -81,19 +49,16 @@ export async function arbOwnerPrepareTransactionRequest<
     throw new Error('[arbOwnerPrepareTransactionRequest] client.chain is undefined');
   }
 
-  // params is extending ArbOwnerPrepareFunctionDataParameters, it's safe to cast
-  const { to, data, value } = arbOwnerPrepareFunctionData({
+  const request = await prepareContractTransactionRequest<
+    ArbOwnerAbi,
+    TFunctionName,
+    Transport,
+    TChain
+  >(client, {
     ...params,
     abi: arbOwnerABI,
-  } as unknown as ArbOwnerPrepareFunctionDataParameters<TFunctionName>);
-
-  // @ts-expect-error -- todo: fix viem type issue
-  const request = await client.prepareTransactionRequest({
-    chain: client.chain,
-    to,
-    data,
-    value,
-    account: params.account,
+    to: arbOwnerAddress,
+    chainId: client.chain.id,
     // if the base gas limit override was provided, hardcode gas to 0 to skip estimation
     // we'll set the actual value in the code below
     gas: typeof params.gasOverrides?.gasLimit?.base !== 'undefined' ? 0n : undefined,
@@ -108,5 +73,5 @@ export async function arbOwnerPrepareTransactionRequest<
     });
   }
 
-  return { ...request, chainId: client.chain.id };
+  return request;
 }
