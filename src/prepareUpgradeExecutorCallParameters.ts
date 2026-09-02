@@ -58,7 +58,7 @@ export function prepareUpgradeExecutorCallParameters<
   if (!upgradeExecutor) {
     return {
       to: params.to,
-      data: encodeFunctionData(params),
+      data: encodeFunctionData<TAbi, TFunctionName>(params),
       value,
     };
   }
@@ -69,7 +69,7 @@ export function prepareUpgradeExecutorCallParameters<
       functionName: params.upgradeExecutorFunctionName ?? 'executeCall',
       args: [
         params.to, // target
-        encodeFunctionData(params), // targetCallData
+        encodeFunctionData<TAbi, TFunctionName>(params), // targetCallData
       ],
     }),
     value,
