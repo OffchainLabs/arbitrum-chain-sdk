@@ -335,8 +335,13 @@ export function testHelper_createCustomParentChain(params?: { id?: number }) {
 }
 
 export function testHelper_getRollupCreatorVersionFromEnv(): RollupCreatorSupportedVersion {
+  if (process.env.TEST_NITRO_CONTRACT_VERSION) {
+    return `v${process.env.TEST_NITRO_CONTRACT_VERSION.split('.')
+      .slice(0, 2)
+      .join('.')}` as RollupCreatorSupportedVersion;
+  }
+
   if (process.env.INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH) {
-    // extract just major and minor version numbers
     return process.env.INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH.split('.')
       .slice(0, 2)
       .join('.') as RollupCreatorSupportedVersion;

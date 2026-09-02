@@ -2,7 +2,10 @@ import { PublicClient, Address } from 'viem';
 import { execFile } from 'node:child_process';
 import { promisify } from 'util';
 
-import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getNitroTestnodePrivateKeyAccounts,
+  testHelper_getRollupCreatorVersionFromEnv,
+} from './testHelpers';
 
 const execFilePromise = promisify(execFile);
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
@@ -14,11 +17,12 @@ export async function deployTokenBridgeCreator({
 }): Promise<Address> {
   // https://github.com/OffchainLabs/token-bridge-contracts/blob/main/scripts/local-deployment/deployCreatorAndCreateTokenBridge.ts#L109C19-L109C61
   const weth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
-  const image = process.env.ARBITRUM_TESTNODE_IMAGE;
-
-  if (!image) {
-    throw new Error('ARBITRUM_TESTNODE_IMAGE is required to deploy the token bridge creator');
-  }
+  const nitroContractsVersion = testHelper_getRollupCreatorVersionFromEnv().slice(1);
+  const image =
+    process.env.ARBITRUM_TESTNODE_IMAGE ??
+    `ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.14-nc${nitroContractsVersion}-l3-custom-${
+      process.env.INTEGRATION_TEST_DECIMALS ?? '18'
+    }`;
 
   const clientVersion = await publicClient.request({ method: 'web3_clientVersion' });
   const isAnvil = clientVersion.startsWith('anvil/');
