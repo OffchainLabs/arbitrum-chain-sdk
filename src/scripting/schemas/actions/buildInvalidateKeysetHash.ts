@@ -1,4 +1,4 @@
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import { addressSchema, hexSchema, actionWriteBaseSchema } from '../common';
 
 export const buildInvalidateKeysetHashSchema = actionWriteBaseSchema
@@ -10,7 +10,7 @@ export const buildInvalidateKeysetHashSchema = actionWriteBaseSchema
   .transform((input) => {
     const { rpcUrl, chainId, keysetHash, ...rest } = input;
     return [
-      toPublicClient(rpcUrl, findChain(chainId)),
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       { ...rest, params: { keysetHash } },
     ] as const;
   });

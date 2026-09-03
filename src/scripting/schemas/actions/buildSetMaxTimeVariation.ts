@@ -1,4 +1,4 @@
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import {
   addressSchema,
   sequencerInboxMaxTimeVariationSchema,
@@ -15,7 +15,7 @@ export const buildSetMaxTimeVariationSchema = actionWriteBaseSchema
     const { rpcUrl, chainId, delayBlocks, futureBlocks, delaySeconds, futureSeconds, ...rest } =
       input;
     return [
-      toPublicClient(rpcUrl, findChain(chainId)),
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       { ...rest, params: { delayBlocks, futureBlocks, delaySeconds, futureSeconds } },
     ] as const;
   });

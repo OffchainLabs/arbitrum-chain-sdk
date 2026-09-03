@@ -1,4 +1,4 @@
-import { toPublicClient, toWalletClient, findChain } from '../viemTransforms';
+import { toPublicClient, toWalletClient, findOrDefineChain } from '../viemTransforms';
 import {
   hexSchema,
   coreContractsSchema,
@@ -18,7 +18,7 @@ export const setValidKeysetSchema = parentChainPublicClientSchema
   .strict()
   .transform((input) => {
     const { parentChainRpcUrl, parentChainId, privateKey, ...rest } = input;
-    const chain = findChain(parentChainId);
+    const chain = findOrDefineChain(parentChainId);
     return [
       {
         ...rest,

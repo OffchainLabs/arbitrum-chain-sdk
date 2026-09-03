@@ -32,7 +32,7 @@ export async function runContractCommand({
   parsed: ParsedContractCommand;
 }): Promise<unknown> {
   const fn = findAbiFunction(abi, parsed.function);
-  const client = toPublicClient(parsed.rpcUrl, findOrDefineChain(parsed.chainId, parsed.rpcUrl));
+  const client = toPublicClient(parsed.rpcUrl, findOrDefineChain(parsed.chainId));
 
   if (fn.stateMutability === 'view' || fn.stateMutability === 'pure') {
     return client.readContract({

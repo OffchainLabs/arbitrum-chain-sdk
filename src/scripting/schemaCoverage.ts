@@ -154,27 +154,41 @@ export const mocks = _mocks;
 vi.mock('./viemTransforms', () => {
   const toPublicClient = (rpcUrl: string, chain?: unknown) =>
     _mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`);
-  const findChain = (chainId: number) => ({ _tracked: 'Chain', id: chainId });
+  const findOrDefineChain = (chainId: number) => ({ _tracked: 'Chain', id: chainId });
   const toAccount = (pk: string) => _mocks.trackedObject(`Account(${pk})`);
   const toWalletClient = (rpcUrl: string, pk: string, chain?: unknown) =>
     _mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`);
   return {
     toPublicClient,
-    findChain,
+    findOrDefineChain,
     toAccount,
     toWalletClient,
+    // Identity: the real one registers a custom chain (a side effect) and strips the custom fields.
+    // Leaving them in lets the coverage harness observe that those fields are used (not dead).
+    registerCustomParentChainFromInput: <T>(input: T) => input,
+    withWalletClient: <T extends { rpcUrl: string; chainId: number; privateKey: string }>(
+      input: T,
+    ) => {
+      const { rpcUrl, chainId, privateKey, ...rest } = input;
+      return [
+        { walletClient: toWalletClient(rpcUrl, privateKey, findOrDefineChain(chainId)), ...rest },
+      ];
+    },
     withPublicClient: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
-      return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+      return [{ publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)), ...rest }];
     },
     withPublicClientPositional: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
-      return [toPublicClient(rpcUrl, findChain(chainId)), rest];
+      return [toPublicClient(rpcUrl, findOrDefineChain(chainId)), rest];
     },
     withPublicClientOptionalChain: <T extends { rpcUrl: string; chainId?: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
       return [
-        { publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest },
+        {
+          publicClient: toPublicClient(rpcUrl, chainId ? findOrDefineChain(chainId) : undefined),
+          ...rest,
+        },
       ];
     },
     withParentChainPublicClient: <T extends { parentChainRpcUrl: string; parentChainId: number }>(
@@ -183,7 +197,10 @@ vi.mock('./viemTransforms', () => {
       const { parentChainRpcUrl, parentChainId, ...rest } = input;
       return [
         {
-          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          parentChainPublicClient: toPublicClient(
+            parentChainRpcUrl,
+            findOrDefineChain(parentChainId),
+          ),
           ...rest,
         },
       ];
@@ -194,7 +211,7 @@ vi.mock('./viemTransforms', () => {
       const { rpcUrl, chainId, privateKey, ...rest } = input;
       return [
         {
-          publicClient: toPublicClient(rpcUrl, findChain(chainId)),
+          publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)),
           account: toAccount(privateKey),
           ...rest,
         },
@@ -208,7 +225,10 @@ vi.mock('./viemTransforms', () => {
       const { parentChainRpcUrl, parentChainId, privateKey, ...rest } = input;
       return [
         {
-          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          parentChainPublicClient: toPublicClient(
+            parentChainRpcUrl,
+            findOrDefineChain(parentChainId),
+          ),
           account: toAccount(privateKey),
           ...rest,
         },
@@ -225,7 +245,7 @@ vi.mock('./viemTransforms', () => {
           orbitChainWalletClient: toWalletClient(
             orbitChainRpcUrl,
             privateKey,
-            findChain(orbitChainId),
+            findOrDefineChain(orbitChainId),
           ),
           ...rest,
         },
@@ -244,7 +264,10 @@ vi.mock('./viemTransforms', () => {
       const { parentChainRpcUrl, parentChainId, orbitChainRpcUrl, privateKey, ...rest } = input;
       return [
         {
-          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          parentChainPublicClient: toPublicClient(
+            parentChainRpcUrl,
+            findOrDefineChain(parentChainId),
+          ),
           orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey),
           ...rest,
         },
@@ -373,6 +396,13 @@ vi.mock('../feeRouterDeployChildToParentRewardRouter', () => ({
 vi.mock('../deployProxyAdmin', () => ({ deployProxyAdmin: _mocks.fn('deployProxyAdmin') }));
 vi.mock('../deployExpressLaneAuction', () => ({
   deployExpressLaneAuction: _mocks.fn('deployExpressLaneAuction'),
+}));
+vi.mock('../deployWeth', () => ({ deployWeth: _mocks.fn('deployWeth') }));
+vi.mock('../deployRollupCreator', () => ({
+  deployRollupCreator: _mocks.fn('deployRollupCreator'),
+}));
+vi.mock('../deployTokenBridgeCreator', () => ({
+  deployTokenBridgeCreator: _mocks.fn('deployTokenBridgeCreator'),
 }));
 vi.mock('../prepareNodeConfig', () => ({ prepareNodeConfig: _mocks.fn('prepareNodeConfig') }));
 vi.mock('../getDefaultConfirmPeriodBlocks', () => ({

@@ -65,9 +65,19 @@ export function getCustomParentChains(): Chain[] {
 }
 
 /**
+ * The registry is process-global by design (register once, resolve for the process lifetime), so
+ * tests that register custom chains must clear it between runs to avoid one test's registration
+ * shadowing a built-in id in the next.
+ */
+export function clearCustomParentChains(): void {
+  for (const id of Object.keys(customParentChains)) delete customParentChains[Number(id)];
+}
+
+/**
  * Registers a custom parent chain.
  *
- * @param {Chain} chain Regular `Chain` object with mandatory `contracts.rollupCreator` and `contracts.tokenBridgeCreator` fields.
+ * @param {Chain} chain Regular `Chain` object, optionally carrying
+ * `contracts.rollupCreator`, `contracts.tokenBridgeCreator`, and/or `contracts.weth`.
  *
  * @example
  * registerCustomParentChain({
@@ -87,7 +97,7 @@ export function getCustomParentChains(): Chain[] {
  *       http: ['http://localhost:8080'],
  *     },
  *   },
- *   // these are mandatory
+ *   // provide the ones the operation needs
  *   contracts: {
  *     rollupCreator: {
  *       address: '0x0000000000000000000000000000000000000001',
@@ -100,26 +110,24 @@ export function getCustomParentChains(): Chain[] {
  */
 export function registerCustomParentChain(
   chain: Chain & {
-    contracts: {
-      rollupCreator: ChainContract;
-      tokenBridgeCreator: ChainContract;
+    contracts?: {
+      rollupCreator?: ChainContract;
+      tokenBridgeCreator?: ChainContract;
+      weth?: ChainContract;
     };
   },
 ) {
-  const rollupCreator = chain.contracts.rollupCreator.address;
-  const tokenBridgeCreator = chain.contracts.tokenBridgeCreator.address;
+  const assertValidAddress = (address: string | undefined, field: string) => {
+    if (address !== undefined && (!isAddress(address) || address === zeroAddress)) {
+      throw new Error(
+        `"contracts.${field}.address" is invalid for custom parent chain with id ${chain.id}`,
+      );
+    }
+  };
 
-  if (!isAddress(rollupCreator) || rollupCreator === zeroAddress) {
-    throw new Error(
-      `"contracts.rollupCreator.address" is invalid for custom parent chain with id ${chain.id}`,
-    );
-  }
-
-  if (!isAddress(tokenBridgeCreator) || tokenBridgeCreator === zeroAddress) {
-    throw new Error(
-      `"contracts.tokenBridgeCreator.address" is invalid for custom parent chain with id ${chain.id}`,
-    );
-  }
+  assertValidAddress(chain.contracts?.rollupCreator?.address, 'rollupCreator');
+  assertValidAddress(chain.contracts?.tokenBridgeCreator?.address, 'tokenBridgeCreator');
+  assertValidAddress(chain.contracts?.weth?.address, 'weth');
 
   customParentChains[chain.id] = chain;
 }
