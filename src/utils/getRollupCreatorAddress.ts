@@ -3,7 +3,7 @@ import { Client, Transport, Chain, ChainContract, Address } from 'viem';
 import { rollupCreatorAddress as rollupCreatorV3Dot2Address } from '../contracts/RollupCreator/v3.2';
 import { rollupCreatorAddress as rollupCreatorV2Dot1Address } from '../contracts/RollupCreator/v2.1';
 
-import { validateParentChain } from '../types/ParentChain';
+import { ParentChainId, validateParentChain } from '../types/ParentChain';
 import { RollupCreatorSupportedVersion } from '../types/createRollupTypes';
 
 export function getRollupCreatorAddress<TChain extends Chain | undefined>(
@@ -25,12 +25,21 @@ export function getRollupCreatorAddress<TChain extends Chain | undefined>(
     return address;
   }
 
-  const rollupCreatorAddress =
+  // older versions are not deployed on all parent chains, so their maps may miss entries
+  const rollupCreatorAddress: Partial<Record<ParentChainId, Address>> =
     rollupCreatorVersion === 'v3.2'
       ? //
         rollupCreatorV3Dot2Address
       : //
         rollupCreatorV2Dot1Address;
 
-  return rollupCreatorAddress[parentChainId];
+  const address = rollupCreatorAddress[parentChainId];
+
+  if (typeof address === 'undefined') {
+    throw new Error(
+      `RollupCreator ${rollupCreatorVersion} is not deployed on parent chain ${parentChainId}`,
+    );
+  }
+
+  return address;
 }

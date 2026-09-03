@@ -5,7 +5,9 @@ import dotenv from 'dotenv';
 import { ParentChainId } from './src';
 import {
   arbitrumNova,
+  rhMainnet,
   arbitrumSepolia,
+  rhTestnet,
   nitroTestnodeL1,
   nitroTestnodeL2,
   nitroTestnodeL3,
@@ -27,17 +29,28 @@ if (!apiKey) {
   throw new Error('Missing the ETHERSCAN_API_KEY environment variable!');
 }
 
+// address maps may omit parent chains where older contract versions are not deployed
 export type ContractConfig = {
   name: string;
   version?: string;
-  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
+  address: Partial<Record<ParentChainId, `0x${string}`>> | `0x${string}`;
+};
+
+// chains not supported by the Etherscan v2 API, fetched from their Blockscout instance instead
+const blockscoutUrls: Partial<Record<ParentChainId, string>> = {
+  [arbitrumNova.id]: 'https://arbitrum-nova.blockscout.com',
+  [rhMainnet.id]: 'https://robinhoodchain.blockscout.com',
+  [rhTestnet.id]: 'https://explorer.testnet.chain.robinhood.com',
 };
 
 async function fetchAbi(chainId: ParentChainId, address: `0x${string}`) {
-  if (chainId === arbitrumNova.id) {
-    const response = await fetch(
-      `https://arbitrum-nova.blockscout.com/api/v2/smart-contracts/${address}`,
-    );
+  const blockscoutUrl = blockscoutUrls[chainId];
+
+  if (blockscoutUrl) {
+    const response = await fetch(`${blockscoutUrl}/api/v2/smart-contracts/${address}`, {
+      // Some blockscout instances reject non-browser user agents
+      headers: { 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36' },
+    });
     const responseJson = await response.json();
 
     if (!response.ok || !responseJson.abi) {
@@ -119,9 +132,14 @@ async function assertContractAbisMatch(contract: ContractConfig) {
  */
 async function generateAbiForFactoryContract(
   name: string,
-  address: Record<ParentChainId, `0x${string}`>,
+  address: Partial<Record<ParentChainId, `0x${string}`>>,
 ) {
   const chainId = referenceChain.id;
+  const referenceAddress = address[chainId];
+
+  if (typeof referenceAddress === 'undefined') {
+    throw new Error(`Missing address for ${name} on reference chain ${chainId}`);
+  }
 
   await assertContractAbisMatch({ name, address });
 
@@ -130,11 +148,12 @@ async function generateAbiForFactoryContract(
     transport: http(),
   });
 
-  const implementation = await getImplementation({ client, address: address[chainId] });
-  const resolvedAddress = implementation !== zeroAddress ? implementation : address[chainId];
+  const implementation = await getImplementation({ client, address: referenceAddress });
+  const resolvedAddress = implementation !== zeroAddress ? implementation : referenceAddress;
 
   const abi = await fetchAbi(chainId, resolvedAddress);
-  return [{ name, abi, address }];
+  // cast: Partial's undefined values never materialize, absent chains simply have no key
+  return [{ name, abi, address: address as Record<number, `0x${string}`> }];
 }
 
 /**
@@ -194,7 +213,7 @@ export function generate({
   address,
 }: {
   name: string;
-  address: Record<ParentChainId, `0x${string}`> | `0x${string}`;
+  address: ContractConfig['address'];
 }): Plugin {
   return {
     name: 'generate',

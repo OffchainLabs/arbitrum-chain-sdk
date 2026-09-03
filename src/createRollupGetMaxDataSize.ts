@@ -3,9 +3,11 @@ import {
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
   sepolia,
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   nitroTestnodeL1,
   nitroTestnodeL2,
 } from './chains';
@@ -26,9 +28,11 @@ export function createRollupGetMaxDataSize(parentChainId: ParentChainId): bigint
     case arbitrumOne.id:
     case arbitrumNova.id:
     case base.id:
+    case rhMainnet.id:
     // testnet L2
     case arbitrumSepolia.id:
     case baseSepolia.id:
+    case rhTestnet.id:
     // local nitro-testnode L2
     case nitroTestnodeL2.id:
       return BigInt(104_857);

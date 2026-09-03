@@ -58,6 +58,49 @@ const nitroTestnodeL3 = defineChain({
   testnet: true,
 });
 
+const rhMainnet = defineChain({
+  id: 4_663,
+  network: 'robinhood-chain',
+  name: 'Robinhood Chain',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.mainnet.chain.robinhood.com'],
+    },
+    public: {
+      http: ['https://rpc.mainnet.chain.robinhood.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: 'https://robinhoodchain.blockscout.com',
+    },
+  },
+});
+
+const rhTestnet = defineChain({
+  id: 46_630,
+  network: 'robinhood-chain-testnet',
+  name: 'Robinhood Chain Testnet',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.testnet.chain.robinhood.com'],
+    },
+    public: {
+      http: ['https://rpc.testnet.chain.robinhood.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: 'https://explorer.testnet.chain.robinhood.com',
+    },
+  },
+  testnet: true,
+});
+
 const customParentChains: Record<number, Chain> = {};
 
 export function getCustomParentChains(): Chain[] {
@@ -131,6 +174,7 @@ export const mainnets = [
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
 ];
 
 export const testnets = [
@@ -139,6 +183,7 @@ export const testnets = [
   // testnet L2
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   // local nitro-testnode
   nitroTestnodeL1,
   nitroTestnodeL2,
@@ -154,11 +199,13 @@ export {
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
   // testnet L1
   sepolia,
   // testnet L2
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   // local nitro-testnode
   nitroTestnodeL1,
   nitroTestnodeL2,
