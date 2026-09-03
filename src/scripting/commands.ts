@@ -130,6 +130,8 @@ import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
+import { getNitroContractVersions } from '../getNitroContractVersions';
+import { getNitroContractVersionsSchema } from './schemas/getNitroContractVersions';
 
 import { contractRegistry } from './contractRegistry';
 import { buildContractCommandSchema } from './contractCommandSchema';
@@ -366,4 +368,5 @@ export const commands: readonly Command[] = [
   ),
 
   ...contractCommands,
+  command('getNitroContractVersions', getNitroContractVersionsSchema, getNitroContractVersions),
 ];
