@@ -5,6 +5,9 @@ packages:
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'
+  # GHSA-mh99-v99m-4gvg has no patched release older than the quarantine
+  # window, so permit the security-only pin below immediately.
+  - 'brace-expansion'
 
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
@@ -61,3 +64,27 @@ overrides:
   # (server.fs.deny bypass on Windows alternate paths) and GHSA-v6wh-96g9-6wx3
   # (launch-editor UNC path handling) while staying on the existing 7.x line.
   "vite": "7.3.5"
+
+  # GHSA-6g55-p6wh-862q, GHSA-r28c-9q8g-f849, and GHSA-fxqj-rqcc-2cmp
+  # (source-map path traversal and file disclosure): vulnerable <=8.5.22,
+  # patched in 8.5.23. Scope this to Vite, the only PostCSS parent here.
+  "vite>postcss": "8.5.23"
+
+  # GHSA-28wg-ghj8-5hjv and GHSA-2v37-7h3g-55p8 (infinite loops for invalid
+  # generator sizes): the nanoid 3.x line is patched in 3.3.18. PostCSS is the
+  # only nanoid parent in the workspace, so keep the override scoped to it.
+  "postcss>nanoid": "3.3.18"
+
+  # GHSA-5p4m-2wfm-xmqj (quadratic CPU consumption while resolving !!omap):
+  # js-yaml 4.x is patched in 4.3.1. ESLint's eslintrc package accepts ^4.1.1.
+  "@eslint/eslintrc>js-yaml": "4.3.1"
+
+  # GHSA-mh99-v99m-4gvg and GHSA-rgw5-rvv9-x895 (unbounded brace expansion
+  # DoS): the complete fix for both advisories is available in 5.0.9.
+  "brace-expansion": "5.0.9"
+
+  # Older minimatch major lines expect incompatible brace-expansion CommonJS
+  # exports. All workspace consumers use the Minimatch constructor, which is
+  # supported by 10.2.5, so consolidate on that release instead of patching
+  # brace-expansion.
+  "minimatch": "10.2.5"

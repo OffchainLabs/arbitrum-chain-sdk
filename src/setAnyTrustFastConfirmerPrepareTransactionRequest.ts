@@ -1,12 +1,4 @@
-import {
-  Address,
-  Chain,
-  PrivateKeyAccount,
-  PublicClient,
-  Transport,
-  encodeFunctionData,
-  parseAbi,
-} from 'viem';
+import { Address, Chain, PublicClient, Transport, encodeFunctionData, parseAbi } from 'viem';
 import { validateChain } from './utils/validateChain';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 
@@ -17,7 +9,7 @@ export type SetAnyTrustFastConfirmerPrepareTransactionRequestParams<
   TChain extends Chain | undefined,
 > = {
   publicClient: PublicClient<Transport, TChain>;
-  account: PrivateKeyAccount;
+  account: Address;
   rollup: Address;
   upgradeExecutor: Address;
   fastConfirmer: Address;
@@ -30,7 +22,7 @@ export type SetAnyTrustFastConfirmerPrepareTransactionRequestParams<
  *
  * @param {SetAnyTrustFastConfirmerPrepareTransactionRequestParams} setAnyTrustFastConfirmerPrepareTransactionRequestParams {@link SetAnyTrustFastConfirmerPrepareTransactionRequestParams}
  * @param {PublicClient} setAnyTrustFastConfirmerPrepareTransactionRequestParams.publicClient - A Viem Public Client
- * @param {PrivateKeyAccount} setAnyTrustFastConfirmerPrepareTransactionRequestParams.account - The private key of the chain owner or an account with the executor role in the UpgradeExecutor
+ * @param {Address} setAnyTrustFastConfirmerPrepareTransactionRequestParams.account - The address of the chain owner or an account with the executor role in the UpgradeExecutor
  * @param {Address} setAnyTrustFastConfirmerPrepareTransactionRequestParams.rollup - Address of the Rollup contract
  * @param {Address} setAnyTrustFastConfirmerPrepareTransactionRequestParams.upgradeExecutor - Address of the UpgradeExecutor contract
  * @param {Address} setAnyTrustFastConfirmerPrepareTransactionRequestParams.fastConfirmer - Address of the fast confirmer validator (usually a Safe multisig)

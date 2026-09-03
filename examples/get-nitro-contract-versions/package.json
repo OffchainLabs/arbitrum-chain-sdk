@@ -1,17 +1,17 @@
 {
-  "name": "create-rollup-custom-fee-token",
+  "name": "get-nitro-contract-versions",
   "private": true,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "tsc --outDir dist && node ./dist/index.js",
-    "dev:low-level": "tsc --outDir dist && node ./dist/low_level.js"
-  },
-  "dependencies": {
-    "@arbitrum/chain-sdk": "workspace:*"
+    "predev": "pnpm --dir ../.. build"
   },
   "devDependencies": {
     "@types/node": "^20.9.0",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@arbitrum/chain-sdk": "workspace:*"
   }
 }
