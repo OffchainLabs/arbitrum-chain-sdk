@@ -13,7 +13,7 @@ import {
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL1, nitroTestnodeL2 } from './chains';
-import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import { getNitroTestnodePrivateKeyAccounts, nitroTestnodePollingInterval } from './testHelpers';
 import { feeRouterDeployChildToParentRewardRouter } from './feeRouterDeployChildToParentRewardRouter';
 import { feeRouterDeployRewardDistributor } from './feeRouterDeployRewardDistributor';
 
@@ -25,16 +25,19 @@ const randomAccount2 = privateKeyToAccount(generatePrivateKey());
 const nitroTestnodeL1Client = createPublicClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 const nitroTestnodeL2Client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 const nitroTestnodeL2WalletClient = createWalletClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
   account: deployer,
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 describe('Fee routing tests', () => {

@@ -4,7 +4,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
-import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import { getNitroTestnodePrivateKeyAccounts, nitroTestnodePollingInterval } from '../testHelpers';
 
 // l2 owner private key
 const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l2RollupOwner.privateKey;
@@ -15,6 +15,7 @@ const randomAccount = privateKeyToAccount(generatePrivateKey());
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 }).extend(arbOwnerPublicActions);
 
 it('successfully fetches network fee receiver', async () => {

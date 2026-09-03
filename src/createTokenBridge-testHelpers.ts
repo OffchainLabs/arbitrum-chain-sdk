@@ -2,39 +2,13 @@ import { PublicClient, Address } from 'viem';
 import { execFile } from 'node:child_process';
 import { promisify } from 'util';
 
-import { getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getNitroTestnodePrivateKeyAccounts,
+  testHelper_getRollupCreatorVersionFromEnv,
+} from './testHelpers';
 
 const execFilePromise = promisify(execFile);
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const tokenBridgeContractsImage =
-  process.env.TOKEN_BRIDGE_CONTRACTS_IMAGE ?? 'arbitrum-chain-sdk-token-bridge-contracts:v1.2.2';
-const skipTokenBridgeContractsImageBuild = process.env.TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD === 'true';
-
-let tokenBridgeContractsImagePromise: Promise<string> | undefined;
-
-async function buildTokenBridgeContractsImage() {
-  if (typeof tokenBridgeContractsImagePromise !== 'undefined') {
-    return tokenBridgeContractsImagePromise;
-  }
-
-  tokenBridgeContractsImagePromise = (async () => {
-    if (skipTokenBridgeContractsImageBuild) {
-      await execFilePromise('docker', ['image', 'inspect', tokenBridgeContractsImage]);
-      return tokenBridgeContractsImage;
-    }
-
-    await execFilePromise('docker', [
-      'build',
-      '-q',
-      '-t',
-      tokenBridgeContractsImage,
-      'token-bridge-contracts',
-    ]);
-    return tokenBridgeContractsImage;
-  })();
-
-  return tokenBridgeContractsImagePromise;
-}
 
 export async function deployTokenBridgeCreator({
   publicClient,
@@ -43,29 +17,68 @@ export async function deployTokenBridgeCreator({
 }): Promise<Address> {
   // https://github.com/OffchainLabs/token-bridge-contracts/blob/main/scripts/local-deployment/deployCreatorAndCreateTokenBridge.ts#L109C19-L109C61
   const weth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
-  const image = await buildTokenBridgeContractsImage();
+  const nitroContractsVersion = testHelper_getRollupCreatorVersionFromEnv().slice(1);
+  const image =
+    process.env.ARBITRUM_TESTNODE_IMAGE ??
+    `ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.14-nc${nitroContractsVersion}-l3-custom-${
+      process.env.INTEGRATION_TEST_DECIMALS ?? '18'
+    }`;
 
-  const { stdout } = await execFilePromise('docker', [
-    'run',
-    '--rm',
-    '--net=host',
-    '-e',
-    `BASECHAIN_RPC=${publicClient.transport.url}`,
-    '-e',
-    `BASECHAIN_DEPLOYER_KEY=${testnodeAccounts.deployer.privateKey}`,
-    '-e',
-    `BASECHAIN_WETH=${weth}`,
-    '-e',
-    'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
-    image,
-    'deploy:token-bridge-creator',
-  ]);
+  const clientVersion = await publicClient.request({ method: 'web3_clientVersion' });
+  const isAnvil = clientVersion.startsWith('anvil/');
+  const automineWasEnabled =
+    isAnvil &&
+    (await publicClient.transport.request({
+      method: 'anvil_getAutomine',
+    }));
 
-  const match = stdout.match(/L1TokenBridgeCreator: (0x[0-9a-fA-F]{40})/);
-
-  if (!match) {
-    throw Error(`Failed to parse token bridge creator address from output: ${stdout}`);
+  if (isAnvil && !automineWasEnabled) {
+    await publicClient.transport.request({
+      method: 'evm_setAutomine',
+      params: [true],
+    });
   }
 
-  return match[1] as Address;
+  try {
+    const { stdout } = await execFilePromise('docker', [
+      'run',
+      '--rm',
+      '--network',
+      'host',
+      '--workdir',
+      '/workspace',
+      '--entrypoint',
+      'yarn',
+      '-e',
+      `BASECHAIN_RPC=${publicClient.transport.url}`,
+      '-e',
+      `BASECHAIN_DEPLOYER_KEY=${testnodeAccounts.deployer.privateKey}`,
+      '-e',
+      `BASECHAIN_WETH=${weth}`,
+      '-e',
+      'GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT=10000000',
+      '-e',
+      'POLLING_INTERVAL=100',
+      '-e',
+      'DISABLE_CONTRACT_VERIFICATION=true',
+      image,
+      'deploy:token-bridge-creator',
+    ]);
+
+    const match = stdout.match(/L1TokenBridgeCreator: (0x[0-9a-fA-F]{40})/);
+
+    if (!match) {
+      throw Error(`Failed to parse token bridge creator address from output: ${stdout}`);
+    }
+
+    return match[1] as Address;
+  } finally {
+    if (isAnvil && !automineWasEnabled) {
+      // Restore the testnode's `--block-time 1` interval mining mode.
+      await publicClient.transport.request({
+        method: 'evm_setIntervalMining',
+        params: [1],
+      });
+    }
+  }
 }

@@ -19,6 +19,8 @@ export function publicClientToProvider<TChain extends Chain | undefined>(
 
   const transportUrl = publicClient.transport.url as string | undefined;
   const url = transportUrl ?? chain.rpcUrls.default.http[0];
+  const provider = new providers.StaticJsonRpcProvider(url, network);
+  provider.pollingInterval = publicClient.pollingInterval;
 
-  return new providers.StaticJsonRpcProvider(url, network);
+  return provider;
 }

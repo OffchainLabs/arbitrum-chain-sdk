@@ -22,6 +22,7 @@ it(`successfully converts PublicClient to Provider (custom Transport)`, () => {
   const publicClient = createPublicClient({
     chain: arbitrumSepolia,
     transport: http('https://arbitrum-sepolia.gateway.tenderly.co'),
+    pollingInterval: 100,
   });
 
   const provider = publicClientToProvider(publicClient);
@@ -30,4 +31,5 @@ it(`successfully converts PublicClient to Provider (custom Transport)`, () => {
   expect(provider.network.name).toEqual(publicClient.chain.name);
 
   expect(provider.connection.url).toEqual('https://arbitrum-sepolia.gateway.tenderly.co');
+  expect(provider.pollingInterval).toEqual(publicClient.pollingInterval);
 });

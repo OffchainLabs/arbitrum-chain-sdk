@@ -4,7 +4,11 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { nitroTestnodeL3 } from '../chains';
 import { arbOwnerPublicActions } from './arbOwnerPublicActions';
 import { arbGasInfoPublicActions } from './arbGasInfoPublicActions';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
+} from '../testHelpers';
 
 // L3 Owner Private Key
 const devPrivateKey = getNitroTestnodePrivateKeyAccounts().l3RollupOwner.privateKey;
@@ -32,6 +36,7 @@ const randomAccount = privateKeyToAccount(generatePrivateKey());
 const client = createPublicClient({
   chain: nitroTestnodeL3,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 })
   .extend(arbOwnerPublicActions)
   .extend(arbGasInfoPublicActions);

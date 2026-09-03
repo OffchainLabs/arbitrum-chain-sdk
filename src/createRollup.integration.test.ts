@@ -6,12 +6,14 @@ import {
   createRollupHelper,
   getNitroTestnodePrivateKeyAccounts,
   getInformationFromTestnode,
+  nitroTestnodePollingInterval,
 } from './testHelpers';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
 const parentChainPublicClient = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 // test inputs

@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { createPublicClient, http, PublicClient } from 'viem';
 
 import { nitroTestnodeL1 } from './chains';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
+} from './testHelpers';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from './upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
@@ -21,6 +25,7 @@ const l2RollupOwner = testnodeAccounts.l2RollupOwner;
 const nitroTestnodeL1Client = createPublicClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 async function getUpgradeExecutorOfRollup(rollup: `0x${string}`, publicClient: PublicClient) {

@@ -4,7 +4,7 @@ import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
 import { nitroTestnodeL2 } from '../chains';
 import { arbAggregatorActions } from './arbAggregatorActions';
-import { getNitroTestnodePrivateKeyAccounts } from '../testHelpers';
+import { getNitroTestnodePrivateKeyAccounts, nitroTestnodePollingInterval } from '../testHelpers';
 
 const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
 const l2RollupOwner = testnodeAccounts.l2RollupOwner;
@@ -13,6 +13,7 @@ const randomAccount = privateKeyToAccount(generatePrivateKey());
 const nitroTestnodeL2Client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 }).extend(arbAggregatorActions);
 
 describe('ArgAggregator decorator tests', () => {

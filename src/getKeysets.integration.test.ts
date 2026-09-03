@@ -15,6 +15,7 @@ import {
   createRollupHelper,
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
 } from './testHelpers';
 import { getKeysets } from './getKeysets';
 
@@ -24,6 +25,7 @@ const { l3TokenBridgeDeployer, deployer } = getNitroTestnodePrivateKeyAccounts()
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 }).extend(
   sequencerInboxActions({
     sequencerInbox: l3SequencerInbox,

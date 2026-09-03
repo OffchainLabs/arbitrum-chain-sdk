@@ -3,6 +3,7 @@ import {
   createRollupHelper,
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
 } from '../testHelpers';
 import { Hex, createPublicClient, http, zeroAddress } from 'viem';
 import { nitroTestnodeL2 } from '../chains';
@@ -22,6 +23,7 @@ const { l3TokenBridgeDeployer, deployer, l3RollupOwner } = getNitroTestnodePriva
 const client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 describe('max time variation management', () => {

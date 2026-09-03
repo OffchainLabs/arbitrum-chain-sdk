@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { createPublicClient, encodeFunctionData, http, zeroAddress, parseAbi } from 'viem';
 
 import { nitroTestnodeL1, nitroTestnodeL2, nitroTestnodeL3 } from './chains';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  nitroTestnodePollingInterval,
+} from './testHelpers';
 import { createTokenBridgePrepareTransactionRequest } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from './createTokenBridgePrepareTransactionReceipt';
 import { deployTokenBridgeCreator } from './createTokenBridge-testHelpers';
@@ -25,16 +29,19 @@ const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
 const nitroTestnodeL1Client = createPublicClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 const nitroTestnodeL2Client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 const nitroTestnodeL3Client = createPublicClient({
   chain: nitroTestnodeL3,
   transport: http(nitroTestnodeL3.rpcUrls.default.http[0]),
+  pollingInterval: nitroTestnodePollingInterval,
 });
 
 function checkTokenBridgeContracts(tokenBridgeContracts: TokenBridgeContracts) {
@@ -148,9 +155,10 @@ describe('createTokenBridge utils function', () => {
     });
 
     // get the transaction receipt after waiting for the transaction to complete
-    const txReceipt = createTokenBridgePrepareTransactionReceipt(
-      await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: txHash }),
-    );
+    const parentChainTxReceipt = await nitroTestnodeL1Client.waitForTransactionReceipt({
+      hash: txHash,
+    });
+    const txReceipt = createTokenBridgePrepareTransactionReceipt(parentChainTxReceipt);
     expect(txReceipt.status).toEqual('success');
 
     // register the network with @arbitrum/sdk (needed for waitForRetryables)
@@ -194,8 +202,12 @@ describe('createTokenBridge utils function', () => {
     });
 
     // get the transaction receipt after waiting for the transaction to complete
+    const setWethGatewayParentReceipt = await nitroTestnodeL1Client.waitForTransactionReceipt({
+      hash: setWethGatewayTxHash,
+    });
+
     const setWethGatewayTxReceipt = createTokenBridgePrepareSetWethGatewayTransactionReceipt(
-      await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: setWethGatewayTxHash }),
+      setWethGatewayParentReceipt,
     );
 
     // checking retryables execution
@@ -205,7 +217,7 @@ describe('createTokenBridge utils function', () => {
     expect(orbitChainSetGatewayRetryableReceipt).toHaveLength(1);
     expect(orbitChainSetGatewayRetryableReceipt[0].status).toEqual('success');
 
-    checkWethGateways(tokenBridgeContracts, { customFeeToken: false });
+    await checkWethGateways(tokenBridgeContracts, { customFeeToken: false });
   });
 
   it(`successfully deploys token bridge contracts with a custom fee token through token bridge creator`, async () => {
@@ -226,7 +238,10 @@ describe('createTokenBridge utils function', () => {
         functionName: 'transfer',
         args: [
           l3RollupOwner.address,
-          scaleFrom18DecimalsToNativeTokenDecimals({ amount: 500n, decimals: nativeTokenDecimals }),
+          scaleFrom18DecimalsToNativeTokenDecimals({
+            amount: 500n,
+            decimals: nativeTokenDecimals,
+          }),
         ],
       }),
       value: BigInt(0),
@@ -257,10 +272,10 @@ describe('createTokenBridge utils function', () => {
     };
 
     // sign and send the transaction
+    const approvalTxRequest =
+      await createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest(allowanceParams);
     const approvalForTokenBridgeCreatorTxHash = await nitroTestnodeL2Client.sendRawTransaction({
-      serializedTransaction: await l3RollupOwner.signTransaction(
-        await createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest(allowanceParams),
-      ),
+      serializedTransaction: await l3RollupOwner.signTransaction(approvalTxRequest),
     });
 
     // get the transaction receipt after waiting for the transaction to complete
@@ -307,9 +322,10 @@ describe('createTokenBridge utils function', () => {
     });
 
     // get the transaction receipt after waiting for the transaction to complete
-    const txReceipt = createTokenBridgePrepareTransactionReceipt(
-      await nitroTestnodeL2Client.waitForTransactionReceipt({ hash: txHash }),
-    );
+    const parentChainTxReceipt = await nitroTestnodeL2Client.waitForTransactionReceipt({
+      hash: txHash,
+    });
+    const txReceipt = createTokenBridgePrepareTransactionReceipt(parentChainTxReceipt);
     expect(txReceipt.status).toEqual('success');
 
     // register the network with @arbitrum/sdk (needed for waitForRetryables)
@@ -334,7 +350,7 @@ describe('createTokenBridge utils function', () => {
     });
 
     checkTokenBridgeContracts(tokenBridgeContracts);
-    checkWethGateways(tokenBridgeContracts, { customFeeToken: true });
+    await checkWethGateways(tokenBridgeContracts, { customFeeToken: true });
   });
 });
 
@@ -347,7 +363,7 @@ describe('createTokenBridge', () => {
       publicClient: nitroTestnodeL1Client,
     });
 
-    const { tokenBridgeContracts } = await createTokenBridge({
+    const cfg = {
       rollupOwner: l2RollupOwner.address,
       rollupAddress: testnodeInformation.rollup,
       account: l2RollupOwner,
@@ -378,10 +394,14 @@ describe('createTokenBridge', () => {
           base: 100_000n,
         },
       },
-    });
+    };
+    const { tokenBridgeContracts } = await createTokenBridge(cfg);
+    await expect(createTokenBridge(cfg)).rejects.toThrowError(
+      `Token bridge deployment for Rollup ${testnodeInformation.rollup} was already initiated on the parent chain`,
+    );
 
     checkTokenBridgeContracts(tokenBridgeContracts);
-    checkWethGateways(tokenBridgeContracts, { customFeeToken: false });
+    await checkWethGateways(tokenBridgeContracts, { customFeeToken: false });
   });
 
   it('successfully deploys token bridge contracts with a custom fee token', async () => {
@@ -402,7 +422,10 @@ describe('createTokenBridge', () => {
         functionName: 'transfer',
         args: [
           l3RollupOwner.address,
-          scaleFrom18DecimalsToNativeTokenDecimals({ amount: 500n, decimals: nativeTokenDecimals }),
+          scaleFrom18DecimalsToNativeTokenDecimals({
+            amount: 500n,
+            decimals: nativeTokenDecimals,
+          }),
         ],
       }),
       value: BigInt(0),
@@ -453,54 +476,6 @@ describe('createTokenBridge', () => {
     });
 
     checkTokenBridgeContracts(tokenBridgeContracts);
-    checkWethGateways(tokenBridgeContracts, { customFeeToken: true });
-  });
-
-  it('should throw when createTokenBridge is called multiple times', async () => {
-    const testnodeInformation = getInformationFromTestnode();
-
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
-    });
-
-    const cfg = {
-      rollupOwner: l2RollupOwner.address,
-      rollupAddress: testnodeInformation.rollup,
-      account: l2RollupOwner,
-      parentChainPublicClient: nitroTestnodeL1Client,
-      orbitChainPublicClient: nitroTestnodeL2Client,
-      tokenBridgeCreatorAddressOverride: tokenBridgeCreator,
-      gasOverrides: {
-        gasLimit: {
-          base: 6_000_000n,
-        },
-      },
-      retryableGasOverrides: {
-        maxGasForFactory: {
-          base: 20_000_000n,
-        },
-        maxGasForContracts: {
-          base: 20_000_000n,
-        },
-        maxSubmissionCostForFactory: {
-          base: 4_000_000_000_000n,
-        },
-        maxSubmissionCostForContracts: {
-          base: 4_000_000_000_000n,
-        },
-      },
-      setWethGatewayGasOverrides: {
-        gasLimit: {
-          base: 100_000n,
-        },
-      },
-    };
-    const { tokenBridgeContracts } = await createTokenBridge(cfg);
-    await expect(createTokenBridge(cfg)).rejects.toThrowError(
-      `Token bridge deployment for Rollup ${testnodeInformation.rollup} was already initiated on the parent chain`,
-    );
-
-    checkTokenBridgeContracts(tokenBridgeContracts);
-    checkWethGateways(tokenBridgeContracts, { customFeeToken: false });
+    await checkWethGateways(tokenBridgeContracts, { customFeeToken: true });
   });
 });
