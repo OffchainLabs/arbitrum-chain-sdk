@@ -81,4 +81,4 @@ export {
   isAllowListEnabledSchema,
   isAllowedSchema,
 } from './actions';
-export { getChainContractVersionsSchema } from './getChainContractVersions';
+export { getNitroContractVersionsSchema } from './getNitroContractVersions';

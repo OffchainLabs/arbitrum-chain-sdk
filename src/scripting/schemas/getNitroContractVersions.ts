@@ -1,16 +1,16 @@
 import { z } from 'zod';
 
-import { getChainContractVersions } from '../../getChainContractVersions';
+import { getNitroContractVersions } from '../../getNitroContractVersions';
 import { addressSchema } from './common';
 
-export const getChainContractVersionsSchema = z
+export const getNitroContractVersionsSchema = z
   .object({
     inboxAddress: addressSchema,
     parentChainRpc: z.url(),
   })
   .strict()
   .transform(
-    (input): Parameters<typeof getChainContractVersions> => [
+    (input): Parameters<typeof getNitroContractVersions> => [
       input.inboxAddress,
       input.parentChainRpc,
     ],

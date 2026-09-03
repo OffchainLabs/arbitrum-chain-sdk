@@ -407,8 +407,8 @@ vi.mock('viem', async (importOriginal) => {
   };
 });
 
-vi.mock('../getChainContractVersions', () => ({
-  getChainContractVersions: _mocks.fn('getChainContractVersions'),
+vi.mock('../getNitroContractVersions', () => ({
+  getNitroContractVersions: _mocks.fn('getNitroContractVersions'),
 }));
 /**
  * A testable leaf of a schema -- a scalar field the harness will vary when

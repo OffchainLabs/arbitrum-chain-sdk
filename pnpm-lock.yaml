@@ -142,7 +142,7 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
-  examples/get-chain-contract-versions:
+  examples/get-nitro-contract-versions:
     dependencies:
       '@arbitrum/chain-sdk':
         specifier: workspace:*

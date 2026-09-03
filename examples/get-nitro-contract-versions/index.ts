@@ -16,7 +16,7 @@ async function main() {
     throw new Error('Please provide the "PARENT_CHAIN_RPC" environment variable');
   }
 
-  console.log('Getting Orbit chain contract versions...');
+  console.log('Getting Nitro contract versions...');
   const result = await getNitroContractVersions(inboxAddress, parentChainRpc);
 
   console.log(result);
