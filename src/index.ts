@@ -221,10 +221,18 @@ import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
 import { getNitroContractVersions } from './getNitroContractVersions';
 import {
   NitroContractsUpgradeVersion,
+  NitroContractsUpgradeTransactionRequest,
+  DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters,
+  DeployNitroContractsUpgradeActionPrepareTransactionRequestResult,
   DeployNitroContractsUpgradeActionParameters,
+  DeployNitroContractsUpgradeActionResult,
+  ExecuteNitroContractsUpgradePrepareTransactionRequestParameters,
   ExecuteNitroContractsUpgradeParameters,
+  ExecuteNitroContractsUpgradeResult,
   VerifyNitroContractsUpgradeParameters,
+  deployNitroContractsUpgradeActionPrepareTransactionRequest,
   deployNitroContractsUpgradeAction,
+  executeNitroContractsUpgradePrepareTransactionRequest,
   executeNitroContractsUpgrade,
   verifyNitroContractsUpgrade,
 } from './nitroContractsUpgrade';
@@ -415,10 +423,18 @@ export {
   //
   getNitroContractVersions,
   NitroContractsUpgradeVersion,
+  NitroContractsUpgradeTransactionRequest,
+  deployNitroContractsUpgradeActionPrepareTransactionRequest,
+  DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters,
+  DeployNitroContractsUpgradeActionPrepareTransactionRequestResult,
   deployNitroContractsUpgradeAction,
   DeployNitroContractsUpgradeActionParameters,
+  DeployNitroContractsUpgradeActionResult,
+  executeNitroContractsUpgradePrepareTransactionRequest,
+  ExecuteNitroContractsUpgradePrepareTransactionRequestParameters,
   executeNitroContractsUpgrade,
   ExecuteNitroContractsUpgradeParameters,
+  ExecuteNitroContractsUpgradeResult,
   verifyNitroContractsUpgrade,
   VerifyNitroContractsUpgradeParameters,
 };
