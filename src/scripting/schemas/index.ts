@@ -85,3 +85,4 @@ export {
   isAllowedSchema,
 } from './actions';
 export { getNitroContractVersionsSchema } from './getNitroContractVersions';
+export { generateGenesisSchema } from './generateGenesis';
