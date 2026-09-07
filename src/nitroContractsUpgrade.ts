@@ -48,16 +48,28 @@ export type NitroContractsUpgradeTransactionRequest = PrepareTransactionRequestR
 };
 
 // Deploy
-export type DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters<
+export type DeployNitroContracts3Point2Point0UpgradeActionPrepareTransactionRequestParameters<
   TChain extends Chain | undefined,
 > = NitroContractsUpgradeParameters<TChain> & {
+  version: '3.2.0';
   account: Address;
 };
 
-export type DeployNitroContractsUpgradeActionParameters<TChain extends Chain | undefined> = Omit<
-  DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters<TChain>,
+export type DeployNitroContracts3Point2Point0UpgradeActionParameters<
+  TChain extends Chain | undefined,
+> = Omit<
+  DeployNitroContracts3Point2Point0UpgradeActionPrepareTransactionRequestParameters<TChain>,
   'account'
 > & { account: PrivateKeyAccount };
+
+// Extend this alias into a union as additional upgrade versions are supported.
+type DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters<
+  TChain extends Chain | undefined,
+> = DeployNitroContracts3Point2Point0UpgradeActionPrepareTransactionRequestParameters<TChain>;
+
+// Extend this alias into a union as additional upgrade versions are supported.
+type DeployNitroContractsUpgradeActionParameters<TChain extends Chain | undefined> =
+  DeployNitroContracts3Point2Point0UpgradeActionParameters<TChain>;
 
 export type DeployNitroContractsUpgradeActionPrepareTransactionRequestResult = {
   transactionRequest: NitroContractsUpgradeTransactionRequest;
@@ -102,10 +114,15 @@ export type ExecuteNitroContractsUpgradeResult = {
 };
 
 // Verify
-export type VerifyNitroContractsUpgradeParameters<TChain extends Chain | undefined> =
+export type VerifyNitroContracts3Point2Point0UpgradeParameters<TChain extends Chain | undefined> =
   NitroContractsUpgradeParameters<TChain> & {
+    version: '3.2.0';
     rollupAddress: Address;
   };
+
+// Extend this alias into a union as additional upgrade versions are supported.
+type VerifyNitroContractsUpgradeParameters<TChain extends Chain | undefined> =
+  VerifyNitroContracts3Point2Point0UpgradeParameters<TChain>;
 
 const addressSchema = z
   .string()
