@@ -57,9 +57,7 @@ export type DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters
 export type DeployNitroContractsUpgradeActionParameters<TChain extends Chain | undefined> = Omit<
   DeployNitroContractsUpgradeActionPrepareTransactionRequestParameters<TChain>,
   'account'
-> & {
-  account: PrivateKeyAccount;
-};
+> & { account: PrivateKeyAccount };
 
 export type DeployNitroContractsUpgradeActionPrepareTransactionRequestResult = {
   transactionRequest: NitroContractsUpgradeTransactionRequest;
@@ -73,21 +71,30 @@ export type DeployNitroContractsUpgradeActionResult = {
 };
 
 // Execute
-export type ExecuteNitroContractsUpgradePrepareTransactionRequestParameters<
+export type ExecuteNitroContracts3Point2Point0UpgradePrepareTransactionRequestParameters<
   TChain extends Chain | undefined,
 > = NitroContractsUpgradeParameters<TChain> & {
+  version: '3.2.0';
   account: Address;
   rollupAddress: Address;
   parentUpgradeExecutorAddress: Address;
   upgradeActionAddress: Address;
 };
 
-export type ExecuteNitroContractsUpgradeParameters<TChain extends Chain | undefined> = Omit<
-  ExecuteNitroContractsUpgradePrepareTransactionRequestParameters<TChain>,
-  'account'
-> & {
-  account: PrivateKeyAccount;
-};
+export type ExecuteNitroContracts3Point2Point0UpgradeParameters<TChain extends Chain | undefined> =
+  Omit<
+    ExecuteNitroContracts3Point2Point0UpgradePrepareTransactionRequestParameters<TChain>,
+    'account'
+  > & { account: PrivateKeyAccount };
+
+// Extend these aliases into unions as additional upgrade versions are supported.
+type ExecuteNitroContractsUpgradePrepareTransactionRequestParameters<
+  TChain extends Chain | undefined,
+> = ExecuteNitroContracts3Point2Point0UpgradePrepareTransactionRequestParameters<TChain>;
+
+// Extend these aliases into unions as additional upgrade versions are supported.
+type ExecuteNitroContractsUpgradeParameters<TChain extends Chain | undefined> =
+  ExecuteNitroContracts3Point2Point0UpgradeParameters<TChain>;
 
 export type ExecuteNitroContractsUpgradeResult = {
   transactionHash: Hex;
