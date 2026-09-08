@@ -9,6 +9,8 @@ exports[`returns default value for validatorAfkBlocks based on parent chain 1`] 
   "42161": 201600n,
   "421614": 201600n,
   "42170": 201600n,
+  "4663": 201600n,
+  "46630": 201600n,
   "8453": 1209600n,
   "84532": 1209600n,
 }
