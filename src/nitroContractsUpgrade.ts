@@ -13,13 +13,12 @@ import {
   Transport,
   encodeFunctionData,
   getAddress,
-  isAddress,
-  isHex,
   maxUint256,
   parseAbi,
 } from 'viem';
 import { z } from 'zod';
 
+import { addressSchema, hexSchema } from './scripting/schemas/common';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { runForgeScript } from './utils/runForgeScript';
 
@@ -123,16 +122,6 @@ export type VerifyNitroContracts3Point2Point0UpgradeParameters<TChain extends Ch
 // Extend this alias into a union as additional upgrade versions are supported.
 type VerifyNitroContractsUpgradeParameters<TChain extends Chain | undefined> =
   VerifyNitroContracts3Point2Point0UpgradeParameters<TChain>;
-
-const addressSchema = z
-  .string()
-  .refine(isAddress)
-  .transform((value) => value as Address);
-
-const hexSchema = z
-  .string()
-  .refine(isHex)
-  .transform((value) => value as Hex);
 
 const forgeDeploymentSchema = z.object({
   transactions: z.tuple([
