@@ -74,7 +74,7 @@ export const privateKeySchema = z
 // has no field path context. Regex guard makes the BigInt() call provably safe.
 export const bigintSchema = z
   .string()
-  .regex(/^-?\d+$/, 'Expected a numeric string')
+  .regex(/^(?:-?\d+|0[xX][0-9a-fA-F]+)$/, 'Expected a decimal or hex numeric string')
   .transform(BigInt);
 
 export const rollupCreatorVersionSchema = z.enum(['v2.1', 'v3.2']);

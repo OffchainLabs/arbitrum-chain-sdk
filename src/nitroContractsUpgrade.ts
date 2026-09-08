@@ -18,7 +18,7 @@ import {
 } from 'viem';
 import { z } from 'zod';
 
-import { addressSchema, hexSchema } from './scripting/schemas/common';
+import { addressSchema, bigintSchema, hexSchema } from './scripting/schemas/common';
 import { upgradeExecutorEncodeFunctionData } from './upgradeExecutorEncodeFunctionData';
 import { runForgeScript } from './utils/runForgeScript';
 
@@ -131,7 +131,7 @@ const forgeDeploymentSchema = z.object({
       transaction: z.object({
         from: addressSchema,
         to: addressSchema,
-        value: hexSchema,
+        value: bigintSchema,
         input: hexSchema,
       }),
     }),
@@ -234,7 +234,7 @@ export async function deployNitroContractsUpgradeActionPrepareTransactionRequest
       chain: parentChainPublicClient.chain,
       data: transaction.input,
       to: transaction.to,
-      value: BigInt(transaction.value),
+      value: transaction.value,
     });
 
     return {
