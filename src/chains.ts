@@ -83,7 +83,7 @@ const rhTestnet = defineChain({
   id: 46_630,
   network: 'robinhood-chain-testnet',
   name: 'Robinhood Chain Testnet',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: {
     default: {
       http: ['https://rpc.testnet.chain.robinhood.com'],
