@@ -1,12 +1,6 @@
-import {
-  Abi,
-  Address,
-  Hex,
-  WalletClient,
-  encodeFunctionData,
-  getAddress,
-  publicActions,
-} from 'viem';
+import { Abi, Address, Hex, WalletClient, encodeFunctionData, publicActions } from 'viem';
+
+import { deployContractChecked } from './utils/deployContract';
 
 import expressLaneAuction from '@arbitrum/nitro-contracts/build/contracts/src/express-lane-auction/ExpressLaneAuction.sol/ExpressLaneAuction.json';
 import transparentUpgradeableProxy from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json';
@@ -51,7 +45,9 @@ export type ExpressLaneAuctionInitArgs = Omit<
 >;
 
 /**
- * Encodes the ExpressLaneAuction `initialize(InitArgs)` calldata.
+ * Encodes the ExpressLaneAuction `initialize(InitArgs)` calldata. The JSON ABI is cast to `Abi`, so a
+ * renamed or dropped InitArgs key escapes the compiler; the unit test round-trips this encoder so such
+ * a typo fails in CI rather than at deploy time.
  */
 export function encodeExpressLaneAuctionInitData(initArgs: ExpressLaneAuctionInitArgs): Hex {
   return encodeFunctionData({
@@ -111,44 +107,29 @@ export async function deployExpressLaneAuction(
   deployExpressLaneAuctionParams: DeployExpressLaneAuctionParams,
 ): Promise<DeployExpressLaneAuctionResult> {
   const { orbitChainWalletClient, proxyAdmin, ...initArgs } = deployExpressLaneAuctionParams;
-  const client = orbitChainWalletClient.extend(publicActions);
+  const ctx = {
+    client: orbitChainWalletClient.extend(publicActions),
+    label: 'deployExpressLaneAuction',
+  };
 
-  const implementationTransactionHash = await client.deployContract({
-    abi: expressLaneAuction.abi,
-    account: orbitChainWalletClient.account!,
-    chain: orbitChainWalletClient.chain,
-    bytecode: expressLaneAuction.bytecode as Hex,
-  });
-  const implementationReceipt = await client.waitForTransactionReceipt({
-    hash: implementationTransactionHash,
-  });
-  if (implementationReceipt.status === 'reverted' || !implementationReceipt.contractAddress) {
-    throw new Error(
-      `deployExpressLaneAuction: implementation deployment ${implementationTransactionHash} reverted (status=${implementationReceipt.status})`,
-    );
-  }
-  const implementation = getAddress(implementationReceipt.contractAddress);
+  const { address: implementation } = await deployContractChecked(
+    ctx,
+    'ExpressLaneAuction implementation',
+    expressLaneAuction,
+  );
 
   const initData = encodeExpressLaneAuctionInitData(initArgs);
 
-  const transactionHash = await client.deployContract({
-    abi: transparentUpgradeableProxy.abi,
-    account: orbitChainWalletClient.account!,
-    chain: orbitChainWalletClient.chain,
-    args: [implementation, proxyAdmin, initData],
-    bytecode: transparentUpgradeableProxy.bytecode as Hex,
-  });
-  const receipt = await client.waitForTransactionReceipt({ hash: transactionHash });
-
-  if (receipt.status === 'reverted' || !receipt.contractAddress) {
-    throw new Error(
-      `deployExpressLaneAuction: proxy deployment ${transactionHash} reverted (status=${receipt.status})`,
-    );
-  }
+  const proxy = await deployContractChecked(
+    ctx,
+    'ExpressLaneAuction proxy',
+    transparentUpgradeableProxy,
+    [implementation, proxyAdmin, initData],
+  );
 
   return {
-    expressLaneAuction: getAddress(receipt.contractAddress),
+    expressLaneAuction: proxy.address,
     implementation,
-    transactionHash,
+    transactionHash: proxy.transactionHash,
   };
 }

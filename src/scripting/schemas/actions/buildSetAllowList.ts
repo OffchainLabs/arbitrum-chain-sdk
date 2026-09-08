@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import { addressSchema, actionWriteBaseSchema } from '../common';
 
 export const buildSetAllowListSchema = actionWriteBaseSchema
@@ -12,7 +12,7 @@ export const buildSetAllowListSchema = actionWriteBaseSchema
   .transform((input) => {
     const { rpcUrl, chainId, addresses, allowed, ...rest } = input;
     return [
-      toPublicClient(rpcUrl, findChain(chainId)),
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       { ...rest, params: { addresses, allowed } },
     ] as const;
   });

@@ -1,4 +1,4 @@
-# Get Orbit chain contract versions
+# Get Nitro contract versions
 
 This example uses the SDK's `getNitroContractVersions` helper to inspect the deployed Nitro contract versions for an Orbit chain on Arbitrum.
 

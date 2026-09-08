@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import { addressSchema, actionWriteBaseSchema } from '../common';
 
 export const buildSetIsBatchPosterSchema = actionWriteBaseSchema
@@ -12,7 +12,7 @@ export const buildSetIsBatchPosterSchema = actionWriteBaseSchema
   .transform((input) => {
     const { rpcUrl, chainId, batchPoster, enable, ...rest } = input;
     return [
-      toPublicClient(rpcUrl, findChain(chainId)),
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       { ...rest, params: { batchPoster, enable } },
     ] as const;
   });

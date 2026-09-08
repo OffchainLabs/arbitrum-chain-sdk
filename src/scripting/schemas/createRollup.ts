@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { Chain } from 'viem';
-import { withParentChainSign } from '../viemTransforms';
+import { registerCustomParentChainFromInput, withParentChainSign } from '../viemTransforms';
 import { CreateRollupFunctionParams } from '../../createRollup';
-import { parentChainPublicClientSchema, privateKeySchema } from './common';
+import { customParentChainPublicClientSchema, privateKeySchema } from './common';
 import { paramsV3Dot2Schema, paramsV2Dot1Schema } from './createRollupParams';
 
-const commonFieldsSchema = parentChainPublicClientSchema.extend({
+const commonFieldsSchema = customParentChainPublicClientSchema({ rollupCreator: true }).extend({
   privateKey: privateKeySchema,
 });
 
@@ -36,7 +36,13 @@ export const createRollupDefaultSchema = z.strictObject(
 );
 
 export const createRollupSchema = z.union([
-  createRollupV21Schema.transform((input): Params<'v2.1'> => withParentChainSign(input)),
-  createRollupV32Schema.transform((input): Params<'v3.2'> => withParentChainSign(input)),
-  createRollupDefaultSchema.transform((input): Params<undefined> => withParentChainSign(input)),
+  createRollupV21Schema.transform(
+    (input): Params<'v2.1'> => withParentChainSign(registerCustomParentChainFromInput(input)),
+  ),
+  createRollupV32Schema.transform(
+    (input): Params<'v3.2'> => withParentChainSign(registerCustomParentChainFromInput(input)),
+  ),
+  createRollupDefaultSchema.transform(
+    (input): Params<undefined> => withParentChainSign(registerCustomParentChainFromInput(input)),
+  ),
 ]);

@@ -71,7 +71,7 @@ arbitrum-chain-sdk
 Commands fall into three groups:
 
 - **SDK functions** — direct wrappers around SDK exports (`getValidators`, `createRollup`, …).
-- **Workflows** — multi-step orchestrations (`deployNewChain`, `deployFullChain`, `transferOwnership`, `initializeTokenBridge`).
+- **Workflows** — multi-step orchestrations (`deployParentChainContracts`, `deployNewChain`, `deployFullChain`, `transferOwnership`, `initializeTokenBridge`).
 - **Contract calls** — generic read/write/encode against a contract ABI (`ArbOwner`, `Rollup@v3.2`, `Inbox`, …). Versioned entries sit alongside an unversioned alias pointing at the current default.
 
 To see the input shape for a command:
