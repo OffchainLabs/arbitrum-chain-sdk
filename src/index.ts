@@ -219,6 +219,23 @@ import {
 } from './utils/erc20';
 import { prepareArbitrumNetwork } from './utils/registerNewNetwork';
 import { getNitroContractVersions } from './getNitroContractVersions';
+import {
+  NitroContractsUpgradeVersion,
+  NitroContractsUpgradeTransactionRequest,
+  DeployNitroContracts3Point2Point0UpgradeActionPrepareTransactionRequestParameters,
+  DeployNitroContracts3Point2Point0UpgradeActionParameters,
+  DeployNitroContractsUpgradeActionPrepareTransactionRequestResult,
+  DeployNitroContractsUpgradeActionResult,
+  ExecuteNitroContracts3Point2Point0UpgradePrepareTransactionRequestParameters,
+  ExecuteNitroContracts3Point2Point0UpgradeParameters,
+  ExecuteNitroContractsUpgradeResult,
+  VerifyNitroContracts3Point2Point0UpgradeParameters,
+  deployNitroContractsUpgradeActionPrepareTransactionRequest,
+  deployNitroContractsUpgradeAction,
+  executeNitroContractsUpgradePrepareTransactionRequest,
+  executeNitroContractsUpgrade,
+  verifyNitroContractsUpgrade,
+} from './nitroContractsUpgrade';
 
 export {
   arbOwnerPublicActions,
@@ -405,6 +422,21 @@ export {
   prepareArbitrumNetwork,
   //
   getNitroContractVersions,
+  NitroContractsUpgradeVersion,
+  NitroContractsUpgradeTransactionRequest,
+  deployNitroContractsUpgradeActionPrepareTransactionRequest,
+  DeployNitroContracts3Point2Point0UpgradeActionPrepareTransactionRequestParameters,
+  DeployNitroContractsUpgradeActionPrepareTransactionRequestResult,
+  deployNitroContractsUpgradeAction,
+  DeployNitroContracts3Point2Point0UpgradeActionParameters,
+  DeployNitroContractsUpgradeActionResult,
+  executeNitroContractsUpgradePrepareTransactionRequest,
+  ExecuteNitroContracts3Point2Point0UpgradePrepareTransactionRequestParameters,
+  executeNitroContractsUpgrade,
+  ExecuteNitroContracts3Point2Point0UpgradeParameters,
+  ExecuteNitroContractsUpgradeResult,
+  verifyNitroContractsUpgrade,
+  VerifyNitroContracts3Point2Point0UpgradeParameters,
 };
 
 export * from './scripting/scriptUtils';
