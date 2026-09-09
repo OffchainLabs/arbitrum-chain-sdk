@@ -58,6 +58,9 @@ import {
   getConsensusReleaseByWasmModuleRootSchema,
   isKnownWasmModuleRootSchema,
   generateGenesisSchema,
+  deployNitroContractsUpgradeActionSchema,
+  executeNitroContractsUpgradeSchema,
+  verifyNitroContractsUpgradeSchema,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -144,6 +147,11 @@ import {
 import { getNitroContractVersions } from '../getNitroContractVersions';
 import { getNitroContractVersionsSchema } from './schemas/getNitroContractVersions';
 import { generateGenesis } from '../generateGenesis';
+import {
+  deployNitroContractsUpgradeAction,
+  executeNitroContractsUpgrade,
+  verifyNitroContractsUpgrade,
+} from '../nitroContractsUpgrade';
 
 import { contractRegistry } from './contractRegistry';
 import { buildContractCommandSchema } from './contractCommandSchema';
@@ -390,4 +398,19 @@ export const commands: readonly Command[] = [
   ...contractCommands,
   command('getNitroContractVersions', getNitroContractVersionsSchema, getNitroContractVersions),
   command('generateGenesis', generateGenesisSchema, generateGenesis),
+  command(
+    'deployNitroContractsUpgradeAction',
+    deployNitroContractsUpgradeActionSchema,
+    deployNitroContractsUpgradeAction,
+  ),
+  command(
+    'executeNitroContractsUpgrade',
+    executeNitroContractsUpgradeSchema,
+    executeNitroContractsUpgrade,
+  ),
+  command(
+    'verifyNitroContractsUpgrade',
+    verifyNitroContractsUpgradeSchema,
+    verifyNitroContractsUpgrade,
+  ),
 ];
