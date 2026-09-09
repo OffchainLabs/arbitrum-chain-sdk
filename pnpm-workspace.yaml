@@ -76,8 +76,10 @@ overrides:
   "postcss>nanoid": "3.3.18"
 
   # GHSA-5p4m-2wfm-xmqj (quadratic CPU consumption while resolving !!omap):
-  # js-yaml 4.x is patched in 4.3.1. ESLint's eslintrc package accepts ^4.1.1.
-  "@eslint/eslintrc>js-yaml": "4.3.1"
+  # js-yaml 4.x is patched in 4.3.1. GHSA-2883-xcg3-v3hh (unbounded CPU use
+  # for empty merge sources) is patched in 4.3.2. ESLint's eslintrc package
+  # accepts ^4.1.1.
+  "@eslint/eslintrc>js-yaml": "4.3.2"
 
   # GHSA-mh99-v99m-4gvg and GHSA-rgw5-rvv9-x895 (unbounded brace expansion
   # DoS): the complete fix for both advisories is available in 5.0.9.
