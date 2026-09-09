@@ -45,6 +45,11 @@ export function parseGenesisGeneratorOutput(
   return { blockHash, sendRoot };
 }
 
+/**
+ * Docker CLI-only: intentionally not exported from the SDK's public entry point.
+ * Requires the external `genesis-generator` binary and
+ * `@arbitrum/genesis-file-generator`, bundled only in the Docker image, not in the SDK's npm package.
+ */
 export async function generateGenesis(
   options: GenerateGenesisParameters,
 ): Promise<GenerateGenesisResult> {
