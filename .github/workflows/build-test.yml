@@ -296,9 +296,9 @@ jobs:
         with:
           context: token-bridge-contracts
           load: true
-          tags: arbitrum-chain-sdk-token-bridge-contracts:v1.2.2
-          cache-from: type=gha,scope=token-bridge-contracts-v1.2.2
-          cache-to: type=gha,mode=max,scope=token-bridge-contracts-v1.2.2
+          tags: arbitrum-chain-sdk-token-bridge-contracts:v1.2.5
+          cache-from: type=gha,scope=token-bridge-contracts-v1.2.5
+          cache-to: type=gha,mode=max,scope=token-bridge-contracts-v1.2.5
 
       - name: Set up the local node
         run: |
