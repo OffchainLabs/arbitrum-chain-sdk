@@ -3,12 +3,15 @@
 // * https://github.com/OffchainLabs/arbitrum-token-bridge/blob/master/packages/arb-token-bridge-ui/src/util/networksNitroTestnode.ts
 // * https://docs.base.org/chain/base-contracts#base-mainnet
 // * https://docs.base.org/chain/base-contracts#base-testnet-sepolia
+// * https://docs.robinhood.com/chain/protocol-contracts
 export const wethAddress = {
   1: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
   1337: '0x217788c286797D56Cd59aF5e493f3699C39cbbe8',
+  4663: '0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73',
   8453: '0x4200000000000000000000000000000000000006',
   42161: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1',
   42170: '0x722E8BdD2ce80A4422E880164f2079488e115365',
+  46630: '0x7943e237c7F95DA44E0301572D358911207852Fa',
   84532: '0x4200000000000000000000000000000000000006',
   412346: '0xF5fE98ee962e3E077A75FBe6fE8aBaeF80F3c12d',
   421614: '0x980B62Da83eFf3D4576C647993b0c1D7faf17c73',
