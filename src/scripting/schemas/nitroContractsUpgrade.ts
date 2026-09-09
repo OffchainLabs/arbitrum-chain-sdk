@@ -1,27 +1,18 @@
 import { z } from 'zod';
 
-import type {
-  DeployNitroContractsUpgradeActionParameters,
-  ExecuteNitroContractsUpgradeParameters,
-  NitroContractsUpgradeVersion,
-  VerifyNitroContractsUpgradeParameters,
-} from '../../nitroContractsUpgrade';
-import { addressSchema } from './common';
+import { withParentChainPublicClient, withParentChainSign } from '../viemTransforms';
+import { addressSchema, parentChainPublicClientSchema, privateKeySchema } from './common';
 
-const nitroContractsUpgradeVersionSchema = z
-  .literal('3.2.0')
-  .transform((version) => version as NitroContractsUpgradeVersion);
+const nitroContractsUpgradeParamsSchema = parentChainPublicClientSchema.extend({
+  version: z.literal('3.2.0'),
+});
 
-const deployNitroContractsUpgradeActionParamsSchema = z.strictObject({
-  version: nitroContractsUpgradeVersionSchema,
-  parentChainRpcUrl: z.url(),
-  forgeArgs: z.array(z.string()).optional(),
+const deployNitroContractsUpgradeActionParamsSchema = nitroContractsUpgradeParamsSchema.extend({
+  privateKey: privateKeySchema,
 });
 
 export const deployNitroContractsUpgradeActionSchema =
-  deployNitroContractsUpgradeActionParamsSchema.transform(
-    (params): [DeployNitroContractsUpgradeActionParameters] => [params],
-  );
+  deployNitroContractsUpgradeActionParamsSchema.transform(withParentChainSign);
 
 export const executeNitroContractsUpgradeSchema = deployNitroContractsUpgradeActionParamsSchema
   .extend({
@@ -29,10 +20,10 @@ export const executeNitroContractsUpgradeSchema = deployNitroContractsUpgradeAct
     parentUpgradeExecutorAddress: addressSchema,
     upgradeActionAddress: addressSchema,
   })
-  .transform((params): [ExecuteNitroContractsUpgradeParameters] => [params]);
+  .transform(withParentChainSign);
 
-export const verifyNitroContractsUpgradeSchema = deployNitroContractsUpgradeActionParamsSchema
+export const verifyNitroContractsUpgradeSchema = nitroContractsUpgradeParamsSchema
   .extend({
     rollupAddress: addressSchema,
   })
-  .transform((params): [VerifyNitroContractsUpgradeParameters] => [params]);
+  .transform(withParentChainPublicClient);
