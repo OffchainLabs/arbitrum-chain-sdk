@@ -440,6 +440,9 @@ vi.mock('viem', async (importOriginal) => {
 vi.mock('../getNitroContractVersions', () => ({
   getNitroContractVersions: _mocks.fn('getNitroContractVersions'),
 }));
+vi.mock('../generateGenesis', () => ({
+  generateGenesis: _mocks.fn('generateGenesis'),
+}));
 /**
  * A testable leaf of a schema -- a scalar field the harness will vary when
  * running coverage.

@@ -10,6 +10,10 @@ Make sure you are using Node.js v18 or greater.
 pnpm add @arbitrum/chain-sdk viem@^1.20.0
 ```
 
+### Custom genesis generation
+
+Genesis generation is intentionally not exposed as an SDK function: there is no `generateGenesis` export in `@arbitrum/chain-sdk`. The `generateGenesis` CLI command requires the external `genesis-generator` binary and `@arbitrum/genesis-file-generator`, which are bundled only in the Docker image and are not included in the SDK's npm package. Run this command using the Docker image.
+
 ## CLI
 
 The SDK ships a CLI that exposes its functions, workflows, and contract calls as subcommands. Each command takes a single JSON argument and prints a JSON result. Useful from shell scripts, CI, or any non-TypeScript caller.
