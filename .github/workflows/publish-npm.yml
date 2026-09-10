@@ -9,7 +9,7 @@ jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
-    environment: publish
+    environment: Publish
     permissions:
       id-token: write
       contents: read
