@@ -10,12 +10,12 @@ WORKDIR /generator
 RUN npm install --omit=dev --ignore-scripts --no-save --package-lock=false \
   "@arbitrum/genesis-file-generator@${GENESIS_FILE_GENERATOR_VERSION}"
 
-FROM node:20-bookworm-slim AS builder
+FROM node:24-bookworm-slim AS builder
 
-RUN npm install -g pnpm@10.30.3
+RUN npm install -g pnpm@11.26.0
 WORKDIR /repo
 
-COPY pnpm-lock.yaml ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm fetch
 
 COPY . .

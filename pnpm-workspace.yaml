@@ -2,6 +2,14 @@ packages:
   - "src"
   - "examples/*"
 
+# Preserve pnpm 10's blocked dependency scripts; pnpm 11 requires explicit decisions.
+allowBuilds:
+  '@arbitrum/nitro-contracts': false
+  esbuild: false
+  keccak: false
+  postinstall-postinstall: false
+  secp256k1: false
+
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'

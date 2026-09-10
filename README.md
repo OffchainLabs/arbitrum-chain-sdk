@@ -103,6 +103,10 @@ arbitrum-chain-sdk prepareChainConfig '{
 }'
 ```
 
+## Development
+
+Use Node.js 24 (`nvm use`) and pnpm 11.26.0, as pinned in `.nvmrc` and `package.json`. Install dependencies with `pnpm install --frozen-lockfile`.
+
 ## Run integration tests
 
 Clone the branch `release` of [nitro-testnode](https://github.com/OffchainLabs/nitro-testnode), and run the testnode using the following arguments:
@@ -116,6 +120,19 @@ Then, run the integration tests:
 ```bash
 pnpm test:integration
 ```
+
+## Publishing to npm
+
+Manually update the `version` in `src/package.json` and commit the change. Then create and push a matching version tag from that commit:
+
+```shell
+git tag v0.28.0
+git push origin v0.28.0
+```
+
+The `publish-npm.yml` workflow checks that the tag matches `src/package.json`, builds the SDK, and stages the package on npm. Stable tags such as `v0.28.0` use the `latest` npm dist-tag. Prerelease tags must use `vX.Y.Z-alpha.N`, `vX.Y.Z-beta.N`, or `vX.Y.Z-rc.N` and use the corresponding `alpha`, `beta`, or `rc` npm dist-tag.
+
+CI does not modify the package version or create or push commits or tags.
 
 ## Examples
 

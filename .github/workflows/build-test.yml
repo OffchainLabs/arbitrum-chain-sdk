@@ -17,22 +17,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Run audit
         run: pnpm audit:ci
@@ -44,22 +33,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Check formatting with Prettier
         run: pnpm prettier:check
@@ -71,22 +49,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Check linting
         run: pnpm lint
@@ -98,22 +65,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Copy .env
         run: cp ./.env.example ./.env
@@ -131,22 +87,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Copy .env
         run: cp ./.env.example ./.env
@@ -187,22 +132,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Set up the local node
         uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
@@ -264,22 +198,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
         with:
-          version: 10.30.3
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-
-      - name: Install node_modules
-        uses: OffchainLabs/actions/node-modules/install@main
-        with:
-          install-command: pnpm install --frozen-lockfile
-          cache-key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          runtime: node@24
+          cache: true
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
