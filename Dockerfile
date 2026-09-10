@@ -37,6 +37,7 @@ COPY --from=genesis-file-generator --chown=node:node \
 COPY --from=nitro /usr/local/bin/genesis-generator /usr/local/bin/genesis-generator
 COPY --from=foundry /usr/local/bin/cast /usr/local/bin/cast
 COPY --from=foundry /usr/local/bin/forge /usr/local/bin/forge
+COPY --from=foundry /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 
 USER node
 
