@@ -1,0 +1,61 @@
+name: Publish NPM Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    environment: Publish
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Resolve package version and npm dist-tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-(alpha|beta|rc)\.(0|[1-9][0-9]*))?$ ]]; then
+            echo "Tag must be vX.Y.Z or vX.Y.Z-{alpha,beta,rc}.N, for example v1.0.2 or v1.0.2-alpha.0." >&2
+            exit 1
+          fi
+
+          echo "NPM_PACKAGE_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
+          echo "NPM_DIST_TAG=${BASH_REMATCH[5]:-latest}" >> "$GITHUB_ENV"
+
+      - name: Verify package version matches tag
+        run: |
+          PACKAGE_VERSION=$(jq -er '.version' src/package.json)
+          if [ "$PACKAGE_VERSION" != "$NPM_PACKAGE_VERSION" ]; then
+            echo "src/package.json version ($PACKAGE_VERSION) must match the tag version ($NPM_PACKAGE_VERSION). Bump and commit src/package.json manually before tagging." >&2
+            exit 1
+          fi
+
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v1
+        with:
+          runtime: node@24
+          cache: true
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pack package
+        working-directory: src
+        run: pnpm pack
+
+      - name: Verify package
+        working-directory: src
+        run: pnpm stage publish ./*.tgz --dry-run --no-git-checks --tag "$NPM_DIST_TAG"
+
+      - name: Publish package
+        working-directory: src
+        run: pnpm stage publish ./*.tgz --no-git-checks --tag "$NPM_DIST_TAG"
