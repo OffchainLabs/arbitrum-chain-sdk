@@ -1,16 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { createPublicClient, http, parseGwei, zeroAddress } from 'viem';
 
-import { nitroTestnodeL2 } from './chains';
 import {
   createRollupHelper,
   getNitroTestnodePrivateKeyAccounts,
   getInformationFromTestnode,
+  testHelper_getNitroTestnodeL2,
 } from './testHelpers';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
 const parentChainPublicClient = createPublicClient({
-  chain: nitroTestnodeL2,
+  chain: testHelper_getNitroTestnodeL2(),
   transport: http(),
 });
 

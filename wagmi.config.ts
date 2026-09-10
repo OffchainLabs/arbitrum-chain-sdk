@@ -105,7 +105,7 @@ const contracts: ContractConfig[] = [
       [rhTestnet.id]: '0xF5962AD061A1aD6F38F340F5b267b3593cC1Cd7B',
       // local nitro-testnode (on "release" branch with --tokenbridge --l3node --l3-token-bridge flags)
       [nitroTestnodeL1.id]: '0xe6D50099f4d891240435143193d46581A1447202',
-      [nitroTestnodeL2.id]: '0xbcF51F3AAb5D5Efa025b4A2B235BDc9F3f69b4d2',
+      [nitroTestnodeL2.id]: '0x1E08B9c3f94E9aBcc531f67F949d796eC76963b9',
     },
   },
   {
