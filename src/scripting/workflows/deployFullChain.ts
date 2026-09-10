@@ -95,6 +95,7 @@ export const inputSchema = z
       .optional(),
     nodeConfigParams: z
       .object({
+        insecure: z.boolean(),
         batchPosterPrivateKey: privateKeySchema.optional(),
         validatorPrivateKey: privateKeySchema.optional(),
         parentChainBeaconRpcUrl: z.url().optional(),
@@ -106,6 +107,18 @@ export const inputSchema = z
 
 export const schema = inputSchema
   .superRefine((data, ctx) => {
+    if (
+      data.nodeConfigParams &&
+      !data.nodeConfigParams.insecure &&
+      (data.nodeConfigParams.batchPosterPrivateKey || data.nodeConfigParams.validatorPrivateKey)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['nodeConfigParams', 'insecure'],
+        message: `"nodeConfigParams.insecure" must be true to include private keys in the node config.`,
+      });
+    }
+
     const isAnytrust =
       data.createRollupParams.config.chainConfig?.arbitrum?.DataAvailabilityCommittee === true;
     if (data.createRollupParams.keyset && !isAnytrust) {
@@ -352,6 +365,7 @@ export const execute = async (input: z.output<typeof schema>) => {
 
   const nodeConfig = nodeConfigParams
     ? prepareNodeConfig({
+        insecure: nodeConfigParams.insecure,
         chainName,
         chainConfig,
         coreContracts: { ...coreContracts, nativeToken: restParams.nativeToken },
