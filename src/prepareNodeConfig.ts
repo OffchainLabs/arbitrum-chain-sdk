@@ -162,23 +162,25 @@ export function prepareNodeConfig({
   const dasServerUrlWithFallback = dasServerUrl ?? 'http://localhost';
 
   if (chainConfig.arbitrum.DataAvailabilityCommittee) {
-    config.node!['data-availability'] = {
-      'enable': true,
-      'rest-aggregator': {
-        enable: true,
-        urls: [`${dasServerUrlWithFallback}:9877`],
-      },
-      'rpc-aggregator': {
+    config.node!['da'] = {
+      anytrust: {
         'enable': true,
-        'assumed-honest': 1,
-        'backends': stringifyBackendsJson([
-          {
-            url: `${dasServerUrlWithFallback}:9876`,
-            pubkey:
-              'YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
-            signermask: 1,
-          },
-        ]),
+        'rest-aggregator': {
+          enable: true,
+          urls: [`${dasServerUrlWithFallback}:9877`],
+        },
+        'rpc-aggregator': {
+          'enable': true,
+          'assumed-honest': 1,
+          'backends': stringifyBackendsJson([
+            {
+              url: `${dasServerUrlWithFallback}:9876`,
+              pubkey:
+                'YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
+              signermask: 1,
+            },
+          ]),
+        },
       },
     };
   }
