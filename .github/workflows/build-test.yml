@@ -318,6 +318,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ steps.release-tag.outputs.on_main == 'true' }}
           tags: |
+            ghcr.io/offchainlabs/arbitrum-chain-sdk:latest
             ghcr.io/offchainlabs/arbitrum-chain-sdk:${{ github.sha }}
             ${{ github.event_name == 'push' && format('ghcr.io/offchainlabs/arbitrum-chain-sdk:{0}', github.ref_name) || '' }}
           cache-from: type=gha
