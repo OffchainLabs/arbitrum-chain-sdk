@@ -33,14 +33,14 @@ Or run it without installing (append `@<version>` to pin a release):
 npx @arbitrum/chain-sdk <command> '<json>'
 ```
 
-Or pull the Docker image for a pinned, reproducible environment:
+Or pull the Docker image for a pinned, reproducible environment (replace `vX.Y.Z` with a published release tag):
 
 ```bash
-docker pull offchainlabs/arbitrum-chain-sdk:latest
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
+docker pull ghcr.io/offchainlabs/arbitrum-chain-sdk:vX.Y.Z
+docker run --rm ghcr.io/offchainlabs/arbitrum-chain-sdk:vX.Y.Z <command> '<json>'
 ```
 
-The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm offchainlabs/arbitrum-chain-sdk:latest`.
+The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm ghcr.io/offchainlabs/arbitrum-chain-sdk:vX.Y.Z`.
 
 ### Usage
 
