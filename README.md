@@ -33,14 +33,14 @@ Or run it without installing (append `@<version>` to pin a release):
 npx @arbitrum/chain-sdk <command> '<json>'
 ```
 
-Or pull the Docker image for a pinned, reproducible environment:
+Or pull the Docker image for a pinned, reproducible environment (replace `vX.Y.Z` with a published release tag):
 
 ```bash
-docker pull offchainlabs/arbitrum-chain-sdk:latest
-docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
+docker pull ghcr.io/offchainlabs/arbitrum-chain-sdk:vX.Y.Z
+docker run --rm ghcr.io/offchainlabs/arbitrum-chain-sdk:vX.Y.Z <command> '<json>'
 ```
 
-The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm offchainlabs/arbitrum-chain-sdk:latest`.
+The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm ghcr.io/offchainlabs/arbitrum-chain-sdk:vX.Y.Z`.
 
 ### Usage
 
@@ -130,7 +130,9 @@ git tag v0.28.0
 git push origin v0.28.0
 ```
 
-The `publish-npm.yml` workflow checks that the tag matches `src/package.json`, builds the SDK, and stages the package on npm. Stable tags such as `v0.28.0` use the `latest` npm dist-tag. Prerelease tags must use `vX.Y.Z-alpha.N`, `vX.Y.Z-beta.N`, or `vX.Y.Z-rc.N` and use the corresponding `alpha`, `beta`, or `rc` npm dist-tag.
+The `build-test.yml` workflow runs on pull requests and `v*` tag pushes. It runs all checks once, then calls the reusable `publish-docker.yml` and `publish-npm.yml` workflows in parallel for tags. Pull requests only build the Docker image without publishing. Both publishers require the tagged commit to be on `main`; tags outside `main` still build the Docker image without publishing. The npm job checks that the tag matches `src/package.json`, builds the SDK, and stages the package on npm. Stable tags such as `v0.28.0` use the `latest` npm dist-tag. Prerelease tags must use `vX.Y.Z-alpha.N`, `vX.Y.Z-beta.N`, or `vX.Y.Z-rc.N` and use the corresponding `alpha`, `beta`, or `rc` npm dist-tag.
+
+For npm trusted publishing, configure the GitHub workflow filename as `build-test.yml` and the environment as `Publish`. npm validates the calling workflow, even though the publish command lives in `publish-npm.yml`.
 
 CI does not modify the package version or create or push commits or tags.
 
