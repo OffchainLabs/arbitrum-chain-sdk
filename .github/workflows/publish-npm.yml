@@ -1,12 +1,10 @@
 name: Publish NPM Package
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
 
 jobs:
-  publish:
+  publish-npm:
     name: Publish to npm
     runs-on: ubuntu-latest
     environment: Publish
@@ -17,15 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
           persist-credentials: false
-
-      - name: Verify release tag commit is on main
-        run: |
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
-            echo "Release tag $GITHUB_REF_NAME must point to a commit on main." >&2
-            exit 1
-          fi
 
       - name: Resolve package version and npm dist-tag
         env:

@@ -12,6 +12,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  release-tag:
+    name: Check release tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      on_main: ${{ steps.release-tag.outputs.on_main || 'false' }}
+    steps:
+      - name: Checkout
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check whether release tag commit is on main
+        id: release-tag
+        if: github.event_name == 'push' && github.ref_type == 'tag'
+        run: |
+          if git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "on_main=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "on_main=false" >> "$GITHUB_OUTPUT"
+            echo "Release tag $GITHUB_REF_NAME is not on main; building without publishing."
+          fi
+
   audit:
     name: 'Audit'
     runs-on: ubuntu-latest
@@ -266,9 +292,11 @@ jobs:
           CI=true \
           pnpm test:integration
 
-  docker:
+  // Publish to Docker always builds the image, but only publishes it for release tags on the main branch
+  publish-docker:
     name: Docker image
     needs:
+      - release-tag
       - audit
       - check-formatting
       - check-linting
@@ -276,50 +304,27 @@ jobs:
       - test-unit
       - test-integration
       - test-integration-arbitrum-testnode
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/publish-docker.yml
+    with:
+      publish: ${{ needs.release-tag.outputs.on_main == 'true' }}
     permissions:
       contents: read
       packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Check whether release tag commit is on main
-        id: release-tag
-        if: github.event_name == 'push' && github.ref_type == 'tag'
-        run: |
-          if git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
-            echo "on_main=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "on_main=false" >> "$GITHUB_OUTPUT"
-            echo "Release tag $GITHUB_REF_NAME is not on main; building without publishing."
-          fi
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        if: steps.release-tag.outputs.on_main == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docker image and publish if eligible
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: ${{ steps.release-tag.outputs.on_main == 'true' }}
-          tags: |
-            ghcr.io/offchainlabs/arbitrum-chain-sdk:latest
-            ghcr.io/offchainlabs/arbitrum-chain-sdk:${{ github.sha }}
-            ${{ github.event_name == 'push' && format('ghcr.io/offchainlabs/arbitrum-chain-sdk:{0}', github.ref_name) || '' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+  // Publish to npm is only done for release tags on the main branch
+  publish-npm:
+    name: Publish to npm
+    needs:
+      - release-tag
+      - audit
+      - check-formatting
+      - check-linting
+      - test-type
+      - test-unit
+      - test-integration
+      - test-integration-arbitrum-testnode
+    if: needs.release-tag.outputs.on_main == 'true'
+    uses: ./.github/workflows/publish-npm.yml
+    permissions:
+      contents: read
+      id-token: write
