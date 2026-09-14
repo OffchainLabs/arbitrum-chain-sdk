@@ -1,0 +1,11 @@
+{
+  "chainId": "412346",
+  "arbosVersion": "40",
+  "chainOwner": "0x0000000000000000000000000000000000001234",
+  "l1BaseFee": "1000000000",
+  "isAnyTrust": false,
+  "loadDefaultPredeploys": false,
+  "enableNativeTokenSupply": false,
+  "enableTransactionFiltering": false,
+  "customAllocAccountFile": "/work/custom-alloc.json"
+}
