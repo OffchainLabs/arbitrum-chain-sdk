@@ -1,4 +1,4 @@
-import { Address, Chain, PrepareTransactionRequestParameters, PublicClient, Transport } from 'viem';
+import { Address, Chain, PublicClient, Transport } from 'viem';
 import { inboxABI } from '../contracts/Inbox';
 import {
   ActionParameters,
@@ -7,7 +7,7 @@ import {
   WithUpgradeExecutor,
 } from '../types/Actions';
 import { Prettify } from '../types/utils';
-import { prepareUpgradeExecutorCallParameters } from '../prepareUpgradeExecutorCallParameters';
+import { prepareContractTransactionRequest } from '../contractTransactionRequests';
 import { validateParentChain } from '../types/ParentChain';
 
 type Args = {
@@ -27,17 +27,13 @@ export async function buildSetAllowList<TChain extends Chain | undefined>(
 ): Promise<BuildSetAllowListReturnType> {
   const { chainId } = validateParentChain(client);
 
-  const request = await client.prepareTransactionRequest({
-    chain: client.chain,
+  return prepareContractTransactionRequest(client, {
+    chainId,
     account,
-    ...prepareUpgradeExecutorCallParameters({
-      to: inboxAddress,
-      upgradeExecutor,
-      args: [params.addresses, params.allowed],
-      abi: inboxABI,
-      functionName: 'setAllowList',
-    }),
-  } satisfies PrepareTransactionRequestParameters);
-
-  return { ...request, chainId };
+    to: inboxAddress,
+    upgradeExecutor,
+    args: [params.addresses, params.allowed],
+    abi: inboxABI,
+    functionName: 'setAllowList',
+  });
 }
