@@ -1,4 +1,4 @@
-import { it, expect } from 'vitest';
+import { it, expect, vi } from 'vitest';
 import { upgradeExecutorFetchPrivilegedAccounts } from './upgradeExecutorFetchPrivilegedAccounts';
 import {
   UPGRADE_EXECUTOR_ROLE_ADMIN,
@@ -6,6 +6,7 @@ import {
   upgradeExecutorEncodeFunctionData,
 } from './upgradeExecutorEncodeFunctionData';
 import { createPublicClient, http } from 'viem';
+import { getEarliestRollupCreatorDeploymentBlockNumber } from './utils/getEarliestRollupCreatorDeploymentBlockNumber';
 import { arbitrum } from 'viem/chains';
 
 const publicClient = createPublicClient({
@@ -41,4 +42,35 @@ it('it fetches the right privileged accounts from an UpgradeExecutor', async () 
   expect(Object.keys(privilegedAccounts).length).toEqual(2);
   expect(privilegedAccounts[upgradeExecutorAddress]).toEqual([UPGRADE_EXECUTOR_ROLE_ADMIN]);
   expect(privilegedAccounts[chainOwner]).toEqual([UPGRADE_EXECUTOR_ROLE_EXECUTOR]);
+});
+
+it('batches the getLogs queries when the RPC rejects the full range (#642)', async () => {
+  const batchingClient = createPublicClient({ chain: arbitrum, transport: http() });
+
+  // keep the batched range tiny and network-free
+  const lowerLimit = getEarliestRollupCreatorDeploymentBlockNumber(batchingClient);
+  batchingClient.getBlockNumber = vi.fn().mockResolvedValue(lowerLimit + 3n);
+
+  const upgradeExecutorAddress = '0x0611b78A42903a537BE7a2f9a8783BE39AC63cD9';
+  const account = '0x46A78349aBA0369D18292a285DE6d5FC5CC2de5c';
+  const roleGrantedLog = { args: { role: UPGRADE_EXECUTOR_ROLE_EXECUTOR, account } };
+
+  const getLogsMock = vi.fn();
+  batchingClient.getLogs = getLogsMock;
+  getLogsMock
+    // RoleGranted: full-range rejected, then the batched call returns the event
+    .mockRejectedValueOnce(new Error('query range is too big'))
+    .mockResolvedValueOnce([roleGrantedLog])
+    // RoleRevoked: full-range rejected, then the batched call returns nothing
+    .mockRejectedValueOnce(new Error('query range is too big'))
+    .mockResolvedValue([]);
+
+  const privilegedAccounts = await upgradeExecutorFetchPrivilegedAccounts({
+    upgradeExecutorAddress,
+    publicClient: batchingClient,
+  });
+
+  // the full-range attempt for each event is retried in batches rather than thrown
+  expect(getLogsMock.mock.calls.length).toBeGreaterThanOrEqual(4);
+  expect(privilegedAccounts[account]).toEqual([UPGRADE_EXECUTOR_ROLE_EXECUTOR]);
 });

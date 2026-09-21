@@ -1,6 +1,7 @@
 import { Address, PublicClient, Transport, Chain } from 'viem';
 import { AbiEvent } from 'abitype';
 import { UpgradeExecutorRole } from './upgradeExecutorEncodeFunctionData';
+import { getLogsWithBatching } from './utils/getLogsWithBatching';
 
 /**
  * This type is for the params of the {@link upgradeExecutorFetchPrivilegedAccounts} function
@@ -97,11 +98,10 @@ export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chai
   const upgradeExecutorPrivilegedAccounts: UpgradeExecutorPrivilegedAccounts = {};
 
   // 1. Find the RoleGranted events
-  const roleGrantedEvents = await publicClient.getLogs({
+  const roleGrantedEvents = await getLogsWithBatching(publicClient, {
     address: upgradeExecutorAddress,
     event: RoleGrantedEventAbi,
     fromBlock: 0n,
-    toBlock: 'latest',
   });
   if (!roleGrantedEvents || roleGrantedEvents.length <= 0) {
     // No roles have been granted
@@ -120,11 +120,10 @@ export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chai
   });
 
   // 3. Find the RoleRevoked events
-  const roleRevokedEvents = await publicClient.getLogs({
+  const roleRevokedEvents = await getLogsWithBatching(publicClient, {
     address: upgradeExecutorAddress,
     event: RoleRevokedEventAbi,
     fromBlock: 0n,
-    toBlock: 'latest',
   });
   if (!roleRevokedEvents || roleRevokedEvents.length <= 0) {
     return upgradeExecutorPrivilegedAccounts;
