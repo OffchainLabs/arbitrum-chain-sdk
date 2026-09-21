@@ -1,12 +1,10 @@
 name: Publish NPM Package
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_call:
 
 jobs:
-  publish:
+  publish-npm:
     name: Publish to npm
     runs-on: ubuntu-latest
     environment: Publish
