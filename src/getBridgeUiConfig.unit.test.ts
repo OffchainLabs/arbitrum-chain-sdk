@@ -20,4 +20,18 @@ it('successfully generates bridge UI config from deployment transaction', async 
   });
 
   expect(bridgeUiConfig).toMatchSnapshot();
+
+  // l2Contracts describes the PARENT chain; l3Contracts describes the orbit chain.
+  // A regression here means l2Contracts.proxyAdmin was populated from the orbit
+  // chain's proxyAdmin instead of the parent chain's (see coreContracts.adminProxy).
+  expect(bridgeUiConfig.tokenBridgeContracts.l2Contracts.proxyAdmin).not.toBe(
+    bridgeUiConfig.tokenBridgeContracts.l3Contracts.proxyAdmin,
+  );
+
+  // Confirm the parent-chain proxyAdmin is an address with real bytecode ON THE PARENT CHAIN.
+  const parentChainCode = await sepoliaClient.getBytecode({
+    address: bridgeUiConfig.tokenBridgeContracts.l2Contracts.proxyAdmin as `0x${string}`,
+  });
+  expect(parentChainCode).toBeDefined();
+  expect(parentChainCode!.length).toBeGreaterThan(2); // more than just "0x"
 });

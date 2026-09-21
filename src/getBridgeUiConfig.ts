@@ -111,7 +111,7 @@ export async function getBridgeUiConfig<TChain extends Chain>({
       l2Contracts: {
         customGateway: tokenBridgeContracts.parentChainContracts.customGateway,
         multicall: tokenBridgeContracts.parentChainContracts.multicall,
-        proxyAdmin: tokenBridgeContracts.orbitChainContracts.proxyAdmin,
+        proxyAdmin: coreContracts.adminProxy,
         router: tokenBridgeContracts.parentChainContracts.router,
         standardGateway: tokenBridgeContracts.parentChainContracts.standardGateway,
         weth: tokenBridgeContracts.parentChainContracts.weth,

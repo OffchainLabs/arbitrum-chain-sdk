@@ -22,7 +22,7 @@ exports[`successfully generates bridge UI config from deployment transaction 1`]
     "l2Contracts": {
       "customGateway": "0xB59dD42cC815FdA12B8b40A410164D49Fd2E96Fc",
       "multicall": "0x73465577E9FD7Cd585E4270F23A9eBa99B92b6eD",
-      "proxyAdmin": "0x7618B3d4d8C71132BfCd33fDD98424a060F37470",
+      "proxyAdmin": "0xA811e68582E043680D915a38Cc11005Ef1F0A509",
       "router": "0xFb4ea97964A04D0Dd367Bd69ffF03e66dfDB55b8",
       "standardGateway": "0x6b6f76e5D2A2C8Ee2cc2964ccaAFf570835B003a",
       "weth": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
