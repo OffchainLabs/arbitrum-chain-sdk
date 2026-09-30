@@ -5,6 +5,7 @@ import { prepareNodeConfig } from '../../prepareNodeConfig';
 
 export const prepareNodeConfigSchema = parentChainPublicClientSchema
   .extend({
+    insecure: z.boolean(),
     chainName: z.string(),
     chainConfig: chainConfigSchema,
     coreContracts: coreContractsSchema,
