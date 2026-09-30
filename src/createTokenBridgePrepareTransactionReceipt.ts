@@ -61,6 +61,8 @@ export type WaitForRetryablesResult = [TransactionReceipt, TransactionReceipt];
 
 type GetTokenBridgeContractsParameters<TParentChain extends Chain | undefined> = {
   parentChainPublicClient: PublicClient<Transport, TParentChain>;
+  // When the token bridge was deployed through a non-default creator (e.g. a freshly deployed
+  // one), the inbox->deployment mapping lives on that creator, so it must be queried there.
   tokenBridgeCreatorAddressOverride?: Address;
 };
 

@@ -41,6 +41,7 @@ export async function createRollupEnoughCustomFeeTokenAllowance<TChain extends C
       account,
       nativeToken,
       maxFeePerGasForRetryables,
+      rollupCreatorAddressOverride,
     },
     rollupCreatorVersion,
   );

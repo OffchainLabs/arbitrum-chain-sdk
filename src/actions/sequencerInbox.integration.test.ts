@@ -3,9 +3,9 @@ import {
   createRollupHelper,
   getInformationFromTestnode,
   getNitroTestnodePrivateKeyAccounts,
+  testHelper_getNitroTestnodeL2,
 } from '../testHelpers';
 import { Hex, createPublicClient, http, zeroAddress } from 'viem';
-import { nitroTestnodeL2 } from '../chains';
 import { getMaxTimeVariation } from './getMaxTimeVariation';
 import { isBatchPoster } from './isBatchPoster';
 import { sequencerInboxABI } from '../contracts/SequencerInbox';
@@ -20,7 +20,7 @@ const { l3SequencerInbox, l3BatchPoster, l3UpgradeExecutor } = getInformationFro
 const { l3TokenBridgeDeployer, deployer, l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
 
 const client = createPublicClient({
-  chain: nitroTestnodeL2,
+  chain: testHelper_getNitroTestnodeL2(),
   transport: http(),
 });
 
