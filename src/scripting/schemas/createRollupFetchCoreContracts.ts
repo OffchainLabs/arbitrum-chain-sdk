@@ -5,6 +5,8 @@ export const createRollupFetchCoreContractsSchema = publicClientSchema
   .extend({
     rollup: addressSchema,
     rollupDeploymentBlockNumber: bigintSchema.optional(),
+    fromBlock: bigintSchema.optional(),
+    toBlock: bigintSchema.optional(),
   })
   .strict()
   .transform(withPublicClient);

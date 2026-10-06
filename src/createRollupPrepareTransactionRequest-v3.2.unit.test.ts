@@ -1,5 +1,6 @@
 import { it, expect } from 'vitest';
 import { createPublicClient, http, zeroAddress } from 'viem';
+import { createTestRpcTransport } from './testRpcTransport';
 import { arbitrumSepolia } from 'viem/chains';
 
 import { generateChainId } from './utils';
@@ -9,19 +10,16 @@ import { createRollupPrepareDeploymentParamsConfig } from './createRollupPrepare
 import { createRollupPrepareTransactionRequest } from './createRollupPrepareTransactionRequest';
 import { rollupCreatorAddress } from './contracts/RollupCreator';
 
-import {
-  getNitroTestnodePrivateKeyAccounts,
-  testHelper_createCustomParentChain,
-} from './testHelpers';
+import { testHelper_createCustomParentChain } from './testHelpers';
 import { registerCustomParentChain } from './chains';
 import { getConsensusReleaseByVersion } from './wasmModuleRoot';
 
-const testnodeAccounts = getNitroTestnodePrivateKeyAccounts();
-const deployer = testnodeAccounts.deployer;
+// Preparing a request only needs an address, not testnode accounts or private keys.
+const deployer = { address: '0x38f918D0E9F1b721EDaA41302E399fa1B79333a9' } as const;
 
 const publicClient = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumSepolia),
 });
 
 it(`fails to prepare transaction request if "params.batchPosters" is set to an empty array`, async () => {

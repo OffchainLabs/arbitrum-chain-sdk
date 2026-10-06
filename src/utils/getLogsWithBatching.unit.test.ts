@@ -116,15 +116,15 @@ it('getLogsWithBatching default to batching if first call is failing', async () 
   // Next calls fetch the entire batch size
   for (let i = 1; i < 4; i++) {
     expect(getLogsMock.mock.calls[i][0]).toMatchObject({
-      fromBlock: blockNumber - BigInt(i) * 9_999n + 1n,
-      toBlock: blockNumber - BigInt(i - 1) * 9_999n,
+      fromBlock: blockNumber - BigInt(i) * 10_000n + 1n,
+      toBlock: blockNumber - BigInt(i - 1) * 10_000n,
     });
   }
 
   // Last call fetch a small number of blocks than the batch size, because we have fromBlock set
   expect(getLogsMock.mock.calls[4][0]).toMatchObject({
     fromBlock: blockNumber - 35_000n,
-    toBlock: blockNumber - 3n * 9_999n,
+    toBlock: blockNumber - 3n * 10_000n,
   });
   expect(rollupInitializedEvents).toEqual([createRollupEvent]);
 });
@@ -219,8 +219,8 @@ describe('when stopWhenFound option is set to true', () => {
     // Next calls fetch the entire batch size
     for (let i = 1; i < 3; i++) {
       expect(getLogsMock.mock.calls[i][0]).toMatchObject({
-        fromBlock: blockNumber - BigInt(i) * 9_999n + 1n,
-        toBlock: blockNumber - BigInt(i - 1) * 9_999n,
+        fromBlock: blockNumber - BigInt(i) * 10_000n + 1n,
+        toBlock: blockNumber - BigInt(i - 1) * 10_000n,
       });
     }
 

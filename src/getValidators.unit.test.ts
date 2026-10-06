@@ -5,10 +5,10 @@ import {
   createPublicClient,
   createTransport,
   encodeFunctionData,
-  http,
 } from 'viem';
 import { arbitrum, arbitrumSepolia, sepolia } from 'viem/chains';
 import { it, expect, vi, describe } from 'vitest';
+import { createTestRpcTransport } from './testRpcTransport';
 
 import { gnosisSafeL2ABI } from './contracts/GnosisSafeL2';
 import { rollupABI } from './contracts/Rollup';
@@ -18,17 +18,17 @@ import { rollupAdminLogicPrepareFunctionData } from './rollupAdminLogicPrepareTr
 
 const client = createPublicClient({
   chain: arbitrum,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrum),
 });
 
 const arbitrumSepoliaClient = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumSepolia),
 });
 
 const sepoliaClient = createPublicClient({
   chain: sepolia,
-  transport: http('https://sepolia.gateway.tenderly.co'),
+  transport: createTestRpcTransport(sepolia),
 });
 
 function mockLog(transactionHash: string) {
@@ -151,27 +151,34 @@ function safeSetValidatorHelper(args: [Address[], boolean[]]) {
   });
 }
 
-it('getValidators return all validators (Xai)', async () => {
+it('getValidators returns initial validators (Xai)', async () => {
   const { isAccurate, validators } = await getValidators(client, {
     rollup: '0xc47dacfbaa80bd9d8112f4e8069482c2a3221336',
+    // Deployment transaction: 0xcefe7ebaac7f573d70560f840c228fd589c04b9f6fbcfc85a9bf28b8d96d89e5
+    fromBlock: 166_757_506n,
+    toBlock: 166_757_506n,
   });
   expect(validators).toEqual(['0x25EA41f0bDa921a0eBf48291961B1F10b59BC6b8']);
-  expect(isAccurate).toBeFalsy();
+  expect(isAccurate).toBeTruthy();
 });
 
 // https://sepolia.arbiscan.io/tx/0x5b0b49e0259289fc89949a55a5ad35a8939440a55065d29b14e5e7ef7494efff
-it('getValidators returns validators for a chain created with RollupCreator v1.1', async () => {
+it('getValidators returns initial validators for a chain created with RollupCreator v1.1', async () => {
   const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
     rollup: '0x1644590Fd2223264ea8Cda8927B038CcCFE0Da76',
+    fromBlock: 49_500_532n,
+    toBlock: 49_500_532n,
   });
   expect(validators).toEqual(['0x8E842599F71ABD661737bb3108a53E5b1787c791']);
   expect(isAccurate).toBeTruthy();
 });
 
 // https://sepolia.arbiscan.io/tx/0x77db43157182a69ce0e6d2a0564d2dabb43b306d48ea7b4d877160d6a1c9b66d
-it('getValidators returns validators for a chain created with RollupCreator v2.1', async () => {
+it('getValidators returns initial validators for a chain created with RollupCreator v2.1', async () => {
   const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
     rollup: '0x66d0e72952f4f69aF9D33C1B7C31Fa9aCDbCAF63',
+    fromBlock: 71_259_460n,
+    toBlock: 71_259_460n,
   });
   expect(validators).toEqual([
     '0xDBb2c9923b5DE18B151bC55Ed571EDcd1fC7EeB9',
@@ -183,18 +190,22 @@ it('getValidators returns validators for a chain created with RollupCreator v2.1
 });
 
 // https://sepolia.etherscan.io/tx/0xd79a80b7300df1bcb14e2e3ea83521d1ae37e5f171a787fb0f5377ea7f5003ad
-it('getValidators returns validators for a chain created with RollupCreator v3.1', async () => {
+it('getValidators returns initial validators for a chain created with RollupCreator v3.1', async () => {
   const { isAccurate, validators } = await getValidators(sepoliaClient, {
     rollup: '0x5D65e18b873dD978EeE4704BC6033436aA253936',
+    fromBlock: 8_184_855n,
+    toBlock: 8_184_855n,
   });
   expect(validators).toEqual(['0x776C1B18cde829C020ce1a3f75ae3B82F6a9108a']);
   expect(isAccurate).toBeTruthy();
 });
 
 // https://sepolia.arbiscan.io/tx/0x67bb216d4dd1b1807d9f0e226e4da754bdf643e2788f9e515b37c6dd890be331
-it('getValidators returns validators for a chain created with RollupCreator v3.2', async () => {
+it('getValidators returns initial validators for a chain created with RollupCreator v3.2', async () => {
   const { isAccurate, validators } = await getValidators(arbitrumSepoliaClient, {
     rollup: '0x80630e3776E445c256E82D5ACcA2Bbb4b0c95a98',
+    fromBlock: 235_819_442n,
+    toBlock: 235_819_442n,
   });
   expect(validators).toEqual([
     '0xd0E7B8f304461d57E8b49b660DbD46e34E877A81',

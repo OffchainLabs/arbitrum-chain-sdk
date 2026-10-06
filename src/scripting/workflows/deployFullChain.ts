@@ -266,6 +266,10 @@ export const execute = async (input: z.output<typeof schema>) => {
   });
 
   // Step 2: Create token bridge
+  const rollupDeploymentBlockNumber = coreContracts.deployedAtBlockNumber
+    ? BigInt(coreContracts.deployedAtBlockNumber)
+    : undefined;
+
   const tokenBridgeContracts = await initializeTokenBridgeExecute({
     createTokenBridgeParams: {
       params: {
@@ -280,9 +284,9 @@ export const execute = async (input: z.output<typeof schema>) => {
     },
     signer: account,
     nativeToken: restParams.nativeToken,
-    rollupDeploymentBlockNumber: coreContracts.deployedAtBlockNumber
-      ? BigInt(coreContracts.deployedAtBlockNumber)
-      : undefined,
+    rollupDeploymentBlockNumber,
+    fromBlock: rollupDeploymentBlockNumber,
+    toBlock: rollupDeploymentBlockNumber,
   });
 
   // Step 3: Configure inbox allow-list (optional)
