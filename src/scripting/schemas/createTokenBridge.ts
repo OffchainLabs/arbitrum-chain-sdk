@@ -25,6 +25,8 @@ export const createTokenBridgeSchema = customParentChainPublicClientSchema({
     rollupOwner: addressSchema,
     rollupAddress: addressSchema,
     rollupDeploymentBlockNumber: bigintSchema.optional(),
+    fromBlock: bigintSchema.optional(),
+    toBlock: bigintSchema.optional(),
     nativeTokenAddress: addressSchema.optional(),
     tokenBridgeCreatorAddressOverride: addressSchema.optional(),
     gasOverrides: gasLimitSchema.optional(),

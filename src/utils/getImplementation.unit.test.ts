@@ -1,12 +1,13 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http, zeroAddress } from 'viem';
+import { createPublicClient, zeroAddress } from 'viem';
 import { arbitrumSepolia } from 'viem/chains';
+import { createTestRpcTransport } from '../testRpcTransport';
 
 import { getImplementation } from './getImplementation';
 
 const arbitrumSepoliaPublicClient = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumSepolia),
 });
 
 it('fetches no implementation address for RollupCreator v1.1.0 on Arbitrum Sepolia', async () => {

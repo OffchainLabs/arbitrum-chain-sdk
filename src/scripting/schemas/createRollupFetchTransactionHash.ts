@@ -5,6 +5,7 @@ export const createRollupFetchTransactionHashSchema = publicClientSchema
   .extend({
     rollup: addressSchema,
     fromBlock: bigintSchema.optional(),
+    toBlock: bigintSchema.optional(),
   })
   .strict()
   .transform(withPublicClient);

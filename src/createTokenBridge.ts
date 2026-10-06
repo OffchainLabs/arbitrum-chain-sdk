@@ -56,6 +56,10 @@ export type CreateTokenBridgeParams<
    * However, for the query to work properly, it has to be **less than or equal to** the right block number.
    */
   rollupDeploymentBlockNumber?: bigint;
+  /** Inclusive lower bound for rollup deployment discovery when rollupDeploymentBlockNumber is not provided. */
+  fromBlock?: bigint;
+  /** Inclusive upper bound for rollup deployment discovery. Defaults to the latest block. */
+  toBlock?: bigint;
   account: PrivateKeyAccount;
   nativeTokenAddress?: Address;
   parentChainPublicClient: PublicClient<Transport, TParentChain>;
@@ -176,6 +180,8 @@ export async function createTokenBridge<
   rollupOwner,
   rollupAddress,
   rollupDeploymentBlockNumber,
+  fromBlock,
+  toBlock,
   account,
   nativeTokenAddress,
   parentChainPublicClient,
@@ -286,6 +292,8 @@ export async function createTokenBridge<
     const setWethGatewayTxRequest = await createTokenBridgePrepareSetWethGatewayTransactionRequest({
       rollup: rollupAddress,
       rollupDeploymentBlockNumber,
+      fromBlock,
+      toBlock,
       parentChainPublicClient,
       account: account.address,
       tokenBridgeCreatorAddressOverride,

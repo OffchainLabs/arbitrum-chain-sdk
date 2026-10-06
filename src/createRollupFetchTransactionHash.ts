@@ -19,7 +19,10 @@ import { rollupABI as rollupV2Dot1ABI } from './contracts/Rollup/v2.1';
 export type CreateRollupFetchTransactionHashParams<TChain extends Chain | undefined> = {
   rollup: Address;
   publicClient: PublicClient<Transport, TChain>;
+  /** Inclusive lower bound. Must include the original deployment and any upgrades. */
   fromBlock?: bigint;
+  /** Inclusive upper bound for deployment event discovery. Defaults to the latest block. */
+  toBlock?: bigint;
 };
 
 const RollupInitializedEventAbi = {
@@ -93,13 +96,20 @@ export async function getRollupInitializedEvents<TChain extends Chain | undefine
   rollup,
   publicClient,
   fromBlock,
-}: CreateRollupFetchTransactionHashParams<TChain>) {
+  toBlock,
+  stopWhenFound = false,
+}: CreateRollupFetchTransactionHashParams<TChain> & { stopWhenFound?: boolean }) {
   // Find the RollupInitialized event from that Rollup contract
-  const rollupInitializedEvents = await getLogsWithBatching(publicClient, {
-    address: rollup,
-    event: RollupInitializedEventAbi,
-    fromBlock: fromBlock ?? getEarliestRollupCreatorDeploymentBlockNumber(publicClient),
-  });
+  const rollupInitializedEvents = await getLogsWithBatching(
+    publicClient,
+    {
+      address: rollup,
+      event: RollupInitializedEventAbi,
+      fromBlock: fromBlock ?? getEarliestRollupCreatorDeploymentBlockNumber(publicClient),
+      toBlock,
+    },
+    { stopWhenFound },
+  );
 
   if (rollupInitializedEvents.length !== 1) {
     throw new Error(
@@ -114,6 +124,7 @@ export async function createRollupFetchTransactionHash<TChain extends Chain | un
   rollup,
   publicClient,
   fromBlock,
+  toBlock,
 }: CreateRollupFetchTransactionHashParams<TChain>) {
   let rollupQuery: Address | undefined = rollup;
   let transactionHash: Hex | undefined = undefined;
@@ -121,7 +132,13 @@ export async function createRollupFetchTransactionHash<TChain extends Chain | un
   while (rollupQuery) {
     // get the transaction hash and receipt for transaction that emitted the RollupInitialized event
     transactionHash = (
-      await getRollupInitializedEvents({ rollup: rollupQuery, publicClient, fromBlock })
+      await getRollupInitializedEvents({
+        rollup: rollupQuery,
+        publicClient,
+        fromBlock,
+        toBlock,
+        stopWhenFound: true,
+      })
     )[0].transactionHash;
     const transactionReceipt = await publicClient.getTransactionReceipt({
       hash: transactionHash,
@@ -130,6 +147,9 @@ export async function createRollupFetchTransactionHash<TChain extends Chain | un
     // we'll check the transaction receipt to see if it looks like a Rollup upgrade transaction, and return the next address to query
     // we'll keep following the chain of upgrades until we find the original deployment
     rollupQuery = getNextRollupQuery(transactionReceipt);
+
+    // The previous rollup was initialized at or before this upgrade.
+    toBlock = transactionReceipt.blockNumber;
   }
 
   if (!transactionHash) {

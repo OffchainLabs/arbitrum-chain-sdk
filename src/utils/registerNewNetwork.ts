@@ -17,11 +17,23 @@ const isTestnet = (parentChainId: number) => {
 
 export async function prepareArbitrumNetwork<TChain extends Chain | undefined>(
   parentChainPublicClient: PublicClient<Transport, TChain>,
-  { rollup }: { rollup: Address },
+  {
+    rollup,
+    fromBlock,
+    toBlock,
+  }: {
+    rollup: Address;
+    /** Inclusive lower bound for deployment event discovery. */
+    fromBlock?: bigint;
+    /** Inclusive upper bound for deployment event discovery. Defaults to the latest block. */
+    toBlock?: bigint;
+  },
 ): Promise<ArbitrumNetwork> {
   const rollupInitializedEvent = await getRollupInitializedEvents({
     rollup,
     publicClient: parentChainPublicClient,
+    fromBlock,
+    toBlock,
   });
 
   // Fetch orbit chain chainId

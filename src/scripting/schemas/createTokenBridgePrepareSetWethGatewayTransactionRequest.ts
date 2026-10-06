@@ -12,6 +12,8 @@ export const createTokenBridgePrepareSetWethGatewayTransactionRequestSchema =
       account: addressSchema,
       rollup: addressSchema,
       rollupDeploymentBlockNumber: bigintSchema.optional(),
+      fromBlock: bigintSchema.optional(),
+      toBlock: bigintSchema.optional(),
       retryableGasOverrides: setWethGatewayGasOverridesSchema.optional(),
       tokenBridgeCreatorAddressOverride: addressSchema.optional(),
     })

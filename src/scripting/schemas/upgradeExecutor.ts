@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { withPublicClient, withPublicClientOptionalChain } from '../viemTransforms';
-import { addressSchema, publicClientSchema } from './common';
+import { addressSchema, bigintSchema, publicClientSchema } from './common';
 
 export const upgradeExecutorPrepareTransactionRequestSchema = publicClientSchema
   .extend({
@@ -15,6 +15,8 @@ export const upgradeExecutorFetchPrivilegedAccountsSchema = publicClientSchema
   .extend({
     chainId: z.number().optional(),
     upgradeExecutorAddress: addressSchema,
+    fromBlock: bigintSchema.optional(),
+    toBlock: bigintSchema.optional(),
   })
   .strict()
   .transform(withPublicClientOptionalChain);
