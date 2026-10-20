@@ -64,3 +64,13 @@ overrides:
   # >=0.27.3 <0.28.1, patched in 0.28.1. Vite's ^0.27 dependency cannot reach
   # the patched version without this override.
   "vite>esbuild": "0.28.1"
+
+  # GHSA-477h-4r7f-fvrx (DoS when deriving keys from long passwords):
+  # pbkdf2 <=3.1.6 is vulnerable; 3.1.7 is patched. Pulled in by
+  # ethereum-cryptography via Safe and OpenZeppelin's upgrades tooling.
+  "pbkdf2": "3.1.7"
+
+  # GHSA-68fv-2mgg-jv7q (DoS through indexed source-map section offsets):
+  # source-map-js >=1.0.0 <1.2.2 is vulnerable; 1.2.2 is patched.
+  # Pulled in by PostCSS through Vitest/Vite.
+  "source-map-js": "1.2.2"

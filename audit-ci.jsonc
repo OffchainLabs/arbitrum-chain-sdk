@@ -70,7 +70,13 @@
     // elliptic has no patched release yet (affected: <=6.6.1)
     // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
     // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
-    "GHSA-848j-6mx2-7j84"
-
+    "GHSA-848j-6mx2-7j84",
+    // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
+    // braces <=3.0.3 has no patched release. Deeply nested glob patterns can
+    // exhaust the stack. Current dependency paths are build/development tooling using
+    // repository-controlled patterns, rather than SDK inputs. Nitro's
+    // patch-package is an install-time tool, with its build scripts blocked
+    // in pnpm-workspace.yaml. Remove this exception once an upstream fix is available.
+    "GHSA-vfj7-8cjw-p6xm"
   ]
 }
