@@ -1,18 +1,16 @@
-import { createPublicClient, http } from 'viem';
+import { createPublicClient, http, Hash, Log } from 'viem';
 import { AbiEvent } from 'abitype';
 import { arbitrumSepolia } from 'viem/chains';
-import { it, expect, vi, describe } from 'vitest';
+import { it, expect, vi, describe, beforeEach } from 'vitest';
 
 import { getLogsWithBatching } from './getLogsWithBatching';
 
-function mockCreateRollupEvent(transactionHash: string, blockNumber: bigint) {
+function mockCreateRollupEvent(transactionHash: Hash, blockNumber: bigint): Log {
   return {
     address: '0x193e2887031c148ab54f5e856ea51ae521661200',
-    args: { id: 6n },
     blockHash: '0x3bafb9574d8a3a7c09070935dc3ca936a5df06e2abd09cbd2a3cd489562e748f',
     blockNumber,
     data: '0x',
-    eventName: 'OwnerFunctionCalled',
     logIndex: 42,
     removed: false,
     topics: [
@@ -45,288 +43,199 @@ const RollupInitializedEventAbi = {
   type: 'event',
 } as const satisfies AbiEvent;
 
-it(`getLogsWithBatching doesn't default to batching if first call is successful`, async () => {
-  const client = createPublicClient({
-    transport: http(),
-    chain: arbitrumSepolia,
-  });
-  const blockNumber = await client.getBlockNumber();
-  const getLogsMock = vi.fn();
-  client.getLogs = getLogsMock;
-  const createRollupEvent = mockCreateRollupEvent(
-    '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
-    blockNumber - 25_000n, // Included in the 3rd block from the last
-  );
-  getLogsMock.mockResolvedValueOnce([createRollupEvent]);
+const latestBlock = 2_000_000n;
+const client = createPublicClient({ transport: http(), chain: arbitrumSepolia });
+const getLogsMock = vi.spyOn(client, 'getLogs');
+const getBlockNumberMock = vi.spyOn(client, 'getBlockNumber');
+const params = { address: rollupAddress, event: RollupInitializedEventAbi } as const;
 
-  const rollupInitializedEvents = await getLogsWithBatching(client, {
-    address: rollupAddress,
-    event: RollupInitializedEventAbi,
-    fromBlock: blockNumber - 35_000n,
-    toBlock: blockNumber,
-  });
-
-  expect(getLogsMock.mock.calls).toHaveLength(1);
-  // First call is trying to fetch the entire interval
-  expect(getLogsMock.mock.calls[0][0]).toMatchObject({
-    fromBlock: blockNumber - 35_000n,
-    toBlock: blockNumber,
-  });
-  expect(rollupInitializedEvents).toEqual([createRollupEvent]);
+beforeEach(() => {
+  getLogsMock.mockReset().mockResolvedValue([]);
+  getBlockNumberMock.mockReset().mockResolvedValue(latestBlock);
+  vi.spyOn(console, 'warn').mockImplementation(() => {});
 });
 
-it('getLogsWithBatching default to batching if first call is failing', async () => {
-  const client = createPublicClient({
-    transport: http(),
-    chain: arbitrumSepolia,
+it('defaults to genesis through the latest block when bounds are omitted', async () => {
+  await getLogsWithBatching(client, params);
+
+  expect(getBlockNumberMock).toHaveBeenCalledOnce();
+  expect(getLogsMock.mock.calls.map(([range]) => [range?.fromBlock, range?.toBlock])).toEqual([
+    [1_000_001n, latestBlock],
+    [1n, 1_000_000n],
+    [0n, 0n],
+  ]);
+});
+
+describe('starting batch size', () => {
+  it.each([
+    [1n, 2_000n],
+    [999n, 2_000n],
+    [1_000n, 2_000n],
+    [1_001n, 2_000n],
+    [2_000n, 2_000n],
+    [2_001n, 10_000n],
+    [10_000n, 10_000n],
+    [10_001n, 100_000n],
+    [100_000n, 100_000n],
+    [100_001n, 1_000_000n],
+    [1_000_000n, 1_000_000n],
+    [1_000_001n, 1_000_000n],
+  ])('selects %s blocks using a %s block batch size', async (rangeSize, startingBatchSize) => {
+    const fromBlock = latestBlock - rangeSize + 1n;
+    // Fail the first request so the next size reveals which starting tier was selected.
+    getLogsMock.mockRejectedValueOnce(new Error('RPC limit exceeded'));
+    const request = getLogsWithBatching(client, { ...params, fromBlock, toBlock: latestBlock });
+    if (startingBatchSize === 2_000n) {
+      await expect(request).rejects.toThrow('RPC limit exceeded');
+      expect(getLogsMock).toHaveBeenCalledOnce();
+    } else {
+      await request;
+      const smallerSizes = [100_000n, 10_000n, 2_000n];
+      const retrySize = smallerSizes.find((size) => size < startingBatchSize)!;
+      expect(getLogsMock.mock.calls[1][0]).toMatchObject({
+        fromBlock: latestBlock - retrySize + 1n,
+        toBlock: latestBlock,
+      });
+    }
+    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
+      fromBlock: latestBlock - (rangeSize < startingBatchSize ? rangeSize : startingBatchSize) + 1n,
+      toBlock: latestBlock,
+    });
+    expect(getBlockNumberMock).not.toHaveBeenCalled();
   });
-  const blockNumber = await client.getBlockNumber();
-  const getLogsMock = vi.fn();
-  client.getLogs = getLogsMock;
-  const createRollupEvent = mockCreateRollupEvent(
-    '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
-    blockNumber - 25_000n, // Included in the 3rd block from the last
-  );
+});
+
+it('returns all events when the range fits in a single batch', async () => {
+  const event = mockCreateRollupEvent('0x01', latestBlock - 25_000n);
+  getLogsMock.mockResolvedValueOnce([event]);
+
+  const logs = await getLogsWithBatching(client, {
+    ...params,
+    fromBlock: latestBlock - 35_000n,
+    toBlock: latestBlock,
+  });
+
+  expect(getLogsMock).toHaveBeenCalledOnce();
+  expect(getLogsMock).toHaveBeenCalledWith({
+    ...params,
+    fromBlock: latestBlock - 35_000n,
+    toBlock: latestBlock,
+  });
+  expect(logs).toEqual([event]);
+});
+
+it('falls back through every size and throws when 2k batches fail', async () => {
+  const error = new Error('RPC limit exceeded');
+  getLogsMock.mockRejectedValue(error);
+
+  await expect(
+    getLogsWithBatching(client, { ...params, fromBlock: 0n, toBlock: latestBlock }),
+  ).rejects.toBe(error);
+
+  expect(
+    getLogsMock.mock.calls.map(
+      ([range]) => BigInt(range!.toBlock!) - BigInt(range!.fromBlock!) + 1n,
+    ),
+  ).toEqual([1_000_000n, 100_000n, 10_000n, 2_000n]);
+});
+
+it('preserves collected events and retries the failed cursor without gaps or duplicates', async () => {
+  const recentEvent = mockCreateRollupEvent('0x01', 200_000n);
+  const olderEvent = mockCreateRollupEvent('0x02', 100_000n);
   getLogsMock
-    // First call, we simulate a RPC failure, and default to batching
-    .mockRejectedValueOnce(new Error('[mock] RPC limits exceeded'))
-    // First 2 calls from current block don't return any event
-    .mockResolvedValueOnce([])
-    .mockResolvedValueOnce([])
-    // Last call return event
-    .mockResolvedValueOnce([createRollupEvent])
-    .mockResolvedValue([]);
+    .mockResolvedValueOnce([recentEvent])
+    .mockRejectedValueOnce(new Error('RPC limit exceeded'))
+    .mockResolvedValueOnce([olderEvent]);
 
-  const rollupInitializedEvents = await getLogsWithBatching(client, {
-    address: rollupAddress,
-    event: RollupInitializedEventAbi,
-    fromBlock: blockNumber - 35_000n,
-    toBlock: blockNumber,
-  });
+  const logs = await getLogsWithBatching(client, { ...params, fromBlock: 0n, toBlock: 1_100_000n });
 
-  // First call covering the entire range + 4 for the batched calls
-  expect(getLogsMock.mock.calls).toHaveLength(5);
-
-  // First call is trying to fetch the entire interval
-  expect(getLogsMock.mock.calls[0][0]).toMatchObject({
-    fromBlock: blockNumber - 35_000n,
-    toBlock: blockNumber,
-  });
-
-  // Next calls fetch the entire batch size
-  for (let i = 1; i < 4; i++) {
-    expect(getLogsMock.mock.calls[i][0]).toMatchObject({
-      fromBlock: blockNumber - BigInt(i) * 10_000n + 1n,
-      toBlock: blockNumber - BigInt(i - 1) * 10_000n,
-    });
-  }
-
-  // Last call fetch a small number of blocks than the batch size, because we have fromBlock set
-  expect(getLogsMock.mock.calls[4][0]).toMatchObject({
-    fromBlock: blockNumber - 35_000n,
-    toBlock: blockNumber - 3n * 10_000n,
-  });
-  expect(rollupInitializedEvents).toEqual([createRollupEvent]);
+  expect(logs).toEqual([olderEvent, recentEvent]);
+  expect(getLogsMock.mock.calls.map(([range]) => [range?.fromBlock, range?.toBlock])).toEqual([
+    [100_001n, 1_100_000n],
+    [0n, 100_000n],
+    [1n, 100_000n],
+    [0n, 0n],
+  ]);
 });
 
-describe('when stopWhenFound option is set to true', () => {
-  it('getLogsWithBatching should return all events if first call is successful', async () => {
-    const client = createPublicClient({
-      transport: http(),
-      chain: arbitrumSepolia,
-    });
-    const blockNumber = await client.getBlockNumber();
-    const getLogsMock = vi.fn();
-    client.getLogs = getLogsMock;
-    const oldCreateRollupEvent = mockCreateRollupEvent(
-      '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
-      blockNumber - 25_000n, // Included in the 3rd block from the last
-    );
-    const recentCreateRollupEvent = mockCreateRollupEvent(
-      '0x448fdaac1651fba39640e2103d83f78ff4695f95727f318f0f9e62c3e2d77a10',
-      blockNumber - 15_000n, // Included in the 2nd block from the last
-    );
-    getLogsMock.mockResolvedValueOnce([oldCreateRollupEvent, recentCreateRollupEvent]);
+it('skips fallback sizes that cannot shrink a failed partial batch', async () => {
+  getLogsMock.mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('RPC limit exceeded'));
 
-    const rollupInitializedEvents = await getLogsWithBatching(
-      client,
-      {
-        address: rollupAddress,
-        event: RollupInitializedEventAbi,
-        fromBlock: blockNumber - 35_000n,
-        toBlock: blockNumber,
-      },
-      {
-        stopWhenFound: true,
-      },
-    );
+  await getLogsWithBatching(client, { ...params, fromBlock: 0n, toBlock: 1_003_499n });
 
-    expect(getLogsMock.mock.calls).toHaveLength(1);
-    // First call is trying to fetch the entire interval
-    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
-      fromBlock: blockNumber - 35_000n,
-      toBlock: blockNumber,
-    });
-    expect(rollupInitializedEvents).toEqual([oldCreateRollupEvent, recentCreateRollupEvent]);
-  });
-
-  it('getLogsWithBatching should stop at the most recent even found if first call is failing', async () => {
-    const client = createPublicClient({
-      transport: http(),
-      chain: arbitrumSepolia,
-    });
-    const blockNumber = await client.getBlockNumber();
-    const getLogsMock = vi.fn();
-    client.getLogs = getLogsMock;
-    const oldCreateRollupEvent = mockCreateRollupEvent(
-      '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
-      blockNumber - 25_000n, // Included in the 3rd block from the last
-    );
-    const recentCreateRollupEvent = mockCreateRollupEvent(
-      '0x448fdaac1651fba39640e2103d83f78ff4695f95727f318f0f9e62c3e2d77a10',
-      blockNumber - 15_000n, // Included in the 2nd block from the last
-    );
-    getLogsMock
-      // First call, we simulate a RPC failure, and default to batching
-      .mockRejectedValueOnce(new Error('[mock] RPC limits exceeded'))
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([recentCreateRollupEvent])
-      .mockResolvedValueOnce([oldCreateRollupEvent])
-      .mockResolvedValue([]);
-
-    const rollupInitializedEvents = await getLogsWithBatching(
-      client,
-      {
-        address: rollupAddress,
-        event: RollupInitializedEventAbi,
-        fromBlock: blockNumber - 35_000n,
-        toBlock: blockNumber,
-      },
-      {
-        stopWhenFound: true,
-      },
-    );
-
-    // First call covering the entire range + 2 calls (until we find the event)
-    expect(getLogsMock.mock.calls).toHaveLength(3);
-
-    // First call is trying to fetch the entire interval
-    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
-      fromBlock: blockNumber - 35_000n,
-      toBlock: blockNumber,
-    });
-
-    // Next calls fetch the entire batch size
-    for (let i = 1; i < 3; i++) {
-      expect(getLogsMock.mock.calls[i][0]).toMatchObject({
-        fromBlock: blockNumber - BigInt(i) * 10_000n + 1n,
-        toBlock: blockNumber - BigInt(i - 1) * 10_000n,
-      });
-    }
-
-    expect(rollupInitializedEvents).toEqual([recentCreateRollupEvent]);
-  });
+  expect(getLogsMock.mock.calls.map(([range]) => [range?.fromBlock, range?.toBlock])).toEqual([
+    [3_500n, 1_003_499n],
+    [0n, 3_499n],
+    [1_500n, 3_499n],
+    [0n, 1_499n],
+  ]);
 });
 
-describe('when batch size is set', () => {
-  it('getLogsWithBatching should fetch the entire interval if first call is successful', async () => {
-    const client = createPublicClient({
-      transport: http(),
-      chain: arbitrumSepolia,
-    });
-    const blockNumber = await client.getBlockNumber();
-    const getLogsMock = vi.fn();
-    client.getLogs = getLogsMock;
-    const oldCreateRollupEvent = mockCreateRollupEvent(
-      '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
-      blockNumber - 25_000n, // Included in the 3rd block from the last
-    );
-    const recentCreateRollupEvent = mockCreateRollupEvent(
-      '0x448fdaac1651fba39640e2103d83f78ff4695f95727f318f0f9e62c3e2d77a10',
-      blockNumber - 15_000n, // Included in the 2nd block from the last
-    );
-    getLogsMock.mockResolvedValueOnce([oldCreateRollupEvent, recentCreateRollupEvent]);
+it('throws when no fallback size can shrink the failed range', async () => {
+  const error = new Error('RPC limit exceeded');
+  getLogsMock.mockResolvedValueOnce([]).mockRejectedValueOnce(error);
 
-    const rollupInitializedEvents = await getLogsWithBatching(
+  await expect(
+    getLogsWithBatching(client, { ...params, fromBlock: 0n, toBlock: 1_000_499n }),
+  ).rejects.toBe(error);
+  expect(getLogsMock).toHaveBeenCalledTimes(2);
+});
+
+it('stops at the first nonempty batch when stopWhenFound is true', async () => {
+  const event = mockCreateRollupEvent('0x01', 1_000_000n);
+  getLogsMock.mockResolvedValueOnce([]).mockResolvedValueOnce([event]);
+
+  const logs = await getLogsWithBatching(
+    client,
+    { ...params, fromBlock: 0n, toBlock: latestBlock },
+    { stopWhenFound: true },
+  );
+
+  expect(getLogsMock).toHaveBeenCalledTimes(2);
+  expect(logs).toEqual([event]);
+});
+
+it('returns all events in the first matching batch when stopWhenFound is true', async () => {
+  const events = [mockCreateRollupEvent('0x01', 10n), mockCreateRollupEvent('0x02', 20n)];
+  getLogsMock.mockResolvedValueOnce(events);
+
+  expect(
+    await getLogsWithBatching(
       client,
-      {
-        address: rollupAddress,
-        event: RollupInitializedEventAbi,
-        fromBlock: blockNumber - 35_000n,
-        toBlock: blockNumber,
-      },
-      {
-        batchSize: 1n,
-      },
-    );
+      { ...params, fromBlock: 0n, toBlock: 999n },
+      { stopWhenFound: true },
+    ),
+  ).toEqual(events);
+  expect(getLogsMock).toHaveBeenCalledOnce();
+});
 
-    expect(getLogsMock.mock.calls).toHaveLength(1);
-    // First call is trying to fetch the entire interval
-    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
-      fromBlock: blockNumber - 35_000n,
-      toBlock: blockNumber,
-    });
-    expect(rollupInitializedEvents).toEqual([oldCreateRollupEvent, recentCreateRollupEvent]);
-  });
+it('uses an explicit batch size immediately, including a partial final batch', async () => {
+  await getLogsWithBatching(
+    client,
+    { ...params, fromBlock: 100n, toBlock: 112n },
+    { batchSize: 5n },
+  );
 
-  it('getLogsWithBatching should fetch the interval by batchSize increment if first call is failing', async () => {
-    const client = createPublicClient({
-      transport: http(),
-      chain: arbitrumSepolia,
-    });
-    const blockNumber = await client.getBlockNumber();
-    const getLogsMock = vi.fn();
-    client.getLogs = getLogsMock;
-    const createRollupEvent = mockCreateRollupEvent(
-      '0x13baa9be2bf267fde01e730855d34526f339a21f1877af175f0958e5dc546e6d',
-      blockNumber - 25_052n, // Included in the 2nd block from the last
-    );
-    getLogsMock
-      // First call, we simulate a RPC failure, and default to batching
-      .mockRejectedValueOnce(new Error('[mock] RPC limits exceeded'))
-      // First 4 calls from current block don't return any event
-      .mockResolvedValueOnce([]) // current block to - 5 000
-      .mockResolvedValueOnce([]) // -5 000 to -10 000
-      .mockResolvedValueOnce([]) // -10 000 to -15 000
-      .mockResolvedValueOnce([]) // - 15 000 to -20 000
-      // Last call return event
-      .mockResolvedValueOnce([createRollupEvent]); // -25 000 to -30 000
+  expect(getLogsMock.mock.calls.map(([range]) => [range?.fromBlock, range?.toBlock])).toEqual([
+    [108n, 112n],
+    [103n, 107n],
+    [100n, 102n],
+  ]);
+});
 
-    const rollupInitializedEvents = await getLogsWithBatching(
-      client,
-      {
-        address: rollupAddress,
-        event: RollupInitializedEventAbi,
-        fromBlock: blockNumber - 37_000n,
-        toBlock: blockNumber,
-      },
-      {
-        batchSize: 5_000n,
-      },
-    );
+it('propagates failures when an explicit batch size is provided', async () => {
+  const error = new Error('RPC limit exceeded');
+  getLogsMock.mockRejectedValueOnce(error);
 
-    // First call covering the entire range + 8 for the batched calls
-    expect(getLogsMock.mock.calls).toHaveLength(9);
+  await expect(
+    getLogsWithBatching(client, { ...params, fromBlock: 0n, toBlock: 100n }, { batchSize: 5n }),
+  ).rejects.toBe(error);
+  expect(getLogsMock).toHaveBeenCalledOnce();
+});
 
-    // First call is trying to fetch the entire interval
-    expect(getLogsMock.mock.calls[0][0]).toMatchObject({
-      fromBlock: blockNumber - 37_000n,
-      toBlock: blockNumber,
-    });
-
-    // Next calls fetch the range 5_000 by 5_000 block
-    for (let i = 1; i < 8; i++) {
-      expect(getLogsMock.mock.calls[i][0]).toMatchObject({
-        fromBlock: blockNumber - BigInt(i) * 5_000n + 1n,
-        toBlock: blockNumber - BigInt(i - 1) * 5_000n,
-      });
-    }
-
-    // Last call fetch a small number of blocks than the batch size, because we have fromBlock set
-    expect(getLogsMock.mock.calls[8][0]).toMatchObject({
-      fromBlock: blockNumber - 37_000n,
-      toBlock: blockNumber - 7n * 5_000n,
-    });
-    expect(rollupInitializedEvents).toEqual([createRollupEvent]);
-  });
+it.each([0n, -1n])('rejects invalid batch size %s', async (batchSize) => {
+  await expect(getLogsWithBatching(client, params, { batchSize })).rejects.toThrow(
+    'batchSize must be greater than zero',
+  );
+  expect(getLogsMock).not.toHaveBeenCalled();
 });
