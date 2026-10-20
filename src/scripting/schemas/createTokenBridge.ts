@@ -7,6 +7,7 @@ import {
 import {
   addressSchema,
   bigintSchema,
+  logBlockRangeSchema,
   customParentChainPublicClientSchema,
   privateKeySchema,
   gasLimitSchema,
@@ -19,14 +20,13 @@ export const createTokenBridgeSchema = customParentChainPublicClientSchema({
   tokenBridgeCreator: true,
   weth: true,
 })
+  .extend(logBlockRangeSchema.shape)
   .extend({
     orbitChainRpcUrl: z.url(),
     privateKey: privateKeySchema,
     rollupOwner: addressSchema,
     rollupAddress: addressSchema,
     rollupDeploymentBlockNumber: bigintSchema.optional(),
-    fromBlock: bigintSchema.optional(),
-    toBlock: bigintSchema.optional(),
     nativeTokenAddress: addressSchema.optional(),
     tokenBridgeCreatorAddressOverride: addressSchema.optional(),
     gasOverrides: gasLimitSchema.optional(),

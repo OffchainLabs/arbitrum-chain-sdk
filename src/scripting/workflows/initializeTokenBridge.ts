@@ -7,6 +7,7 @@ import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from
 import {
   addressSchema,
   bigintSchema,
+  logBlockRangeSchema,
   privateKeySchema,
   parentChainPublicClientSchema,
   gasLimitSchema,
@@ -16,11 +17,9 @@ import { zeroAddress } from 'viem';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-export const inputSchema = parentChainPublicClientSchema.extend({
+export const inputSchema = parentChainPublicClientSchema.extend(logBlockRangeSchema.shape).extend({
   params: z.strictObject({ rollup: addressSchema, rollupOwner: addressSchema }),
   rollupDeploymentBlockNumber: bigintSchema.optional(),
-  fromBlock: bigintSchema.optional(),
-  toBlock: bigintSchema.optional(),
   gasOverrides: gasLimitSchema.optional(),
   retryableGasOverrides: tokenBridgeRetryableGasOverridesSchema.optional(),
   tokenBridgeCreatorAddressOverride: addressSchema.optional(),

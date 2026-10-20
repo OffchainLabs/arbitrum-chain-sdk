@@ -1,11 +1,10 @@
 import { withPublicClient } from '../viemTransforms';
-import { addressSchema, bigintSchema, publicClientSchema } from './common';
+import { addressSchema, logBlockRangeSchema, publicClientSchema } from './common';
 
 export const createRollupFetchTransactionHashSchema = publicClientSchema
+  .extend(logBlockRangeSchema.shape)
   .extend({
     rollup: addressSchema,
-    fromBlock: bigintSchema.optional(),
-    toBlock: bigintSchema.optional(),
   })
   .strict()
   .transform(withPublicClient);
