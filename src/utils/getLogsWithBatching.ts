@@ -20,8 +20,8 @@ type GetLogsOptions = {
  *
  * @returns Promise<{@link GetLogsReturnType}>
  *
- * Start with the smallest of 1M, 100k, 10k, or 2k block batches that covers
- * the requested range, capped at 1M. On failure, retry with smaller batches.
+ * Try the full requested range first.
+ * On failure, retry with smaller batches of 1M, 100k, 10k, then 2k blocks.
  * Starts at block zero when fromBlock is omitted, regardless of the client's chain.
  *
  * @example
@@ -38,7 +38,7 @@ export async function getLogsWithBatching<
 >(
   publicClient: PublicClient<Transport, TChain>,
   params: Omit<GetLogsParameters<TAbiEvent>, 'blockHash'> & GetLogsOptions,
-  options?: Options,
+  options?: Options, 
 ): Promise<GetLogsReturnType<TAbiEvent>>;
 export async function getLogsWithBatching<
   TAbiEvent extends AbiEvent,
@@ -76,10 +76,7 @@ export async function getLogsWithBatching<
   const rangeSize = upperLimit - lowerLimit + 1n;
   const batchSizes =
     batchSize === undefined
-      ? [1_000_000n, 100_000n, 10_000n, 2_000n].filter(
-          // Keep the smallest tier covering the range and every smaller fallback tier.
-          (_, index, sizes) => index === sizes.length - 1 || sizes[index + 1] < rangeSize,
-        )
+      ? [rangeSize, ...[1_000_000n, 100_000n, 10_000n, 2_000n].filter((size) => size < rangeSize)]
       : [batchSize];
   let batchIndex = 0;
 
