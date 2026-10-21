@@ -77,6 +77,11 @@ export const bigintSchema = z
   .regex(/^(?:-?\d+|0[xX][0-9a-fA-F]+)$/, 'Expected a decimal or hex numeric string')
   .transform(BigInt);
 
+export const logBlockRangeSchema = z.strictObject({
+  fromBlock: bigintSchema.optional(),
+  toBlock: bigintSchema.optional(),
+});
+
 export const rollupCreatorVersionSchema = z.enum(['v2.1', 'v3.2']);
 
 export const sequencerInboxMaxTimeVariationSchema = z.strictObject({

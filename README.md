@@ -105,9 +105,27 @@ arbitrum-chain-sdk prepareChainConfig '{
 }'
 ```
 
+## Limit SDK event searches
+
+The TypeScript SDK functions `createRollupFetchTransactionHash`, `createRollupFetchCoreContracts`, `isAnyTrust`, `getBatchPosters`, `getValidators`, `getKeysets`, `upgradeExecutorFetchPrivilegedAccounts`, and `prepareArbitrumNetwork` accept optional inclusive `fromBlock` and `toBlock` bounds as `bigint`. CLI event-query commands accept the bounds as decimal strings; use `<command> --schema` to see accepted inputs.
+
+```ts
+const { validators } = await getValidators(client, {
+  rollup,
+  fromBlock: deploymentBlock,
+  toBlock: snapshotBlock,
+});
+```
+
+Include the original deployment or initial account/keyset setup in the range when reconstructing state. Without bounds, each function uses its default starting block and queries through the latest block. For deployment lookups and network preparation, the bounds limit event discovery; other contract reads still use the current head.
+
+`createTokenBridge`, `createTokenBridgePrepareSetWethGatewayTransactionRequest`, and the `initializeTokenBridge` CLI workflow also accept the bounds for rollup deployment discovery when configuring the WETH gateway. For these functions and `createRollupFetchCoreContracts`, `rollupDeploymentBlockNumber` takes precedence over `fromBlock` as the lower bound.
+
 ## Development
 
 Use Node.js 24 (`nvm use`) and pnpm 11.26.0, as pinned in `.nvmrc` and `package.json`. Install dependencies with `pnpm install --frozen-lockfile`.
+
+Some unit tests read live public chains using the fallback RPCs in `src/testRpcTransport.ts`, with a five-second timeout per RPC request and one retry for transient failures. The test transport does not split log queries or interpret provider range-limit errors. Ethereum Sepolia tests use Sentio, Tenderly, and Thirdweb to query the historical deployments in their fixtures.
 
 ## Run integration tests
 

@@ -5,12 +5,13 @@ import {
   UPGRADE_EXECUTOR_ROLE_EXECUTOR,
   upgradeExecutorEncodeFunctionData,
 } from './upgradeExecutorEncodeFunctionData';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
+import { createTestRpcTransport } from './testRpcTransport';
 import { arbitrum } from 'viem/chains';
 
 const publicClient = createPublicClient({
   chain: arbitrum,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrum),
 });
 
 // taken from https://arbiscan.io/tx/0xc7e6188415d5572b305219c9b01d773693bc5b07cd1a8ab3e1278107275016e5
@@ -36,6 +37,9 @@ it('it fetches the right privileged accounts from an UpgradeExecutor', async () 
   const privilegedAccounts = await upgradeExecutorFetchPrivilegedAccounts({
     upgradeExecutorAddress,
     publicClient,
+    // Include initial role grants and the complete owner transfer.
+    fromBlock: 151_854_509n,
+    toBlock: 162_546_847n,
   });
 
   expect(Object.keys(privilegedAccounts).length).toEqual(2);

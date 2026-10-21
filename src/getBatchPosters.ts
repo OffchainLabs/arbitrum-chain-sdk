@@ -81,6 +81,10 @@ export type GetBatchPostersParams = {
   rollup: Address;
   /** Address of the sequencerInbox we're getting logs from */
   sequencerInbox: Address;
+  /** Inclusive starting block. Must include the original deployment and batch poster setup. */
+  fromBlock?: bigint;
+  /** Inclusive ending block. Defaults to the latest block. */
+  toBlock?: bigint;
 };
 export type GetBatchPostersReturnType = {
   /**
@@ -118,21 +122,26 @@ export type GetBatchPostersReturnType = {
  */
 export async function getBatchPosters<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
-  { rollup, sequencerInbox }: GetBatchPostersParams,
+  { rollup, sequencerInbox, fromBlock, toBlock }: GetBatchPostersParams,
 ): Promise<GetBatchPostersReturnType> {
+  if (fromBlock !== undefined && toBlock !== undefined && fromBlock > toBlock) {
+    throw new Error('fromBlock must be less than or equal to toBlock');
+  }
   let blockNumber: bigint;
   let createRollupTransactionHash: Address | null = null;
   try {
     createRollupTransactionHash = await createRollupFetchTransactionHash({
       rollup,
       publicClient,
+      fromBlock,
+      toBlock,
     });
     const receipt = await publicClient.waitForTransactionReceipt({
       hash: createRollupTransactionHash,
     });
-    blockNumber = receipt.blockNumber;
+    blockNumber = fromBlock ?? receipt.blockNumber;
   } catch {
-    blockNumber = 0n;
+    blockNumber = fromBlock ?? 0n;
   }
 
   const sequencerInboxEvents = await getLogsWithBatching(publicClient, {
@@ -140,6 +149,7 @@ export async function getBatchPosters<TChain extends Chain>(
     event: ownerFunctionCalledEventAbi,
     args: { id: 1n },
     fromBlock: blockNumber,
+    toBlock,
   });
 
   const events = createRollupTransactionHash

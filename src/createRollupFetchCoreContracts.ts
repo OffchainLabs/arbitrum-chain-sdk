@@ -16,19 +16,26 @@ export type CreateRollupFetchCoreContractsParams<TChain extends Chain | undefine
    * However, for the query to work properly, it has to be **less than or equal to** the right block number.
    */
   rollupDeploymentBlockNumber?: bigint;
+  /** Inclusive lower bound for deployment discovery when rollupDeploymentBlockNumber is not provided. */
+  fromBlock?: bigint;
+  /** Inclusive upper bound for deployment discovery. Defaults to the latest block. */
+  toBlock?: bigint;
   publicClient: PublicClient<Transport, TChain>;
 };
 
 export async function createRollupFetchCoreContracts<TChain extends Chain | undefined>({
   rollup,
   rollupDeploymentBlockNumber,
+  fromBlock,
+  toBlock,
   publicClient,
 }: CreateRollupFetchCoreContractsParams<TChain>): Promise<CoreContracts> {
   // getting core contract addresses
   const transactionHash = await createRollupFetchTransactionHash({
     rollup,
     publicClient,
-    fromBlock: rollupDeploymentBlockNumber,
+    fromBlock: rollupDeploymentBlockNumber ?? fromBlock,
+    toBlock,
   });
 
   const transactionReceipt = createRollupPrepareTransactionReceipt(

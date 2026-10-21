@@ -1,6 +1,7 @@
 import { Address, PublicClient, Transport, Chain } from 'viem';
 import { AbiEvent } from 'abitype';
 import { UpgradeExecutorRole } from './upgradeExecutorEncodeFunctionData';
+import { getLogsWithBatching } from './utils/getLogsWithBatching';
 
 /**
  * This type is for the params of the {@link upgradeExecutorFetchPrivilegedAccounts} function
@@ -8,6 +9,10 @@ import { UpgradeExecutorRole } from './upgradeExecutorEncodeFunctionData';
 export type UpgradeExecutorFetchPrivilegedAccountsParams<TChain extends Chain | undefined> = {
   upgradeExecutorAddress: Address;
   publicClient: PublicClient<Transport, TChain>;
+  /** Inclusive starting block. Must include initial role grants. Defaults to block zero. */
+  fromBlock?: bigint;
+  /** Inclusive ending block. Defaults to the latest block. */
+  toBlock?: bigint;
 };
 
 /**
@@ -92,16 +97,21 @@ const RoleRevokedEventAbi = {
 export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chain | undefined>({
   upgradeExecutorAddress,
   publicClient,
+  fromBlock = 0n,
+  toBlock,
 }: UpgradeExecutorFetchPrivilegedAccountsParams<TChain>) {
+  if (toBlock !== undefined && fromBlock > toBlock) {
+    throw new Error('fromBlock must be less than or equal to toBlock');
+  }
   // 0. Initialize result object
   const upgradeExecutorPrivilegedAccounts: UpgradeExecutorPrivilegedAccounts = {};
 
   // 1. Find the RoleGranted events
-  const roleGrantedEvents = await publicClient.getLogs({
+  const roleGrantedEvents = await getLogsWithBatching(publicClient, {
     address: upgradeExecutorAddress,
     event: RoleGrantedEventAbi,
-    fromBlock: 0n,
-    toBlock: 'latest',
+    fromBlock,
+    toBlock,
   });
   if (!roleGrantedEvents || roleGrantedEvents.length <= 0) {
     // No roles have been granted
@@ -120,11 +130,11 @@ export async function upgradeExecutorFetchPrivilegedAccounts<TChain extends Chai
   });
 
   // 3. Find the RoleRevoked events
-  const roleRevokedEvents = await publicClient.getLogs({
+  const roleRevokedEvents = await getLogsWithBatching(publicClient, {
     address: upgradeExecutorAddress,
     event: RoleRevokedEventAbi,
-    fromBlock: 0n,
-    toBlock: 'latest',
+    fromBlock,
+    toBlock,
   });
   if (!roleRevokedEvents || roleRevokedEvents.length <= 0) {
     return upgradeExecutorPrivilegedAccounts;

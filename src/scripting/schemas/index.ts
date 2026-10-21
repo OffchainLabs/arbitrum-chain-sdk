@@ -2,6 +2,7 @@ export {
   addressSchema,
   hexSchema,
   bigintSchema,
+  logBlockRangeSchema,
   coreContractsSchema,
   sequencerInboxMaxTimeVariationSchema,
   gasLimitSchema,

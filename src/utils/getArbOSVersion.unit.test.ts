@@ -1,13 +1,14 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
 import { arbitrum as arbitrumOne, sepolia } from 'viem/chains';
+import { createTestRpcTransport } from '../testRpcTransport';
 
 import { getArbOSVersion } from './getArbOSVersion';
 
 it('returns the ArbOS version of Arbitrum One', async () => {
   const arbitrumOneClient = createPublicClient({
     chain: arbitrumOne,
-    transport: http(),
+    transport: createTestRpcTransport(arbitrumOne),
   });
 
   expect(await getArbOSVersion(arbitrumOneClient)).toBe(61);
@@ -16,7 +17,7 @@ it('returns the ArbOS version of Arbitrum One', async () => {
 it('throws if the chain is not an Arbitrum chain', async () => {
   const sepoliaClient = createPublicClient({
     chain: sepolia,
-    transport: http('https://gateway.tenderly.co/public/sepolia'),
+    transport: createTestRpcTransport(sepolia),
   });
 
   await expect(getArbOSVersion(sepoliaClient)).rejects.toThrowError();
