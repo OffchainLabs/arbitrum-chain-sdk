@@ -38,7 +38,7 @@ export async function getLogsWithBatching<
 >(
   publicClient: PublicClient<Transport, TChain>,
   params: Omit<GetLogsParameters<TAbiEvent>, 'blockHash'> & GetLogsOptions,
-  options?: Options, 
+  options?: Options,
 ): Promise<GetLogsReturnType<TAbiEvent>>;
 export async function getLogsWithBatching<
   TAbiEvent extends AbiEvent,
