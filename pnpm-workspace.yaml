@@ -60,6 +60,11 @@ overrides:
   # declare tmp@^0.0.33, so without this pin they resolve to vulnerable 0.0.33.
   "tmp": "0.2.7"
 
+  # Vite bundles launch-editor. GHSA-587h-7wmj-h5pm, GHSA-698v-4r3x-3vcv,
+  # and GHSA-r825-w8mm-5pxw affect Vite <=7.3.6 on the 7.x line.
+  # Pin Vitest's Vite dependency and @vitest/mocker's peer to patched 7.3.7.
+  "vite": "7.3.7"
+
   # GHSA-g7r4-m6w7-qqqr (esbuild dev server origin validation): vulnerable
   # >=0.27.3 <0.28.1, patched in 0.28.1. Vite's ^0.27 dependency cannot reach
   # the patched version without this override.

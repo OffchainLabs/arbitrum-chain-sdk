@@ -13,6 +13,7 @@ overrides:
   '@wagmi/cli>bundle-require': 5.1.0
   elliptic: 6.6.1
   tmp: 0.2.7
+  vite: 7.3.7
   vite>esbuild: 0.28.1
   pbkdf2: 3.1.7
   source-map-js: 1.2.2
@@ -68,7 +69,7 @@ importers:
         version: 1.20.0(typescript@5.2.2)(zod@4.3.6)
       vitest:
         specifier: ^4.1.11
-        version: 4.1.11(@types/node@20.19.43)(vite@7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
+        version: 4.1.11(@types/node@20.19.43)(vite@7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -1095,7 +1096,7 @@ packages:
     resolution: {integrity: sha512-2XJVD55d1o5AZous5CCGKS74g/riOj9odEt2bQpCVZeblHyHdnMeFl4jl0XjU21stf4mbjUkew2eXQZt65g5CQ==}
     peerDependencies:
       msw: ^2.4.9
-      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+      vite: 7.3.7
     peerDependenciesMeta:
       msw:
         optional: true
@@ -2738,8 +2739,8 @@ packages:
       typescript:
         optional: true
 
-  vite@7.3.5:
-    resolution: {integrity: sha512-KuOaNhcnGFN2zIPGA7wRmzF+lJA1sea7rHq17aiJ++9lzY1WWG6Jpwqwe1KNbRVPIqHmr8GLYx7jbrQcN/7/ww==}
+  vite@7.3.7:
+    resolution: {integrity: sha512-AHEzTORMbi7/7aXp7w7KZ5+DCUdSeLsJz0grY8xHpc9DHdYb0vQu6DqJfm2tOw3gDExNgPgnJTXxM6syYFHaCA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -2794,7 +2795,7 @@ packages:
       '@vitest/ui': 4.1.11
       happy-dom: '*'
       jsdom: '*'
-      vite: ^6.0.0 || ^7.0.0 || ^8.0.0
+      vite: 7.3.7
     peerDependenciesMeta:
       '@edge-runtime/vm':
         optional: true
@@ -3757,13 +3758,13 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.11(vite@7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))':
+  '@vitest/mocker@4.1.11(vite@7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
       magic-string: 0.30.21
     optionalDependencies:
-      vite: 7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
+      vite: 7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
 
   '@vitest/pretty-format@4.1.11':
     dependencies:
@@ -5743,7 +5744,7 @@ snapshots:
       - utf-8-validate
       - zod
 
-  vite@7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3):
+  vite@7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3):
     dependencies:
       esbuild: 0.28.1
       fdir: 6.5.0(picomatch@4.0.4)
@@ -5758,10 +5759,10 @@ snapshots:
       tsx: 4.22.1
       yaml: 2.8.3
 
-  vitest@4.1.11(@types/node@20.19.43)(vite@7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)):
+  vitest@4.1.11(@types/node@20.19.43)(vite@7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
+      '@vitest/mocker': 4.1.11(vite@7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11
@@ -5778,7 +5779,7 @@ snapshots:
       tinyexec: 1.2.4
       tinyglobby: 0.2.17
       tinyrainbow: 3.1.0
-      vite: 7.3.5(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
+      vite: 7.3.7(@types/node@20.19.43)(lightningcss@1.32.0)(tsx@4.22.1)(yaml@2.8.3)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.19.43
