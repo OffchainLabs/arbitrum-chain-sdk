@@ -1,17 +1,18 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
 import { sepolia, arbitrumSepolia } from 'viem/chains';
+import { createTestRpcTransport } from './testRpcTransport';
 
 import { createRollupPrepareTransactionReceipt } from './createRollupPrepareTransactionReceipt';
 
 const client = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumSepolia),
 });
 
 const sepoliaClient = createPublicClient({
   chain: sepolia,
-  transport: http('https://sepolia.gateway.tenderly.co'),
+  transport: createTestRpcTransport(sepolia),
 });
 
 // https://sepolia.arbiscan.io/tx/0x5b0b49e0259289fc89949a55a5ad35a8939440a55065d29b14e5e7ef7494efff

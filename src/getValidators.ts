@@ -89,6 +89,10 @@ function updateAccumulator(acc: Set<Address>, input: Hex) {
 export type GetValidatorsParams = {
   /** Address of the rollup we're getting list of validators from */
   rollup: Address;
+  /** Inclusive starting block. Must include initial validator setup. Defaults to the deployment block. */
+  fromBlock?: bigint;
+  /** Inclusive ending block for the validator snapshot. Defaults to the latest block. */
+  toBlock?: bigint;
 };
 export type GetValidatorsReturnType = {
   /**
@@ -103,7 +107,7 @@ export type GetValidatorsReturnType = {
 
 async function getValidatorsPreV3Dot1<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
-  { rollup }: GetValidatorsParams,
+  { rollup, toBlock }: GetValidatorsParams,
   blockNumber: bigint,
 ): Promise<GetValidatorsReturnType> {
   const preV3Dot1Events = await getLogsWithBatching(publicClient, {
@@ -111,6 +115,7 @@ async function getValidatorsPreV3Dot1<TChain extends Chain>(
     event: ownerFunctionCalledEventAbi,
     args: { id: 6n },
     fromBlock: blockNumber,
+    toBlock,
   });
 
   /** For pre v3.1, the OwnerFunctionCalled event is emitted when the validators list is updated
@@ -216,26 +221,35 @@ async function getValidatorsPreV3Dot1<TChain extends Chain>(
  */
 export async function getValidators<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
-  { rollup }: GetValidatorsParams,
+  { rollup, fromBlock, toBlock }: GetValidatorsParams,
 ): Promise<GetValidatorsReturnType> {
+  if (fromBlock !== undefined && toBlock !== undefined && fromBlock > toBlock) {
+    throw new Error('fromBlock must be less than or equal to toBlock');
+  }
   let blockNumber: bigint;
-  try {
-    const createRollupTransactionHash = await createRollupFetchTransactionHash({
-      rollup,
-      publicClient,
-    });
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: createRollupTransactionHash,
-    });
-    blockNumber = receipt.blockNumber;
-  } catch {
-    blockNumber = 0n;
+  if (fromBlock !== undefined) {
+    blockNumber = fromBlock;
+  } else {
+    try {
+      const createRollupTransactionHash = await createRollupFetchTransactionHash({
+        rollup,
+        publicClient,
+        toBlock,
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: createRollupTransactionHash,
+      });
+      blockNumber = receipt.blockNumber;
+    } catch {
+      blockNumber = 0n;
+    }
   }
 
   const validatorsSetEvents = await getLogsWithBatching(publicClient, {
     address: rollup,
     event: validatorsSetEventAbi,
     fromBlock: blockNumber,
+    toBlock,
   });
 
   const validatorsFromEvents = validatorsSetEvents
@@ -252,5 +266,5 @@ export async function getValidators<TChain extends Chain>(
     };
   }
 
-  return getValidatorsPreV3Dot1(publicClient, { rollup }, blockNumber);
+  return getValidatorsPreV3Dot1(publicClient, { rollup, toBlock }, blockNumber);
 }

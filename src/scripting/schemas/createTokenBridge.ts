@@ -7,6 +7,7 @@ import {
 import {
   addressSchema,
   bigintSchema,
+  logBlockRangeSchema,
   customParentChainPublicClientSchema,
   privateKeySchema,
   gasLimitSchema,
@@ -19,6 +20,7 @@ export const createTokenBridgeSchema = customParentChainPublicClientSchema({
   tokenBridgeCreator: true,
   weth: true,
 })
+  .extend(logBlockRangeSchema.shape)
   .extend({
     orbitChainRpcUrl: z.url(),
     privateKey: privateKeySchema,

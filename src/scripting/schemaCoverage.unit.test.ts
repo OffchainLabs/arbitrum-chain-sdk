@@ -246,12 +246,16 @@ const coverageConfig: Record<string, CoverageConfig> = {
     ],
   },
   initializeTokenBridge: {
-    // `rollupDeploymentBlockNumber` is only read inside the
+    // Deployment query bounds are only read inside the
     // `nativeToken === zeroAddress` branch (the WETH-gateway path), so it
     // needs the same zero-address context that the nativeToken test uses.
     overrides: [
       {
-        matches: (k) => k === 'nativeToken' || k === 'rollupDeploymentBlockNumber',
+        matches: (k) =>
+          k === 'nativeToken' ||
+          k === 'rollupDeploymentBlockNumber' ||
+          k === 'fromBlock' ||
+          k === 'toBlock',
         apply: (base) => ({
           ...(base as object),
           nativeToken: '0x0000000000000000000000000000000000000000',

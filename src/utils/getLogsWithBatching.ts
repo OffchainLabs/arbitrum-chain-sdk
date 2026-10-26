@@ -1,13 +1,10 @@
 import { Chain, GetLogsParameters, GetLogsReturnType, PublicClient, Transport } from 'viem';
 import { AbiEvent } from 'abitype';
 
-import { validateParentChain } from '../types/ParentChain';
-import { getEarliestRollupCreatorDeploymentBlockNumber } from './getEarliestRollupCreatorDeploymentBlockNumber';
-
 type Options = {
   /** When batching calls, stop on the first event found */
   stopWhenFound?: boolean;
-  /** Size of the batch when batching calls */
+  /** Use a fixed batch size instead of the default fallback sizes. */
   batchSize?: bigint;
 };
 type GetLogsOptions = {
@@ -23,7 +20,9 @@ type GetLogsOptions = {
  *
  * @returns Promise<{@link GetLogsReturnType}>
  *
- * Fetch logs for a given range. On failure, we batch logs to avoid rate limiting.
+ * Try the full requested range first.
+ * On failure, retry with smaller batches of 1M, 100k, 10k, then 2k blocks.
+ * Starts at block zero when fromBlock is omitted, regardless of the client's chain.
  *
  * @example
  * const events = await getLogsWithBatching(client, {
@@ -59,17 +58,13 @@ export async function getLogsWithBatching<
     toBlock,
     ...getLogsParameters
   }: Omit<GetLogsParameters<TAbiEvent, TAbiEvent[]>, 'blockHash'> & GetLogsOptions,
-  { stopWhenFound = false, batchSize = 9_999n }: Options = {
-    stopWhenFound: false,
-    batchSize: 9_999n,
-  },
+  { stopWhenFound = false, batchSize }: Options = {},
 ) {
-  let lowerLimit = fromBlock;
-  const latestBlockNumber = await publicClient.getBlockNumber();
-  validateParentChain(publicClient);
-  if (!fromBlock) {
-    lowerLimit = getEarliestRollupCreatorDeploymentBlockNumber(publicClient);
+  if (batchSize !== undefined && batchSize <= 0n) {
+    throw new RangeError('batchSize must be greater than zero');
   }
+  const lowerLimit = fromBlock;
+  const upperLimit = toBlock ?? (await publicClient.getBlockNumber());
   const { event, events, args, ...restGetLogsParameters } = getLogsParameters;
   let eventArgs = {};
   if (event) {
@@ -77,43 +72,57 @@ export async function getLogsWithBatching<
   } else {
     eventArgs = { events };
   }
-  try {
-    return await publicClient.getLogs({
-      ...eventArgs,
-      ...restGetLogsParameters,
-      fromBlock,
-      toBlock: toBlock ?? latestBlockNumber,
-    });
-  } catch (e) {
-    console.warn(`[getLogsWithBatching] Now batching requests: ${(e as Error).message}`);
-    const allEvents = [];
+  const allEvents = [];
+  const rangeSize = upperLimit - lowerLimit + 1n;
+  const batchSizes =
+    batchSize === undefined
+      ? [rangeSize, ...[1_000_000n, 100_000n, 10_000n, 2_000n].filter((size) => size < rangeSize)]
+      : [batchSize];
+  let batchIndex = 0;
 
-    // Fetch logs `batchSize` blocks at a time to avoid rate limiting
-    // We're fetching from most recent block to oldest one
-    let cursor = toBlock ?? latestBlockNumber;
-    while (cursor >= lowerLimit) {
-      const rangeEnd = cursor;
-      // If we want to fetch X blocks from 0 (0 and X included), we need to fetch blocks from 0 to X-1
-      const rangeStart =
-        cursor - batchSize + 1n > lowerLimit ? cursor - batchSize + 1n : lowerLimit;
-      const logs = await publicClient.getLogs({
+  // We're fetching from most recent block to oldest one
+  let cursor = upperLimit;
+  while (cursor >= lowerLimit) {
+    const currentBatchSize = batchSizes[batchIndex];
+    const rangeEnd = cursor;
+    const rangeStart =
+      cursor - currentBatchSize + 1n > lowerLimit ? cursor - currentBatchSize + 1n : lowerLimit;
+    let logs;
+    try {
+      logs = await publicClient.getLogs({
         ...eventArgs,
         ...restGetLogsParameters,
         fromBlock: rangeStart,
         toBlock: rangeEnd,
       });
-
-      if (logs) {
-        // Add the logs at the beginning to keep the order
-        allEvents.unshift(logs);
+    } catch (error) {
+      batchIndex += 1;
+      // Retry the same cursor with a smaller range, preserving already collected events.
+      while (
+        batchIndex < batchSizes.length &&
+        batchSizes[batchIndex] >= rangeEnd - rangeStart + 1n
+      ) {
+        batchIndex += 1;
       }
-      if (stopWhenFound && logs.length > 0) {
-        return logs;
+      if (batchIndex === batchSizes.length) {
+        throw error;
       }
-
-      cursor = rangeStart - 1n;
+      console.warn(
+        `[getLogsWithBatching] Falling back to ${batchSizes[batchIndex]} block batches: ${
+          (error as Error).message
+        }`,
+      );
+      continue;
     }
 
-    return allEvents.flatMap((events) => events);
+    // Add the logs at the beginning to keep the order
+    allEvents.unshift(logs);
+    if (stopWhenFound && logs.length > 0) {
+      return logs;
+    }
+
+    cursor = rangeStart - 1n;
   }
+
+  return allEvents.flatMap((events) => events);
 }

@@ -1,11 +1,12 @@
-import { EIP1193RequestFn, Hex, createPublicClient, createTransport, http, padHex } from 'viem';
+import { EIP1193RequestFn, Hex, createPublicClient, createTransport, padHex } from 'viem';
+import { createTestRpcTransport } from './testRpcTransport';
 import { arbitrum, arbitrumSepolia } from 'viem/chains';
 import { it, expect, vi, describe } from 'vitest';
 import { getKeysets } from './getKeysets';
 
 const client = createPublicClient({
   chain: arbitrum,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrum),
 });
 
 const mockEventCommon = {
@@ -72,9 +73,11 @@ function mockData({
 
 const sequencerInboxAddress = '0x041f85dd87c46b941dc9b15c6628b19ee5358485';
 
-it('getValidKeysets return all keysets (Proof of play)', async () => {
+it('getKeysets returns the initial keyset (Proof of Play)', async () => {
   const { keysets } = await getKeysets(client, {
     sequencerInbox: '0xa58F38102579dAE7C584850780dDA55744f67DF1',
+    fromBlock: 183_097_536n,
+    toBlock: 183_097_536n,
   });
   expect(keysets).toEqual({
     '0xc2c008db9d0d25ca30d60080f5ebd3d114dbccd95f2bd2df05446eae6b1acadf':
