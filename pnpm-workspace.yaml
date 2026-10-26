@@ -10,6 +10,8 @@ allowBuilds:
   postinstall-postinstall: false
   secp256k1: false
 
+engineStrict: true
+
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'

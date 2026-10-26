@@ -4,7 +4,7 @@ TypeScript SDK for [building Arbitrum chains](https://docs.arbitrum.io/launch-ar
 
 ## Installation
 
-Make sure you are using Node.js v18 or greater.
+Make sure you are using Node.js v24.13.2 or greater.
 
 ```bash
 pnpm add @arbitrum/chain-sdk viem@^1.20.0
@@ -123,7 +123,7 @@ Include the original deployment or initial account/keyset setup in the range whe
 
 ## Development
 
-Use Node.js 24 (`nvm use`) and pnpm 11.26.0, as pinned in `.nvmrc` and `package.json`. Install dependencies with `pnpm install --frozen-lockfile`.
+Use Node.js 24.13.2 (`nvm use`) and pnpm 11.26.0, as pinned in `.nvmrc` and `package.json`. Install dependencies with `pnpm install --frozen-lockfile`.
 
 Some unit tests read live public chains using the fallback RPCs in `src/testRpcTransport.ts`, with a five-second timeout per RPC request and one retry for transient failures. The test transport does not split log queries or interpret provider range-limit errors. Ethereum Sepolia tests use Sentio, Tenderly, and Thirdweb to query the historical deployments in their fixtures.
 
