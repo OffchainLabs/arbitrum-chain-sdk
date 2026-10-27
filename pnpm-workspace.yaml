@@ -24,6 +24,10 @@ overrides:
   # Pin viem to a single resolved version across the tree.
   "viem": "1.20.0"
 
+  # GHSA-mrhx-c7xc-m3w5: pin abitype's optional SDK peer to patched Zod 4.
+  # Wagmi 1 and its abitype 0.8 still require Zod 3; do not force a major upgrade.
+  "abitype@>=0.9>zod": "4.6.6"
+
   # ws (WebSocket lib) is pulled transitively by viem and by BOTH ethers majors.
   # GHSA-58qx-3vcg-4xpx (uninitialized memory disclosure): vulnerable >=8.0.0
   # <8.20.1, patched in 8.20.1.
