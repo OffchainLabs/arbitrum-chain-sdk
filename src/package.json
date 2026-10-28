@@ -51,7 +51,7 @@
   "author": "Offchain Labs, Inc.",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=24.13.2"
+    "node": ">=24.22.1"
   },
   "peerDependencies": {
     "viem": "^1.20.0"
