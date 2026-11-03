@@ -1,6 +1,6 @@
 {
   "chainId": "412346",
-  "arbosVersion": "40",
+  "arbosVersion": "61",
   "chainOwner": "0x0000000000000000000000000000000000001234",
   "l1BaseFee": "1000000000",
   "isAnyTrust": false,

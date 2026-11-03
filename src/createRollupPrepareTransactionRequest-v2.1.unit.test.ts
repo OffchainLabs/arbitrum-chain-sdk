@@ -357,7 +357,12 @@ it(`fails to prepare transaction request if "params.wasmModuleRoot" is blacklist
   // create the chain config
   const chainConfig = prepareChainConfig({
     chainId,
-    arbitrum: { InitialChainOwner: deployer.address, DataAvailabilityCommittee: true },
+    arbitrum: {
+      InitialChainOwner: deployer.address,
+      DataAvailabilityCommittee: true,
+      // Match the disabled root's supported version so this exercises the blacklist check.
+      InitialArbOSVersion: 51,
+    },
   });
 
   const wasmModuleRoot = '0x28b6ad83ed87b21a87c73f7a0296a135ebc7074e449efb289ececccad771ccd6';
