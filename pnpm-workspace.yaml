@@ -7,7 +7,6 @@ allowBuilds:
   '@arbitrum/nitro-contracts': false
   esbuild: false
   keccak: false
-  postinstall-postinstall: false
   secp256k1: false
 
 engineStrict: true
