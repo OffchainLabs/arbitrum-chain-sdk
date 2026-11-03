@@ -14,6 +14,8 @@ engineStrict: true
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'
+  # Security fix for GHSA-g3hv-75wg-m249, released October 27, 2026.
+  - 'minimatch@11.0.1'
 
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
@@ -84,3 +86,13 @@ overrides:
   # source-map-js >=1.0.0 <1.2.2 is vulnerable; 1.2.2 is patched.
   # Pulled in by PostCSS through Vitest/Vite.
   "source-map-js": "1.2.2"
+
+  # GHSA-g3hv-75wg-m249 (DoS through glob-pattern amplification):
+  # minimatch <11.0.1 is vulnerable; 11.0.1 is patched. Covers ESLint,
+  # TypeScript ESLint, and ts-morph.
+  "minimatch": "11.0.1"
+
+  # patch-package 8.0.1 removes rimraf and glob 7, whose wildcard matching
+  # relies on minimatch's pre-11 RegExp internals. Upgrade Nitro's 6.x copy
+  # as well so the minimatch pin does not break legacy glob consumers.
+  "@arbitrum/nitro-contracts>patch-package": "8.0.1"

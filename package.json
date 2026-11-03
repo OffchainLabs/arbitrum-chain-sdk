@@ -34,7 +34,7 @@
     "audit-ci": "^7.0.1",
     "dotenv": "^16.3.1",
     "eslint": "^9.39.1",
-    "patch-package": "^8.0.0",
+    "patch-package": "^8.0.1",
     "prettier": "^2.8.3",
     "ts-morph": "^21.0.1",
     "tsx": "^4.22.1",
