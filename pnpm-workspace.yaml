@@ -7,12 +7,15 @@ allowBuilds:
   '@arbitrum/nitro-contracts': false
   esbuild: false
   keccak: false
-  postinstall-postinstall: false
   secp256k1: false
+
+engineStrict: true
 
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'
+  # Security fix for GHSA-g3hv-75wg-m249, released October 27, 2026.
+  - 'minimatch@11.0.1'
 
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
@@ -21,6 +24,10 @@ minimumReleaseAgeExclude:
 overrides:
   # Pin viem to a single resolved version across the tree.
   "viem": "1.20.0"
+
+  # GHSA-mrhx-c7xc-m3w5: pin abitype's optional SDK peer to patched Zod 4.
+  # Wagmi 1 and its abitype 0.8 still require Zod 3; do not force a major upgrade.
+  "abitype@>=0.9>zod": "4.6.6"
 
   # ws (WebSocket lib) is pulled transitively by viem and by BOTH ethers majors.
   # GHSA-58qx-3vcg-4xpx (uninitialized memory disclosure): vulnerable >=8.0.0
@@ -79,3 +86,13 @@ overrides:
   # source-map-js >=1.0.0 <1.2.2 is vulnerable; 1.2.2 is patched.
   # Pulled in by PostCSS through Vitest/Vite.
   "source-map-js": "1.2.2"
+
+  # GHSA-g3hv-75wg-m249 (DoS through glob-pattern amplification):
+  # minimatch <11.0.1 is vulnerable; 11.0.1 is patched. Covers ESLint,
+  # TypeScript ESLint, and ts-morph.
+  "minimatch": "11.0.1"
+
+  # patch-package 8.0.1 removes rimraf and glob 7, whose wildcard matching
+  # relies on minimatch's pre-11 RegExp internals. Upgrade Nitro's 6.x copy
+  # as well so the minimatch pin does not break legacy glob consumers.
+  "@arbitrum/nitro-contracts>patch-package": "8.0.1"

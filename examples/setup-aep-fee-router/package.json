@@ -12,7 +12,7 @@
     "viem": "^1.20.0"
   },
   "devDependencies": {
-    "@types/node": "^20.9.0",
+    "@types/node": "^24.13.2",
     "typescript": "^5.2.2"
   }
 }

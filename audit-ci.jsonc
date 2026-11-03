@@ -71,12 +71,14 @@
     // transitive via ethereumjs-util -> ethereum-cryptography -> secp256k1 -> elliptic
     // from: @safe-global/protocol-kit>ethereumjs-util>ethereum-cryptography>secp256k1>elliptic
     "GHSA-848j-6mx2-7j84",
-    // https://github.com/advisories/GHSA-vfj7-8cjw-p6xm
-    // braces <=3.0.3 has no patched release. Deeply nested glob patterns can
-    // exhaust the stack. Current dependency paths are build/development tooling using
-    // repository-controlled patterns, rather than SDK inputs. Nitro's
-    // patch-package is an install-time tool, with its build scripts blocked
-    // in pnpm-workspace.yaml. Remove this exception once an upstream fix is available.
-    "GHSA-vfj7-8cjw-p6xm"
+    // https://github.com/advisories/GHSA-mrhx-c7xc-m3w5
+    // Wagmi 1's ABI-generation tooling still requires unpatched Zod 3.
+    // Local generation uses repository-configured contract addresses and config;
+    // these dependencies are not part of the SDK runtime.
+    // Keep these exact dev-only paths until a separate Wagmi migration;
+    // all SDK Zod 4 paths must remain subject to the audit.
+    "GHSA-mrhx-c7xc-m3w5|@wagmi/cli>abitype>zod",
+    "GHSA-mrhx-c7xc-m3w5|@wagmi/cli>viem>abitype>zod",
+    "GHSA-mrhx-c7xc-m3w5|@wagmi/cli>zod"
   ]
 }

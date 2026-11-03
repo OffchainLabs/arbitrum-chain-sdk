@@ -59,7 +59,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
-import { type ZodType, type z } from 'zod';
+import { type ZodType, z } from 'zod';
 import { addressSchema, hexSchema, privateKeySchema } from './schemas/common';
 
 const _mocks = vi.hoisted(() => {
@@ -478,10 +478,6 @@ function getDef(schema: ZodType): any {
   return (schema as any)._zod?.def;
 }
 
-function getBag(schema: ZodType): any {
-  return (schema as any)._zod?.bag;
-}
-
 function stripOptional(schema: ZodType): ZodType {
   const def = getDef(schema);
   if (def?.type === 'optional' || def?.type === 'nullable') return def.innerType;
@@ -606,17 +602,15 @@ function generateForType(schema: ZodType, n: number): unknown {
 }
 
 function generateString(schema: ZodType, n: number): string {
-  const bag = getBag(schema);
-  if (bag?.format === 'url') return `http://host-${n}.test`;
-  const patterns = bag?.patterns as Set<RegExp> | undefined;
-  if (patterns) {
-    for (const pattern of patterns) {
-      const src = pattern.source;
-      if (src.includes('[0-9a-fA-F]{40}')) return `0x${(n + 1).toString(16).padStart(40, '0')}`;
-      if (src.includes('[0-9a-fA-F]{64}')) return `0x${(n + 1).toString(16).padStart(64, '0')}`;
-      if (src.includes('[0-9a-fA-F]')) return `0x${(n + 1).toString(16)}`;
-      if (src.includes('-?\\d+')) return String(n + 100);
-    }
+  // Use the public JSON Schema metadata: Zod no longer stores string checks
+  // in the private _zod.bag format/patterns fields.
+  const { format, pattern } = z.toJSONSchema(schema);
+  if (format === 'uri') return `http://host-${n}.test`;
+  if (pattern) {
+    if (pattern.includes('[0-9a-fA-F]{40}')) return `0x${(n + 1).toString(16).padStart(40, '0')}`;
+    if (pattern.includes('[0-9a-fA-F]{64}')) return `0x${(n + 1).toString(16).padStart(64, '0')}`;
+    if (pattern.includes('[0-9a-fA-F]')) return `0x${(n + 1).toString(16)}`;
+    if (pattern.includes('-?\\d+')) return String(n + 100);
   }
   return `string_${n}`;
 }

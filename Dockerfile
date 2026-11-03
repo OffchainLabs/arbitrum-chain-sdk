@@ -4,7 +4,7 @@ ARG FOUNDRY_IMAGE=ghcr.io/foundry-rs/foundry:v1.8.1
 FROM offchainlabs/nitro-node:${NITRO_NODE_TAG} AS nitro
 FROM ${FOUNDRY_IMAGE} AS foundry
 
-FROM node:24-bookworm-slim AS genesis-file-generator
+FROM node:24.22.1-bookworm-slim AS genesis-file-generator
 ARG GENESIS_FILE_GENERATOR_VERSION=0.0.5
 WORKDIR /generator
 RUN npm install --omit=dev --ignore-scripts --no-save --package-lock=false \
