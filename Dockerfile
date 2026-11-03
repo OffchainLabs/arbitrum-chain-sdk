@@ -10,7 +10,7 @@ WORKDIR /generator
 RUN npm install --omit=dev --ignore-scripts --no-save --package-lock=false \
   "@arbitrum/genesis-file-generator@${GENESIS_FILE_GENERATOR_VERSION}"
 
-FROM node:24.22.1-bookworm-slim AS builder
+FROM node:24-bookworm-slim AS builder
 
 RUN npm install -g pnpm@11.26.0
 WORKDIR /repo
@@ -23,7 +23,7 @@ RUN pnpm install --offline --frozen-lockfile --ignore-scripts
 RUN pnpm build
 RUN pnpm deploy --filter=@arbitrum/chain-sdk --prod --legacy --ignore-scripts /deployed
 
-FROM node:24.22.1-bookworm-slim AS runtime
+FROM node:24-bookworm-slim AS runtime
 
 ENV NODE_ENV=production
 WORKDIR /app
