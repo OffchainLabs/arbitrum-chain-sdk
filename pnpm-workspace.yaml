@@ -23,7 +23,7 @@ minimumReleaseAgeExclude:
 # inline (package.json is strict JSON and can't hold comments).
 overrides:
   # Pin viem to a single resolved version across the tree.
-  "viem": "1.20.0"
+  "viem": "1.21.4"
 
   # GHSA-mrhx-c7xc-m3w5: pin abitype's optional SDK peer to patched Zod 4.
   # Wagmi 1 and its abitype 0.8 still require Zod 3; do not force a major upgrade.
@@ -37,27 +37,26 @@ overrides:
   # ws@8.13.0 and Safe's ethers@6 also lands on a vulnerable 8.x, so both 8.x
   # lineages are pinned forward to 8.21.0. Safe to do: it's a patch bump within
   # 8.x, and ws is only exercised by websocket transports (this SDK uses http).
-  # Pins are scoped per-parent
-  # ("viem>ws", "ethers>ws") instead of a blanket "ws" so the separate ethers-v5
-  # 7.x line below is not dragged onto the 8.x API.
+  # Pins are scoped per parent instead of using a blanket ws override.
+  # ethers v6 depends on ws directly; ethers v5 uses @ethersproject/providers.
   "viem>ws": "8.21.0"
   "ethers>ws": "8.21.0"
-  # ethers v5 (@ethersproject/providers, a direct dependency of `src`) uses the
-  # ws 7.x line. 7.5.11 is patched for GHSA-96hv-2xvq-fx4p and keeps v5 from
-  # falling back to a vulnerable older 7.x. @ethersproject/providers 5.8 moves
-  # to ws 8.x, so update this override alongside any ethers-v5 family upgrade.
-  "@ethersproject/providers>ws": "7.5.11"
+
+  # @ethersproject/providers@5.8.0 declares vulnerable ws@8.18.0 as an exact
+  # dependency, so pnpm cannot select a patched release through normal semver
+  # resolution. Override it to 8.21.0 to fix GHSA-58qx-3vcg-4xpx and
+  # GHSA-96hv-2xvq-fx4p while remaining on the expected ws 8.x API.
+  "@ethersproject/providers>ws": "8.21.0"
 
   # @wagmi/cli declares vulnerable esbuild@0.16.17 (GHSA-67mh-4wv8-2f99),
   # patched in 0.25.0. bundle-require@5 is also required by `wagmi generate`.
   "@wagmi/cli>esbuild": "0.25.1"
   "@wagmi/cli>bundle-require": "5.1.0"
 
-  # elliptic: without this pin @ethersproject/signing-key resolves elliptic to
-  # 6.5.4, which carries unpatched-in-that-line advisories (GHSA-977x-g7h5-7qgw,
-  # GHSA-f7q4-pwc6-w24p, GHSA-fc9h-whq2-v747, GHSA-vjh7-7g9h-fjfh, etc.). 6.6.1 is
-  # the patched 6.x. (The remaining elliptic advisory GHSA-848j-6mx2-7j84, which
-  # affects <=6.6.1 with no fix, is allowlisted in audit-ci.jsonc.)
+  # @arbitrum/sdk still pulls in ethers@5.7.2 and signing-key@5.7.0, which
+  # pins elliptic to vulnerable 6.5.4. Keep all paths on 6.6.1 to address
+  # GHSA-vjh7-7g9h-fjfh and the older signature-validation advisories.
+  # GHSA-848j-6mx2-7j84 remains allowlisted in audit-ci.jsonc.
   "elliptic": "6.6.1"
 
   # GHSA-ph9p-34f9-6g65 (path traversal via unsanitized prefix/postfix):
