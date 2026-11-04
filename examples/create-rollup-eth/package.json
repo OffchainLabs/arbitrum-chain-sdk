@@ -11,7 +11,7 @@
     "@arbitrum/chain-sdk": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^24.13.2",
-    "typescript": "^5.2.2"
+    "@types/node": "^24.19.2",
+    "typescript": "^5.9.3"
   }
 }
