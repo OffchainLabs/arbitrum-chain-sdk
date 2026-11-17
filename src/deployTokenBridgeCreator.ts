@@ -1,6 +1,11 @@
 import { Abi, Address, Hex, WalletClient, publicActions } from 'viem';
 
-import { DeployContext, deployContractChecked, sendAndWait } from './utils/deployContract';
+import {
+  WaveTransaction,
+  callTransaction,
+  deployTransaction,
+  sendWave,
+} from './utils/deployContract';
 
 import ProxyAdmin from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol/ProxyAdmin.json';
 import TransparentUpgradeableProxy from '@arbitrum/nitro-contracts/build/contracts/@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol/TransparentUpgradeableProxy.json';
@@ -89,147 +94,25 @@ export function buildSetTemplatesArgs(inputs: SetTemplatesInputs): readonly unkn
   ];
 }
 
-async function deployAndInitL1Templates(ctx: DeployContext): Promise<L1TokenBridgeTemplates> {
-  const routerTemplate = (await deployContractChecked(ctx, 'L1GatewayRouter', L1GatewayRouter))
-    .address;
-  await sendAndWait(ctx, 'L1GatewayRouter', {
-    address: routerTemplate,
-    abi: L1GatewayRouter.abi as Abi,
+function initializeTransaction(
+  name: string,
+  address: Address,
+  abi: unknown,
+  args: readonly unknown[],
+): WaveTransaction {
+  return callTransaction(`${name}.initialize`, {
+    address,
+    abi: abi as Abi,
     functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
+    args,
   });
-
-  const standardGatewayTemplate = (
-    await deployContractChecked(ctx, 'L1ERC20Gateway', L1ERC20Gateway)
-  ).address;
-  await sendAndWait(ctx, 'L1ERC20Gateway', {
-    address: standardGatewayTemplate,
-    abi: L1ERC20Gateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, DUMMY_CLONEABLE_PROXY_HASH, ADDRESS_DEAD],
-  });
-
-  const customGatewayTemplate = (
-    await deployContractChecked(ctx, 'L1CustomGateway', L1CustomGateway)
-  ).address;
-  await sendAndWait(ctx, 'L1CustomGateway', {
-    address: customGatewayTemplate,
-    abi: L1CustomGateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const wethGatewayTemplate = (await deployContractChecked(ctx, 'L1WethGateway', L1WethGateway))
-    .address;
-  await sendAndWait(ctx, 'L1WethGateway', {
-    address: wethGatewayTemplate,
-    abi: L1WethGateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const feeTokenBasedRouterTemplate = (
-    await deployContractChecked(ctx, 'L1OrbitGatewayRouter', L1OrbitGatewayRouter)
-  ).address;
-  await sendAndWait(ctx, 'L1OrbitGatewayRouter', {
-    address: feeTokenBasedRouterTemplate,
-    abi: L1OrbitGatewayRouter.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const feeTokenBasedStandardGatewayTemplate = (
-    await deployContractChecked(ctx, 'L1OrbitERC20Gateway', L1OrbitERC20Gateway)
-  ).address;
-  await sendAndWait(ctx, 'L1OrbitERC20Gateway', {
-    address: feeTokenBasedStandardGatewayTemplate,
-    abi: L1OrbitERC20Gateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, DUMMY_CLONEABLE_PROXY_HASH, ADDRESS_DEAD],
-  });
-
-  const feeTokenBasedCustomGatewayTemplate = (
-    await deployContractChecked(ctx, 'L1OrbitCustomGateway', L1OrbitCustomGateway)
-  ).address;
-  await sendAndWait(ctx, 'L1OrbitCustomGateway', {
-    address: feeTokenBasedCustomGatewayTemplate,
-    abi: L1OrbitCustomGateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const upgradeExecutor = (await deployContractChecked(ctx, 'UpgradeExecutor', UpgradeExecutor))
-    .address;
-
-  return {
-    routerTemplate,
-    standardGatewayTemplate,
-    customGatewayTemplate,
-    wethGatewayTemplate,
-    feeTokenBasedRouterTemplate,
-    feeTokenBasedStandardGatewayTemplate,
-    feeTokenBasedCustomGatewayTemplate,
-    upgradeExecutor,
-  };
-}
-
-type L2Placeholders = {
-  factory: Address;
-  router: Address;
-  standardGateway: Address;
-  customGateway: Address;
-  wethGateway: Address;
-  weth: Address;
-};
-
-// The L2-side contracts are deployed on the parent chain only as bytecode carriers: the creator
-// reads their runtime code to build the L2 factory. They are initialized with throwaway data too.
-async function deployAndInitL2Placeholders(ctx: DeployContext): Promise<L2Placeholders> {
-  const factory = (
-    await deployContractChecked(ctx, 'L2AtomicTokenBridgeFactory', L2AtomicTokenBridgeFactory)
-  ).address;
-
-  const router = (await deployContractChecked(ctx, 'L2GatewayRouter', L2GatewayRouter)).address;
-  await sendAndWait(ctx, 'L2GatewayRouter', {
-    address: router,
-    abi: L2GatewayRouter.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const standardGateway = (await deployContractChecked(ctx, 'L2ERC20Gateway', L2ERC20Gateway))
-    .address;
-  await sendAndWait(ctx, 'L2ERC20Gateway', {
-    address: standardGateway,
-    abi: L2ERC20Gateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const customGateway = (await deployContractChecked(ctx, 'L2CustomGateway', L2CustomGateway))
-    .address;
-  await sendAndWait(ctx, 'L2CustomGateway', {
-    address: customGateway,
-    abi: L2CustomGateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const wethGateway = (await deployContractChecked(ctx, 'L2WethGateway', L2WethGateway)).address;
-  await sendAndWait(ctx, 'L2WethGateway', {
-    address: wethGateway,
-    abi: L2WethGateway.abi as Abi,
-    functionName: 'initialize',
-    args: [ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD, ADDRESS_DEAD],
-  });
-
-  const weth = (await deployContractChecked(ctx, 'aeWETH', aeWETH)).address;
-
-  return { factory, router, standardGateway, customGateway, wethGateway, weth };
 }
 
 /**
  * viem port of https://github.com/OffchainLabs/token-bridge-contracts/blob/v1.2.2/scripts/atomicTokenBridgeDeployer.ts#L224
+ *
+ * The 36 transactions go out in four waves; each wave is sent at once and mined together, and only
+ * touches contracts mined by an earlier wave.
  */
 export async function deployTokenBridgeCreator({
   walletClient,
@@ -237,72 +120,176 @@ export async function deployTokenBridgeCreator({
 }: DeployTokenBridgeCreatorParams): Promise<DeployTokenBridgeCreatorResult> {
   const ctx = { client: walletClient.extend(publicActions), label: 'deployTokenBridgeCreator' };
 
-  const l2Multicall = (await deployContractChecked(ctx, 'ArbMulticall2', ArbMulticall2)).address;
-  const proxyAdmin = (await deployContractChecked(ctx, 'ProxyAdmin', ProxyAdmin)).address;
-
-  const creatorLogic = (
-    await deployContractChecked(ctx, 'L1AtomicTokenBridgeCreator logic', L1AtomicTokenBridgeCreator)
-  ).address;
-  const { address: tokenBridgeCreator, transactionHash } = await deployContractChecked(
-    ctx,
-    'L1AtomicTokenBridgeCreator proxy',
-    TransparentUpgradeableProxy,
-    [creatorLogic, proxyAdmin, '0x'],
-  );
-
-  const retryableSenderLogic = (
-    await deployContractChecked(
-      ctx,
+  // Wave 1: every contract whose constructor needs no other contract. That includes the L1
+  // templates and the L2-side contracts, which live on the parent chain only as bytecode carriers
+  // (the creator reads their runtime code to build the L2 factory).
+  const contracts = await sendWave(ctx, {
+    l2Multicall: deployTransaction('ArbMulticall2', ArbMulticall2),
+    proxyAdmin: deployTransaction('ProxyAdmin', ProxyAdmin),
+    creatorLogic: deployTransaction('L1AtomicTokenBridgeCreator logic', L1AtomicTokenBridgeCreator),
+    retryableSenderLogic: deployTransaction(
       'L1TokenBridgeRetryableSender logic',
       L1TokenBridgeRetryableSender,
-    )
-  ).address;
-  const retryableSender = (
-    await deployContractChecked(
-      ctx,
+    ),
+    routerTemplate: deployTransaction('L1GatewayRouter', L1GatewayRouter),
+    standardGatewayTemplate: deployTransaction('L1ERC20Gateway', L1ERC20Gateway),
+    customGatewayTemplate: deployTransaction('L1CustomGateway', L1CustomGateway),
+    wethGatewayTemplate: deployTransaction('L1WethGateway', L1WethGateway),
+    feeTokenBasedRouterTemplate: deployTransaction('L1OrbitGatewayRouter', L1OrbitGatewayRouter),
+    feeTokenBasedStandardGatewayTemplate: deployTransaction(
+      'L1OrbitERC20Gateway',
+      L1OrbitERC20Gateway,
+    ),
+    feeTokenBasedCustomGatewayTemplate: deployTransaction(
+      'L1OrbitCustomGateway',
+      L1OrbitCustomGateway,
+    ),
+    upgradeExecutor: deployTransaction('UpgradeExecutor', UpgradeExecutor),
+    l2Factory: deployTransaction('L2AtomicTokenBridgeFactory', L2AtomicTokenBridgeFactory),
+    l2Router: deployTransaction('L2GatewayRouter', L2GatewayRouter),
+    l2StandardGateway: deployTransaction('L2ERC20Gateway', L2ERC20Gateway),
+    l2CustomGateway: deployTransaction('L2CustomGateway', L2CustomGateway),
+    l2WethGateway: deployTransaction('L2WethGateway', L2WethGateway),
+    l2Weth: deployTransaction('aeWETH', aeWETH),
+    l1Multicall: deployTransaction('Multicall2', Multicall2),
+  });
+  const address = Object.fromEntries(
+    Object.entries(contracts).map(([key, result]) => [key, result.address]),
+  ) as Record<keyof typeof contracts, Address>;
+
+  // Wave 2: the proxies (their constructors require the logic to be deployed), and the
+  // initializers that lock the logic and template contracts with throwaway data.
+  const dead = ADDRESS_DEAD;
+  const { tokenBridgeCreator, retryableSender } = await sendWave(ctx, {
+    tokenBridgeCreator: deployTransaction(
+      'L1AtomicTokenBridgeCreator proxy',
+      TransparentUpgradeableProxy,
+      [address.creatorLogic, address.proxyAdmin, '0x'],
+    ),
+    retryableSender: deployTransaction(
       'L1TokenBridgeRetryableSender proxy',
       TransparentUpgradeableProxy,
-      [retryableSenderLogic, proxyAdmin, '0x'],
-    )
-  ).address;
-
-  // Lock the retryable sender logic contract, then initialize the creator (which wires the sender).
-  await sendAndWait(ctx, 'L1TokenBridgeRetryableSender.initialize (logic)', {
-    address: retryableSenderLogic,
-    abi: L1TokenBridgeRetryableSender.abi as Abi,
-    functionName: 'initialize',
-    args: [],
+      [address.retryableSenderLogic, address.proxyAdmin, '0x'],
+    ),
+    retryableSenderLogicInit: initializeTransaction(
+      'L1TokenBridgeRetryableSender (logic)',
+      address.retryableSenderLogic,
+      L1TokenBridgeRetryableSender.abi,
+      [],
+    ),
+    routerTemplateInit: initializeTransaction(
+      'L1GatewayRouter',
+      address.routerTemplate,
+      L1GatewayRouter.abi,
+      [dead, dead, dead, dead, dead],
+    ),
+    standardGatewayTemplateInit: initializeTransaction(
+      'L1ERC20Gateway',
+      address.standardGatewayTemplate,
+      L1ERC20Gateway.abi,
+      [dead, dead, dead, DUMMY_CLONEABLE_PROXY_HASH, dead],
+    ),
+    customGatewayTemplateInit: initializeTransaction(
+      'L1CustomGateway',
+      address.customGatewayTemplate,
+      L1CustomGateway.abi,
+      [dead, dead, dead, dead],
+    ),
+    wethGatewayTemplateInit: initializeTransaction(
+      'L1WethGateway',
+      address.wethGatewayTemplate,
+      L1WethGateway.abi,
+      [dead, dead, dead, dead, dead],
+    ),
+    feeTokenBasedRouterTemplateInit: initializeTransaction(
+      'L1OrbitGatewayRouter',
+      address.feeTokenBasedRouterTemplate,
+      L1OrbitGatewayRouter.abi,
+      [dead, dead, dead, dead, dead],
+    ),
+    feeTokenBasedStandardGatewayTemplateInit: initializeTransaction(
+      'L1OrbitERC20Gateway',
+      address.feeTokenBasedStandardGatewayTemplate,
+      L1OrbitERC20Gateway.abi,
+      [dead, dead, dead, DUMMY_CLONEABLE_PROXY_HASH, dead],
+    ),
+    feeTokenBasedCustomGatewayTemplateInit: initializeTransaction(
+      'L1OrbitCustomGateway',
+      address.feeTokenBasedCustomGatewayTemplate,
+      L1OrbitCustomGateway.abi,
+      [dead, dead, dead, dead],
+    ),
+    l2RouterInit: initializeTransaction('L2GatewayRouter', address.l2Router, L2GatewayRouter.abi, [
+      dead,
+      dead,
+    ]),
+    l2StandardGatewayInit: initializeTransaction(
+      'L2ERC20Gateway',
+      address.l2StandardGateway,
+      L2ERC20Gateway.abi,
+      [dead, dead, dead],
+    ),
+    l2CustomGatewayInit: initializeTransaction(
+      'L2CustomGateway',
+      address.l2CustomGateway,
+      L2CustomGateway.abi,
+      [dead, dead],
+    ),
+    l2WethGatewayInit: initializeTransaction(
+      'L2WethGateway',
+      address.l2WethGateway,
+      L2WethGateway.abi,
+      [dead, dead, dead, dead],
+    ),
   });
-  await sendAndWait(ctx, 'L1AtomicTokenBridgeCreator.initialize', {
-    address: tokenBridgeCreator,
-    abi: L1AtomicTokenBridgeCreator.abi as Abi,
-    functionName: 'initialize',
-    args: [retryableSender],
+
+  // Wave 3: initialize the creator proxy, which wires the retryable sender and makes the caller
+  // the owner that setTemplates checks.
+  await sendWave(ctx, {
+    creatorInit: initializeTransaction(
+      'L1AtomicTokenBridgeCreator',
+      tokenBridgeCreator.address,
+      L1AtomicTokenBridgeCreator.abi,
+      [retryableSender.address],
+    ),
   });
 
-  const l1Templates = await deployAndInitL1Templates(ctx);
-  const l2 = await deployAndInitL2Placeholders(ctx);
-  const l1Multicall = (await deployContractChecked(ctx, 'Multicall2', Multicall2)).address;
-
+  // Wave 4: register the templates.
   const setTemplatesArgs = buildSetTemplatesArgs({
-    l1Templates,
-    l2TokenBridgeFactory: l2.factory,
-    l2GatewayRouter: l2.router,
-    l2StandardGateway: l2.standardGateway,
-    l2CustomGateway: l2.customGateway,
-    l2WethGateway: l2.wethGateway,
-    l2Weth: l2.weth,
-    l2Multicall,
+    l1Templates: {
+      routerTemplate: address.routerTemplate,
+      standardGatewayTemplate: address.standardGatewayTemplate,
+      customGatewayTemplate: address.customGatewayTemplate,
+      wethGatewayTemplate: address.wethGatewayTemplate,
+      feeTokenBasedRouterTemplate: address.feeTokenBasedRouterTemplate,
+      feeTokenBasedStandardGatewayTemplate: address.feeTokenBasedStandardGatewayTemplate,
+      feeTokenBasedCustomGatewayTemplate: address.feeTokenBasedCustomGatewayTemplate,
+      upgradeExecutor: address.upgradeExecutor,
+    },
+    l2TokenBridgeFactory: address.l2Factory,
+    l2GatewayRouter: address.l2Router,
+    l2StandardGateway: address.l2StandardGateway,
+    l2CustomGateway: address.l2CustomGateway,
+    l2WethGateway: address.l2WethGateway,
+    l2Weth: address.l2Weth,
+    l2Multicall: address.l2Multicall,
     l1Weth,
-    l1Multicall,
+    l1Multicall: address.l1Multicall,
     gasLimitForL2FactoryDeployment: GAS_LIMIT_FOR_L2_FACTORY_DEPLOYMENT,
   });
-  await sendAndWait(ctx, 'L1AtomicTokenBridgeCreator.setTemplates', {
-    address: tokenBridgeCreator,
-    abi: L1AtomicTokenBridgeCreator.abi as Abi,
-    functionName: 'setTemplates',
-    args: setTemplatesArgs,
+  await sendWave(ctx, {
+    setTemplates: callTransaction('L1AtomicTokenBridgeCreator.setTemplates', {
+      address: tokenBridgeCreator.address,
+      abi: L1AtomicTokenBridgeCreator.abi as Abi,
+      functionName: 'setTemplates',
+      args: setTemplatesArgs,
+    }),
   });
 
-  return { tokenBridgeCreator, retryableSender, proxyAdmin, transactionHash };
+  return {
+    tokenBridgeCreator: tokenBridgeCreator.address,
+    retryableSender: retryableSender.address,
+    proxyAdmin: address.proxyAdmin,
+    transactionHash: tokenBridgeCreator.transactionHash,
+  };
 }
