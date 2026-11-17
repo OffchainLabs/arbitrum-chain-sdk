@@ -27,6 +27,10 @@ type NitroTestNodePrivateKeyAccounts = {
   // l3 token bridge deployer which holds custom gas token
 };
 
+// viem polls every 4s by default. The testnode L1 mines a block every second, so a 4s poll makes
+// each transaction wait about 4s instead of about 1s.
+export const testnodePollingInterval = 250;
+
 export function getNitroTestnodePrivateKeyAccounts(): NitroTestNodePrivateKeyAccounts {
   if (
     typeof process.env.NITRO_TESTNODE_DEPLOYER_PRIVATE_KEY === 'undefined' ||
