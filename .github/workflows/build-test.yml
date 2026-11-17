@@ -148,9 +148,6 @@ jobs:
       - name: Copy .env
         run: cp ./.env.example ./.env
 
-      - name: Build
-        run: pnpm build
-
       - name: Test
         run: |
           INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
@@ -238,9 +235,6 @@ jobs:
 
       - name: Copy .env
         run: cp ./.env.example ./.env
-
-      - name: Build
-        run: pnpm build
 
       - name: Test
         run: |
