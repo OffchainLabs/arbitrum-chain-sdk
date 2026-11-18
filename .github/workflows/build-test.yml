@@ -181,7 +181,6 @@ jobs:
           echo "image ready $(( ($(date +%s%N) - $(cat "$RUNNER_TEMP/testnode-t0")) / 1000000 ))ms after the start step"
           docker run -d \
             --name "$CONTAINER" \
-            --platform linux/amd64 \
             -e TESTNODE_VARIANT="$VARIANT" \
             -p 127.0.0.1:8545:8545 \
             -p 127.0.0.1:8547:8547 \
