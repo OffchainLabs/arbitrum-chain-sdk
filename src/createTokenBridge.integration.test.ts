@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { createPublicClient, encodeFunctionData, http, zeroAddress, parseAbi } from 'viem';
+import {
+  createPublicClient,
+  createWalletClient,
+  encodeFunctionData,
+  http,
+  zeroAddress,
+  parseAbi,
+} from 'viem';
 
 import { nitroTestnodeL1, nitroTestnodeL2, nitroTestnodeL3 } from './chains';
 import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
 import { createTokenBridgePrepareTransactionRequest } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from './createTokenBridgePrepareTransactionReceipt';
-import { deployTokenBridgeCreator } from './createTokenBridge-testHelpers';
+import { deployTokenBridgeCreator } from './deployTokenBridgeCreator';
 import { CreateTokenBridgeEnoughCustomFeeTokenAllowanceParams } from './createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from './createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest';
 import { erc20ABI } from './contracts/ERC20';
@@ -35,6 +42,21 @@ const nitroTestnodeL3Client = createPublicClient({
   chain: nitroTestnodeL3,
   transport: http(nitroTestnodeL3.rpcUrls.default.http[0]),
 });
+
+const nitroTestnodeL1WalletClient = createWalletClient({
+  chain: nitroTestnodeL1,
+  transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  account: testnodeAccounts.deployer,
+});
+const nitroTestnodeL2WalletClient = createWalletClient({
+  chain: nitroTestnodeL2,
+  transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+  account: testnodeAccounts.deployer,
+});
+
+// WETH wired into the token bridge creator's WETH gateway (the testnode's canonical WETH); it is
+// only stored, never called during deployment, so the same address works for both parent chains.
+const parentChainWeth = '0x05EcEffc7CBA4e43a410340E849052AD43815aCA';
 
 function checkTokenBridgeContracts(tokenBridgeContracts: TokenBridgeContracts) {
   expect(Object.keys(tokenBridgeContracts)).toHaveLength(2);
@@ -108,8 +130,9 @@ describe('createTokenBridge utils function', () => {
     const testnodeInformation = getInformationFromTestnode();
 
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
+    const { tokenBridgeCreator } = await deployTokenBridgeCreator({
+      walletClient: nitroTestnodeL1WalletClient,
+      l1Weth: parentChainWeth,
     });
 
     const txRequest = await createTokenBridgePrepareTransactionRequest({
@@ -211,8 +234,9 @@ describe('createTokenBridge utils function', () => {
     const testnodeInformation = getInformationFromTestnode();
 
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL2Client,
+    const { tokenBridgeCreator } = await deployTokenBridgeCreator({
+      walletClient: nitroTestnodeL2WalletClient,
+      l1Weth: parentChainWeth,
     });
 
     // -----------------------------
@@ -342,8 +366,9 @@ describe('createTokenBridge', () => {
     const testnodeInformation = getInformationFromTestnode();
 
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
+    const { tokenBridgeCreator } = await deployTokenBridgeCreator({
+      walletClient: nitroTestnodeL1WalletClient,
+      l1Weth: parentChainWeth,
     });
 
     const { tokenBridgeContracts } = await createTokenBridge({
@@ -387,8 +412,9 @@ describe('createTokenBridge', () => {
     const testnodeInformation = getInformationFromTestnode();
 
     // deploy a fresh token bridge creator, because it is only possible to deploy one token bridge per rollup per token bridge creator
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL2Client,
+    const { tokenBridgeCreator } = await deployTokenBridgeCreator({
+      walletClient: nitroTestnodeL2WalletClient,
+      l1Weth: parentChainWeth,
     });
 
     // -----------------------------
@@ -458,8 +484,9 @@ describe('createTokenBridge', () => {
   it('should throw when createTokenBridge is called multiple times', async () => {
     const testnodeInformation = getInformationFromTestnode();
 
-    const tokenBridgeCreator = await deployTokenBridgeCreator({
-      publicClient: nitroTestnodeL1Client,
+    const { tokenBridgeCreator } = await deployTokenBridgeCreator({
+      walletClient: nitroTestnodeL1WalletClient,
+      l1Weth: parentChainWeth,
     });
 
     const cfg = {

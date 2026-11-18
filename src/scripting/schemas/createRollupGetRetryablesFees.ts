@@ -1,4 +1,4 @@
-import { toPublicClient, findChain } from '../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../viemTransforms';
 import {
   addressSchema,
   bigintSchema,
@@ -16,5 +16,9 @@ export const createRollupGetRetryablesFeesSchema = publicClientSchema
   .strict()
   .transform((input) => {
     const { rpcUrl, chainId, rollupCreatorVersion, ...rest } = input;
-    return [toPublicClient(rpcUrl, findChain(chainId)), rest, rollupCreatorVersion] as const;
+    return [
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
+      rest,
+      rollupCreatorVersion,
+    ] as const;
   });

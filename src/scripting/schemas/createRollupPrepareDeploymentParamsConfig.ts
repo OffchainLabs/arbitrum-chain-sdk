@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { zeroHash } from 'viem';
-import { toPublicClient, findChain } from '../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../viemTransforms';
 import {
   addressSchema,
   hexSchema,
@@ -162,7 +162,7 @@ export const prepareDeploymentParamsConfigV21Schema = parentChainPublicClientSch
       CreateRollupPrepareDeploymentParamsConfigParams<'v2.1'>,
     ] => {
       const { parentChainRpcUrl, parentChainId, ...params } = input;
-      return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
+      return [toPublicClient(parentChainRpcUrl, findOrDefineChain(parentChainId)), params];
     },
   );
 
@@ -180,6 +180,6 @@ export const prepareDeploymentParamsConfigV32Schema = parentChainPublicClientSch
       CreateRollupPrepareDeploymentParamsConfigParams<'v3.2'>,
     ] => {
       const { parentChainRpcUrl, parentChainId, ...params } = input;
-      return [toPublicClient(parentChainRpcUrl, findChain(parentChainId)), params];
+      return [toPublicClient(parentChainRpcUrl, findOrDefineChain(parentChainId)), params];
     },
   );

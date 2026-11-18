@@ -10,6 +10,10 @@ const InvalidateKeysetEventAbi = getAbiItem({ abi: sequencerInboxABI, name: 'Inv
 export type GetKeysetsParams = {
   /** Address of the sequencerInbox we're getting logs from */
   sequencerInbox: Address;
+  /** Inclusive starting block. Must include initial keyset setup. Defaults to the deployment block. */
+  fromBlock?: bigint;
+  /** Inclusive ending block. Defaults to the latest block. */
+  toBlock?: bigint;
 };
 export type GetKeysetsReturnType = {
   /** Map of keyset hash to keyset bytes
@@ -35,34 +39,43 @@ export type GetKeysetsReturnType = {
  */
 export async function getKeysets<TChain extends Chain>(
   publicClient: PublicClient<Transport, TChain>,
-  { sequencerInbox }: GetKeysetsParams,
+  { sequencerInbox, fromBlock, toBlock }: GetKeysetsParams,
 ): Promise<GetKeysetsReturnType> {
+  if (fromBlock !== undefined && toBlock !== undefined && fromBlock > toBlock) {
+    throw new Error('fromBlock must be less than or equal to toBlock');
+  }
   let blockNumber: bigint;
-  let createRollupTransactionHash: Address | null = null;
-  const rollup = await publicClient.readContract({
-    functionName: 'rollup',
-    address: sequencerInbox,
-    abi: sequencerInboxABI,
-  });
-  try {
-    createRollupTransactionHash = await createRollupFetchTransactionHash({
-      rollup,
-      publicClient,
+  if (fromBlock !== undefined) {
+    blockNumber = fromBlock;
+  } else {
+    let createRollupTransactionHash: Address | null = null;
+    const rollup = await publicClient.readContract({
+      functionName: 'rollup',
+      address: sequencerInbox,
+      abi: sequencerInboxABI,
     });
-    const receipt = await publicClient.waitForTransactionReceipt({
-      hash: createRollupTransactionHash,
-    });
-    blockNumber = receipt.blockNumber;
-  } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.warn(`[getKeysets] ${message}`);
-    blockNumber = 0n;
+    try {
+      createRollupTransactionHash = await createRollupFetchTransactionHash({
+        rollup,
+        publicClient,
+        toBlock,
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({
+        hash: createRollupTransactionHash,
+      });
+      blockNumber = receipt.blockNumber;
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.warn(`[getKeysets] ${message}`);
+      blockNumber = 0n;
+    }
   }
 
   const events = await getLogsWithBatching(publicClient, {
     address: sequencerInbox,
     events: [SetValidKeysetEventAbi, InvalidateKeysetEventAbi],
     fromBlock: blockNumber,
+    toBlock,
   });
 
   const keysets = events.reduce((acc, event) => {

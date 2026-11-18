@@ -18,13 +18,21 @@ function parseConfig(config: { chainConfig: string }): boolean {
 export async function isAnyTrust<TChain extends Chain>({
   rollup,
   publicClient,
+  fromBlock,
+  toBlock,
 }: {
   rollup: Address;
   publicClient: PublicClient<Transport, TChain>;
+  /** Inclusive lower bound for deployment event discovery. Must include the original deployment. */
+  fromBlock?: bigint;
+  /** Inclusive upper bound for deployment event discovery. Defaults to the latest block. */
+  toBlock?: bigint;
 }) {
   const createRollupTransactionHash = await createRollupFetchTransactionHash({
     rollup,
     publicClient,
+    fromBlock,
+    toBlock,
   });
 
   const transaction = await publicClient.getTransaction({

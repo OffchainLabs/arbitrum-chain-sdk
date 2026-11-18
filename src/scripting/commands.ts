@@ -27,6 +27,9 @@ import {
   feeRouterDeployChildToParentRewardRouterSchema,
   deployProxyAdminSchema,
   deployExpressLaneAuctionSchema,
+  deployWethSchema,
+  deployRollupCreatorSchema,
+  deployTokenBridgeCreatorSchema,
   prepareChainConfigParamsSchema,
   prepareNodeConfigSchema,
   prepareKeysetSchema,
@@ -54,6 +57,10 @@ import {
   getConsensusReleaseByVersionSchema,
   getConsensusReleaseByWasmModuleRootSchema,
   isKnownWasmModuleRootSchema,
+  generateGenesisSchema,
+  deployNitroContractsUpgradeActionSchema,
+  executeNitroContractsUpgradeSchema,
+  verifyNitroContractsUpgradeSchema,
 } from './schemas';
 
 import { getValidators } from '../getValidators';
@@ -83,6 +90,9 @@ import { feeRouterDeployRewardDistributor } from '../feeRouterDeployRewardDistri
 import { feeRouterDeployChildToParentRewardRouter } from '../feeRouterDeployChildToParentRewardRouter';
 import { deployProxyAdmin } from '../deployProxyAdmin';
 import { deployExpressLaneAuction } from '../deployExpressLaneAuction';
+import { deployWeth } from '../deployWeth';
+import { deployRollupCreator } from '../deployRollupCreator';
+import { deployTokenBridgeCreator } from '../deployTokenBridgeCreator';
 import { prepareChainConfig } from '../prepareChainConfig';
 import { prepareNodeConfig } from '../prepareNodeConfig';
 import { prepareKeyset } from '../prepareKeyset';
@@ -130,6 +140,18 @@ import {
   schema as deployFullChainSchema,
   execute as deployFullChainExecute,
 } from './workflows/deployFullChain';
+import {
+  schema as deployParentChainContractsSchema,
+  execute as deployParentChainContractsExecute,
+} from './workflows/deployParentChainContracts';
+import { getNitroContractVersions } from '../getNitroContractVersions';
+import { getNitroContractVersionsSchema } from './schemas/getNitroContractVersions';
+import { generateGenesis } from '../generateGenesis';
+import {
+  deployNitroContractsUpgradeAction,
+  executeNitroContractsUpgrade,
+  verifyNitroContractsUpgrade,
+} from '../nitroContractsUpgrade';
 
 import { contractRegistry } from './contractRegistry';
 import { buildContractCommandSchema } from './contractCommandSchema';
@@ -280,6 +302,9 @@ export const commands: readonly Command[] = [
   ),
   command('deployProxyAdmin', deployProxyAdminSchema, deployProxyAdmin),
   command('deployExpressLaneAuction', deployExpressLaneAuctionSchema, deployExpressLaneAuction),
+  command('deployWeth', deployWethSchema, deployWeth),
+  command('deployRollupCreator', deployRollupCreatorSchema, deployRollupCreator),
+  command('deployTokenBridgeCreator', deployTokenBridgeCreatorSchema, deployTokenBridgeCreator),
   command('prepareChainConfig', prepareChainConfigParamsSchema, prepareChainConfig),
   command('prepareNodeConfig', prepareNodeConfigSchema, prepareNodeConfig),
   command('prepareKeyset', prepareKeysetSchema, prepareKeyset),
@@ -364,6 +389,28 @@ export const commands: readonly Command[] = [
     deployFullChainSchema.transform((i) => [i] as const),
     deployFullChainExecute,
   ),
+  command(
+    'deployParentChainContracts',
+    deployParentChainContractsSchema.transform((i) => [i] as const),
+    deployParentChainContractsExecute,
+  ),
 
   ...contractCommands,
+  command('getNitroContractVersions', getNitroContractVersionsSchema, getNitroContractVersions),
+  command('generateGenesis', generateGenesisSchema, generateGenesis),
+  command(
+    'deployNitroContractsUpgradeAction',
+    deployNitroContractsUpgradeActionSchema,
+    deployNitroContractsUpgradeAction,
+  ),
+  command(
+    'executeNitroContractsUpgrade',
+    executeNitroContractsUpgradeSchema,
+    executeNitroContractsUpgrade,
+  ),
+  command(
+    'verifyNitroContractsUpgrade',
+    verifyNitroContractsUpgradeSchema,
+    verifyNitroContractsUpgrade,
+  ),
 ];

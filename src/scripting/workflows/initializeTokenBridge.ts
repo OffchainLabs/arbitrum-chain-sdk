@@ -7,6 +7,7 @@ import { createTokenBridgePrepareCustomFeeTokenApprovalTransactionRequest } from
 import {
   addressSchema,
   bigintSchema,
+  logBlockRangeSchema,
   privateKeySchema,
   parentChainPublicClientSchema,
   gasLimitSchema,
@@ -16,7 +17,7 @@ import { zeroAddress } from 'viem';
 import { createTokenBridgeEnoughCustomFeeTokenAllowance } from '../../createTokenBridgeEnoughCustomFeeTokenAllowance';
 import { createTokenBridgePrepareSetWethGatewayTransactionRequest } from '../../createTokenBridgePrepareSetWethGatewayTransactionRequest';
 
-export const inputSchema = parentChainPublicClientSchema.extend({
+export const inputSchema = parentChainPublicClientSchema.extend(logBlockRangeSchema.shape).extend({
   params: z.strictObject({ rollup: addressSchema, rollupOwner: addressSchema }),
   rollupDeploymentBlockNumber: bigintSchema.optional(),
   gasOverrides: gasLimitSchema.optional(),
@@ -27,13 +28,21 @@ export const inputSchema = parentChainPublicClientSchema.extend({
 });
 
 export const schema = inputSchema.strict().transform((input) => {
-  const { privateKey, nativeToken, rollupDeploymentBlockNumber, ...rest } = input;
+  const { privateKey, nativeToken, rollupDeploymentBlockNumber, fromBlock, toBlock, ...rest } =
+    input;
   const signer = toAccount(privateKey);
   const [createTokenBridgeParams] = withParentChainPublicClient({
     ...rest,
     account: signer.address,
   });
-  return { createTokenBridgeParams, signer, nativeToken, rollupDeploymentBlockNumber };
+  return {
+    createTokenBridgeParams,
+    signer,
+    nativeToken,
+    rollupDeploymentBlockNumber,
+    ...(fromBlock !== undefined && { fromBlock }),
+    ...(toBlock !== undefined && { toBlock }),
+  };
 });
 
 export const execute = async (input: z.output<typeof schema>) => {
@@ -88,6 +97,8 @@ export const execute = async (input: z.output<typeof schema>) => {
         account: deployer.address,
         parentChainPublicClient,
         rollupDeploymentBlockNumber,
+        fromBlock: input.fromBlock,
+        toBlock: input.toBlock,
       });
 
     const setWethGatewayTxHash = await parentChainPublicClient.sendRawTransaction({

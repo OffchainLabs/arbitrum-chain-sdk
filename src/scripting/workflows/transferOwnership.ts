@@ -10,7 +10,7 @@ import {
   zeroAddress,
 } from 'viem';
 import { addressSchema, bigintSchema, privateKeySchema } from '../schemas/common';
-import { toPublicClient, toAccount, findChain } from '../viemTransforms';
+import { toPublicClient, toAccount, findOrDefineChain } from '../viemTransforms';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from '../../upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { upgradeExecutorPrepareRemoveExecutorTransactionRequest } from '../../upgradeExecutorPrepareRemoveExecutorTransactionRequest';
 import {
@@ -216,7 +216,7 @@ export const inputSchema = z.strictObject({
 export const schema = inputSchema.transform(
   ({ rpcUrl, chainId, privateKey, refundAddress, newOwnerAddress, ...rest }) => ({
     ...rest,
-    publicClient: toPublicClient(rpcUrl, findChain(chainId)),
+    publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)),
     account: toAccount(privateKey),
     refundAddress: refundAddress ?? newOwnerAddress,
     newOwnerAddress,

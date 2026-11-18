@@ -1,7 +1,8 @@
 import { withPublicClientPositional } from '../viemTransforms';
-import { addressSchema, publicClientSchema } from './common';
+import { addressSchema, logBlockRangeSchema, publicClientSchema } from './common';
 
 export const getBatchPostersSchema = publicClientSchema
+  .extend(logBlockRangeSchema.shape)
   .extend({
     rollup: addressSchema,
     sequencerInbox: addressSchema,

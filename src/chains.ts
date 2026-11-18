@@ -58,6 +58,49 @@ const nitroTestnodeL3 = defineChain({
   testnet: true,
 });
 
+const rhMainnet = defineChain({
+  id: 4_663,
+  network: 'robinhood-chain',
+  name: 'Robinhood Chain',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.mainnet.chain.robinhood.com'],
+    },
+    public: {
+      http: ['https://rpc.mainnet.chain.robinhood.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: 'https://robinhoodchain.blockscout.com',
+    },
+  },
+});
+
+const rhTestnet = defineChain({
+  id: 46_630,
+  network: 'robinhood-chain-testnet',
+  name: 'Robinhood Chain Testnet',
+  nativeCurrency: { name: 'Sepolia Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: {
+      http: ['https://rpc.testnet.chain.robinhood.com'],
+    },
+    public: {
+      http: ['https://rpc.testnet.chain.robinhood.com'],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Blockscout',
+      url: 'https://explorer.testnet.chain.robinhood.com',
+    },
+  },
+  testnet: true,
+});
+
 const customParentChains: Record<number, Chain> = {};
 
 export function getCustomParentChains(): Chain[] {
@@ -65,9 +108,19 @@ export function getCustomParentChains(): Chain[] {
 }
 
 /**
+ * The registry is process-global by design (register once, resolve for the process lifetime), so
+ * tests that register custom chains must clear it between runs to avoid one test's registration
+ * shadowing a built-in id in the next.
+ */
+export function clearCustomParentChains(): void {
+  for (const id of Object.keys(customParentChains)) delete customParentChains[Number(id)];
+}
+
+/**
  * Registers a custom parent chain.
  *
- * @param {Chain} chain Regular `Chain` object with mandatory `contracts.rollupCreator` and `contracts.tokenBridgeCreator` fields.
+ * @param {Chain} chain Regular `Chain` object, optionally carrying
+ * `contracts.rollupCreator`, `contracts.tokenBridgeCreator`, and/or `contracts.weth`.
  *
  * @example
  * registerCustomParentChain({
@@ -87,7 +140,7 @@ export function getCustomParentChains(): Chain[] {
  *       http: ['http://localhost:8080'],
  *     },
  *   },
- *   // these are mandatory
+ *   // provide the ones the operation needs
  *   contracts: {
  *     rollupCreator: {
  *       address: '0x0000000000000000000000000000000000000001',
@@ -100,26 +153,24 @@ export function getCustomParentChains(): Chain[] {
  */
 export function registerCustomParentChain(
   chain: Chain & {
-    contracts: {
-      rollupCreator: ChainContract;
-      tokenBridgeCreator: ChainContract;
+    contracts?: {
+      rollupCreator?: ChainContract;
+      tokenBridgeCreator?: ChainContract;
+      weth?: ChainContract;
     };
   },
 ) {
-  const rollupCreator = chain.contracts.rollupCreator.address;
-  const tokenBridgeCreator = chain.contracts.tokenBridgeCreator.address;
+  const assertValidAddress = (address: string | undefined, field: string) => {
+    if (address !== undefined && (!isAddress(address) || address === zeroAddress)) {
+      throw new Error(
+        `"contracts.${field}.address" is invalid for custom parent chain with id ${chain.id}`,
+      );
+    }
+  };
 
-  if (!isAddress(rollupCreator) || rollupCreator === zeroAddress) {
-    throw new Error(
-      `"contracts.rollupCreator.address" is invalid for custom parent chain with id ${chain.id}`,
-    );
-  }
-
-  if (!isAddress(tokenBridgeCreator) || tokenBridgeCreator === zeroAddress) {
-    throw new Error(
-      `"contracts.tokenBridgeCreator.address" is invalid for custom parent chain with id ${chain.id}`,
-    );
-  }
+  assertValidAddress(chain.contracts?.rollupCreator?.address, 'rollupCreator');
+  assertValidAddress(chain.contracts?.tokenBridgeCreator?.address, 'tokenBridgeCreator');
+  assertValidAddress(chain.contracts?.weth?.address, 'weth');
 
   customParentChains[chain.id] = chain;
 }
@@ -131,6 +182,7 @@ export const mainnets = [
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
 ];
 
 export const testnets = [
@@ -139,6 +191,7 @@ export const testnets = [
   // testnet L2
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   // local nitro-testnode
   nitroTestnodeL1,
   nitroTestnodeL2,
@@ -154,11 +207,13 @@ export {
   arbitrumOne,
   arbitrumNova,
   base,
+  rhMainnet,
   // testnet L1
   sepolia,
   // testnet L2
   arbitrumSepolia,
   baseSepolia,
+  rhTestnet,
   // local nitro-testnode
   nitroTestnodeL1,
   nitroTestnodeL2,

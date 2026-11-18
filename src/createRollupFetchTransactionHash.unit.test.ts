@@ -1,12 +1,13 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
+import { createTestRpcTransport } from './testRpcTransport';
 
 import { arbitrumOne } from './chains';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
 
 const arbitrumOneClient = createPublicClient({
   chain: arbitrumOne,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumOne),
 });
 
 // https://arbiscan.io/tx/0x7b5c9f2ea284581270a3178377dbc9aded97b1f0a786519697b1ef28e3e68fc5 (deployment)
@@ -14,6 +15,8 @@ it('should fetch transaction hash for a rollup', async () => {
   const transactionHash = await createRollupFetchTransactionHash({
     rollup: '0xBDC16cccD30ced069Cc9E332D40662D8C476B6cb',
     publicClient: arbitrumOneClient,
+    fromBlock: 353_450_500n,
+    toBlock: 353_450_500n,
   });
 
   expect(transactionHash).toEqual(
@@ -27,6 +30,9 @@ it('should fetch transaction hash for a rollup that was upgraded', async () => {
   const transactionHash = await createRollupFetchTransactionHash({
     rollup: '0xd6e33A7898aE63Cb3D56b4B51575141E953BD9D5',
     publicClient: arbitrumOneClient,
+    // Include both the original deployment and the upgrade.
+    fromBlock: 298_649_732n,
+    toBlock: 358_240_718n,
   });
 
   expect(transactionHash).toEqual(

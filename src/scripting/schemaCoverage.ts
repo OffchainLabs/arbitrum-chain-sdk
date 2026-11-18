@@ -59,7 +59,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { vi } from 'vitest';
-import { type ZodType, type z } from 'zod';
+import { type ZodType, z } from 'zod';
 import { addressSchema, hexSchema, privateKeySchema } from './schemas/common';
 
 const _mocks = vi.hoisted(() => {
@@ -154,27 +154,41 @@ export const mocks = _mocks;
 vi.mock('./viemTransforms', () => {
   const toPublicClient = (rpcUrl: string, chain?: unknown) =>
     _mocks.trackedObject(`PublicClient(${rpcUrl},${JSON.stringify(chain)})`);
-  const findChain = (chainId: number) => ({ _tracked: 'Chain', id: chainId });
+  const findOrDefineChain = (chainId: number) => ({ _tracked: 'Chain', id: chainId });
   const toAccount = (pk: string) => _mocks.trackedObject(`Account(${pk})`);
   const toWalletClient = (rpcUrl: string, pk: string, chain?: unknown) =>
     _mocks.trackedObject(`WalletClient(${rpcUrl},${pk},${JSON.stringify(chain)})`);
   return {
     toPublicClient,
-    findChain,
+    findOrDefineChain,
     toAccount,
     toWalletClient,
+    // Identity: the real one registers a custom chain (a side effect) and strips the custom fields.
+    // Leaving them in lets the coverage harness observe that those fields are used (not dead).
+    registerCustomParentChainFromInput: <T>(input: T) => input,
+    withWalletClient: <T extends { rpcUrl: string; chainId: number; privateKey: string }>(
+      input: T,
+    ) => {
+      const { rpcUrl, chainId, privateKey, ...rest } = input;
+      return [
+        { walletClient: toWalletClient(rpcUrl, privateKey, findOrDefineChain(chainId)), ...rest },
+      ];
+    },
     withPublicClient: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
-      return [{ publicClient: toPublicClient(rpcUrl, findChain(chainId)), ...rest }];
+      return [{ publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)), ...rest }];
     },
     withPublicClientPositional: <T extends { rpcUrl: string; chainId: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
-      return [toPublicClient(rpcUrl, findChain(chainId)), rest];
+      return [toPublicClient(rpcUrl, findOrDefineChain(chainId)), rest];
     },
     withPublicClientOptionalChain: <T extends { rpcUrl: string; chainId?: number }>(input: T) => {
       const { rpcUrl, chainId, ...rest } = input;
       return [
-        { publicClient: toPublicClient(rpcUrl, chainId ? findChain(chainId) : undefined), ...rest },
+        {
+          publicClient: toPublicClient(rpcUrl, chainId ? findOrDefineChain(chainId) : undefined),
+          ...rest,
+        },
       ];
     },
     withParentChainPublicClient: <T extends { parentChainRpcUrl: string; parentChainId: number }>(
@@ -183,7 +197,10 @@ vi.mock('./viemTransforms', () => {
       const { parentChainRpcUrl, parentChainId, ...rest } = input;
       return [
         {
-          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          parentChainPublicClient: toPublicClient(
+            parentChainRpcUrl,
+            findOrDefineChain(parentChainId),
+          ),
           ...rest,
         },
       ];
@@ -194,7 +211,7 @@ vi.mock('./viemTransforms', () => {
       const { rpcUrl, chainId, privateKey, ...rest } = input;
       return [
         {
-          publicClient: toPublicClient(rpcUrl, findChain(chainId)),
+          publicClient: toPublicClient(rpcUrl, findOrDefineChain(chainId)),
           account: toAccount(privateKey),
           ...rest,
         },
@@ -208,7 +225,10 @@ vi.mock('./viemTransforms', () => {
       const { parentChainRpcUrl, parentChainId, privateKey, ...rest } = input;
       return [
         {
-          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          parentChainPublicClient: toPublicClient(
+            parentChainRpcUrl,
+            findOrDefineChain(parentChainId),
+          ),
           account: toAccount(privateKey),
           ...rest,
         },
@@ -225,7 +245,7 @@ vi.mock('./viemTransforms', () => {
           orbitChainWalletClient: toWalletClient(
             orbitChainRpcUrl,
             privateKey,
-            findChain(orbitChainId),
+            findOrDefineChain(orbitChainId),
           ),
           ...rest,
         },
@@ -244,7 +264,10 @@ vi.mock('./viemTransforms', () => {
       const { parentChainRpcUrl, parentChainId, orbitChainRpcUrl, privateKey, ...rest } = input;
       return [
         {
-          parentChainPublicClient: toPublicClient(parentChainRpcUrl, findChain(parentChainId)),
+          parentChainPublicClient: toPublicClient(
+            parentChainRpcUrl,
+            findOrDefineChain(parentChainId),
+          ),
           orbitChainWalletClient: toWalletClient(orbitChainRpcUrl, privateKey),
           ...rest,
         },
@@ -374,6 +397,13 @@ vi.mock('../deployProxyAdmin', () => ({ deployProxyAdmin: _mocks.fn('deployProxy
 vi.mock('../deployExpressLaneAuction', () => ({
   deployExpressLaneAuction: _mocks.fn('deployExpressLaneAuction'),
 }));
+vi.mock('../deployWeth', () => ({ deployWeth: _mocks.fn('deployWeth') }));
+vi.mock('../deployRollupCreator', () => ({
+  deployRollupCreator: _mocks.fn('deployRollupCreator'),
+}));
+vi.mock('../deployTokenBridgeCreator', () => ({
+  deployTokenBridgeCreator: _mocks.fn('deployTokenBridgeCreator'),
+}));
 vi.mock('../prepareNodeConfig', () => ({ prepareNodeConfig: _mocks.fn('prepareNodeConfig') }));
 vi.mock('../getDefaultConfirmPeriodBlocks', () => ({
   getDefaultConfirmPeriodBlocks: _mocks.fn('getDefaultConfirmPeriodBlocks'),
@@ -407,6 +437,17 @@ vi.mock('viem', async (importOriginal) => {
   };
 });
 
+vi.mock('../getNitroContractVersions', () => ({
+  getNitroContractVersions: _mocks.fn('getNitroContractVersions'),
+}));
+vi.mock('../generateGenesis', () => ({
+  generateGenesis: _mocks.fn('generateGenesis'),
+}));
+vi.mock('../nitroContractsUpgrade', () => ({
+  deployNitroContractsUpgradeAction: _mocks.fn('deployNitroContractsUpgradeAction'),
+  executeNitroContractsUpgrade: _mocks.fn('executeNitroContractsUpgrade'),
+  verifyNitroContractsUpgrade: _mocks.fn('verifyNitroContractsUpgrade'),
+}));
 /**
  * A testable leaf of a schema -- a scalar field the harness will vary when
  * running coverage.
@@ -435,10 +476,6 @@ function getDefType(schema: ZodType): string {
 
 function getDef(schema: ZodType): any {
   return (schema as any)._zod?.def;
-}
-
-function getBag(schema: ZodType): any {
-  return (schema as any)._zod?.bag;
 }
 
 function stripOptional(schema: ZodType): ZodType {
@@ -565,17 +602,15 @@ function generateForType(schema: ZodType, n: number): unknown {
 }
 
 function generateString(schema: ZodType, n: number): string {
-  const bag = getBag(schema);
-  if (bag?.format === 'url') return `http://host-${n}.test`;
-  const patterns = bag?.patterns as Set<RegExp> | undefined;
-  if (patterns) {
-    for (const pattern of patterns) {
-      const src = pattern.source;
-      if (src.includes('[0-9a-fA-F]{40}')) return `0x${(n + 1).toString(16).padStart(40, '0')}`;
-      if (src.includes('[0-9a-fA-F]{64}')) return `0x${(n + 1).toString(16).padStart(64, '0')}`;
-      if (src.includes('[0-9a-fA-F]')) return `0x${(n + 1).toString(16)}`;
-      if (src.includes('-?\\d+')) return String(n + 100);
-    }
+  // Use the public JSON Schema metadata: Zod no longer stores string checks
+  // in the private _zod.bag format/patterns fields.
+  const { format, pattern } = z.toJSONSchema(schema);
+  if (format === 'uri') return `http://host-${n}.test`;
+  if (pattern) {
+    if (pattern.includes('[0-9a-fA-F]{40}')) return `0x${(n + 1).toString(16).padStart(40, '0')}`;
+    if (pattern.includes('[0-9a-fA-F]{64}')) return `0x${(n + 1).toString(16).padStart(64, '0')}`;
+    if (pattern.includes('[0-9a-fA-F]')) return `0x${(n + 1).toString(16)}`;
+    if (pattern.includes('-?\\d+')) return String(n + 100);
   }
   return `string_${n}`;
 }

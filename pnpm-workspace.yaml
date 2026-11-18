@@ -2,12 +2,20 @@ packages:
   - "src"
   - "examples/*"
 
+# Preserve pnpm 10's blocked dependency scripts; pnpm 11 requires explicit decisions.
+allowBuilds:
+  '@arbitrum/nitro-contracts': false
+  esbuild: false
+  keccak: false
+  secp256k1: false
+
+engineStrict: true
+
 minimumReleaseAge: 10080 # 7 days
 minimumReleaseAgeExclude:
   - '@offchainlabs/fund-distribution-contracts'
-  # GHSA-mh99-v99m-4gvg has no patched release older than the quarantine
-  # window, so permit the security-only pin below immediately.
-  - 'brace-expansion'
+  # Security fix for GHSA-g3hv-75wg-m249, released October 27, 2026.
+  - 'minimatch@11.0.1'
 
 # Dependency overrides. Most are security pins that force a vulnerable transitive
 # up to a patched version (audit:ci fails on any advisory >= low). They live here,
@@ -16,6 +24,10 @@ minimumReleaseAgeExclude:
 overrides:
   # Pin viem to a single resolved version across the tree.
   "viem": "1.20.0"
+
+  # GHSA-mrhx-c7xc-m3w5: pin abitype's optional SDK peer to patched Zod 4.
+  # Wagmi 1 and its abitype 0.8 still require Zod 3; do not force a major upgrade.
+  "abitype@>=0.9>zod": "4.6.6"
 
   # ws (WebSocket lib) is pulled transitively by viem and by BOTH ethers majors.
   # GHSA-58qx-3vcg-4xpx (uninitialized memory disclosure): vulnerable >=8.0.0
@@ -55,28 +67,32 @@ overrides:
   # declare tmp@^0.0.33, so without this pin they resolve to vulnerable 0.0.33.
   "tmp": "0.2.7"
 
+  # Vite bundles launch-editor. GHSA-587h-7wmj-h5pm, GHSA-698v-4r3x-3vcv,
+  # and GHSA-r825-w8mm-5pxw affect Vite <=7.3.6 on the 7.x line.
+  # Pin Vitest's Vite dependency and @vitest/mocker's peer to patched 7.3.7.
+  "vite": "7.3.7"
+
   # GHSA-g7r4-m6w7-qqqr (esbuild dev server origin validation): vulnerable
   # >=0.27.3 <0.28.1, patched in 0.28.1. Vite's ^0.27 dependency cannot reach
   # the patched version without this override.
   "vite>esbuild": "0.28.1"
 
-  # Vite is only pulled through Vitest here. 7.3.5 patches GHSA-fx2h-pf6j-xcff
-  # (server.fs.deny bypass on Windows alternate paths) and GHSA-v6wh-96g9-6wx3
-  # (launch-editor UNC path handling) while staying on the existing 7.x line.
-  "vite": "7.3.5"
+  # GHSA-477h-4r7f-fvrx (DoS when deriving keys from long passwords):
+  # pbkdf2 <=3.1.6 is vulnerable; 3.1.7 is patched. Pulled in by
+  # ethereum-cryptography via Safe and OpenZeppelin's upgrades tooling.
+  "pbkdf2": "3.1.7"
 
-  # GHSA-6g55-p6wh-862q and GHSA-r28c-9q8g-f849 (source-map path traversal
-  # and file disclosure): vulnerable <=8.5.17, patched in 8.5.18. Scope this
-  # to Vite, the only PostCSS parent in the workspace.
-  "vite>postcss": "8.5.18"
+  # GHSA-68fv-2mgg-jv7q (DoS through indexed source-map section offsets):
+  # source-map-js >=1.0.0 <1.2.2 is vulnerable; 1.2.2 is patched.
+  # Pulled in by PostCSS through Vitest/Vite.
+  "source-map-js": "1.2.2"
 
-  # GHSA-mh99-v99m-4gvg (unbounded brace expansion DoS): all releases through
-  # 5.0.7 are vulnerable, and 5.0.8 is the only release currently recognized
-  # as patched by the advisory database.
-  "brace-expansion": "5.0.8"
+  # GHSA-g3hv-75wg-m249 (DoS through glob-pattern amplification):
+  # minimatch <11.0.1 is vulnerable; 11.0.1 is patched. Covers ESLint,
+  # TypeScript ESLint, and ts-morph.
+  "minimatch": "11.0.1"
 
-  # Older minimatch major lines expect incompatible brace-expansion CommonJS
-  # exports. All workspace consumers use the Minimatch constructor, which is
-  # supported by 10.2.5, so consolidate on that release instead of patching
-  # brace-expansion.
-  "minimatch": "10.2.5"
+  # patch-package 8.0.1 removes rimraf and glob 7, whose wildcard matching
+  # relies on minimatch's pre-11 RegExp internals. Upgrade Nitro's 6.x copy
+  # as well so the minimatch pin does not break legacy glob consumers.
+  "@arbitrum/nitro-contracts>patch-package": "8.0.1"

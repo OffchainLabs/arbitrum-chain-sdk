@@ -2,6 +2,7 @@ export {
   addressSchema,
   hexSchema,
   bigintSchema,
+  logBlockRangeSchema,
   coreContractsSchema,
   sequencerInboxMaxTimeVariationSchema,
   gasLimitSchema,
@@ -36,6 +37,9 @@ export {
 } from './feeRouter';
 export { deployProxyAdminSchema } from './deployProxyAdmin';
 export { deployExpressLaneAuctionSchema } from './expressLaneAuction';
+export { deployWethSchema } from './deployWeth';
+export { deployRollupCreatorSchema } from './deployRollupCreator';
+export { deployTokenBridgeCreatorSchema } from './deployTokenBridgeCreator';
 export { getBridgeUiConfigSchema } from './getBridgeUiConfig';
 export { isAnyTrustSchema } from './isAnyTrust';
 export { createRollupFetchTransactionHashSchema } from './createRollupFetchTransactionHash';
@@ -81,3 +85,10 @@ export {
   isAllowListEnabledSchema,
   isAllowedSchema,
 } from './actions';
+export { getNitroContractVersionsSchema } from './getNitroContractVersions';
+export { generateGenesisSchema } from './generateGenesis';
+export {
+  deployNitroContractsUpgradeActionSchema,
+  executeNitroContractsUpgradeSchema,
+  verifyNitroContractsUpgradeSchema,
+} from './nitroContractsUpgrade';

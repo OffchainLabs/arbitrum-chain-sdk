@@ -1,12 +1,13 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
+import { createTestRpcTransport } from '../testRpcTransport';
 
 import { arbitrumSepolia } from '../chains';
 import { buildScheduleArbOSUpgrade } from './buildScheduleArbOSUpgrade';
 
 const publicClient = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumSepolia),
 });
 
 // https://arbiscan.io/tx/0x60f8dab14414f5735880e607ca29c2f778d28b7e31bb62377345550397154aee

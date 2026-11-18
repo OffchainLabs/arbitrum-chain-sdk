@@ -9,6 +9,8 @@ exports[`returns default value for minimumAssertionPeriod based on parent chain 
   "42161": 75n,
   "421614": 75n,
   "42170": 75n,
+  "4663": 75n,
+  "46630": 75n,
   "8453": 450n,
   "84532": 450n,
 }

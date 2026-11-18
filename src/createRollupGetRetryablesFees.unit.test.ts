@@ -1,12 +1,13 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http, parseGwei } from 'viem';
+import { createPublicClient, parseGwei } from 'viem';
 import { sepolia } from 'viem/chains';
+import { createTestRpcTransport } from './testRpcTransport';
 
 import { createRollupGetRetryablesFees } from './createRollupGetRetryablesFees';
 
 const sepoliaClient = createPublicClient({
   chain: sepolia,
-  transport: http('https://ethereum-sepolia-rpc.publicnode.com'),
+  transport: createTestRpcTransport(sepolia),
 });
 
 it('successfully fetches retryable fees for an eth-based chain (latest)', async () => {

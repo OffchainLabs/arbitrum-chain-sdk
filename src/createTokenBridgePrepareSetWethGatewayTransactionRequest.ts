@@ -36,6 +36,10 @@ export type CreateTokenBridgePrepareSetWethGatewayTransactionRequestParams<
      * However, for the query to work properly, it has to be **less than or equal to** the right block number.
      */
     rollupDeploymentBlockNumber?: bigint;
+    /** Inclusive lower bound for rollup deployment discovery when rollupDeploymentBlockNumber is not provided. */
+    fromBlock?: bigint;
+    /** Inclusive upper bound for rollup deployment discovery. Defaults to the latest block. */
+    toBlock?: bigint;
     parentChainPublicClient: PublicClient<Transport, TParentChain>;
     account: Address;
     retryableGasOverrides?: TransactionRequestRetryableGasOverrides;
@@ -108,6 +112,8 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
 >({
   rollup,
   rollupDeploymentBlockNumber,
+  fromBlock,
+  toBlock,
   parentChainPublicClient,
   account,
   retryableGasOverrides,
@@ -149,6 +155,8 @@ export async function createTokenBridgePrepareSetWethGatewayTransactionRequest<
   const rollupCoreContracts = await createRollupFetchCoreContracts({
     rollup,
     rollupDeploymentBlockNumber,
+    fromBlock,
+    toBlock,
     publicClient: parentChainPublicClient,
   });
 

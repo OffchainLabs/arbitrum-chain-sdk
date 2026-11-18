@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { toPublicClient, findChain } from '../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../viemTransforms';
 import { hexSchema, parentChainPublicClientSchema } from './common';
 import { getBridgeUiConfig } from '../../getBridgeUiConfig';
 
@@ -12,7 +12,7 @@ export const getBridgeUiConfigSchema = parentChainPublicClientSchema
   })
   .strict()
   .transform((input): Parameters<typeof getBridgeUiConfig> => {
-    const parentChain = findChain(input.parentChainId);
+    const parentChain = findOrDefineChain(input.parentChainId);
 
     return [
       {

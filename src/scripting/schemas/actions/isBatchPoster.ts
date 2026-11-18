@@ -1,4 +1,4 @@
-import { toPublicClient, findChain } from '../../viemTransforms';
+import { toPublicClient, findOrDefineChain } from '../../viemTransforms';
 import { addressSchema, publicClientSchema } from '../common';
 
 export const isBatchPosterSchema = publicClientSchema
@@ -10,7 +10,7 @@ export const isBatchPosterSchema = publicClientSchema
   .transform((input) => {
     const { rpcUrl, chainId, batchPoster, ...rest } = input;
     return [
-      toPublicClient(rpcUrl, findChain(chainId)),
+      toPublicClient(rpcUrl, findOrDefineChain(chainId)),
       { ...rest, params: { batchPoster } },
     ] as const;
   });

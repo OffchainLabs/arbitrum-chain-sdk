@@ -75,6 +75,22 @@ describe('bigintSchema', () => {
     if (result.success) expect(result.data).toBe(-42n);
   });
 
+  it.each([
+    ['0x0', 0n],
+    ['0x2a', 42n],
+    ['0XFF', 255n],
+    ['0x20000000000001', 9007199254740993n],
+  ])('transforms hex numeric string %s to bigint', (input, expected) => {
+    expect(bigintSchema.parse(input)).toBe(expected);
+  });
+
+  it.each(['0x', '0xgg', '-0x1', '+0x1', '1.5', '1e3', ''])(
+    'rejects invalid numeric string %j without throwing',
+    (input) => {
+      expect(bigintSchema.safeParse(input).success).toBe(false);
+    },
+  );
+
   it('rejects non-numeric strings', () => {
     const result = bigintSchema.safeParse('abc');
     expect(result.success).toBe(false);
