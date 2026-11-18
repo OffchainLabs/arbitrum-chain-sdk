@@ -114,6 +114,7 @@ jobs:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
             image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.0-nc3.2-l3-custom-18
+            nitro-image: offchainlabs/nitro-node:v3.12.2-5f02f3f
             variant: l3-custom-18
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
@@ -122,6 +123,7 @@ jobs:
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
             image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.0-nc3.2-l3-custom-6
+            nitro-image: offchainlabs/nitro-node:v3.12.2-5f02f3f
             variant: l3-custom-6
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
@@ -163,7 +165,19 @@ jobs:
 
       - name: Set up the local node
         run: |
-          docker pull "${{ matrix.config.image }}"
+          image="${{ matrix.config.image }}"
+          docker pull "$image"
+          if [ -n "${{ matrix.config.nitro-image }}" ]; then
+            # Swap the image's bundled Nitro for nitro-image, using litro's own rebase recipe.
+            curl -sfL -o "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
+              https://raw.githubusercontent.com/OffchainLabs/arbitrum-litro/v0.6.0/docker/testnode-rebase.Dockerfile
+            docker build -q \
+              -f "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
+              --build-arg TESTNODE_IMAGE="$image" \
+              --build-arg NITRO_IMAGE="${{ matrix.config.nitro-image }}" \
+              -t local/testnode-rebased "$RUNNER_TEMP"
+            image=local/testnode-rebased
+          fi
           docker run -d \
             --name "${{ matrix.config.container }}" \
             --platform linux/amd64 \
@@ -174,7 +188,7 @@ jobs:
             -p 127.0.0.1:3347:8549 \
             -p 127.0.0.1:3348:8550 \
             -p 127.0.0.1:8080:8080 \
-            "${{ matrix.config.image }}"
+            "$image"
 
           deadline=$((SECONDS + 120))
           until curl -sf http://127.0.0.1:8080/health >/dev/null; do
