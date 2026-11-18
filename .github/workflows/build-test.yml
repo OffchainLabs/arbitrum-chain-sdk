@@ -147,6 +147,58 @@ jobs:
             initial-validators: 1
 
     steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Pull and boot the testnode in the background so it overlaps checkout and dependency setup.
+      - name: Set up the local node
+        env:
+          IMAGE: ${{ matrix.config.image }}
+          NITRO_IMAGE: ${{ matrix.config.nitro-image }}
+          CONTAINER: ${{ matrix.config.container }}
+          VARIANT: ${{ matrix.config.variant }}
+        run: |
+          date +%s%N > "$RUNNER_TEMP/testnode-t0"
+          cat > "$RUNNER_TEMP/start-testnode.sh" <<'EOF'
+          set -e
+          image="$IMAGE"
+          docker pull -q "$image"
+          if [ -n "$NITRO_IMAGE" ]; then
+            # Swap the image's bundled Nitro for NITRO_IMAGE, using litro's own rebase recipe.
+            curl -sfL -o "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
+              https://raw.githubusercontent.com/OffchainLabs/arbitrum-litro/v0.6.1/docker/testnode-rebase.Dockerfile
+            docker build -q \
+              -f "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
+              --build-arg TESTNODE_IMAGE="$image" \
+              --build-arg NITRO_IMAGE="$NITRO_IMAGE" \
+              -t local/testnode-rebased "$RUNNER_TEMP"
+            image=local/testnode-rebased
+          fi
+          echo "image ready $(( ($(date +%s%N) - $(cat "$RUNNER_TEMP/testnode-t0")) / 1000000 ))ms after the start step"
+          docker run -d \
+            --name "$CONTAINER" \
+            --platform linux/amd64 \
+            -e TESTNODE_VARIANT="$VARIANT" \
+            -p 127.0.0.1:8545:8545 \
+            -p 127.0.0.1:8547:8547 \
+            -p 127.0.0.1:8548:8548 \
+            -p 127.0.0.1:3347:8549 \
+            -p 127.0.0.1:3348:8550 \
+            -p 127.0.0.1:8080:8080 \
+            "$image"
+          EOF
+          (
+            if bash "$RUNNER_TEMP/start-testnode.sh" > "$RUNNER_TEMP/testnode-start.log" 2>&1; then
+              echo 0 > "$RUNNER_TEMP/testnode-start.rc"
+            else
+              echo 1 > "$RUNNER_TEMP/testnode-start.rc"
+            fi
+          ) < /dev/null > /dev/null 2>&1 &
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -156,49 +208,20 @@ jobs:
           runtime: node@24
           cache: true
 
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up the local node
+      - name: Wait for the local node
         run: |
-          image="${{ matrix.config.image }}"
-          docker pull "$image"
-          if [ -n "${{ matrix.config.nitro-image }}" ]; then
-            # Swap the image's bundled Nitro for nitro-image, using litro's own rebase recipe.
-            curl -sfL -o "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
-              https://raw.githubusercontent.com/OffchainLabs/arbitrum-litro/v0.6.1/docker/testnode-rebase.Dockerfile
-            docker build -q \
-              -f "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
-              --build-arg TESTNODE_IMAGE="$image" \
-              --build-arg NITRO_IMAGE="${{ matrix.config.nitro-image }}" \
-              -t local/testnode-rebased "$RUNNER_TEMP"
-            image=local/testnode-rebased
-          fi
-          docker run -d \
-            --name "${{ matrix.config.container }}" \
-            --platform linux/amd64 \
-            -e TESTNODE_VARIANT="${{ matrix.config.variant }}" \
-            -p 127.0.0.1:8545:8545 \
-            -p 127.0.0.1:8547:8547 \
-            -p 127.0.0.1:8548:8548 \
-            -p 127.0.0.1:3347:8549 \
-            -p 127.0.0.1:3348:8550 \
-            -p 127.0.0.1:8080:8080 \
-            "$image"
-
-          deadline=$((SECONDS + 120))
+          deadline=$((SECONDS + 180))
           until curl -sf http://127.0.0.1:8080/health >/dev/null; do
-            if (( SECONDS >= deadline )); then
+            if [ "$(cat "$RUNNER_TEMP/testnode-start.rc" 2>/dev/null)" = 1 ] || (( SECONDS >= deadline )); then
+              cat "$RUNNER_TEMP/testnode-start.log" >&2
               docker logs "${{ matrix.config.container }}" >&2 || true
-              echo "arbitrum-testnode did not become healthy within 120s" >&2
+              echo "arbitrum-testnode did not become healthy" >&2
               exit 1
             fi
-            sleep 1
+            sleep 0.2
           done
+          cat "$RUNNER_TEMP/testnode-start.log"
+          echo "healthy $(( ($(date +%s%N) - $(cat "$RUNNER_TEMP/testnode-t0")) / 1000000 ))ms after the start step"
 
       - name: Copy .env
         run: cp ./.env.example ./.env
