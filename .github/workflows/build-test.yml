@@ -215,4 +215,10 @@ jobs:
 
       - name: Testnode logs
         if: failure()
-        run: docker logs --tail 500 "${{ matrix.config.container }}"
+        run: |
+          docker logs "${{ matrix.config.container }}" > "$RUNNER_TEMP/testnode.log" 2>&1
+          wc -l "$RUNNER_TEMP/testnode.log"
+          # anvil logs one line per RPC call; keep everything else
+          grep -vE '^(eth|net|web3|txpool)_[A-Za-z]+$' "$RUNNER_TEMP/testnode.log" \
+            | grep -vE 'PREV_NOT_LATEST_CONFIRMED|EXPECTED_ASSERTION_SEEN|rpc response|RPC request failed|Request: EthCall' \
+            | tail -400
