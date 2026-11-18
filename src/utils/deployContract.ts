@@ -85,6 +85,31 @@ export function callTransaction(
  * Throws, naming each transaction, if any reverted or a deployment landed somewhere other than the
  * address predicted from its nonce.
  */
+/**
+ * EIP-1559 fee caps for a whole wave. viem caps each transaction at 1.2x the current base fee, but a
+ * wave can fill several blocks, and each full block raises the base fee by 12.5%, so the last
+ * transactions would sit unmined below the base fee. The cap is 2x the base fee, raised 12.5% for
+ * every block the wave can fill. Transactions pay the actual base fee, not the cap.
+ */
+async function waveFees(
+  ctx: DeployContext,
+  totalGas: bigint,
+): Promise<{ maxFeePerGas?: bigint; maxPriorityFeePerGas?: bigint }> {
+  const block = await ctx.client.getBlock();
+  if (block.baseFeePerGas === null) {
+    return {};
+  }
+  const maxPriorityFeePerGas = await ctx.client.estimateMaxPriorityFeePerGas({
+    chain: ctx.client.chain,
+  });
+  const fullBlocks = (totalGas + block.gasLimit - 1n) / block.gasLimit;
+  let maxBaseFee = block.baseFeePerGas * 2n;
+  for (let i = 0n; i < fullBlocks; i++) {
+    maxBaseFee = (maxBaseFee * 9n) / 8n + 1n;
+  }
+  return { maxFeePerGas: maxBaseFee + maxPriorityFeePerGas, maxPriorityFeePerGas };
+}
+
 export async function sendWave<TKey extends string>(
   ctx: DeployContext,
   transactions: Record<TKey, WaveTransaction>,
@@ -96,6 +121,11 @@ export async function sendWave<TKey extends string>(
     keys.map((key) =>
       ctx.client.estimateGas({ account, to: transactions[key].to, data: transactions[key].data }),
     ),
+  );
+
+  const fees = await waveFees(
+    ctx,
+    gasLimits.reduce((total, gas) => total + gas, 0n),
   );
 
   let nonce = await ctx.client.getTransactionCount({
@@ -112,6 +142,7 @@ export async function sendWave<TKey extends string>(
       data,
       gas: gasLimits[i],
       nonce,
+      ...fees,
     });
     const address = to ?? getContractAddress({ from: account.address, nonce: BigInt(nonce) });
     sent.push({ name, transactionHash, address, isDeployment: !to });
