@@ -117,6 +117,7 @@ jobs:
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
             decimals: 18
+            initial-validators: 2
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
             image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.0-nc3.2-l3-custom-6
@@ -124,6 +125,7 @@ jobs:
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
             decimals: 6
+            initial-validators: 2
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
             image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-18
@@ -131,6 +133,7 @@ jobs:
             container: arbitrum-testnode-v2-1-l3-custom-18
             nitro-contracts-version: v2.1
             decimals: 18
+            initial-validators: 1
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
             image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-6
@@ -138,6 +141,7 @@ jobs:
             container: arbitrum-testnode-v2-1-l3-custom-6
             nitro-contracts-version: v2.1
             decimals: 6
+            initial-validators: 1
 
     steps:
       - name: Checkout
@@ -188,6 +192,7 @@ jobs:
         run: |
           ARBITRUM_TESTNODE_CONTAINER=${{ matrix.config.container }} \
           INTEGRATION_TEST_DECIMALS=${{ matrix.config.decimals }} \
+          INTEGRATION_TEST_INITIAL_VALIDATORS=${{ matrix.config.initial-validators }} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{ matrix.config.nitro-contracts-version }} \
           NITRO_TESTNODE_L3_TOKEN_BRIDGE_DEPLOYER_PRIVATE_KEY=0x84f89f9afcf4cd87bbf0a8872a1abd8ddf69364da61a2c2a5286d999383cd2c9 \
           CI=true \

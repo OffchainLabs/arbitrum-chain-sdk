@@ -18,8 +18,9 @@ const rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv();
 // https://github.com/OffchainLabs/nitro-testnode/blob/release/test-node.bash#L634
 // https://github.com/OffchainLabs/nitro-contracts/blob/v3.2.0/scripts/rollupCreation.ts#L254-L261
 // https://github.com/OffchainLabs/nitro-contracts/blob/v2.1.3/scripts/rollupCreation.ts#L237-L243
+// litro v0.6.0 also whitelists the validator's smart-contract wallet, so its images start with 2
 const expectedInitialValidators = process.env.ARBITRUM_TESTNODE_CONTAINER
-  ? 1
+  ? Number(process.env.INTEGRATION_TEST_INITIAL_VALIDATORS ?? 1)
   : rollupCreatorVersion === 'v3.2'
   ? 11
   : 10;
