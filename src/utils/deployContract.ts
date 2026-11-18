@@ -80,7 +80,8 @@ export function callTransaction(
  * a block per transaction. The transactions must not depend on each other: every gas estimate runs
  * before the first send, against the state the previous wave left. (Estimating after earlier sends
  * is also unreliable: anvil fails such estimates with "nonce too high".) Sends are sequential with
- * explicit nonces, so a failed send leaves no nonce gap.
+ * explicit nonces, so a failed send leaves no nonce gap. A wave is sent in chunks of at most half a
+ * block's gas, each mined before the next is sent (see `chunkByGas`).
  *
  * Throws, naming each transaction, if any reverted or a deployment landed somewhere other than the
  * address predicted from its nonce.
@@ -98,48 +99,57 @@ export async function sendWave<TKey extends string>(
     ),
   );
 
+  const { gasLimit: blockGasLimit } = await ctx.client.getBlock();
+  const chunks = chunkByGas(keys, gasLimits, blockGasLimit / 2n);
+
   let nonce = await ctx.client.getTransactionCount({
     address: account.address,
     blockTag: 'pending',
   });
   const sent: (WaveResult & { name: string; isDeployment: boolean })[] = [];
-  for (const [i, key] of keys.entries()) {
-    const { name, to, data } = transactions[key];
-    const transactionHash = await ctx.client.sendTransaction({
-      account,
-      chain: ctx.client.chain,
-      to,
-      data,
-      gas: gasLimits[i],
-      nonce,
-    });
-    const address = to ?? getContractAddress({ from: account.address, nonce: BigInt(nonce) });
-    sent.push({ name, transactionHash, address, isDeployment: !to });
-    nonce += 1;
-  }
+  const receipts: TransactionReceipt[] = [];
+  for (const chunk of chunks) {
+    const chunkSent: typeof sent = [];
+    for (const i of chunk) {
+      const { name, to, data } = transactions[keys[i]];
+      const transactionHash = await ctx.client.sendTransaction({
+        account,
+        chain: ctx.client.chain,
+        to,
+        data,
+        gas: gasLimits[i],
+        nonce,
+      });
+      const address = to ?? getContractAddress({ from: account.address, nonce: BigInt(nonce) });
+      chunkSent.push({ name, transactionHash, address, isDeployment: !to });
+      nonce += 1;
+    }
 
-  const settled = await Promise.allSettled(
-    sent.map((tx) =>
-      ctx.client.waitForTransactionReceipt({
-        hash: tx.transactionHash,
-        timeout: waveReceiptTimeoutMs,
-      }),
-    ),
-  );
-  const missing = sent.filter((_, i) => settled[i].status === 'rejected');
-  if (missing.length > 0) {
-    const minedNonce = await ctx.client.getTransactionCount({ address: account.address });
-    throw new Error(
-      `${ctx.label}: no receipt after ${waveReceiptTimeoutMs}ms for ${missing
-        .map((tx) => `${tx.name} (${tx.transactionHash})`)
-        .join(', ')}; ${account.address} mined nonce ${minedNonce}, wave nonces ${
-        nonce - sent.length
-      }-${nonce - 1}`,
+    const settled = await Promise.allSettled(
+      chunkSent.map((tx) =>
+        ctx.client.waitForTransactionReceipt({
+          hash: tx.transactionHash,
+          timeout: waveReceiptTimeoutMs,
+        }),
+      ),
+    );
+    const missing = chunkSent.filter((_, i) => settled[i].status === 'rejected');
+    if (missing.length > 0) {
+      const minedNonce = await ctx.client.getTransactionCount({ address: account.address });
+      throw new Error(
+        `${ctx.label}: no receipt after ${waveReceiptTimeoutMs}ms for ${missing
+          .map((tx) => `${tx.name} (${tx.transactionHash})`)
+          .join(', ')}; ${account.address} mined nonce ${minedNonce}, sent nonces ${
+          nonce - chunkSent.length
+        }-${nonce - 1}`,
+      );
+    }
+    sent.push(...chunkSent);
+    receipts.push(
+      ...settled.map((result) => (result as PromiseFulfilledResult<TransactionReceipt>).value),
     );
   }
-  const receipts = settled.map(
-    (result) => (result as PromiseFulfilledResult<TransactionReceipt>).value,
-  );
+
   const failures = sent.flatMap((tx, i) => {
     const receipt = receipts[i];
     if (receipt.status === 'reverted') {
@@ -165,6 +175,39 @@ export async function sendWave<TKey extends string>(
       { transactionHash: sent[i].transactionHash, address: sent[i].address },
     ]),
   ) as Record<TKey, WaveResult>;
+}
+
+/**
+ * Splits transaction indexes, in order, into runs whose gas limits add up to at most `budget`. A
+ * transaction over the budget gets a run of its own.
+ *
+ * A wave must never queue more gas than one block holds. When anvil (checked on 1.3.5 and 1.7.1)
+ * builds a block and a transaction's gas limit does not fit, it skips that transaction but still
+ * tries the same sender's later ones; the first small enough to fit fails validation with a nonce
+ * gap, and anvil deletes it from the pool for good, so its receipt never comes. The budget is half
+ * the block gas limit to leave room for other senders' transactions in the same block.
+ */
+export function chunkByGas(
+  keys: readonly unknown[],
+  gasLimits: readonly bigint[],
+  budget: bigint,
+): number[][] {
+  const chunks: number[][] = [];
+  let current: number[] = [];
+  let currentGas = 0n;
+  for (const i of keys.keys()) {
+    if (current.length > 0 && currentGas + gasLimits[i] > budget) {
+      chunks.push(current);
+      current = [];
+      currentGas = 0n;
+    }
+    current.push(i);
+    currentGas += gasLimits[i];
+  }
+  if (current.length > 0) {
+    chunks.push(current);
+  }
+  return chunks;
 }
 
 export async function sendAndWait(
