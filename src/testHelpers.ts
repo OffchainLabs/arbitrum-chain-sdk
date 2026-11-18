@@ -1,13 +1,19 @@
-import { Address, Chain, PublicClient, zeroAddress } from 'viem';
+import { Address, Chain, PublicClient, zeroAddress, encodeFunctionData, parseEther } from 'viem';
 import { PrivateKeyAccount, privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
+import { erc20ABI } from './contracts/ERC20';
+import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { config } from 'dotenv';
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { generateChainId, sanitizePrivateKey } from './utils';
 import { createRollup } from './createRollup';
 import { createRollupPrepareDeploymentParamsConfig } from './createRollupPrepareDeploymentParamsConfig';
 import { prepareChainConfig } from './prepareChainConfig';
 import { CreateRollupParams, RollupCreatorSupportedVersion } from './types/createRollupTypes';
+import { scaleFrom18DecimalsToNativeTokenDecimals } from './utils/decimals';
+import { nitroTestnodeL2 } from './chains';
 
 config();
 
@@ -191,7 +197,43 @@ function getInformationFromTestnodeContainer(container: string): TestnodeInforma
   };
 }
 
+function getInformationFromConfigDir(configDir: string): TestnodeInformation {
+  const deploymentJson = JSON.parse(
+    readFileSync(join(configDir, 'deployment.json'), 'utf8'),
+  ) as TestnodeDeploymentJson;
+  const l3DeploymentJson = JSON.parse(
+    readFileSync(join(configDir, 'l3deployment.json'), 'utf8'),
+  ) as Required<TestnodeDeploymentJson>;
+  const sequencerConfig = JSON.parse(
+    readFileSync(join(configDir, 'l2-nodeConfig.json'), 'utf8'),
+  ) as TestnodeNodeConfig;
+  const l3NodeConfig = JSON.parse(
+    readFileSync(join(configDir, 'l3-nodeConfig.json'), 'utf8'),
+  ) as TestnodeNodeConfig;
+  const l2RollupCreator = l3DeploymentJson['rollup-creator'];
+
+  return {
+    bridge: deploymentJson['bridge'],
+    rollup: deploymentJson['rollup'],
+    sequencerInbox: deploymentJson['sequencer-inbox'],
+    batchPoster: getBatchPosterAddressFromNodeConfig(sequencerConfig),
+    l3Bridge: l3DeploymentJson['bridge'],
+    l3Rollup: l3DeploymentJson['rollup'],
+    l3SequencerInbox: l3DeploymentJson['sequencer-inbox'],
+    l3NativeToken: l3DeploymentJson['native-token'],
+    l3BatchPoster: getBatchPosterAddressFromNodeConfig(l3NodeConfig),
+    l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
+    l3ChainOwnerUpgradeExecutor: l3DeploymentJson['chain-owner-upgrade-executor'],
+    ...(l2RollupCreator && l2RollupCreator !== zeroAddress ? { l2RollupCreator } : {}),
+  };
+}
+
 export function getInformationFromTestnode(): TestnodeInformation {
+  const configDir = process.env.ARBITRUM_TESTNODE_CONFIG_DIR;
+  if (configDir) {
+    return getInformationFromConfigDir(configDir);
+  }
+
   const containers = Array.from(
     new Set([
       process.env.ARBITRUM_TESTNODE_CONTAINER,
@@ -217,6 +259,21 @@ export function getInformationFromTestnode(): TestnodeInformation {
   throw new Error('testnode container not found');
 }
 
+export function testHelper_getNitroTestnodeL2() {
+  const { l2RollupCreator } = getInformationFromTestnode();
+
+  if (typeof l2RollupCreator === 'undefined') {
+    return nitroTestnodeL2;
+  }
+
+  return {
+    ...nitroTestnodeL2,
+    contracts: {
+      rollupCreator: { address: l2RollupCreator },
+    },
+  };
+}
+
 export async function createRollupHelper<
   TRollupCreatorVersion extends RollupCreatorSupportedVersion = 'v3.2',
 >({
@@ -226,7 +283,6 @@ export async function createRollupHelper<
   nativeToken = zeroAddress,
   client,
   rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv() as TRollupCreatorVersion,
-  rollupCreatorAddressOverride,
 }: {
   deployer: PrivateKeyAccountWithPrivateKey;
   batchPosters: Address[];
@@ -234,18 +290,8 @@ export async function createRollupHelper<
   nativeToken: Address;
   client: PublicClient;
   rollupCreatorVersion?: TRollupCreatorVersion;
-  rollupCreatorAddressOverride?: Address;
 }) {
   const chainId = generateChainId();
-  let effectiveRollupCreatorAddressOverride = rollupCreatorAddressOverride;
-
-  if (typeof effectiveRollupCreatorAddressOverride === 'undefined') {
-    try {
-      effectiveRollupCreatorAddressOverride = getInformationFromTestnode().l2RollupCreator;
-    } catch {
-      // keep SDK defaults when testnode metadata is unavailable
-    }
-  }
 
   const createRollupConfig = createRollupPrepareDeploymentParamsConfig(
     client,
@@ -263,6 +309,42 @@ export async function createRollupHelper<
     rollupCreatorVersion,
   );
 
+  // On the arbitrum-testnode snapshot the custom fee token is held by the L3 rollup owner, not the
+  // deployer, so fund the deployer to cover the retryable fees paid in the custom fee token.
+  if (isNonZeroAddress(nativeToken)) {
+    const { l3RollupOwner } = getNitroTestnodePrivateKeyAccounts();
+    // The fee token may have fewer than 18 decimals; scale the funding amount to the token's
+    // decimals so the transfer doesn't exceed the holder's balance (e.g. on a 6-decimal token).
+    const nativeTokenDecimals = await client.readContract({
+      address: nativeToken,
+      abi: erc20ABI,
+      functionName: 'decimals',
+    });
+    const fundRequest = await client.prepareTransactionRequest({
+      chain: client.chain,
+      account: l3RollupOwner,
+      to: nativeToken,
+      data: encodeFunctionData({
+        abi: erc20ABI,
+        functionName: 'transfer',
+        args: [
+          deployer.address,
+          scaleFrom18DecimalsToNativeTokenDecimals({
+            amount: parseEther('100000'),
+            decimals: nativeTokenDecimals,
+          }),
+        ],
+      }),
+    });
+    const fundHash = await client.sendRawTransaction({
+      serializedTransaction: await l3RollupOwner.signTransaction({
+        ...fundRequest,
+        chainId: client.chain!.id,
+      }),
+    });
+    await client.waitForTransactionReceipt({ hash: fundHash });
+  }
+
   const createRollupInformation =
     rollupCreatorVersion === 'v2.1'
       ? await createRollup({
@@ -275,7 +357,6 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v2.1',
-          rollupCreatorAddressOverride: effectiveRollupCreatorAddressOverride,
         })
       : await createRollup({
           params: {
@@ -287,7 +368,6 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v3.2',
-          rollupCreatorAddressOverride: effectiveRollupCreatorAddressOverride,
         });
 
   // create test rollup with ETH as gas token

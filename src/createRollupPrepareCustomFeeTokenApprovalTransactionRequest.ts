@@ -41,6 +41,7 @@ export async function createRollupPrepareCustomFeeTokenApprovalTransactionReques
       account,
       nativeToken,
       maxFeePerGasForRetryables,
+      rollupCreatorAddressOverride,
     },
     rollupCreatorVersion,
   );

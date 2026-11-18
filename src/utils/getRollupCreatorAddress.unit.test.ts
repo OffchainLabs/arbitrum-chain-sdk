@@ -38,6 +38,22 @@ it(`successfully returns address for Sepolia (v2.1)`, () => {
   );
 });
 
+it(`prefers a RollupCreator configured on a supported chain`, () => {
+  const rollupCreator = '0x31421C442c422BD16aef6ae44D3b11F404eeaBd9';
+  const client = createPublicClient({
+    chain: {
+      ...sepolia,
+      contracts: {
+        ...sepolia.contracts,
+        rollupCreator: { address: rollupCreator },
+      },
+    },
+    transport: http(),
+  });
+
+  expect(getRollupCreatorAddress(client)).toEqual(rollupCreator);
+});
+
 it(`fails to return address for an unrecognized parent chain`, () => {
   const chain = testHelper_createCustomParentChain();
 
