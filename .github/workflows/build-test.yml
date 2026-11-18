@@ -110,22 +110,22 @@ jobs:
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            version: v0.2.7
+            version: v0.2.10
             nitro-contracts-version: v3.2
             decimals: 18
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            version: v0.2.7
+            version: v0.2.10
             nitro-contracts-version: v3.2
             decimals: 6
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            version: v0.2.7
+            version: v0.2.10
             nitro-contracts-version: v2.1
             decimals: 18
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            version: v0.2.7
+            version: v0.2.10
             nitro-contracts-version: v2.1
             decimals: 6
 
@@ -140,7 +140,7 @@ jobs:
           cache: true
 
       - name: Set up the local node
-        uses: OffchainLabs/arbitrum-testnode@v0.2.7
+        uses: OffchainLabs/arbitrum-testnode@v0.2.10
         with:
           version: ${{ matrix.config.version }}
           l3-enabled: true
@@ -156,8 +156,11 @@ jobs:
 
       - name: Test
         run: |
+          ARBITRUM_TESTNODE_CONTAINER=$ARBITRUM_TESTNODE_CONTAINER_NAME \
           INTEGRATION_TEST_DECIMALS=${{ matrix.config.decimals }} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{ matrix.config.nitro-contracts-version }} \
+          NITRO_TESTNODE_L3_TOKEN_BRIDGE_DEPLOYER_PRIVATE_KEY=0x84f89f9afcf4cd87bbf0a8872a1abd8ddf69364da61a2c2a5286d999383cd2c9 \
+          CI=true \
           pnpm test:integration
 
   test-integration-arbitrum-testnode:
