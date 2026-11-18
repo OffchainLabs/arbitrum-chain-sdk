@@ -1,12 +1,13 @@
 import { it, expect } from 'vitest';
-import { createPublicClient, http } from 'viem';
+import { createPublicClient } from 'viem';
 import { sepolia } from 'viem/chains';
+import { createTestRpcTransport } from './testRpcTransport';
 
 import { getBridgeUiConfig } from './getBridgeUiConfig';
 
 const sepoliaClient = createPublicClient({
   chain: sepolia,
-  transport: http('https://sepolia.gateway.tenderly.co'),
+  transport: createTestRpcTransport(sepolia),
 });
 
 // https://sepolia.etherscan.io/tx/0xc172278b80251a7368409b5358fbf7e6250c1afc9a262e38ca15e1ba2bb9a7a8

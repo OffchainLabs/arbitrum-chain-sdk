@@ -1,12 +1,14 @@
 {
   "include": ["./src/**/*"],
-  "exclude": ["./src/dist/**/*"],
+  "exclude": ["./src/dist/**/*", "./src/scripts/generateAbiSchemas.mts"],
   "compilerOptions": {
     "strict": true,
     "incremental": true,
 
     "lib": ["ES2021"],
     "target": "ES2021",
+    "types": ["node"],
+    "module": "commonjs",
 
     "moduleResolution": "node",
 

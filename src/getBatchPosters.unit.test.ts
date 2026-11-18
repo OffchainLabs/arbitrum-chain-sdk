@@ -5,10 +5,10 @@ import {
   createPublicClient,
   createTransport,
   encodeFunctionData,
-  http,
 } from 'viem';
 import { arbitrum, arbitrumSepolia, sepolia } from 'viem/chains';
 import { it, expect, vi, describe } from 'vitest';
+import { createTestRpcTransport } from './testRpcTransport';
 
 import { gnosisSafeL2ABI } from './contracts/GnosisSafeL2';
 import { sequencerInboxABI } from './contracts/SequencerInbox';
@@ -18,17 +18,17 @@ import { getBatchPosters } from './getBatchPosters';
 
 const client = createPublicClient({
   chain: arbitrum,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrum),
 });
 
 const arbitrumSepoliaClient = createPublicClient({
   chain: arbitrumSepolia,
-  transport: http(),
+  transport: createTestRpcTransport(arbitrumSepolia),
 });
 
 const sepoliaClient = createPublicClient({
   chain: sepolia,
-  transport: http('https://sepolia.gateway.tenderly.co'),
+  transport: createTestRpcTransport(sepolia),
 });
 
 function mockLog(transactionHash: string) {
@@ -153,9 +153,11 @@ function safeSetBatchPosterHelper(args: [Address, boolean]) {
   });
 }
 
-it('getBatchPosters returns all batch posters (Xai)', async () => {
+it('getBatchPosters returns initial batch posters (Xai)', async () => {
   const { isAccurate, batchPosters } = await getBatchPosters(client, {
     rollup: '0xc47dacfbaa80bd9d8112f4e8069482c2a3221336',
+    fromBlock: 166_757_506n,
+    toBlock: 166_757_506n,
     sequencerInbox: '0x995a9d3ca121D48d21087eDE20bc8acb2398c8B1',
   });
   expect(batchPosters).toEqual(['0x7F68dba68E72a250004812fe04F1123Fca89aBa9']);
@@ -163,9 +165,11 @@ it('getBatchPosters returns all batch posters (Xai)', async () => {
 });
 
 // https://sepolia.arbiscan.io/tx/0x5b0b49e0259289fc89949a55a5ad35a8939440a55065d29b14e5e7ef7494efff
-it('getBatchPosters returns batch posters for a chain created with RollupCreator v1.1', async () => {
+it('getBatchPosters returns initial batch posters for a chain created with RollupCreator v1.1', async () => {
   const { isAccurate, batchPosters } = await getBatchPosters(arbitrumSepoliaClient, {
     rollup: '0x1644590Fd2223264ea8Cda8927B038CcCFE0Da76',
+    fromBlock: 49_500_532n,
+    toBlock: 49_500_532n,
     sequencerInbox: '0x96bA492C55Af83dfC88D52A1e584e4061716e9e8',
   });
   expect(batchPosters).toEqual(['0x3C3A5b44FAB0e2025160a765348c21C08e41d1Af']);
@@ -173,9 +177,11 @@ it('getBatchPosters returns batch posters for a chain created with RollupCreator
 });
 
 // https://sepolia.arbiscan.io/tx/0x77db43157182a69ce0e6d2a0564d2dabb43b306d48ea7b4d877160d6a1c9b66d
-it('getBatchPosters returns batch posters for a chain created with RollupCreator v2.1', async () => {
+it('getBatchPosters returns initial batch posters for a chain created with RollupCreator v2.1', async () => {
   const { isAccurate, batchPosters } = await getBatchPosters(arbitrumSepoliaClient, {
     rollup: '0x66d0e72952f4f69aF9D33C1B7C31Fa9aCDbCAF63',
+    fromBlock: 71_259_460n,
+    toBlock: 71_259_460n,
     sequencerInbox: '0x43528b8Be52e8D084F147d167487f361553463b5',
   });
   expect(batchPosters).toEqual([
@@ -192,9 +198,11 @@ it('getBatchPosters returns batch posters for a chain created with RollupCreator
 });
 
 // https://sepolia.etherscan.io/tx/0xd79a80b7300df1bcb14e2e3ea83521d1ae37e5f171a787fb0f5377ea7f5003ad
-it('getBatchPosters returns batch posters for a chain created with RollupCreator v3.1', async () => {
+it('getBatchPosters returns initial batch posters for a chain created with RollupCreator v3.1', async () => {
   const { isAccurate, batchPosters } = await getBatchPosters(sepoliaClient, {
     rollup: '0x5D65e18b873dD978EeE4704BC6033436aA253936',
+    fromBlock: 8_184_855n,
+    toBlock: 8_184_855n,
     sequencerInbox: '0x3fB778EC3e6126aF1d956A7812Eb0a28B9d25017',
   });
   expect(batchPosters).toEqual(['0x05c82FC99a41e417Ea6ED14e1D3f3b01BBFfba5A']);
@@ -202,9 +210,11 @@ it('getBatchPosters returns batch posters for a chain created with RollupCreator
 });
 
 // https://sepolia.arbiscan.io/tx/0x67bb216d4dd1b1807d9f0e226e4da754bdf643e2788f9e515b37c6dd890be331
-it('getBatchPosters returns batch posters for a chain created with RollupCreator v3.2', async () => {
+it('getBatchPosters returns initial batch posters for a chain created with RollupCreator v3.2', async () => {
   const { isAccurate, batchPosters } = await getBatchPosters(arbitrumSepoliaClient, {
     rollup: '0x80630e3776E445c256E82D5ACcA2Bbb4b0c95a98',
+    fromBlock: 235_819_442n,
+    toBlock: 235_819_442n,
     sequencerInbox: '0x15aD14f109Eb97E32EA8F8b5A6E6DC1a6d2F1ca1',
   });
   expect(batchPosters).toEqual([

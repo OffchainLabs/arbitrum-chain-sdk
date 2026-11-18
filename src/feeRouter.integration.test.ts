@@ -8,6 +8,7 @@ import {
   encodePacked,
   keccak256,
   pad,
+  zeroAddress,
 } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 
@@ -95,6 +96,12 @@ describe('Fee routing tests', () => {
       rewardDistributorDeploymentTransactionReceipt.contractAddress as `0x${string}`,
     );
 
+    const token = await nitroTestnodeL2Client.readContract({
+      address: rewardDistributorAddress,
+      abi: parseAbi(['function token() view returns (address)']),
+      functionName: 'token',
+    });
+
     // hashing the recipient addresses
     // keccak256(abi.encodePacked(addresses))
     // Note: we need to pad the addresses to 32-bytes, since the packing in Solidity is done that way
@@ -129,6 +136,7 @@ describe('Fee routing tests', () => {
       functionName: 'currentRecipientWeights',
     });
 
+    expect(token).toEqual(zeroAddress);
     expect(currentRecipientGroup).toEqual(recipientGroup);
     expect(currentRecipientWeights).toEqual(recipientWeights);
   });

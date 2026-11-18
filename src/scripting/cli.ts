@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+
+import { runCli } from './scriptUtils';
+import { commands } from './commands';
+
+runCli('arbitrum-chain-sdk', commands);

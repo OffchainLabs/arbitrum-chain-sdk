@@ -6,3 +6,7 @@ export * from './buildSetIsBatchPoster';
 export * from './buildSetValidKeyset';
 export * from './buildSetMaxTimeVariation';
 export * from './buildScheduleArbOSUpgrade';
+export * from './buildSetAllowList';
+export * from './buildSetAllowListEnabled';
+export * from './isAllowListEnabled';
+export * from './isAllowed';

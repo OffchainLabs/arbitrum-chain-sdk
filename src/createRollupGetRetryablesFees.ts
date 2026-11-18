@@ -11,14 +11,80 @@ import {
 } from 'viem';
 
 import { rollupCreatorABI } from './contracts/RollupCreator/v3.2';
-import { bridgeCreatorABI as bridgeCreatorV3Dot1ABI } from './contracts/BridgeCreator';
-import { bridgeCreatorABI as bridgeCreatorV2Dot1ABI } from './contracts/BridgeCreator/v2.1';
 import { getRollupCreatorAddress } from './utils/getRollupCreatorAddress';
 import { isNonZeroAddress } from './utils/isNonZeroAddress';
 import { defaults as createRollupDefaults } from './createRollupDefaults';
 import { applyPercentIncrease } from './utils/gasOverrides';
 import { createRollupDefaultRetryablesFees } from './constants';
 import { RollupCreatorSupportedVersion } from './types/createRollupTypes';
+
+export const bridgeCreatorV2Dot1ABI = [
+  {
+    inputs: [],
+    name: 'erc20BasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ethBasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
+
+export const bridgeCreatorV3Dot2ABI = [
+  {
+    inputs: [],
+    name: 'erc20BasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      {
+        internalType: 'contract ISequencerInbox',
+        name: 'delayBufferableSequencerInbox',
+        type: 'address',
+      },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'ethBasedTemplates',
+    outputs: [
+      { internalType: 'contract IBridge', name: 'bridge', type: 'address' },
+      { internalType: 'contract ISequencerInbox', name: 'sequencerInbox', type: 'address' },
+      {
+        internalType: 'contract ISequencerInbox',
+        name: 'delayBufferableSequencerInbox',
+        type: 'address',
+      },
+      { internalType: 'contract IInboxBase', name: 'inbox', type: 'address' },
+      { internalType: 'contract IRollupEventInbox', name: 'rollupEventInbox', type: 'address' },
+      { internalType: 'contract IOutbox', name: 'outbox', type: 'address' },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+] as const;
 
 const deployHelperABI = [
   {
@@ -36,10 +102,11 @@ const deployHelperABI = [
 async function getTemplates<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
   rollupCreatorVersion: RollupCreatorSupportedVersion,
+  rollupCreatorAddress: Address,
 ) {
   const bridgeCreatorAddress = await publicClient.readContract({
     abi: rollupCreatorABI,
-    address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    address: rollupCreatorAddress,
     functionName: 'bridgeCreator',
   });
 
@@ -66,12 +133,12 @@ async function getTemplates<TChain extends Chain | undefined>(
   // inbox at index 3
   const [ethBasedTemplates, erc20BasedTemplates] = await Promise.all([
     publicClient.readContract({
-      abi: bridgeCreatorV3Dot1ABI,
+      abi: bridgeCreatorV3Dot2ABI,
       address: bridgeCreatorAddress,
       functionName: 'ethBasedTemplates',
     }),
     publicClient.readContract({
-      abi: bridgeCreatorV3Dot1ABI,
+      abi: bridgeCreatorV3Dot2ABI,
       address: bridgeCreatorAddress,
       functionName: 'erc20BasedTemplates',
     }),
@@ -84,6 +151,7 @@ export type CreateRollupGetRetryablesFeesParams = {
   account: Address;
   nativeToken?: Address;
   maxFeePerGasForRetryables?: bigint;
+  rollupCreatorAddressOverride?: Address;
 };
 
 /**
@@ -99,18 +167,27 @@ export type CreateRollupGetRetryablesFeesParams = {
  */
 export async function createRollupGetRetryablesFees<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
-  { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
+  {
+    account,
+    nativeToken,
+    maxFeePerGasForRetryables,
+    rollupCreatorAddressOverride,
+  }: CreateRollupGetRetryablesFeesParams,
   rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
+  const rollupCreatorAddress =
+    rollupCreatorAddressOverride ?? getRollupCreatorAddress(publicClient, rollupCreatorVersion);
+
   const deployHelperAddress = await publicClient.readContract({
     abi: rollupCreatorABI,
-    address: getRollupCreatorAddress(publicClient, rollupCreatorVersion),
+    address: rollupCreatorAddress,
     functionName: 'l2FactoriesDeployer',
   });
 
   const [ethTemplateInbox, erc20TemplateInbox] = await getTemplates(
     publicClient,
     rollupCreatorVersion,
+    rollupCreatorAddress,
   );
 
   const isCustomGasToken = isNonZeroAddress(nativeToken);
@@ -180,7 +257,12 @@ export async function createRollupGetRetryablesFees<TChain extends Chain | undef
  */
 export async function createRollupGetRetryablesFeesWithDefaults<TChain extends Chain | undefined>(
   publicClient: PublicClient<Transport, TChain>,
-  { account, nativeToken, maxFeePerGasForRetryables }: CreateRollupGetRetryablesFeesParams,
+  {
+    account,
+    nativeToken,
+    maxFeePerGasForRetryables,
+    rollupCreatorAddressOverride,
+  }: CreateRollupGetRetryablesFeesParams,
   rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {
   try {
@@ -190,6 +272,7 @@ export async function createRollupGetRetryablesFeesWithDefaults<TChain extends C
         account,
         nativeToken,
         maxFeePerGasForRetryables,
+        rollupCreatorAddressOverride,
       },
       rollupCreatorVersion,
     );

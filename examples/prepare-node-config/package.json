@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "tsc --outDir dist && node ./dist/index.js"
   },
+  "dependencies": {
+    "@arbitrum/chain-sdk": "workspace:*"
+  },
   "devDependencies": {
-    "@types/node": "^20.9.0",
+    "@types/node": "^24.13.2",
     "typescript": "^5.2.2"
   }
 }

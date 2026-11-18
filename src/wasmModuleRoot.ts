@@ -93,6 +93,12 @@ const consensusReleases = [
     wasmModuleRoot: '0xc2c02df561d4afaf9a1d6785f70098ec3874765c638e3cb6dbe8d3c83333e14c',
     maxArbOSVersion: 51,
   },
+  {
+    // https://github.com/OffchainLabs/nitro/releases/tag/consensus-v61
+    version: 61,
+    wasmModuleRoot: '0xc10cd7ec6acaf1c441a3f6bd0900ad20f15855ba775a96f1939118cbc629dc97',
+    maxArbOSVersion: 61,
+  },
 ] as const satisfies readonly ConsensusRelease[];
 
 type ConsensusReleases = typeof consensusReleases;

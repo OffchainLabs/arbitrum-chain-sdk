@@ -1,7 +1,7 @@
 import { Address, Chain, PublicClient, zeroAddress } from 'viem';
 import { PrivateKeyAccount, privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
 import { config } from 'dotenv';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 import { generateChainId, sanitizePrivateKey } from './utils';
 import { createRollup } from './createRollup';
@@ -86,54 +86,135 @@ type TestnodeInformation = {
   batchPoster: Address;
   l3BatchPoster: Address;
   l3UpgradeExecutor: Address;
+  l3ChainOwnerUpgradeExecutor?: Address;
   l3Rollup: `0x${string}`;
   l3NativeToken: `0x${string}`;
+  l2RollupCreator?: Address;
 };
 
+type TestnodeDeploymentJson = {
+  'bridge': Address;
+  'rollup': Address;
+  'sequencer-inbox': Address;
+  'native-token'?: `0x${string}`;
+  'upgrade-executor'?: Address;
+  'chain-owner-upgrade-executor'?: Address;
+  'rollup-creator'?: Address;
+};
+
+type TestnodeNodeConfig = {
+  node: {
+    'batch-poster': {
+      'parent-chain-wallet': {
+        'account'?: Address;
+        'private-key'?: string;
+      };
+    };
+  };
+};
+
+function getBatchPosterAddressFromNodeConfig(config: TestnodeNodeConfig): Address {
+  const wallet = config.node['batch-poster']['parent-chain-wallet'];
+
+  if (typeof wallet.account !== 'undefined') {
+    return wallet.account;
+  }
+
+  if (typeof wallet['private-key'] !== 'undefined') {
+    return privateKeyToAccount(sanitizePrivateKey(wallet['private-key'])).address;
+  }
+
+  throw new Error('Missing batch poster account or private key in testnode config');
+}
+
+function readFirstExistingContainerJson<T>(container: string, paths: string[]): T {
+  for (const path of paths) {
+    try {
+      return JSON.parse(
+        execFileSync('docker', ['exec', container, 'cat', path], {
+          encoding: 'utf8',
+          stdio: ['ignore', 'pipe', 'ignore'],
+        }),
+      ) as T;
+    } catch {
+      // try the next supported path
+    }
+  }
+
+  throw new Error(`None of these testnode config files exist in ${container}: ${paths.join(', ')}`);
+}
+
+function getInformationFromTestnodeContainer(container: string): TestnodeInformation {
+  const deploymentJson = readFirstExistingContainerJson<TestnodeDeploymentJson>(container, [
+    '/config/deployment.json',
+    '/config/l2_deployment.json',
+    '/opt/arbitrum-testnode/export-config/deployment.json',
+    '/opt/arbitrum-testnode/export-config/l2_deployment.json',
+  ]);
+  const l3DeploymentJson = readFirstExistingContainerJson<Required<TestnodeDeploymentJson>>(
+    container,
+    [
+      '/config/l3deployment.json',
+      '/config/l3_deployment.json',
+      '/opt/arbitrum-testnode/export-config/l3deployment.json',
+      '/opt/arbitrum-testnode/export-config/l3_deployment.json',
+    ],
+  );
+  const sequencerConfig = readFirstExistingContainerJson<TestnodeNodeConfig>(container, [
+    '/config/sequencer_config.json',
+    '/config/l2-nodeConfig.json',
+    '/opt/arbitrum-testnode/export-config/sequencer_config.json',
+    '/opt/arbitrum-testnode/export-config/l2-nodeConfig.json',
+  ]);
+
+  const l3SequencerConfig = readFirstExistingContainerJson<TestnodeNodeConfig>(container, [
+    '/config/l3node_config.json',
+    '/config/l3-nodeConfig.json',
+    '/opt/arbitrum-testnode/export-config/l3node_config.json',
+    '/opt/arbitrum-testnode/export-config/l3-nodeConfig.json',
+  ]);
+  const l2RollupCreator = l3DeploymentJson['rollup-creator'];
+
+  return {
+    bridge: deploymentJson['bridge'],
+    rollup: deploymentJson['rollup'],
+    sequencerInbox: deploymentJson['sequencer-inbox'],
+    batchPoster: getBatchPosterAddressFromNodeConfig(sequencerConfig),
+    l3Bridge: l3DeploymentJson['bridge'],
+    l3Rollup: l3DeploymentJson['rollup'],
+    l3SequencerInbox: l3DeploymentJson['sequencer-inbox'],
+    l3NativeToken: l3DeploymentJson['native-token'],
+    l3BatchPoster: getBatchPosterAddressFromNodeConfig(l3SequencerConfig),
+    l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
+    l3ChainOwnerUpgradeExecutor: l3DeploymentJson['chain-owner-upgrade-executor'],
+    ...(l2RollupCreator && l2RollupCreator !== zeroAddress ? { l2RollupCreator } : {}),
+  };
+}
+
 export function getInformationFromTestnode(): TestnodeInformation {
-  const containers = [
-    'nitro_sequencer_1',
-    'nitro-sequencer-1',
-    'nitro-testnode-sequencer-1',
-    'nitro-testnode_sequencer_1',
-  ];
+  const containers = Array.from(
+    new Set([
+      process.env.ARBITRUM_TESTNODE_CONTAINER,
+      'arbitrum-testnode-l3-custom-18',
+      'arbitrum-testnode-l3-eth',
+      'arbitrum-testnode-l2',
+      'arbitrum-testnode',
+      'nitro_sequencer_1',
+      'nitro-sequencer-1',
+      'nitro-testnode-sequencer-1',
+      'nitro-testnode_sequencer_1',
+    ]),
+  ).filter((container): container is string => typeof container === 'string' && container !== '');
 
   for (const container of containers) {
     try {
-      const deploymentJson = JSON.parse(
-        execSync('docker exec ' + container + ' cat /config/deployment.json').toString(),
-      );
-
-      const l3DeploymentJson = JSON.parse(
-        execSync('docker exec ' + container + ' cat /config/l3deployment.json').toString(),
-      );
-
-      const sequencerConfig = JSON.parse(
-        execSync('docker exec ' + container + ' cat /config/sequencer_config.json').toString(),
-      );
-
-      const l3SequencerConfig = JSON.parse(
-        execSync('docker exec ' + container + ' cat /config/l3node_config.json').toString(),
-      );
-
-      return {
-        bridge: deploymentJson['bridge'],
-        rollup: deploymentJson['rollup'],
-        sequencerInbox: deploymentJson['sequencer-inbox'],
-        batchPoster: sequencerConfig.node['batch-poster']['parent-chain-wallet'].account,
-        l3Bridge: l3DeploymentJson['bridge'],
-        l3Rollup: l3DeploymentJson['rollup'],
-        l3SequencerInbox: l3DeploymentJson['sequencer-inbox'],
-        l3NativeToken: l3DeploymentJson['native-token'],
-        l3BatchPoster: l3SequencerConfig.node['batch-poster']['parent-chain-wallet'].account,
-        l3UpgradeExecutor: l3DeploymentJson['upgrade-executor'],
-      };
+      return getInformationFromTestnodeContainer(container);
     } catch {
       // empty on purpose
     }
   }
 
-  throw new Error('nitro-testnode sequencer not found');
+  throw new Error('testnode container not found');
 }
 
 export async function createRollupHelper<
@@ -145,6 +226,7 @@ export async function createRollupHelper<
   nativeToken = zeroAddress,
   client,
   rollupCreatorVersion = testHelper_getRollupCreatorVersionFromEnv() as TRollupCreatorVersion,
+  rollupCreatorAddressOverride,
 }: {
   deployer: PrivateKeyAccountWithPrivateKey;
   batchPosters: Address[];
@@ -152,8 +234,18 @@ export async function createRollupHelper<
   nativeToken: Address;
   client: PublicClient;
   rollupCreatorVersion?: TRollupCreatorVersion;
+  rollupCreatorAddressOverride?: Address;
 }) {
   const chainId = generateChainId();
+  let effectiveRollupCreatorAddressOverride = rollupCreatorAddressOverride;
+
+  if (typeof effectiveRollupCreatorAddressOverride === 'undefined') {
+    try {
+      effectiveRollupCreatorAddressOverride = getInformationFromTestnode().l2RollupCreator;
+    } catch {
+      // keep SDK defaults when testnode metadata is unavailable
+    }
+  }
 
   const createRollupConfig = createRollupPrepareDeploymentParamsConfig(
     client,
@@ -183,6 +275,7 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v2.1',
+          rollupCreatorAddressOverride: effectiveRollupCreatorAddressOverride,
         })
       : await createRollup({
           params: {
@@ -194,6 +287,7 @@ export async function createRollupHelper<
           account: deployer,
           parentChainPublicClient: client,
           rollupCreatorVersion: 'v3.2',
+          rollupCreatorAddressOverride: effectiveRollupCreatorAddressOverride,
         });
 
   // create test rollup with ETH as gas token

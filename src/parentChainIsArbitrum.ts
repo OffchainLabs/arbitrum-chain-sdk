@@ -13,7 +13,9 @@ export function parentChainIsArbitrum(parentChainId: ParentChainId): boolean {
 
     case chains.arbitrumOne.id:
     case chains.arbitrumNova.id:
+    case chains.rhMainnet.id:
     case chains.arbitrumSepolia.id:
+    case chains.rhTestnet.id:
     case chains.nitroTestnodeL2.id:
       return true;
   }

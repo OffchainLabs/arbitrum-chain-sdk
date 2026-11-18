@@ -28,8 +28,8 @@ export type PrepareNodeConfigParams = {
   chainName: string;
   chainConfig: ChainConfig;
   coreContracts: CoreContracts;
-  batchPosterPrivateKey: string;
-  validatorPrivateKey: string;
+  batchPosterPrivateKey?: string;
+  validatorPrivateKey?: string;
   stakeToken: string;
   parentChainId: ParentChainId;
   parentChainIsArbitrum?: boolean;
@@ -118,18 +118,22 @@ export function prepareNodeConfig({
         'finalize-distance': 1,
       },
       'batch-poster': {
-        'max-size': 90000,
-        'enable': true,
-        'parent-chain-wallet': {
-          'private-key': sanitizePrivateKey(batchPosterPrivateKey),
-        },
+        'max-calldata-batch-size': 90000,
+        'enable': batchPosterPrivateKey !== undefined,
+        ...(batchPosterPrivateKey !== undefined && {
+          'parent-chain-wallet': {
+            'private-key': sanitizePrivateKey(batchPosterPrivateKey),
+          },
+        }),
       },
       'staker': {
-        'enable': true,
-        'strategy': 'MakeNodes',
-        'parent-chain-wallet': {
-          'private-key': sanitizePrivateKey(validatorPrivateKey),
-        },
+        enable: validatorPrivateKey !== undefined,
+        strategy: 'MakeNodes',
+        ...(validatorPrivateKey !== undefined && {
+          'parent-chain-wallet': {
+            'private-key': sanitizePrivateKey(validatorPrivateKey),
+          },
+        }),
       },
       'dangerous': {
         'no-sequencer-coordinator': true,
@@ -158,25 +162,25 @@ export function prepareNodeConfig({
   const dasServerUrlWithFallback = dasServerUrl ?? 'http://localhost';
 
   if (chainConfig.arbitrum.DataAvailabilityCommittee) {
-    config.node!['data-availability'] = {
-      'enable': true,
-      'sequencer-inbox-address': coreContracts.sequencerInbox,
-      'parent-chain-node-url': parentChainRpcUrl,
-      'rest-aggregator': {
-        enable: true,
-        urls: [`${dasServerUrlWithFallback}:9877`],
-      },
-      'rpc-aggregator': {
+    config.node!['da'] = {
+      anytrust: {
         'enable': true,
-        'assumed-honest': 1,
-        'backends': stringifyBackendsJson([
-          {
-            url: `${dasServerUrlWithFallback}:9876`,
-            pubkey:
-              'YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
-            signermask: 1,
-          },
-        ]),
+        'rest-aggregator': {
+          enable: true,
+          urls: [`${dasServerUrlWithFallback}:9877`],
+        },
+        'rpc-aggregator': {
+          'enable': true,
+          'assumed-honest': 1,
+          'backends': stringifyBackendsJson([
+            {
+              url: `${dasServerUrlWithFallback}:9876`,
+              pubkey:
+                'YAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
+              signermask: 1,
+            },
+          ]),
+        },
       },
     };
   }

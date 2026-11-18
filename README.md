@@ -4,11 +4,128 @@ TypeScript SDK for [building Arbitrum chains](https://docs.arbitrum.io/launch-ar
 
 ## Installation
 
-Make sure you are using Node.js v18 or greater.
+Make sure you are using Node.js v24.22.1 or greater.
 
 ```bash
 pnpm add @arbitrum/chain-sdk viem@^1.20.0
 ```
+
+### Custom genesis generation
+
+Genesis generation is intentionally not exposed as an SDK function: there is no `generateGenesis` export in `@arbitrum/chain-sdk`. The `generateGenesis` CLI command requires the external `genesis-generator` binary and `@arbitrum/genesis-file-generator`, which are bundled only in the Docker image and are not included in the SDK's npm package. Run this command using the Docker image.
+
+See the [custom genesis example](./examples/generate-genesis) to generate a genesis file with a custom allocation and save its block hash and send root.
+
+## CLI
+
+The SDK ships a CLI that exposes its functions, workflows, and contract calls as subcommands. Each command takes a single JSON argument and prints a JSON result. Useful from shell scripts, CI, or any non-TypeScript caller.
+
+### Install
+
+Install it globally from npm to put `arbitrum-chain-sdk` on your PATH:
+
+```bash
+npm i -g @arbitrum/chain-sdk
+arbitrum-chain-sdk <command> '<json>'
+```
+
+Or run it without installing (append `@<version>` to pin a release):
+
+```bash
+npx @arbitrum/chain-sdk <command> '<json>'
+```
+
+Or pull the Docker image for a pinned, reproducible environment:
+
+```bash
+docker pull offchainlabs/arbitrum-chain-sdk:latest
+docker run --rm offchainlabs/arbitrum-chain-sdk:latest <command> '<json>'
+```
+
+The examples below use the installed `arbitrum-chain-sdk` command. Under Docker, replace `arbitrum-chain-sdk` with `docker run --rm offchainlabs/arbitrum-chain-sdk:latest`.
+
+### Usage
+
+```
+arbitrum-chain-sdk <command> '<json>' [-o <path>]
+arbitrum-chain-sdk <command> --schema   [-o <path>]
+```
+
+The JSON argument can be supplied three ways:
+
+- As a literal: `arbitrum-chain-sdk getValidators '{"rpcUrl":"...","chainId":42161,"rollup":"0x..."}'`
+- From a file: `arbitrum-chain-sdk getValidators @input.json`
+- From stdin: `cat input.json | arbitrum-chain-sdk getValidators -`
+
+JSON with comments and trailing commas (JSONC) is accepted.
+
+Under Docker the file and stdin forms need extra flags: mount the working directory (`-v "$(pwd):/work" -w /work`) for `@file`, and add `-i` for stdin.
+
+Flags:
+
+- `-o <path>` — write the result to a file instead of stdout.
+- `--schema` — print the input JSON Schema for the command and exit.
+
+### Discovering commands
+
+Run the CLI with no command to print the full command list:
+
+```bash
+arbitrum-chain-sdk
+```
+
+Commands fall into three groups:
+
+- **SDK functions** — direct wrappers around SDK exports (`getValidators`, `createRollup`, …).
+- **Workflows** — multi-step orchestrations (`deployParentChainContracts`, `deployNewChain`, `deployFullChain`, `transferOwnership`, `initializeTokenBridge`).
+- **Contract calls** — generic read/write/encode against a contract ABI (`ArbOwner`, `Rollup@v3.2`, `Inbox`, …). Versioned entries sit alongside an unversioned alias pointing at the current default.
+
+To see the input shape for a command:
+
+```bash
+arbitrum-chain-sdk <command> --schema
+```
+
+### Output
+
+- **stdout** — the JSON result. `BigInt` values are serialized as decimal strings.
+- **stderr** — SDK progress logs, validation errors, and stack traces.
+- **Exit code** — `0` on success, `1` on any parse, validation, or runtime error.
+
+### Example
+
+Build a Nitro `chainConfig` for a new Arbitrum chain. This is the first call in the deploy-a-new-chain flow — given a chain ID and the chain's initial owner, the SDK fills in the full config:
+
+```bash
+arbitrum-chain-sdk prepareChainConfig '{
+  "chainId": 12345,
+  "arbitrum": {
+    "InitialChainOwner": "0x0000000000000000000000000000000000000001"
+  }
+}'
+```
+
+## Limit SDK event searches
+
+The TypeScript SDK functions `createRollupFetchTransactionHash`, `createRollupFetchCoreContracts`, `isAnyTrust`, `getBatchPosters`, `getValidators`, `getKeysets`, `upgradeExecutorFetchPrivilegedAccounts`, and `prepareArbitrumNetwork` accept optional inclusive `fromBlock` and `toBlock` bounds as `bigint`. CLI event-query commands accept the bounds as decimal strings; use `<command> --schema` to see accepted inputs.
+
+```ts
+const { validators } = await getValidators(client, {
+  rollup,
+  fromBlock: deploymentBlock,
+  toBlock: snapshotBlock,
+});
+```
+
+Include the original deployment or initial account/keyset setup in the range when reconstructing state. Without bounds, each function uses its default starting block and queries through the latest block. For deployment lookups and network preparation, the bounds limit event discovery; other contract reads still use the current head.
+
+`createTokenBridge`, `createTokenBridgePrepareSetWethGatewayTransactionRequest`, and the `initializeTokenBridge` CLI workflow also accept the bounds for rollup deployment discovery when configuring the WETH gateway. For these functions and `createRollupFetchCoreContracts`, `rollupDeploymentBlockNumber` takes precedence over `fromBlock` as the lower bound.
+
+## Development
+
+Use Node.js 24.22.1 (`nvm use`) and pnpm 11.26.0, as pinned in `.nvmrc` and `package.json`. Install dependencies with `pnpm install --frozen-lockfile`.
+
+Some unit tests read live public chains using the fallback RPCs in `src/testRpcTransport.ts`, with a five-second timeout per RPC request and one retry for transient failures. The test transport does not split log queries or interpret provider range-limit errors. Ethereum Sepolia tests use Sentio, Tenderly, and Thirdweb to query the historical deployments in their fixtures.
 
 ## Run integration tests
 
@@ -23,6 +140,19 @@ Then, run the integration tests:
 ```bash
 pnpm test:integration
 ```
+
+## Publishing to npm
+
+Manually update the `version` in `src/package.json` and commit the change. Then create and push a matching version tag from that commit:
+
+```shell
+git tag v0.28.0
+git push origin v0.28.0
+```
+
+The `publish-npm.yml` workflow checks that the tag matches `src/package.json`, builds the SDK, and stages the package on npm. Stable tags such as `v0.28.0` use the `latest` npm dist-tag. Prerelease tags must use `vX.Y.Z-alpha.N`, `vX.Y.Z-beta.N`, or `vX.Y.Z-rc.N` and use the corresponding `alpha`, `beta`, or `rc` npm dist-tag.
+
+CI does not modify the package version or create or push commits or tags.
 
 ## Examples
 

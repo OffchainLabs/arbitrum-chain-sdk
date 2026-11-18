@@ -8,11 +8,13 @@ export function parentChainIsMainnet(parentChainId: ParentChainId): boolean {
     case chains.arbitrumOne.id:
     case chains.arbitrumNova.id:
     case chains.base.id:
+    case chains.rhMainnet.id:
       return true;
 
     case chains.sepolia.id:
     case chains.arbitrumSepolia.id:
     case chains.baseSepolia.id:
+    case chains.rhTestnet.id:
     case chains.nitroTestnodeL1.id:
     case chains.nitroTestnodeL2.id:
       return false;

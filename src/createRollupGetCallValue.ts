@@ -11,6 +11,7 @@ export async function createRollupGetCallValue<TChain extends Chain | undefined>
     account: Address;
     nativeToken: Address;
     deployFactoriesToL2: boolean;
+    rollupCreatorAddressOverride?: Address;
   },
   rollupCreatorVersion: RollupCreatorSupportedVersion = 'v3.2',
 ): Promise<bigint> {

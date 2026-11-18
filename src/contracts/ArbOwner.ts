@@ -2,9 +2,6 @@
 // ArbOwner
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x0000000000000000000000000000000000000070)
- */
 export const arbOwnerABI = [
   {
     type: 'event',
@@ -203,12 +200,6 @@ export const arbOwnerABI = [
   },
 ] as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x0000000000000000000000000000000000000070)
- */
-export const arbOwnerAddress = '0x0000000000000000000000000000000000000070';
+export const arbOwnerAddress = '0x0000000000000000000000000000000000000070' as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x0000000000000000000000000000000000000070)
- */
 export const arbOwnerConfig = { address: arbOwnerAddress, abi: arbOwnerABI } as const;

@@ -2,9 +2,6 @@
 // ArbOwnerPublic
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006b)
- */
 export const arbOwnerPublicABI = [
   {
     stateMutability: 'nonpayable',
@@ -290,14 +287,8 @@ export const arbOwnerPublicABI = [
   },
 ] as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006b)
- */
-export const arbOwnerPublicAddress = '0x000000000000000000000000000000000000006b';
+export const arbOwnerPublicAddress = '0x000000000000000000000000000000000000006b' as const;
 
-/**
- * [__View Contract on Arbitrum Sepolia Blockscout__](https://sepolia-explorer.arbitrum.io/address/0x000000000000000000000000000000000000006b)
- */
 export const arbOwnerPublicConfig = {
   address: arbOwnerPublicAddress,
   abi: arbOwnerPublicABI,
