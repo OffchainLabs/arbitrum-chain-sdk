@@ -113,8 +113,7 @@ jobs:
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.1-nc3.2-l3-custom-18
-            nitro-image: offchainlabs/nitro-node:v3.12.2-5f02f3f
+            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.3-nc3.2-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
@@ -122,8 +121,7 @@ jobs:
             initial-validators: 2
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.1-nc3.2-l3-custom-6
-            nitro-image: offchainlabs/nitro-node:v3.12.2-5f02f3f
+            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.3-nc3.2-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
@@ -158,26 +156,13 @@ jobs:
       - name: Set up the local node
         env:
           IMAGE: ${{ matrix.config.image }}
-          NITRO_IMAGE: ${{ matrix.config.nitro-image }}
           CONTAINER: ${{ matrix.config.container }}
           VARIANT: ${{ matrix.config.variant }}
         run: |
           date +%s%N > "$RUNNER_TEMP/testnode-t0"
           cat > "$RUNNER_TEMP/start-testnode.sh" <<'EOF'
           set -e
-          image="$IMAGE"
-          docker pull -q "$image"
-          if [ -n "$NITRO_IMAGE" ]; then
-            # Swap the image's bundled Nitro for NITRO_IMAGE, using litro's own rebase recipe.
-            curl -sfL -o "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
-              https://raw.githubusercontent.com/OffchainLabs/arbitrum-litro/v0.6.1/docker/testnode-rebase.Dockerfile
-            docker build -q \
-              -f "$RUNNER_TEMP/testnode-rebase.Dockerfile" \
-              --build-arg TESTNODE_IMAGE="$image" \
-              --build-arg NITRO_IMAGE="$NITRO_IMAGE" \
-              -t local/testnode-rebased "$RUNNER_TEMP"
-            image=local/testnode-rebased
-          fi
+          docker pull -q "$IMAGE"
           echo "image ready $(( ($(date +%s%N) - $(cat "$RUNNER_TEMP/testnode-t0")) / 1000000 ))ms after the start step"
           docker run -d \
             --name "$CONTAINER" \
@@ -188,7 +173,7 @@ jobs:
             -p 127.0.0.1:3347:8549 \
             -p 127.0.0.1:3348:8550 \
             -p 127.0.0.1:8080:8080 \
-            "$image"
+            "$IMAGE"
           EOF
           (
             if bash "$RUNNER_TEMP/start-testnode.sh" > "$RUNNER_TEMP/testnode-start.log" 2>&1; then
