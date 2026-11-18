@@ -3,6 +3,7 @@ import {
   Address,
   Hex,
   PublicActions,
+  TransactionReceipt,
   WalletClient,
   encodeDeployData,
   encodeFunctionData,
@@ -15,6 +16,10 @@ export type DeployArtifact = { abi: unknown; bytecode: string };
 export type DeployClient = WalletClient & PublicActions;
 
 export type DeployContext = { client: DeployClient; label: string };
+
+// A wave's transactions all reach the mempool before the first is mined, so each receipt should
+// arrive within a few blocks. Without a timeout a dropped transaction hangs the deploy forever.
+const waveReceiptTimeoutMs = 300_000;
 
 export async function deployContractChecked(
   ctx: DeployContext,
@@ -113,8 +118,27 @@ export async function sendWave<TKey extends string>(
     nonce += 1;
   }
 
-  const receipts = await Promise.all(
-    sent.map((tx) => ctx.client.waitForTransactionReceipt({ hash: tx.transactionHash })),
+  const settled = await Promise.allSettled(
+    sent.map((tx) =>
+      ctx.client.waitForTransactionReceipt({
+        hash: tx.transactionHash,
+        timeout: waveReceiptTimeoutMs,
+      }),
+    ),
+  );
+  const missing = sent.filter((_, i) => settled[i].status === 'rejected');
+  if (missing.length > 0) {
+    const minedNonce = await ctx.client.getTransactionCount({ address: account.address });
+    throw new Error(
+      `${ctx.label}: no receipt after ${waveReceiptTimeoutMs}ms for ${missing
+        .map((tx) => `${tx.name} (${tx.transactionHash})`)
+        .join(', ')}; ${account.address} mined nonce ${minedNonce}, wave nonces ${
+        nonce - sent.length
+      }-${nonce - 1}`,
+    );
+  }
+  const receipts = settled.map(
+    (result) => (result as PromiseFulfilledResult<TransactionReceipt>).value,
   );
   const failures = sent.flatMap((tx, i) => {
     const receipt = receipts[i];
