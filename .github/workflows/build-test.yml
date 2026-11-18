@@ -202,11 +202,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Set up pnpm and Node.js
-        uses: pnpm/setup@v1
+      # pnpm/setup spends ~6s installing pnpm and ~2.5s fetching Node before restoring its store and
+      # installing; this restores the installed node_modules directly instead.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          runtime: node@24
-          cache: true
+          node-version: 24
+
+      - name: Set up pnpm
+        run: corepack enable pnpm
+
+      - name: Restore node_modules
+        id: node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            src/node_modules
+            examples/*/node_modules
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml') }}
+
+      - name: Install dependencies
+        if: steps.node-modules.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
 
       - name: Wait for the local node
         run: |
