@@ -160,6 +160,35 @@ export async function sendWave<TKey extends string>(
   const missing = sent.filter((_, i) => settled[i].status === 'rejected');
   if (missing.length > 0) {
     const minedNonce = await ctx.client.getTransactionCount({ address: account.address });
+    // TEMP diagnostics for the litro v0.6.0 stuck-transaction investigation
+    const describe = (value: unknown) =>
+      JSON.stringify(value, (_, v) => (typeof v === 'bigint' ? v.toString() : v));
+    const probe = async (label: string, fn: () => Promise<unknown>) => {
+      try {
+        console.error(`[sendWave] ${label}: ${describe(await fn())}`);
+      } catch (error) {
+        console.error(`[sendWave] ${label} failed: ${(error as Error).message.split('\n')[0]}`);
+      }
+    };
+    for (const [i, tx] of sent.entries()) {
+      if (settled[i].status === 'rejected') {
+        console.error(
+          `[sendWave] wait for ${tx.name} rejected: ${
+            String((settled[i] as PromiseRejectedResult).reason).split('\n')[0]
+          }`,
+        );
+        await probe(`getTransaction ${tx.name}`, () =>
+          ctx.client.getTransaction({ hash: tx.transactionHash }),
+        );
+      }
+    }
+    await probe('balance', () => ctx.client.getBalance({ address: account.address }));
+    await probe('latest block', async () => {
+      const { number, gasUsed, gasLimit, baseFeePerGas, transactions } =
+        await ctx.client.getBlock();
+      return { number, gasUsed, gasLimit, baseFeePerGas, transactions: transactions.length };
+    });
+    await probe('txpool_inspect', () => ctx.client.request({ method: 'txpool_inspect' } as never));
     throw new Error(
       `${ctx.label}: no receipt after ${waveReceiptTimeoutMs}ms for ${missing
         .map((tx) => `${tx.name} (${tx.transactionHash})`)
