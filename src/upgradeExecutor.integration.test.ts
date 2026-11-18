@@ -64,12 +64,16 @@ describe('upgradeExecutor role management', () => {
     });
 
     // wait for transaction receipt
-    await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: addExecutorTransactionHash });
+    const addExecutorReceipt = await nitroTestnodeL1Client.waitForTransactionReceipt({
+      hash: addExecutorTransactionHash,
+    });
 
     // verify that the account has been added to the list of privileged accounts
+    // (toBlock from the receipt: the client's cached block number can predate it)
     const privilegedAccountsAfterAdding = await upgradeExecutorFetchPrivilegedAccounts({
       upgradeExecutorAddress: upgradeExecutor,
       publicClient: nitroTestnodeL1Client,
+      toBlock: addExecutorReceipt.blockNumber,
     });
     expect(privilegedAccountsAfterAdding).toHaveProperty(randomAccount.address);
     expect(privilegedAccountsAfterAdding[randomAccount.address]).toEqual([
@@ -91,12 +95,15 @@ describe('upgradeExecutor role management', () => {
     });
 
     // wait for transaction receipt
-    await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: removeExecutorTransactionHash });
+    const removeExecutorReceipt = await nitroTestnodeL1Client.waitForTransactionReceipt({
+      hash: removeExecutorTransactionHash,
+    });
 
     // verify that the account has been removed from the list of privileged accounts
     const privilegedAccountsAfterRemoving = await upgradeExecutorFetchPrivilegedAccounts({
       upgradeExecutorAddress: upgradeExecutor,
       publicClient: nitroTestnodeL1Client,
+      toBlock: removeExecutorReceipt.blockNumber,
     });
     expect(privilegedAccountsAfterRemoving).to.not.have.property(randomAccount.address);
   });
