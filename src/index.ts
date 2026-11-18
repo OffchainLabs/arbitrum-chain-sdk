@@ -87,6 +87,11 @@ import {
   rollupAdminLogicPrepareFunctionData,
   RollupAdminLogicPrepareFunctionDataParameters,
 } from './rollupAdminLogicPrepareTransactionRequest';
+import {
+  edgeChallengeManagerPrepareFunctionData,
+  EdgeChallengeManagerPrepareFunctionDataParameters,
+} from './edgeChallengeManagerPrepareTransactionRequest';
+import { edgeChallengeManagerActions } from './decorators/edgeChallengeManagerActions';
 import { rollupAdminLogicPublicActions } from './decorators/rollupAdminLogicPublicActions';
 
 import { ChainConfig, ChainConfigArbitrumParams } from './types/ChainConfig';
@@ -255,6 +260,10 @@ export {
   rollupAdminLogicPublicActions,
   rollupAdminLogicPrepareFunctionData,
   RollupAdminLogicPrepareFunctionDataParameters,
+  //
+  edgeChallengeManagerActions,
+  edgeChallengeManagerPrepareFunctionData,
+  EdgeChallengeManagerPrepareFunctionDataParameters,
   //
   createRollupEncodeFunctionData,
   //
