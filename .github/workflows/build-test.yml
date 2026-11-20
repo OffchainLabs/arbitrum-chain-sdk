@@ -102,61 +102,6 @@ jobs:
       - name: Test
         run: pnpm test:unit
 
-  test-integration:
-    name: Test (Integration) - ${{ matrix.config.name }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        config:
-          - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            nitro-contracts-branch: v3.2.0
-            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
-            decimals: 18
-
-          - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            nitro-contracts-branch: v3.2.0
-            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
-            decimals: 6
-
-          - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            nitro-contracts-branch: v2.1.3
-            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token
-            decimals: 18
-
-          - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            nitro-contracts-branch: v2.1.3
-            args: --tokenbridge --l3node --l3-token-bridge --l3-fee-token --l3-fee-token-decimals 6
-            decimals: 6
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up pnpm and Node.js
-        uses: pnpm/setup@v1
-        with:
-          runtime: node@24
-          cache: true
-
-      - name: Set up the local node
-        uses: OffchainLabs/actions/run-nitro-test-node@feat-simplify
-        with:
-          nitro-testnode-ref: release
-          nitro-contracts-branch: ${{ matrix.config.nitro-contracts-branch }}
-          args: ${{ matrix.config.args }}
-
-      - name: Copy .env
-        run: cp ./.env.example ./.env
-
-      - name: Build
-        run: pnpm build
-
-      - name: Test
-        run: |
-          INTEGRATION_TEST_DECIMALS=${{matrix.config.decimals}} \
-          INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{matrix.config.nitro-contracts-branch}} \
-          pnpm test:integration
-
   test-integration-arbitrum-testnode:
     name: Test (Integration) - Arbitrum Testnode - ${{ matrix.config.name }}
     runs-on: ubuntu-latest
@@ -164,46 +109,42 @@ jobs:
       contents: read
       packages: read
     strategy:
+      fail-fast: false
       matrix:
         config:
           - name: Nitro contracts v3.2 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc3.2-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.9-nc3.2-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v3-2-l3-custom-18
             nitro-contracts-version: v3.2
             decimals: 18
+            initial-validators: 2
 
           - name: Nitro contracts v3.2 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc3.2-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.9-nc3.2-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v3-2-l3-custom-6
             nitro-contracts-version: v3.2
             decimals: 6
+            initial-validators: 2
 
           - name: Nitro contracts v2.1 - Custom gas token with 18 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-18
+            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.9-nc2.1-l3-custom-18
             variant: l3-custom-18
             container: arbitrum-testnode-v2-1-l3-custom-18
             nitro-contracts-version: v2.1
             decimals: 18
+            initial-validators: 2
 
           - name: Nitro contracts v2.1 - Custom gas token with 6 decimals
-            image: ghcr.io/offchainlabs/arbitrum-testnode-ci:v0.2.10-nc2.1-l3-custom-6
+            image: ghcr.io/offchainlabs/arbitrum-litro:v0.6.9-nc2.1-l3-custom-6
             variant: l3-custom-6
             container: arbitrum-testnode-v2-1-l3-custom-6
             nitro-contracts-version: v2.1
             decimals: 6
+            initial-validators: 2
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Set up pnpm and Node.js
-        uses: pnpm/setup@v1
-        with:
-          runtime: node@24
-          cache: true
-
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v4
         with:
@@ -211,55 +152,93 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build token bridge contracts image
-        uses: docker/build-push-action@v7
-        with:
-          context: token-bridge-contracts
-          load: true
-          tags: arbitrum-chain-sdk-token-bridge-contracts:v1.2.5
-          cache-from: type=gha,scope=token-bridge-contracts-v1.2.5
-          cache-to: type=gha,mode=max,scope=token-bridge-contracts-v1.2.5
-
+      # Pull and boot the testnode in the background so it overlaps checkout and dependency setup.
       - name: Set up the local node
+        env:
+          IMAGE: ${{ matrix.config.image }}
+          CONTAINER: ${{ matrix.config.container }}
+          VARIANT: ${{ matrix.config.variant }}
         run: |
-          docker pull "${{ matrix.config.image }}"
+          date +%s%N > "$RUNNER_TEMP/testnode-t0"
+          cat > "$RUNNER_TEMP/start-testnode.sh" <<'EOF'
+          set -e
+          docker pull -q "$IMAGE"
+          echo "image ready $(( ($(date +%s%N) - $(cat "$RUNNER_TEMP/testnode-t0")) / 1000000 ))ms after the start step"
           docker run -d \
-            --name "${{ matrix.config.container }}" \
-            --platform linux/amd64 \
-            -e TESTNODE_VARIANT="${{ matrix.config.variant }}" \
+            --name "$CONTAINER" \
+            -e TESTNODE_VARIANT="$VARIANT" \
+            -e TESTNODE_L1_BLOCK_TIME=0.25 \
             -p 127.0.0.1:8545:8545 \
             -p 127.0.0.1:8547:8547 \
             -p 127.0.0.1:8548:8548 \
             -p 127.0.0.1:3347:8549 \
             -p 127.0.0.1:3348:8550 \
             -p 127.0.0.1:8080:8080 \
-            "${{ matrix.config.image }}"
+            "$IMAGE"
+          EOF
+          (
+            if bash "$RUNNER_TEMP/start-testnode.sh" > "$RUNNER_TEMP/testnode-start.log" 2>&1; then
+              echo 0 > "$RUNNER_TEMP/testnode-start.rc"
+            else
+              echo 1 > "$RUNNER_TEMP/testnode-start.rc"
+            fi
+          ) < /dev/null > /dev/null 2>&1 &
 
-          deadline=$((SECONDS + 120))
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # pnpm/setup spends ~6s installing pnpm and ~2.5s fetching Node before restoring its store and
+      # installing; this restores the installed node_modules directly instead.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up pnpm
+        run: corepack enable pnpm
+
+      - name: Restore node_modules
+        id: node-modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            src/node_modules
+            examples/*/node_modules
+          key: node-modules-${{ runner.os }}-${{ runner.arch }}-node24-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml') }}
+
+      - name: Install dependencies
+        if: steps.node-modules.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Wait for the local node
+        run: |
+          deadline=$((SECONDS + 180))
           until curl -sf http://127.0.0.1:8080/health >/dev/null; do
-            if (( SECONDS >= deadline )); then
+            if [ "$(cat "$RUNNER_TEMP/testnode-start.rc" 2>/dev/null)" = 1 ] || (( SECONDS >= deadline )); then
+              cat "$RUNNER_TEMP/testnode-start.log" >&2
               docker logs "${{ matrix.config.container }}" >&2 || true
-              echo "arbitrum-testnode did not become healthy within 120s" >&2
+              echo "arbitrum-testnode did not become healthy" >&2
               exit 1
             fi
-            sleep 1
+            sleep 0.2
           done
+          cat "$RUNNER_TEMP/testnode-start.log"
+          echo "healthy $(( ($(date +%s%N) - $(cat "$RUNNER_TEMP/testnode-t0")) / 1000000 ))ms after the start step"
 
       - name: Copy .env
         run: cp ./.env.example ./.env
-
-      - name: Build
-        run: pnpm build
 
       - name: Test
         run: |
           ARBITRUM_TESTNODE_CONTAINER=${{ matrix.config.container }} \
           INTEGRATION_TEST_DECIMALS=${{ matrix.config.decimals }} \
+          INTEGRATION_TEST_INITIAL_VALIDATORS=${{ matrix.config.initial-validators }} \
           INTEGRATION_TEST_NITRO_CONTRACTS_BRANCH=${{ matrix.config.nitro-contracts-version }} \
           NITRO_TESTNODE_L3_TOKEN_BRIDGE_DEPLOYER_PRIVATE_KEY=0x84f89f9afcf4cd87bbf0a8872a1abd8ddf69364da61a2c2a5286d999383cd2c9 \
-          TOKEN_BRIDGE_CONTRACTS_SKIP_BUILD=true \
           CI=true \
           pnpm test:integration
+
+      - name: Testnode logs
+        if: failure()
+        run: docker logs --tail 500 "${{ matrix.config.container }}"

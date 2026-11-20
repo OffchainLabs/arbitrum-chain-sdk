@@ -1,9 +1,0 @@
-FROM node:24-bookworm-slim
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends ca-certificates git docker.io python3 chromium build-essential && \
-    rm -rf /var/lib/apt/lists/*
-WORKDIR /workspace
-RUN git clone -b v1.2.5 https://github.com/OffchainLabs/token-bridge-contracts.git ./
-RUN yarn install
-RUN yarn build
-ENTRYPOINT ["yarn"]

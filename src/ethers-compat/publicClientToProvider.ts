@@ -20,5 +20,8 @@ export function publicClientToProvider<TChain extends Chain | undefined>(
   const transportUrl = publicClient.transport.url as string | undefined;
   const url = transportUrl ?? chain.rpcUrls.default.http[0];
 
-  return new providers.StaticJsonRpcProvider(url, network);
+  const provider = new providers.StaticJsonRpcProvider(url, network);
+  // poll as often as the viem client does (both default to 4s)
+  provider.pollingInterval = publicClient.pollingInterval;
+  return provider;
 }

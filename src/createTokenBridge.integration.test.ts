@@ -9,7 +9,11 @@ import {
 } from 'viem';
 
 import { nitroTestnodeL1, nitroTestnodeL2, nitroTestnodeL3 } from './chains';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  testnodePollingInterval,
+} from './testHelpers';
 import { createTokenBridgePrepareTransactionRequest } from './createTokenBridgePrepareTransactionRequest';
 import { createTokenBridgePrepareTransactionReceipt } from './createTokenBridgePrepareTransactionReceipt';
 import { deployTokenBridgeCreator } from './deployTokenBridgeCreator';
@@ -32,27 +36,32 @@ const l3TokenBridgeDeployer = testnodeAccounts.l3TokenBridgeDeployer;
 const nitroTestnodeL1Client = createPublicClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  pollingInterval: testnodePollingInterval,
 });
 
 const nitroTestnodeL2Client = createPublicClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
+  pollingInterval: testnodePollingInterval,
 });
 
 const nitroTestnodeL3Client = createPublicClient({
   chain: nitroTestnodeL3,
   transport: http(nitroTestnodeL3.rpcUrls.default.http[0]),
+  pollingInterval: testnodePollingInterval,
 });
 
 const nitroTestnodeL1WalletClient = createWalletClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
   account: testnodeAccounts.deployer,
+  pollingInterval: testnodePollingInterval,
 });
 const nitroTestnodeL2WalletClient = createWalletClient({
   chain: nitroTestnodeL2,
   transport: http(nitroTestnodeL2.rpcUrls.default.http[0]),
   account: testnodeAccounts.deployer,
+  pollingInterval: testnodePollingInterval,
 });
 
 // WETH wired into the token bridge creator's WETH gateway (the testnode's canonical WETH); it is

@@ -175,11 +175,13 @@ describe('keyset management', () => {
     const transactionHash = await client.sendRawTransaction({
       serializedTransaction: await l3TokenBridgeDeployer.signTransaction(transactionRequest),
     });
-    await client.waitForTransactionReceipt({ hash: transactionHash });
+    const { blockNumber } = await client.waitForTransactionReceipt({ hash: transactionHash });
     const logs = await client.getContractEvents({
       address: sequencerInbox,
       abi: sequencerInboxABI,
       eventName: 'SetValidKeyset',
+      fromBlock: blockNumber,
+      toBlock: blockNumber,
     });
 
     const keysetHash = logs.find((log) => log.args.keysetBytes === keyset)?.args.keysetHash;

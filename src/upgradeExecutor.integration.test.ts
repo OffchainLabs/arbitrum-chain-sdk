@@ -2,7 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { createPublicClient, http, PublicClient } from 'viem';
 
 import { nitroTestnodeL1 } from './chains';
-import { getInformationFromTestnode, getNitroTestnodePrivateKeyAccounts } from './testHelpers';
+import {
+  getInformationFromTestnode,
+  getNitroTestnodePrivateKeyAccounts,
+  testnodePollingInterval,
+} from './testHelpers';
 import { upgradeExecutorPrepareAddExecutorTransactionRequest } from './upgradeExecutorPrepareAddExecutorTransactionRequest';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
 import { createRollupFetchTransactionHash } from './createRollupFetchTransactionHash';
@@ -21,6 +25,7 @@ const l2RollupOwner = testnodeAccounts.l2RollupOwner;
 const nitroTestnodeL1Client = createPublicClient({
   chain: nitroTestnodeL1,
   transport: http(nitroTestnodeL1.rpcUrls.default.http[0]),
+  pollingInterval: testnodePollingInterval,
 });
 
 async function getUpgradeExecutorOfRollup(rollup: `0x${string}`, publicClient: PublicClient) {
@@ -59,12 +64,16 @@ describe('upgradeExecutor role management', () => {
     });
 
     // wait for transaction receipt
-    await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: addExecutorTransactionHash });
+    const addExecutorReceipt = await nitroTestnodeL1Client.waitForTransactionReceipt({
+      hash: addExecutorTransactionHash,
+    });
 
     // verify that the account has been added to the list of privileged accounts
+    // (toBlock from the receipt: the client's cached block number can predate it)
     const privilegedAccountsAfterAdding = await upgradeExecutorFetchPrivilegedAccounts({
       upgradeExecutorAddress: upgradeExecutor,
       publicClient: nitroTestnodeL1Client,
+      toBlock: addExecutorReceipt.blockNumber,
     });
     expect(privilegedAccountsAfterAdding).toHaveProperty(randomAccount.address);
     expect(privilegedAccountsAfterAdding[randomAccount.address]).toEqual([
@@ -86,12 +95,15 @@ describe('upgradeExecutor role management', () => {
     });
 
     // wait for transaction receipt
-    await nitroTestnodeL1Client.waitForTransactionReceipt({ hash: removeExecutorTransactionHash });
+    const removeExecutorReceipt = await nitroTestnodeL1Client.waitForTransactionReceipt({
+      hash: removeExecutorTransactionHash,
+    });
 
     // verify that the account has been removed from the list of privileged accounts
     const privilegedAccountsAfterRemoving = await upgradeExecutorFetchPrivilegedAccounts({
       upgradeExecutorAddress: upgradeExecutor,
       publicClient: nitroTestnodeL1Client,
+      toBlock: removeExecutorReceipt.blockNumber,
     });
     expect(privilegedAccountsAfterRemoving).to.not.have.property(randomAccount.address);
   });
